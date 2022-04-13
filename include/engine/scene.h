@@ -16,8 +16,9 @@ namespace gpr5300
 
     };
 
-    class SceneManager
+    class SceneManager : public System
     {
+        public:
 
     };
 
