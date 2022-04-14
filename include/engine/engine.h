@@ -4,6 +4,9 @@
 
 #include <vector>
 
+#include "system.h"
+
+
 namespace gpr5300
 {
 
@@ -29,11 +32,14 @@ namespace gpr5300
         
         void RegisterEventObserver(OnEventInterface* eventInterface);
         void RegisterImGuiDrawInterface(ImguiDrawInterface* imguiDrawInterface);
+        void RegisterSystem(System* system);
     private:
         void Begin();
         void End();
 
         SDL_Window* window_ = nullptr;
+
+        std::vector<System*> systems_;
         std::vector<OnEventInterface*> onEventInterfaces;
         std::vector<ImguiDrawInterface*> imguiDrawInterfaces;
         SDL_GLContext glRenderContext_{};

@@ -39,11 +39,15 @@ void Engine::Begin()
     {
         assert(false && "Failed to initialize OpenGL context");
     }
+
+    for(auto* system: systems_)
+    {
+        system->Begin();
+    }
 }
 
 void Engine::Run()
 {
-
     Begin();
     bool isOpen = true;
     while(isOpen)
@@ -83,7 +87,11 @@ void Engine::Run()
                 eventInterface->OnEvent(event);
             }
         }
-
+        for(auto* system : systems_)
+        {
+            //TODO calculate delta time
+            system->Update(0.0f);
+        }
         SDL_GL_SwapWindow(window_);
     }
     End();
@@ -91,6 +99,11 @@ void Engine::Run()
 
 void Engine::End()
 {
+    for (auto* system : systems_)
+    {
+        system->End();
+    }
+
     SDL_GL_DeleteContext(glRenderContext_);
     SDL_DestroyWindow(window_);
     SDL_Quit();
@@ -104,5 +117,10 @@ void Engine::RegisterEventObserver(OnEventInterface* eventInterface)
 void Engine::RegisterImGuiDrawInterface(ImguiDrawInterface* imguiDrawInterface)
 {
     imguiDrawInterfaces.push_back(imguiDrawInterface);
+}
+
+void Engine::RegisterSystem(System* system)
+{
+    systems_.push_back(system);
 }
 }
