@@ -4,6 +4,11 @@
 #include <GL/glew.h>
 #include <glm/ext/vector_uint2.hpp>
 
+#include <imgui.h>
+#include <imgui_impl_sdl.h>
+#include <imgui_impl_opengl3.h>
+
+
 namespace gpr5300
 {
 void Engine::Begin()
@@ -40,6 +45,22 @@ void Engine::Begin()
         assert(false && "Failed to initialize OpenGL context");
     }
 
+    // Setup Dear ImGui context
+    IMGUI_CHECKVERSION();
+    ImGui::CreateContext();
+    ImGuiIO& io = ImGui::GetIO();
+    (void)io;
+
+    io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;  // Enable Keyboard Controls
+    io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;  // Enable Keyboard Gamepad
+    io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
+    
+    // Setup Dear ImGui style
+    //ImGui::StyleColorsDark();
+    ImGui::StyleColorsClassic();
+    ImGui_ImplSDL2_InitForOpenGL(window_, glRenderContext_);
+    ImGui_ImplOpenGL3_Init("#version 300 es");
+
     for(auto* system: systems_)
     {
         system->Begin();
@@ -52,6 +73,7 @@ void Engine::Run()
     bool isOpen = true;
     while(isOpen)
     {
+        //Manage SDL event
         SDL_Event event;
         while(SDL_PollEvent(&event))
         {
@@ -92,6 +114,19 @@ void Engine::Run()
             //TODO calculate delta time
             system->Update(0.0f);
         }
+
+        //Generate new ImGui frame
+        ImGui_ImplOpenGL3_NewFrame();
+        ImGui_ImplSDL2_NewFrame(window_);
+        ImGui::NewFrame();
+
+        for(auto* imguiDrawInterface : imguiDrawInterfaces)
+        {
+            imguiDrawInterface->DrawImGui();
+        }
+        ImGui::Render();
+        ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+
         SDL_GL_SwapWindow(window_);
     }
     End();
@@ -104,6 +139,9 @@ void Engine::End()
         system->End();
     }
 
+    ImGui_ImplOpenGL3_Shutdown();
+    ImGui_ImplSDL2_Shutdown();
+    ImGui::DestroyContext();
     SDL_GL_DeleteContext(glRenderContext_);
     SDL_DestroyWindow(window_);
     SDL_Quit();

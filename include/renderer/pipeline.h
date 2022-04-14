@@ -19,16 +19,16 @@ struct Shader
     void LoadShader(std::string_view path, ShaderType shaderType);
 
 
-    ShaderType shaderType_ = ShaderType::NONE;
-    GLuint name_ = 0;
+    ShaderType shaderType = ShaderType::NONE;
+    GLuint name = 0;
 };
 
-class Pipeline
+struct Pipeline
 {
-public:
+    GLuint name = 0;
 
-private:
-    
+    void LoadRasterizePipeline(Shader* vertex, Shader* fragment);
+    void LoadComputePipeline(Shader* compute);
 };
 
 }

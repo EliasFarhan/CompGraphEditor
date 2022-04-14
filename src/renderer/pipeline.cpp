@@ -2,7 +2,6 @@
 #include <fmt/format.h>
 
 #include "renderer/pipeline.h"
-
 #include "engine/filesystem.h"
 #include "utils/log.h"
 
@@ -10,7 +9,7 @@ namespace gpr5300
 {
 void Shader::LoadShader(std::string_view path, ShaderType shaderType)
 {
-    shaderType_ = shaderType;
+    this->shaderType = shaderType;
     const auto& filesystem = FilesystemLocator::get();
     GLenum glType = 0;
     switch (shaderType)
@@ -46,7 +45,58 @@ void Shader::LoadShader(std::string_view path, ShaderType shaderType)
             Error(fmt::format("Shader compilation failed with this log:\n{}\nShader Path:\n{}",
                 infoLog, path));
         }
-        name_ = shader;
+        name = shader;
     }
+    else
+    {
+        Error(fmt::format("File not found: {}", path));
+    }
+}
+
+void Pipeline::LoadRasterizePipeline(Shader* vertex, Shader* fragment)
+{
+    const GLuint program = glCreateProgram();
+    glAttachShader(program, vertex->name);
+    glAttachShader(program, fragment->name);
+    
+    glLinkProgram(program);
+    //Check if shader program was linked correctly
+    GLint success;
+    glGetProgramiv(program, GL_LINK_STATUS, &success);
+    if (!success)
+    {
+        constexpr GLsizei infoLogSize = 512;
+        char infoLog[infoLogSize];
+        glGetProgramInfoLog(program, infoLogSize, nullptr, infoLog);
+        Error(fmt::format("Shader program with vertex {} and fragment {}: LINK_FAILED with infoLog:\n{}",
+            vertex->name,
+            fragment->name,
+            infoLog));
+        name = 0;
+    }
+    name = program;
+}
+
+
+void Pipeline::LoadComputePipeline(Shader* compute)
+{
+    const GLuint program = glCreateProgram();
+    glAttachShader(program, compute->name);
+
+    glLinkProgram(program);
+    //Check if shader program was linked correctly
+    GLint success;
+    glGetProgramiv(program, GL_LINK_STATUS, &success);
+    if (!success)
+    {
+        constexpr GLsizei infoLogSize = 512;
+        char infoLog[infoLogSize];
+        glGetProgramInfoLog(program, infoLogSize, nullptr, infoLog);
+        Error(fmt::format("Shader program with compute {}: LINK_FAILED with infoLog:\n{}",
+            compute->name,
+            infoLog));
+        name = 0;
+    }
+    name = program;
 }
 }

@@ -11,8 +11,7 @@ namespace gpr5300
 class BufferFile
 {
 public:
-    BufferFile();
-    BufferFile(std::string_view path);
+    BufferFile() = default;
     ~BufferFile();
     BufferFile(const BufferFile&) = delete;
     BufferFile& operator=(const BufferFile&) = delete;
@@ -20,7 +19,7 @@ public:
     BufferFile& operator=(BufferFile&&) noexcept = default;
 
 
-    unsigned char* data;
+    unsigned char* data = nullptr;
 };
 
 class FilesystemInterface
