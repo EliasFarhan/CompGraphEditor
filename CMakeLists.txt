@@ -14,11 +14,20 @@ find_package(tinyobjloader CONFIG REQUIRED)
 
 add_subdirectory(external/pybind11)
 
+
 file(GLOB_RECURSE COMMON_FILES src/*.cpp include/*.h)
 add_library(Common STATIC ${COMMON_FILES})
 target_include_directories(Common PUBLIC include/ ${STB_INCLUDE_DIRS} ${Python3_INCLUDE_DIRS})
 target_link_libraries(Common PUBLIC GLEW::GLEW glm::glm SDL2::SDL2 SDL2::SDL2main imgui::imgui 
     tinyobjloader::tinyobjloader pybind11::embed ${Python3_LIBRARIES} spdlog::spdlog)
+set_target_properties(Common PROPERTIES UNITY_BUILD ON)
+if(MSVC)
+    target_compile_definitions(Common PUBLIC "_USE_MATH_DEFINES")
+    target_compile_options(Common PUBLIC /arch:AVX2 /Oi /GL /fp:fast)
+    target_link_options(Common PUBLIC /LTCG)
+else()
+
+endif()
 
 file(GLOB MAIN_FOLDERS main/*)
 foreach(MAIN_FOLDER ${MAIN_FOLDERS})
