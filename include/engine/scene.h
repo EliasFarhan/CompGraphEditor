@@ -1,8 +1,10 @@
 #pragma once
 
-#include <vector>
 #include "renderer/pipeline.h"
 #include "engine/system.h"
+#include "renderer/mesh.h"
+
+#include <vector>
 
 namespace gpr5300
 {
@@ -17,6 +19,7 @@ private:
     pb::Scene scene_;
     std::vector<Shader> shaders_;
     std::vector<Pipeline> pipelines_;
+    std::vector<Mesh> meshes_;
     //std::vector<SubPass> subpasses_;
 
 };

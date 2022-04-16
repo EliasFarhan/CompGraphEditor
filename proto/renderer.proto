@@ -43,6 +43,18 @@ message Pipeline
 
 }
 
+message Mesh
+{
+    enum PrimitveType
+    {
+        QUAD = 0;
+        CUBE = 1;
+        SPHERE = 2;
+        NONE = 4;
+    }
+    PrimitveType primitve_type = 1;
+}
+
 message DrawCommand
 {
     enum Mode
@@ -51,8 +63,9 @@ message DrawCommand
     }
     int32 pipeline_index = 1;
     Mode mode = 2;
-    int32 first = 3;
     int32 count = 4;
+    int32 mesh_index = 5;
+    bool draw_elements = 6;
 }
 
 message SubPass
@@ -72,5 +85,5 @@ message Scene
     repeated Shader shaders = 2;
     repeated Pipeline pipelines = 3;
     RenderPass render_pass = 4;
-
+    repeated Mesh meshes = 5;
 }

@@ -1,5 +1,6 @@
 #include "engine/scene.h"
 #include "GL/glew.h"
+#include "renderer/shape_primitive.h"
 
 namespace gpr5300
 {
@@ -8,16 +9,16 @@ void Scene::LoadScene()
 {
     const auto shadersSize = scene_.shaders_size();
     shaders_.resize(shadersSize);
-    for(int i = 0; i < shadersSize; i++)
+    for (int i = 0; i < shadersSize; i++)
     {
-        auto& shaderPb = scene_.shaders(i);
+        auto &shaderPb = scene_.shaders(i);
         shaders_[i].LoadShader(shaderPb);
     }
     const auto pipelinesSize = scene_.pipelines_size();
     pipelines_.resize(pipelinesSize);
-    for(int i = 0; i < pipelinesSize; i++)
+    for (int i = 0; i < pipelinesSize; i++)
     {
-        auto& pipelinePb = scene_.pipelines(i);
+        auto &pipelinePb = scene_.pipelines(i);
         switch (pipelinePb.type())
         {
         case pb::Pipeline_Type_RASTERIZE:
@@ -31,18 +32,40 @@ void Scene::LoadScene()
             break;
         }
     }
+
+    const auto meshesSize = scene_.meshes_size();
+    meshes_.resize(meshesSize);
+    for(int i = 0; i < meshesSize; i++)
+    {
+        const auto& mesh = scene_.meshes(i);
+        switch(mesh.primitve_type())
+        {
+        case pb::Mesh_PrimitveType_QUAD:
+            meshes_[i] = GenerateQuad();
+            break;
+        case pb::Mesh_PrimitveType_CUBE:
+            break;
+        case pb::Mesh_PrimitveType_SPHERE:
+            break;
+        case pb::Mesh_PrimitveType_NONE:
+            break;
+        default:
+            break;
+        }
+    }
 }
 
 void Scene::UnloadScene()
 {
-    for(auto& shader : shaders_)
+    for (auto &shader : shaders_)
     {
         shader.Destroy();
     }
-    for(auto& pipeline: pipelines_)
+    for (auto &pipeline : pipelines_)
     {
         pipeline.Destroy();
     }
+
 }
 
 void Scene::SetScene(const pb::Scene &scene)
@@ -53,9 +76,9 @@ void Scene::SetScene(const pb::Scene &scene)
 void Scene::Update(float dt)
 {
     const auto subPassSize = scene_.render_pass().sub_passes_size();
-    for(int i = 0; i < subPassSize; i++)
+    for (int i = 0; i < subPassSize; i++)
     {
-        const auto& subPass = scene_.render_pass().sub_passes(i);
+        const auto &subPass = scene_.render_pass().sub_passes(i);
         glClearColor(subPass.clear_color().r(),
                      subPass.clear_color().g(),
                      subPass.clear_color().b(),
@@ -63,9 +86,9 @@ void Scene::Update(float dt)
         glClear(GL_COLOR_BUFFER_BIT);
 
         const auto commandSize = subPass.commands_size();
-        for(int j = 0; j < commandSize; j++)
+        for (int j = 0; j < commandSize; j++)
         {
-            const auto& command = subPass.commands(j);
+            const auto &command = subPass.commands(j);
             glUseProgram(pipelines_[command.pipeline_index()].name);
 
             GLenum mode = 0;
@@ -78,7 +101,20 @@ void Scene::Update(float dt)
                 break;
             }
 
-            glDrawArrays(mode, command.first(), command.count());
+            const auto meshIndex = command.mesh_index();
+            if(meshIndex >= 0)
+            {
+                glBindVertexArray(meshes_[meshIndex].vao);
+            }
+
+            if (command.draw_elements())
+            {
+                glDrawElements(mode, command.count(), GL_UNSIGNED_INT, nullptr);
+            }
+            else
+            {
+                glDrawArrays(mode, 0, command.count());
+            }
         }
     }
 }
@@ -90,7 +126,7 @@ void SceneManager::Begin()
 
 void SceneManager::LoadScene(Scene *scene)
 {
-    if(currentScene_)
+    if (currentScene_)
     {
         currentScene_->UnloadScene();
     }
@@ -106,7 +142,7 @@ void SceneManager::End()
 
 void SceneManager::Update(float dt)
 {
-    if(currentScene_ == nullptr)
+    if (currentScene_ == nullptr)
         return;
     currentScene_->Update(dt);
 }

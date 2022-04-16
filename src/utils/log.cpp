@@ -4,17 +4,17 @@
 
 namespace gpr5300
 {
-void LogError(const char* file, int line, std::string_view msg)
+void Error(const char* file, int line, std::string_view msg)
 {
     spdlog::error(fmt::format("{}. File: {}, Line: {}", msg, file, line));
 }
 
-void LogWarning(const char* file, int line, std::string_view msg)
+void Warning(const char* file, int line, std::string_view msg)
 {
     spdlog::warn(fmt::format("{}. File: {}, Line: {}", msg, file, line));
 }
 
-void LogDebug(const char* file, int line, std::string_view msg)
+void Debug(const char* file, int line, std::string_view msg)
 {
     spdlog::info(fmt::format("{}. File: {}, Line: {}", msg, file, line));
 }

@@ -42,15 +42,15 @@ void Shader::LoadShader(const pb::Shader &shader)
             constexpr GLsizei infoLogSize = 512;
             char infoLog[infoLogSize];
             glGetShaderInfoLog(shaderName, infoLogSize, nullptr, infoLog);
-            Error(fmt::format("Shader compilation failed with this log:\n{}\nShader Path:\n{}",
+            LogError(fmt::format("Shader compilation failed with this log:\n{}\nShader Path:\n{}",
                               infoLog, path));
         }
         name = shaderName;
-        Debug(fmt::format("Successfully loaded shader: {} with name: {}", path, name));
+        LogDebug(fmt::format("Successfully loaded shader: {} with name: {}", path, name));
     }
     else
     {
-        Error(fmt::format("File not found: {}", path));
+        LogError(fmt::format("File not found: {}", path));
     }
 }
 
@@ -79,7 +79,7 @@ void Pipeline::LoadRasterizePipeline(const Shader &vertex, const Shader &fragmen
         constexpr GLsizei infoLogSize = 512;
         char infoLog[infoLogSize];
         glGetProgramInfoLog(program, infoLogSize, nullptr, infoLog);
-        Error(fmt::format("Shader program with vertex {} and fragment {}: LINK_FAILED with infoLog:\n{}",
+        LogError(fmt::format("Shader program with vertex {} and fragment {}: LINK_FAILED with infoLog:\n{}",
                           vertex.name,
                           fragment.name,
                           infoLog));
@@ -87,7 +87,7 @@ void Pipeline::LoadRasterizePipeline(const Shader &vertex, const Shader &fragmen
         return;
     }
     name = program;
-    Debug(fmt::format("Successfully loaded program with vertex {} and fragment {}", vertex.name, fragment.name));
+    LogDebug(fmt::format("Successfully loaded program with vertex {} and fragment {}", vertex.name, fragment.name));
 }
 
 void Pipeline::LoadComputePipeline(const Shader &compute)
@@ -104,7 +104,7 @@ void Pipeline::LoadComputePipeline(const Shader &compute)
         constexpr GLsizei infoLogSize = 512;
         char infoLog[infoLogSize];
         glGetProgramInfoLog(program, infoLogSize, nullptr, infoLog);
-        Error(fmt::format("Shader program with compute {}: LINK_FAILED with infoLog:\n{}",
+        LogError(fmt::format("Shader program with compute {}: LINK_FAILED with infoLog:\n{}",
                           compute.name,
                           infoLog));
         name = 0;
