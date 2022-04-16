@@ -2,33 +2,26 @@
 
 #include <string_view>
 #include <GL/glew.h>
+#include "proto/renderer.pb.h"
 
 namespace gpr5300
 {
 
 struct Shader
 {
-    enum class ShaderType
-    {
-        VERTEX,
-        FRAGMENT,
-        COMPUTE,
-        NONE
-    };
 
-    void LoadShader(std::string_view path, ShaderType shaderType);
-
-
-    ShaderType shaderType = ShaderType::NONE;
+    void LoadShader(const pb::Shader& shader);
     GLuint name = 0;
+    void Destroy();
 };
 
 struct Pipeline
 {
     GLuint name = 0;
 
-    void LoadRasterizePipeline(Shader* vertex, Shader* fragment);
-    void LoadComputePipeline(Shader* compute);
+    void LoadRasterizePipeline(const Shader& vertex, const Shader& fragment);
+    void LoadComputePipeline(const Shader& compute);
+    void Destroy();
 };
 
 }

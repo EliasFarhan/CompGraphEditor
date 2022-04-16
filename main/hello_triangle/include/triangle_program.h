@@ -3,6 +3,7 @@
 
 #include "engine/system.h"
 #include "renderer/pipeline.h"
+#include "engine/scene.h"
 
 namespace gpr5300
 {
@@ -14,7 +15,7 @@ namespace gpr5300
         void End() override;
 
     private:
-        std::array<Shader, 2> shaders_;
-        Pipeline pipeline_;
+        Scene scene_;
+        SceneManager sceneManager_;
     };   
 } // namespace gpr5300
