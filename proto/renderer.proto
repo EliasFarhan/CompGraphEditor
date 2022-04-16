@@ -43,6 +43,17 @@ message Pipeline
 
 }
 
+message Texture
+{
+    string path = 1;
+}
+
+message Material
+{
+    repeated int32 texture_indices = 1;
+    int32 pipeline_index = 2;
+}
+
 message Mesh
 {
     enum PrimitveType
@@ -86,4 +97,6 @@ message Scene
     repeated Pipeline pipelines = 3;
     RenderPass render_pass = 4;
     repeated Mesh meshes = 5;
+    repeated Texture textures = 6;
+    repeated Material materials = 7;
 }

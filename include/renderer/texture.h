@@ -1,5 +1,7 @@
 #pragma once
 
+#include <GL/glew.h>
+
 namespace gpr5300
 {
     //A loaded image in memory
@@ -9,11 +11,8 @@ namespace gpr5300
     };
 
     //A loaded texture in GPU that can be used in OpenGL
-    class Texture
+    struct Texture
     {
-        public:
-
-        private:
-
+        GLuint name = 0;
     };
 } // namespace gpr5300

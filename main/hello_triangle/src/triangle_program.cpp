@@ -36,6 +36,7 @@ pb::Scene Scene1()
     drawCommand->set_mode(pb::DrawCommand_Mode_TRIANGLES);
     return scene;
 }
+
 pb::Scene Scene2()
 {
     pb::Scene scene;
@@ -74,6 +75,53 @@ pb::Scene Scene2()
     drawCommand->set_mode(pb::DrawCommand_Mode_TRIANGLES);
     return scene;
 }
+
+
+pb::Scene Scene3()
+{
+    pb::Scene scene;
+
+    pb::Shader *vertexShader = scene.add_shaders();
+    vertexShader->set_type(pb::Shader_Type_VERTEX);
+    vertexShader->set_path("data/shaders/scene03/texture.vert");
+
+    pb::Shader *fragmentShader = scene.add_shaders();
+    fragmentShader->set_type(pb::Shader_Type_FRAGMENT);
+    fragmentShader->set_path("data/shaders/scene03/texture.frag");
+
+    auto *pipeline = scene.add_pipelines();
+    pipeline->set_vertex_shader_index(0);
+    pipeline->set_fragment_shader_index(1);
+    pipeline->set_type(pb::Pipeline_Type_RASTERIZE);
+
+    auto* mesh = scene.add_meshes();
+    mesh->set_primitve_type(pb::Mesh_PrimitveType_QUAD);
+
+    auto *renderPass = scene.mutable_render_pass();
+    auto *subPass = renderPass->add_sub_passes();
+    auto *clearColor = subPass->mutable_clear_color();
+    clearColor->set_r(0.0f);
+    clearColor->set_g(0.0f);
+    clearColor->set_b(0.0f);
+    clearColor->set_a(0.0f);
+
+    auto* texture = scene.add_textures();
+    texture->set_path("data/textures/container.jpg");
+
+    auto* material = scene.add_materials();
+    material->set_pipeline_index(0);
+    material->add_texture_indices(0);
+
+
+    auto *drawCommand = subPass->add_commands();
+    drawCommand->set_pipeline_index(0);
+    drawCommand->set_count(6);
+    drawCommand->set_mesh_index(0);
+    drawCommand->set_draw_elements(true);
+    drawCommand->set_mode(pb::DrawCommand_Mode_TRIANGLES);
+    return scene;
+}
+
 
 void HelloTriangleProgram::Begin()
 {

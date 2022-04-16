@@ -3,6 +3,7 @@
 #include "renderer/pipeline.h"
 #include "engine/system.h"
 #include "renderer/mesh.h"
+#include "renderer/texture.h"
 
 #include <vector>
 
@@ -20,6 +21,7 @@ private:
     std::vector<Shader> shaders_;
     std::vector<Pipeline> pipelines_;
     std::vector<Mesh> meshes_;
+    std::vector<Texture> textures_;
     //std::vector<SubPass> subpasses_;
 
 };
