@@ -1,0 +1,14 @@
+syntax = "proto3";
+
+import "proto/vector.proto";
+package gpr5300.pb;
+
+
+message Config
+{
+    string window_name = 1;
+    Vec2i windowSize = 2;
+    int32 framerate_limit = 3;
+    bool fullscreen = 4;
+    bool vertical_sync = 5;
+}

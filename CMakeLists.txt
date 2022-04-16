@@ -11,14 +11,20 @@ find_package(imgui CONFIG REQUIRED)
 find_package(spdlog CONFIG REQUIRED)
 find_path(STB_INCLUDE_DIRS "stb.h")
 find_package(tinyobjloader CONFIG REQUIRED)
+find_package(protobuf CONFIG REQUIRED)
 
 add_subdirectory(external/pybind11)
 
+file(GLOB_RECURSE PROTO_FILES proto/*.proto)
+add_library(CommonProto STATIC ${PROTO_FILES})
+protobuf_generate(TARGET CommonProto LANGUAGE cpp)
+target_include_directories(CommonProto PUBLIC ${CMAKE_CURRENT_BINARY_DIR})
+target_link_libraries(CommonProto PUBLIC protobuf::libprotobuf-lite protobuf::libprotoc protobuf::libprotobuf)
 
 file(GLOB_RECURSE COMMON_FILES src/*.cpp include/*.h)
 add_library(Common STATIC ${COMMON_FILES})
 target_include_directories(Common PUBLIC include/ ${STB_INCLUDE_DIRS} ${Python3_INCLUDE_DIRS})
-target_link_libraries(Common PUBLIC GLEW::GLEW glm::glm SDL2::SDL2 SDL2::SDL2main imgui::imgui 
+target_link_libraries(Common PUBLIC CommonProto GLEW::GLEW glm::glm SDL2::SDL2 SDL2::SDL2main imgui::imgui
     tinyobjloader::tinyobjloader pybind11::embed ${Python3_LIBRARIES} spdlog::spdlog)
 set_target_properties(Common PROPERTIES UNITY_BUILD ON)
 if(MSVC)
