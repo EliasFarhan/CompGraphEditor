@@ -1,7 +1,7 @@
 import gpr5300
 
 
-class Scene03(gpr5300.Script):
+class Scene03(gpr5300.System):
     def begin(self):
         print("Init")
 

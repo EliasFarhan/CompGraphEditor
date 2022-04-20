@@ -4,9 +4,11 @@
 #include <glm/vec2.hpp>
 #include <glm/vec3.hpp>
 #include <glm/vec4.hpp>
+#include <fmt/format.h>
 
 #include "renderer/pipeline.h"
 #include "engine/scene.h"
+#include "utils/log.h"
 
 PYBIND11_EMBEDDED_MODULE(gpr5300, m)
 {
@@ -60,11 +62,19 @@ void PyManager::End()
 
 System* PyManager::LoadScript(std::string_view path, std::string_view className)
 {
-    auto module = py::module_::import(path.data());
-    auto newObject = module.attr(className.data())();
-    auto* newSystem = newObject.cast<System*>();
-    newSystem->Begin();
-    pySystems_.push_back(std::move(newObject));
-    return newSystem;
+    try
+    {
+        auto module = py::module_::import(path.data());
+        auto newObject = module.attr(className.data())();
+        auto* newSystem = newObject.cast<System*>();
+        newSystem->Begin();
+        pySystems_.push_back(std::move(newObject));
+        return newSystem;
+    }
+    catch (pybind11::error_already_set& e)
+    {
+        LogError(fmt::format("{}", e.what()));
+        return nullptr;
+    }
 }
 }

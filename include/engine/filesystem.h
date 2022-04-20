@@ -15,8 +15,15 @@ public:
     ~BufferFile();
     BufferFile(const BufferFile&) = delete;
     BufferFile& operator=(const BufferFile&) = delete;
-    BufferFile(BufferFile&& other) noexcept = default;
-    BufferFile& operator=(BufferFile&&) noexcept = default;
+    BufferFile(BufferFile&& other) noexcept
+    {
+        std::swap(data, other.data);
+    }
+    BufferFile& operator=(BufferFile&& other) noexcept
+    {
+        std::swap(data, other.data);
+        return *this;
+    }
 
 
     unsigned char* data = nullptr;

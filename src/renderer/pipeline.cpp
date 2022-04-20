@@ -46,6 +46,8 @@ void Shader::LoadShader(const pb::Shader &shader)
             glGetShaderInfoLog(shaderName, infoLogSize, nullptr, infoLog);
             LogError(fmt::format("Shader compilation failed with this log:\n{}\nShader Path:\n{}",
                               infoLog, path));
+            glDeleteShader(shaderName);
+            return;
         }
         name = shaderName;
         LogDebug(fmt::format("Successfully loaded shader: {} with name: {}", path, name));

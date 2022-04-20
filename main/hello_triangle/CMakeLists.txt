@@ -1,5 +1,5 @@
 
-file(GLOB_RECURSE TRIANGLE_SRC src/*.cpp include/*.h)
+file(GLOB_RECURSE TRIANGLE_SRC src/*.cpp include/*.h data/*.py data/*.vert data/*.frag)
 add_executable(hello_triangle ${TRIANGLE_SRC})
 copydata(${CMAKE_CURRENT_SOURCE_DIR} hello_triangle)
 checkshaders(${CMAKE_CURRENT_SOURCE_DIR} hello_triangle)

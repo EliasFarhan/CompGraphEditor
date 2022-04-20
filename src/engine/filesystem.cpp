@@ -11,7 +11,11 @@ namespace gpr5300
 
 BufferFile::~BufferFile()
 {
-    std::free(data);
+    if (data != nullptr)
+    {
+        std::free(data);
+        data = nullptr;
+    }
 }
 
 BufferFile DefaultFilesystem::LoadFile(std::string_view path) const
