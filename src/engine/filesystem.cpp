@@ -11,7 +11,12 @@ namespace gpr5300
 
 BufferFile::~BufferFile()
 {
-    std::free(data);
+    if(data != nullptr)
+    {
+        std::free(data);
+        data = nullptr;
+        length = 0;
+    }
 }
 
 BufferFile DefaultFilesystem::LoadFile(std::string_view path) const
@@ -33,7 +38,7 @@ BufferFile DefaultFilesystem::LoadFile(std::string_view path) const
     // get file data
     pbuf->sgetn(reinterpret_cast<char*>(bufferFile.data), size);
     bufferFile.data[size] = 0;
-
+    bufferFile.length = size;
     return bufferFile;
 }
 
