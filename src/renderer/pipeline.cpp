@@ -5,6 +5,8 @@
 #include "engine/filesystem.h"
 #include "utils/log.h"
 
+#include "renderer/debug.h"
+
 namespace gpr5300
 {
 
@@ -64,6 +66,20 @@ void Shader::Destroy()
     name = 0;
 }
 
+void Pipeline::Bind() const
+{
+    if (currentBindedPipeline != name)
+    {
+        glUseProgram(name);
+        currentBindedPipeline = name;
+    }
+}
+
+void Pipeline::Unbind()
+{
+    glUseProgram(0);
+}
+
 void Pipeline::LoadRasterizePipeline(const Shader &vertex, const Shader &fragment)
 {
     const GLuint program = glCreateProgram();
@@ -118,8 +134,74 @@ void Pipeline::Destroy()
     {
         return;
     }
+    if(currentBindedPipeline == name)
+    {
+        Unbind();
+    }
     glDeleteProgram(name);
     name = 0;
 }
 
+void Pipeline::SetFloat(std::string_view uniformName, float f)
+{
+    Bind();
+    glUniform1f(GetUniformLocation(uniformName), f);
+    glCheckError();
+}
+
+void Pipeline::SetInt(std::string_view uniformName, int i)
+{
+    Bind();
+    glUniform1i(GetUniformLocation(uniformName), i);
+    glCheckError();
+}
+
+void Pipeline::SetVec2(std::string_view uniformName, glm::vec2 v)
+{
+    Bind();
+    glUniform2fv(GetUniformLocation(uniformName), 1, &v[0]);
+    glCheckError();
+}
+
+void Pipeline::SetVec3(std::string_view uniformName, glm::vec3 v)
+{
+    Bind();
+    glUniform3fv(GetUniformLocation(uniformName), 1, &v[0]);
+    glCheckError();
+}
+
+void Pipeline::SetVec4(std::string_view uniformName, glm::vec4 v)
+{
+    Bind();
+    glUniform4fv(GetUniformLocation(uniformName), 1, &v[0]);
+    glCheckError();
+}
+
+void Pipeline::SetMat4(std::string_view uniformName, const glm::mat4& mat)
+{
+    Bind();
+    glUniformMatrix4fv(GetUniformLocation(uniformName), 1, 0, &mat[0][0]);
+    glCheckError();
+}
+
+int Pipeline::GetUniformLocation(std::string_view uniformName)
+{
+#ifdef TRACY_ENABLE
+    ZoneNamedN(uniformLocationTrace, "Get Uniform Location", true);
+    TracyGpuNamedZone(uniformLocationGpuTrace, "Get Uniform Location", true);
+#endif
+    const auto uniformIt = uniformMap_.find(uniformName.data());
+    GLint uniformLocation;
+    if (uniformIt == uniformMap_.end())
+    {
+        uniformLocation = glGetUniformLocation(name, uniformName.data());
+        uniformMap_[uniformName.data()] = uniformLocation;
+    }
+    else
+    {
+        uniformLocation = uniformIt->second;
+    }
+    glCheckError();
+    return uniformLocation;
+}
 }

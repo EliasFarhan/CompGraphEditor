@@ -89,7 +89,7 @@ void Scene::Update(float dt)
         for (int j = 0; j < commandSize; j++)
         {
             const auto &command = subPass.commands(j);
-            glUseProgram(pipelines_[command.pipeline_index()].name);
+            pipelines_[command.pipeline_index()].Bind();
 
             GLenum mode = 0;
             switch (command.mode())
