@@ -83,11 +83,11 @@ pb::Scene Scene3()
 
     pb::Shader *vertexShader = scene.add_shaders();
     vertexShader->set_type(pb::Shader_Type_VERTEX);
-    vertexShader->set_path("data/shaders/scene03/texture.vert");
+    vertexShader->set_path("data/shaders/scene03/uniform.vert");
 
     pb::Shader *fragmentShader = scene.add_shaders();
     fragmentShader->set_type(pb::Shader_Type_FRAGMENT);
-    fragmentShader->set_path("data/shaders/scene03/texture.frag");
+    fragmentShader->set_path("data/shaders/scene03/uniform.frag");
 
     auto *pipeline = scene.add_pipelines();
     pipeline->set_vertex_shader_index(0);
@@ -105,13 +105,6 @@ pb::Scene Scene3()
     clearColor->set_b(0.0f);
     clearColor->set_a(0.0f);
 
-    auto* texture = scene.add_textures();
-    texture->set_path("data/textures/container.jpg");
-
-    auto* material = scene.add_materials();
-    material->set_pipeline_index(0);
-    material->add_texture_indices(0);
-
 
     auto *drawCommand = subPass->add_commands();
     drawCommand->set_pipeline_index(0);
@@ -119,13 +112,18 @@ pb::Scene Scene3()
     drawCommand->set_mesh_index(0);
     drawCommand->set_draw_elements(true);
     drawCommand->set_mode(pb::DrawCommand_Mode_TRIANGLES);
+
+    auto* pySystem = scene.add_py_systems();
+    pySystem->set_class_("Scene03");
+    pySystem->set_module("data.scripts.scene03");
+
     return scene;
 }
 
 
 void HelloTriangleProgram::Begin()
 {
-    scene_.SetScene(Scene2());
+    scene_.SetScene(Scene3());
 
     sceneManager_.LoadScene(&scene_);
 }

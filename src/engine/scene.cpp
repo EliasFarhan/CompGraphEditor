@@ -1,11 +1,12 @@
 #include "engine/scene.h"
 #include "GL/glew.h"
 #include "renderer/shape_primitive.h"
+#include "renderer/debug.h"
 
 namespace gpr5300
 {
 
-void Scene::LoadScene()
+void Scene::LoadScene(PyManager &pyManager)
 {
     const auto shadersSize = scene_.shaders_size();
     shaders_.resize(shadersSize);
@@ -53,6 +54,13 @@ void Scene::LoadScene()
             break;
         }
     }
+
+    const auto pySystemSize = scene_.py_systems_size();
+    for(int i = 0; i < pySystemSize; i++)
+    {
+        const auto& pySystem = scene_.py_systems(i);
+        pySystems_.push_back(pyManager.LoadScript(pySystem.module(), pySystem.class_()));
+    }
 }
 
 void Scene::UnloadScene()
@@ -75,6 +83,7 @@ void Scene::SetScene(const pb::Scene &scene)
 
 void Scene::Update(float dt)
 {
+    glCheckError();
     const auto subPassSize = scene_.render_pass().sub_passes_size();
     for (int i = 0; i < subPassSize; i++)
     {
@@ -110,13 +119,17 @@ void Scene::Update(float dt)
             if (command.draw_elements())
             {
                 glDrawElements(mode, command.count(), GL_UNSIGNED_INT, nullptr);
+                glCheckError();
             }
             else
             {
                 glDrawArrays(mode, 0, command.count());
+                glCheckError();
             }
         }
     }
+
+    glCheckError();
 }
 
 void SceneManager::Begin()
@@ -126,24 +139,33 @@ void SceneManager::Begin()
 
 void SceneManager::LoadScene(Scene *scene)
 {
-    if (currentScene_)
+    if (currentScene_ != nullptr)
     {
         currentScene_->UnloadScene();
+        pyManager_.End();
     }
-    scene->LoadScene();
+    pyManager_.Begin();
     currentScene_ = scene;
+    scene->LoadScene(pyManager_);
 }
 
 void SceneManager::End()
 {
     currentScene_->UnloadScene();
     currentScene_ = nullptr;
+    pyManager_.End();
 }
 
 void SceneManager::Update(float dt)
 {
     if (currentScene_ == nullptr)
         return;
+    pyManager_.Update(dt);
     currentScene_->Update(dt);
+}
+
+SceneManager::SceneManager()
+{
+    sceneManager_ = this;
 }
 }

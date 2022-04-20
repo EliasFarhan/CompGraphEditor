@@ -71,6 +71,7 @@ void Pipeline::Bind() const
     if (currentBindedPipeline != name)
     {
         glUseProgram(name);
+        glCheckError();
         currentBindedPipeline = name;
     }
 }
@@ -195,13 +196,13 @@ int Pipeline::GetUniformLocation(std::string_view uniformName)
     if (uniformIt == uniformMap_.end())
     {
         uniformLocation = glGetUniformLocation(name, uniformName.data());
+        glCheckError();
         uniformMap_[uniformName.data()] = uniformLocation;
     }
     else
     {
         uniformLocation = uniformIt->second;
     }
-    glCheckError();
     return uniformLocation;
 }
 }

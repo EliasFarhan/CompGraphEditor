@@ -90,6 +90,12 @@ message RenderPass
     repeated SubPass sub_passes = 1;
 }
 
+message PySystem
+{
+    string module = 1;
+    string class = 2;
+}
+
 message Scene
 {
     string name = 1;
@@ -99,4 +105,5 @@ message Scene
     repeated Mesh meshes = 5;
     repeated Texture textures = 6;
     repeated Material materials = 7;
+    repeated PySystem py_systems = 8;
 }

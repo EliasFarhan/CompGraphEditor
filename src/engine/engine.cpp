@@ -1,6 +1,7 @@
 #include "engine/engine.h"
+#include "renderer/debug.h"
 
-#include <cassert>
+
 #include <GL/glew.h>
 #include <glm/ext/vector_uint2.hpp>
 
@@ -8,6 +9,8 @@
 #include <imgui_impl_sdl.h>
 #include <imgui_impl_opengl3.h>
 
+#include <chrono>
+#include <cassert>
 
 namespace gpr5300
 {
@@ -71,8 +74,15 @@ void Engine::Run()
 {
     Begin();
     bool isOpen = true;
+
+    std::chrono::time_point<std::chrono::system_clock> clock = std::chrono::system_clock::now();
     while(isOpen)
     {
+        const auto start = std::chrono::system_clock::now();
+        using seconds = std::chrono::duration<float, std::ratio<1,1>>;
+        const auto dt = std::chrono::duration_cast<seconds>(start - clock);
+        clock = start;
+
         //Manage SDL event
         SDL_Event event;
         while(SDL_PollEvent(&event))
@@ -111,12 +121,12 @@ void Engine::Run()
         }
         for(auto* system : systems_)
         {
-            //TODO calculate delta time
-            system->Update(0.0f);
+            system->Update(dt.count());
         }
 
         //Generate new ImGui frame
         ImGui_ImplOpenGL3_NewFrame();
+        glCheckError();
         ImGui_ImplSDL2_NewFrame(window_);
         ImGui::NewFrame();
 
@@ -125,9 +135,11 @@ void Engine::Run()
             imguiDrawInterface->DrawImGui();
         }
         ImGui::Render();
-        ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+        //ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+        glCheckError();
 
         SDL_GL_SwapWindow(window_);
+        glCheckError();
     }
     End();
 }
