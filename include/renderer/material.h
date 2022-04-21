@@ -1,17 +1,23 @@
 #pragma once
 
 #include "renderer/pipeline.h"
-#include "texture.h"
+#include "renderer/texture.h"
+
+#include <span>
 
 namespace gpr5300
 {
 
-class Material
+struct MaterialTexture
 {
-public:
-private:
-    Pipeline* pipeline_;
-    std::vector<Texture> textures_;
+    Texture texture;
+    std::string uniformSamplerName;
+};
+
+struct Material
+{
+    int pipelineIndex = -1;
+    std::vector<MaterialTexture> textures;
 };
 
 }

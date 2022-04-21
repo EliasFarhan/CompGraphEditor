@@ -20,6 +20,9 @@ pb::Scene Scene1()
     pipeline->set_fragment_shader_index(1);
     pipeline->set_type(pb::Pipeline_Type_RASTERIZE);
 
+    auto* material = scene.add_materials();
+    material->set_pipeline_index(0);
+
     auto *renderPass = scene.mutable_render_pass();
     auto *subPass = renderPass->add_sub_passes();
     auto *clearColor = subPass->mutable_clear_color();
@@ -29,7 +32,7 @@ pb::Scene Scene1()
     clearColor->set_a(0.0f);
 
     auto *drawCommand = subPass->add_commands();
-    drawCommand->set_pipeline_index(0);
+    drawCommand->set_material_index(0);
     drawCommand->set_count(3);
     drawCommand->set_mesh_index(-1);
     drawCommand->set_draw_elements(false);
@@ -54,6 +57,9 @@ pb::Scene Scene2()
     pipeline->set_fragment_shader_index(1);
     pipeline->set_type(pb::Pipeline_Type_RASTERIZE);
 
+    auto* material = scene.add_materials();
+    material->set_pipeline_index(0);
+
     auto* mesh = scene.add_meshes();
     mesh->set_primitve_type(pb::Mesh_PrimitveType_QUAD);
 
@@ -68,7 +74,7 @@ pb::Scene Scene2()
 
 
     auto *drawCommand = subPass->add_commands();
-    drawCommand->set_pipeline_index(0);
+    drawCommand->set_material_index(0);
     drawCommand->set_count(6);
     drawCommand->set_mesh_index(0);
     drawCommand->set_draw_elements(true);
@@ -94,6 +100,9 @@ pb::Scene Scene3()
     pipeline->set_fragment_shader_index(1);
     pipeline->set_type(pb::Pipeline_Type_RASTERIZE);
 
+    auto* material = scene.add_materials();
+    material->set_pipeline_index(0);
+
     auto* mesh = scene.add_meshes();
     mesh->set_primitve_type(pb::Mesh_PrimitveType_QUAD);
 
@@ -107,7 +116,7 @@ pb::Scene Scene3()
 
 
     auto *drawCommand = subPass->add_commands();
-    drawCommand->set_pipeline_index(0);
+    drawCommand->set_material_index(0);
     drawCommand->set_count(6);
     drawCommand->set_mesh_index(0);
     drawCommand->set_draw_elements(true);
@@ -138,6 +147,15 @@ pb::Scene Scene4()
     pipeline->set_fragment_shader_index(1);
     pipeline->set_type(pb::Pipeline_Type_RASTERIZE);
 
+    auto* texture = scene.add_textures();
+    texture->set_path("data/textures/container.jpg");
+
+    auto* material = scene.add_materials();
+    material->set_pipeline_index(0);
+    auto* materialTexture = material->add_textures();
+    materialTexture->set_sampler_name("tex");
+    materialTexture->set_texture_index(0);
+
     auto* mesh = scene.add_meshes();
     mesh->set_primitve_type(pb::Mesh_PrimitveType_QUAD);
 
@@ -150,9 +168,8 @@ pb::Scene Scene4()
     clearColor->set_a(0.0f);
 
 
-
     auto *drawCommand = subPass->add_commands();
-    drawCommand->set_pipeline_index(0);
+    drawCommand->set_material_index(0);
     drawCommand->set_count(6);
     drawCommand->set_mesh_index(0);
     drawCommand->set_draw_elements(true);
@@ -163,7 +180,7 @@ pb::Scene Scene4()
 
 void HelloTriangleProgram::Begin()
 {
-    scene_.SetScene(Scene3());
+    scene_.SetScene(Scene4());
 
     sceneManager_.LoadScene(&scene_);
 }

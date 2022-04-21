@@ -1,6 +1,7 @@
 [bB]uild/
 .vscode/
 cmake-build-debug/
-cmake-build-release
+cmake-build-release/
+cmake-build-relwithdebinfo/
 .vs/
 CMakeSettings.json

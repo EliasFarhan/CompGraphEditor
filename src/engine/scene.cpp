@@ -34,6 +34,32 @@ void Scene::LoadScene(PyManager &pyManager)
         }
     }
 
+    const auto texturesSize = scene_.textures_size();
+    textures_.resize(texturesSize);
+    auto& textureManager = SceneManager::GetInstance()->GetTextureManager();
+    for(int i = 0; i < texturesSize; i++)
+    {
+        textures_[i] = textureManager.LoadTexture(scene_.textures(i));
+    }
+
+    const auto materialsSize = scene_.materials_size();
+    materials_.resize(materialsSize);
+    for(int i = 0; i < materialsSize; i++)
+    {
+        const auto& materialInfo = scene_.materials(i);
+        auto& material = materials_[i];
+        material.pipelineIndex = materialInfo.pipeline_index();
+        const auto materialTexturesCount = materialInfo.textures_size();
+        material.textures.resize(materialTexturesCount);
+        for(int j = 0; j < materialTexturesCount; j++)
+        {
+            const auto& materialTextureInfo = materialInfo.textures(j);
+            auto& materialTexture = material.textures[j];
+            materialTexture.texture = textures_[materialTextureInfo.texture_index()];
+            materialTexture.uniformSamplerName = materialTextureInfo.sampler_name();
+        }
+    }
+
     const auto meshesSize = scene_.meshes_size();
     meshes_.resize(meshesSize);
     for(int i = 0; i < meshesSize; i++)
@@ -98,7 +124,14 @@ void Scene::Update(float dt)
         for (int j = 0; j < commandSize; j++)
         {
             const auto &command = subPass.commands(j);
-            pipelines_[command.pipeline_index()].Bind();
+            auto& material = materials_[command.material_index()];
+            auto& pipeline = pipelines_[material.pipelineIndex];
+
+            pipeline.Bind();
+            for(std::size_t i = 0; i < material.textures.size(); i++)
+            {
+                pipeline.SetTexture(material.textures[i].uniformSamplerName, material.textures[i].texture, i);
+            }
 
             GLenum mode = 0;
             switch (command.mode())

@@ -135,7 +135,7 @@ void Engine::Run()
             imguiDrawInterface->DrawImGui();
         }
         ImGui::Render();
-        ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+        //ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
         glCheckError();
 
         SDL_GL_SwapWindow(window_);

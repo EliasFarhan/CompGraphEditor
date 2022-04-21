@@ -5,6 +5,7 @@
 #include "renderer/mesh.h"
 #include "renderer/texture.h"
 #include "py_interface.h"
+#include "renderer/material.h"
 
 #include <vector>
 
@@ -25,6 +26,7 @@ private:
     std::vector<Pipeline> pipelines_;
     std::vector<Mesh> meshes_;
     std::vector<Texture> textures_;
+    std::vector<Material> materials_;
     std::vector<System*> pySystems_;
     //std::vector<SubPass> subpasses_;
 
@@ -40,10 +42,12 @@ public:
     void End() override;
     Scene* GetCurrentScene() { return currentScene_; }
     static SceneManager* GetInstance(){ return sceneManager_; }
+    TextureManager& GetTextureManager(){ return textureManager_; }
 private:
     inline static SceneManager* sceneManager_ = nullptr;
     Scene* currentScene_ = nullptr;
     PyManager pyManager_;
+    TextureManager textureManager_;
 };
 
 } // namespace gpr5300

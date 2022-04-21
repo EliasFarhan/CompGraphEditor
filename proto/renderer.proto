@@ -82,12 +82,11 @@ message DrawCommand
     {
         TRIANGLES = 0;
     }
-    int32 pipeline_index = 1;
+    int32 material_index = 1;
     Mode mode = 2;
     int32 count = 4;
     int32 mesh_index = 5;
     bool draw_elements = 6;
-    int32 material_index = 7;
 }
 
 message SubPass

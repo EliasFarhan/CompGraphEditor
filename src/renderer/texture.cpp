@@ -13,7 +13,10 @@ Texture gpr5300::TextureManager::LoadTexture(const pb::Texture &textureInfo)
     if(it == texturesMap_.end())
     {
         Texture newTexture;
-        newTexture.LoadTexture(textureInfo);
+        if(!newTexture.LoadTexture(textureInfo))
+        {
+            return {};
+        }
         texturesMap_[path] = newTexture;
         return newTexture;
     }
@@ -37,6 +40,46 @@ bool Texture::LoadTexture(const pb::Texture &textureInfo)
         glGenTextures(1, &name);
         glCheckError();
 
+        glBindTexture(GL_TEXTURE_2D, name);
+
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+
+        switch (channelInFile)
+        {
+        case 1:
+        {
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_R8, width, height,
+                         0,
+                         GL_RED, GL_UNSIGNED_BYTE,
+                         imageData);
+            break;
+        }
+        case 2:
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_RG8, width, height,
+                         0,
+                         GL_RG, GL_UNSIGNED_BYTE,
+                         imageData);
+            break;
+        case 3:
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB8, width, height,
+                         0,
+                         GL_RGB, GL_UNSIGNED_BYTE,
+                         imageData);
+            break;
+        case 4:
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, width, height,
+                         0,
+                         GL_RGBA, GL_UNSIGNED_BYTE,
+                         imageData);
+            break;
+        default:
+            LogWarning(fmt::format("Weird channel count on image. Count: {}", channelInFile));
+            break;
+        }
+        glCheckError();
+        LogDebug(fmt::format("Successfully loaded texture at path: {}", path));
+        return true;
     }
     LogError(fmt::format("File not found at path: {}", path));
     return false;
