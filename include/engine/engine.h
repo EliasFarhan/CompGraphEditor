@@ -4,8 +4,8 @@
 
 #include <vector>
 
-#include "system.h"
-
+#include "engine/system.h"
+#include "proto/config.pb.h"
 
 namespace gpr5300
 {
@@ -27,7 +27,8 @@ namespace gpr5300
     class Engine
     {
     public:
-
+        Engine();
+        Engine(const pb::Config& config);
         void Run();
         
         void RegisterEventObserver(OnEventInterface* eventInterface);
@@ -37,12 +38,14 @@ namespace gpr5300
         void Begin();
         void End();
 
+        pb::Config config_;
         SDL_Window* window_ = nullptr;
 
         std::vector<System*> systems_;
         std::vector<OnEventInterface*> onEventInterfaces;
         std::vector<ImguiDrawInterface*> imguiDrawInterfaces;
         SDL_GLContext glRenderContext_{};
+        inline static constexpr std::string_view configFilename = "config.bin";
     }; 
 } // namespace gpr5300
 

@@ -25,6 +25,7 @@ Texture gpr5300::TextureManager::LoadTexture(const pb::Texture &textureInfo)
 
 bool Texture::LoadTexture(const pb::Texture &textureInfo)
 {
+    stbi_set_flip_vertically_on_load(true);
     const auto &filesystem = FilesystemLocator::get();
     std::string_view path = textureInfo.path();
     if (filesystem.IsRegularFile(path))

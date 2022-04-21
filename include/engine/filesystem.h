@@ -38,6 +38,7 @@ public:
     [[nodiscard]] virtual bool FileExists(std::string_view) const = 0;
     [[nodiscard]] virtual bool IsRegularFile(std::string_view) const = 0;
     [[nodiscard]] virtual bool IsDirectory(std::string_view) const = 0;
+    virtual void WriteString(std::string_view path, std::string_view content) const = 0;
 };
 
 class NullFilesystem final : public FilesystemInterface
@@ -63,6 +64,10 @@ public:
         assert(false);
         return false;
     }
+    void WriteString(std::string_view path, std::string_view content) const override
+    {
+        assert(false);
+    }
 };
 
 class DefaultFilesystem final : public FilesystemInterface
@@ -72,6 +77,7 @@ public:
     [[nodiscard]] bool FileExists(std::string_view path) const override;
     [[nodiscard]] bool IsRegularFile(std::string_view path) const override;
     [[nodiscard]] bool IsDirectory(std::string_view path) const override;
+    void WriteString(std::string_view path, std::string_view content) const override;
 };
 
 class PhysFilesystem final : public FilesystemInterface
@@ -81,7 +87,8 @@ public:
     [[nodiscard]] bool FileExists(std::string_view path) const override;
     [[nodiscard]] bool IsRegularFile(std::string_view path) const override;
     [[nodiscard]] bool IsDirectory(std::string_view path) const override;
-    
+    void WriteString(std::string_view path, std::string_view content) const override;
+
 };
 
 using FilesystemLocator = Locator<FilesystemInterface, NullFilesystem>;

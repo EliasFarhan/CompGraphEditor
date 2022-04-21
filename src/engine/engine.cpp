@@ -1,6 +1,8 @@
 #include "engine/engine.h"
 #include "renderer/debug.h"
 
+#include "engine/filesystem.h"
+
 
 #include <GL/glew.h>
 #include <glm/ext/vector_uint2.hpp>
@@ -19,7 +21,7 @@ void Engine::Begin()
 
     SDL_Init(SDL_INIT_VIDEO | SDL_INIT_GAMECONTROLLER);
     // Set our OpenGL version.
-#ifdef _MSC_VER
+#if true
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 4);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 5);
@@ -36,12 +38,12 @@ void Engine::Begin()
         "GPR5300",
         SDL_WINDOWPOS_UNDEFINED,
         SDL_WINDOWPOS_UNDEFINED,
-        1280,
-        720,
+        config_.windowsize().x(),
+        config_.windowsize().y(),
         SDL_WINDOW_RESIZABLE | SDL_WINDOW_OPENGL
     );
     glRenderContext_ = SDL_GL_CreateContext(window_);
-    SDL_GL_SetSwapInterval(1);
+    SDL_GL_SetSwapInterval(config_.vertical_sync());
 
     if (GLEW_OK != glewInit())
     {
@@ -94,18 +96,22 @@ void Engine::Run()
                 break;
             case SDL_WINDOWEVENT:
             {
-                switch(event.window.type)
+                switch(event.window.event)
                 {
                 case SDL_WINDOWEVENT_CLOSE:
                     isOpen = false;
                     break;
                 case SDL_WINDOWEVENT_RESIZED:
+                {
                     glm::uvec2 newWindowSize;
                     newWindowSize.x = event.window.data1;
                     newWindowSize.y = event.window.data2;
                     glViewport(0, 0, newWindowSize.x, newWindowSize.y);
-                    //TODO update current windowSize
+                    auto* windowSize = config_.mutable_windowsize();
+                    windowSize->set_x(newWindowSize.x);
+                    windowSize->set_y(newWindowSize.y);
                     break;
+                }
                 default:
                     break;
                 }
@@ -118,6 +124,7 @@ void Engine::Run()
             {
                 eventInterface->OnEvent(event);
             }
+            ImGui_ImplSDL2_ProcessEvent(&event);
         }
         for(auto* system : systems_)
         {
@@ -157,6 +164,10 @@ void Engine::End()
     SDL_GL_DeleteContext(glRenderContext_);
     SDL_DestroyWindow(window_);
     SDL_Quit();
+
+    auto& fileSystem = FilesystemLocator::get();
+    fileSystem.WriteString(configFilename, config_.SerializeAsString());
+
 }
 
 void Engine::RegisterEventObserver(OnEventInterface* eventInterface)
@@ -172,5 +183,25 @@ void Engine::RegisterImGuiDrawInterface(ImguiDrawInterface* imguiDrawInterface)
 void Engine::RegisterSystem(System* system)
 {
     systems_.push_back(system);
+}
+Engine::Engine()
+{
+    auto& fileSystem = FilesystemLocator::get();
+
+    if(fileSystem.IsRegularFile(configFilename))
+    {
+        auto file = fileSystem.LoadFile(configFilename);
+        config_.ParseFromArray(file.data, file.length);
+    }
+    else
+    {
+        config_.set_vertical_sync(true);
+        config_.set_framerate_limit(0);
+        pb::Vec2i *windowSize = config_.mutable_windowsize();
+        windowSize->set_x(1280);
+        windowSize->set_y(720);
+        config_.set_window_name("GPR5300");
+        config_.set_fullscreen(false);
+    }
 }
 }
