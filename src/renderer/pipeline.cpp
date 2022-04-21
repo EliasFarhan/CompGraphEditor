@@ -187,12 +187,16 @@ void Pipeline::SetMat4(std::string_view uniformName, const glm::mat4& mat)
     glCheckError();
 }
 
+void Pipeline::SetTexture(std::string_view uniformName, const Texture& texture, GLenum textureUnit)
+{
+    SetInt(uniformName, textureUnit);
+    glActiveTexture(GL_TEXTURE0 + textureUnit);
+    glBindTexture(GL_TEXTURE_2D, texture.name);
+    glCheckError();
+}
+
 int Pipeline::GetUniformLocation(std::string_view uniformName)
 {
-#ifdef TRACY_ENABLE
-    ZoneNamedN(uniformLocationTrace, "Get Uniform Location", true);
-    TracyGpuNamedZone(uniformLocationGpuTrace, "Get Uniform Location", true);
-#endif
     const auto uniformIt = uniformMap_.find(uniformName.data());
     GLint uniformLocation;
     if (uniformIt == uniformMap_.end())

@@ -9,6 +9,8 @@
 #include "glm/vec4.hpp"
 #include <glm/ext/matrix_float4x4.hpp>
 
+#include "texture.h"
+
 namespace gpr5300
 {
 
@@ -42,6 +44,7 @@ public:
 
     void SetMat4(std::string_view uniformName, const glm::mat4& mat);
 
+    void SetTexture(std::string_view uniformName, const Texture& texture, GLenum textureUnit);
 private:
     GLuint name = 0;
     inline static GLuint currentBindedPipeline = 0;

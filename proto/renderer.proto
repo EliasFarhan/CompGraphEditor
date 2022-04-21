@@ -15,6 +15,10 @@ message FrameBuffer
 
 }
 
+message Sampler
+{
+    string name = 1;
+}
 
 message Shader
 {
@@ -48,9 +52,15 @@ message Texture
     string path = 1;
 }
 
+message MaterialTexture
+{
+    string sampler_name = 1;
+    int32 texture_index = 2;
+}
+
 message Material
 {
-    repeated int32 texture_indices = 1;
+    repeated MaterialTexture textures = 1;
     int32 pipeline_index = 2;
 }
 
@@ -77,6 +87,7 @@ message DrawCommand
     int32 count = 4;
     int32 mesh_index = 5;
     bool draw_elements = 6;
+    int32 material_index = 7;
 }
 
 message SubPass

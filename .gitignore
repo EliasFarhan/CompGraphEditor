@@ -1,2 +1,6 @@
 [bB]uild/
 .vscode/
+cmake-build-debug/
+cmake-build-release
+.vs/
+CMakeSettings.json

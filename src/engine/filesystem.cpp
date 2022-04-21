@@ -11,18 +11,11 @@ namespace gpr5300
 
 BufferFile::~BufferFile()
 {
-<<<<<<< HEAD
-    if (data != nullptr)
-    {
-        std::free(data);
-        data = nullptr;
-=======
     if(data != nullptr)
     {
         std::free(data);
         data = nullptr;
         length = 0;
->>>>>>> c7358c073067b6c65530b56fb5dafd45e4e8a030
     }
 }
 
