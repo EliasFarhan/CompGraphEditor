@@ -27,6 +27,7 @@ public:
 
 
     unsigned char* data = nullptr;
+    std::size_t length = 0;
 };
 
 class FilesystemInterface

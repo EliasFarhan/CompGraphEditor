@@ -64,7 +64,7 @@ System* PyManager::LoadScript(std::string_view path, std::string_view className)
 {
     try
     {
-        auto module = py::module_::import(path.data());
+        const auto module = py::module_::import(path.data());
         auto newObject = module.attr(className.data())();
         auto* newSystem = newObject.cast<System*>();
         newSystem->Begin();
