@@ -35,7 +35,7 @@ void Engine::Begin()
     SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 8);
 
     window_ = SDL_CreateWindow(
-        "GPR5300",
+        config_.window_name().c_str(),
         SDL_WINDOWPOS_UNDEFINED,
         SDL_WINDOWPOS_UNDEFINED,
         config_.windowsize().x(),
@@ -126,6 +126,9 @@ void Engine::Run()
             }
             ImGui_ImplSDL2_ProcessEvent(&event);
         }
+        glClearColor(0,0,0,0);
+        glClear(GL_COLOR_BUFFER_BIT);
+
         for(auto* system : systems_)
         {
             system->Update(dt.count());
@@ -142,7 +145,7 @@ void Engine::Run()
             imguiDrawInterface->DrawImGui();
         }
         ImGui::Render();
-        //ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+        ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
         glCheckError();
 
         SDL_GL_SwapWindow(window_);
@@ -186,6 +189,7 @@ void Engine::RegisterSystem(System* system)
 }
 Engine::Engine()
 {
+    engine_ = this;
     auto& fileSystem = FilesystemLocator::get();
 
     if(fileSystem.IsRegularFile(configFilename))
@@ -203,5 +207,13 @@ Engine::Engine()
         config_.set_window_name("GPR5300");
         config_.set_fullscreen(false);
     }
+}
+void Engine::SetWindowName(std::string_view windowName)
+{
+    config_.set_window_name(windowName.data());
+}
+glm::uvec2 Engine::GetWindowSize() const
+{
+    return {config_.windowsize().x(), config_.windowsize().y()};
 }
 }

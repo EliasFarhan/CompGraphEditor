@@ -20,6 +20,7 @@ add_subdirectory(external/pybind11)
 file(GLOB_RECURSE PROTO_FILES proto/*.proto)
 add_library(CommonProto STATIC ${PROTO_FILES})
 protobuf_generate(TARGET CommonProto LANGUAGE cpp)
+protobuf_generate(TARGET CommonProto LANGUAGE python)
 target_include_directories(CommonProto PUBLIC ${CMAKE_CURRENT_BINARY_DIR})
 target_link_libraries(CommonProto PUBLIC protobuf::libprotobuf-lite protobuf::libprotoc protobuf::libprotobuf)
 

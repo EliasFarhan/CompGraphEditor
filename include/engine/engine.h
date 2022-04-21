@@ -7,6 +7,8 @@
 #include "engine/system.h"
 #include "proto/config.pb.h"
 
+#include <glm/ext/vector_uint2.hpp>
+
 namespace gpr5300
 {
 
@@ -28,15 +30,20 @@ namespace gpr5300
     {
     public:
         Engine();
-        Engine(const pb::Config& config);
         void Run();
         
         void RegisterEventObserver(OnEventInterface* eventInterface);
         void RegisterImGuiDrawInterface(ImguiDrawInterface* imguiDrawInterface);
         void RegisterSystem(System* system);
+
+        void SetWindowName(std::string_view windowName);
+        glm::uvec2 GetWindowSize() const;
+        static Engine* GetInstance() { return engine_; }
     private:
         void Begin();
         void End();
+
+        inline static Engine* engine_ = nullptr;
 
         pb::Config config_;
         SDL_Window* window_ = nullptr;
