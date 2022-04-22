@@ -8,11 +8,15 @@
 #include "engine/filesystem.h"
 #include "editor_filesystem.h"
 
+#include "imnodes.h"
+
 namespace gpr5300
 {
 
 void Editor::Begin()
 {
+    ImNodes::CreateContext();
+
     editorSystems_.resize(static_cast<std::size_t>(EditorType::LENGTH));
     editorSystems_[static_cast<std::size_t>(EditorType::SHADER)] = std::make_unique<ShaderEditor>();
 
@@ -47,7 +51,7 @@ void Editor::DrawImGui()
 
     ImGui::SetNextWindowPos(ImVec2(0,0), ImGuiCond_FirstUseEver);
     ImGui::SetNextWindowSize(ImVec2(windowSize.x*0.2f, windowSize.y), ImGuiCond_FirstUseEver);
-    DrawSceneContent();
+    DrawEditorContent();
 
     ImGui::SetNextWindowPos(ImVec2(windowSize.x*0.2f,0), ImGuiCond_FirstUseEver);
     ImGui::SetNextWindowSize(ImVec2(windowSize.x*0.6f, windowSize.y), ImGuiCond_FirstUseEver);
@@ -73,6 +77,8 @@ void Editor::Update(float dt)
 void Editor::End()
 {
     py::finalize_interpreter();
+
+    ImNodes::DestroyContext();
 }
 void Editor::DrawMenuBar()
 {
@@ -93,6 +99,7 @@ void Editor::DrawMenuBar()
         ImGui::EndMainMenuBar();
     }
 }
+
 void Editor::DrawSceneContent()
 {
     ImGui::Begin("Scene Content");
@@ -122,12 +129,19 @@ void Editor::DrawCenterView()
 {
     if(ImGui::BeginTabBar("Center View"))
     {
-        if(ImGui::BeginTabItem("Shader"))
+        ImGuiTabItemFlags_ flag = ImGuiTabItemFlags_None;
+
+
+        if(ImGui::BeginTabItem("Pipeline"))
         {
             ImGui::EndTabItem();
         }
-        if(ImGui::BeginTabItem("Pipeline"))
+        //FIXME probable bug when switching to ther tabs
+        flag = currentFocusedSystem_ == EditorType::SHADER ? ImGuiTabItemFlags_SetSelected:ImGuiTabItemFlags_None;
+        if(ImGui::BeginTabItem("Shader", nullptr, flag))
         {
+            editorSystems_[(int)EditorType::SHADER]->DrawMainView();
+            currentFocusedSystem_ = EditorType::SHADER;
             ImGui::EndTabItem();
         }
         if(ImGui::BeginTabItem("Material"))
@@ -144,6 +158,14 @@ void Editor::DrawCenterView()
 void Editor::DrawInspector()
 {
     ImGui::Begin("Inspector");
+    if(currentFocusedSystem_ != EditorType::LENGTH)
+    {
+        auto* editorSystem = editorSystems_[(int)currentFocusedSystem_].get();
+        if(editorSystem)
+        {
+            editorSystem->DrawInspector();
+        }
+    }
     ImGui::End();
 }
 void Editor::UpdateFileDialog()
@@ -226,6 +248,10 @@ void Editor::DrawEditorContent()
 
     if(ImGui::TreeNode("Shaders"))
     {
+        if(editorSystems_[(int)EditorType::SHADER]->DrawContentList())
+        {
+            currentFocusedSystem_ = EditorType::SHADER;
+        }
         ImGui::TreePop();
     }
 

@@ -41,6 +41,7 @@ private:
     pb::Scene scene_;
     ResourceManager resourceManager_;
     ImGui::FileBrowser fileDialog_;
+    EditorType currentFocusedSystem_ = EditorType::LENGTH;
     std::vector<std::unique_ptr<EditorSystem>> editorSystems_;
 
 };

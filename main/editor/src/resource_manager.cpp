@@ -32,9 +32,9 @@ void ResourceManager::CheckDataFolder()
         for(const auto& entry : fs::directory_iterator(dir))
         {
             auto path = entry.path();
-            if(filesystem.IsDirectory(dir.c_str()))
+            if(filesystem.IsDirectory(path.c_str()))
             {
-                recursiveIterateFile(dir.c_str());
+                recursiveIterateFile(path.c_str());
             }
             else
             {

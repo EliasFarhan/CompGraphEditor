@@ -15,6 +15,19 @@ void ShaderEditor::AddResource(const Resource& resource)
     {
         LogError(fmt::format("Analyze shader failed\n{}", e.what()));
     }
+    ShaderInfo shaderInfo{};
+    shaderInfo.filename = GetFilename(resource.path);
+    shaderInfo.resourceId = resource.resourceId;
+    shaderInfo.info.set_path(resource.path);
+    if(resource.extension == ".vert")
+    {
+        shaderInfo.info.set_type(pb::Shader_Type_VERTEX);
+    }
+    else if(resource.extension == ".frag")
+    {
+        shaderInfo.info.set_type(pb::Shader_Type_FRAGMENT);
+    }
+    shaderInfos_.push_back(shaderInfo);
 }
 void ShaderEditor::RemoveResource(const Resource &resource)
 {
@@ -42,7 +55,7 @@ void ShaderEditor::DrawMainView()
 }
 void ShaderEditor::DrawInspector()
 {
-
+    ImGui::Text("Shader Inspector");
 }
 std::string_view ShaderEditor::GetSubFolder()
 {
@@ -51,5 +64,21 @@ std::string_view ShaderEditor::GetSubFolder()
 EditorType ShaderEditor::GetEditorType()
 {
     return EditorType::SHADER;
+}
+bool ShaderEditor::DrawContentList(bool unfocus)
+{
+    bool wasFocused = false;
+    if(unfocus)
+        currentIndex_ = shaderInfos_.size();
+    for(std::size_t i = 0; i < shaderInfos_.size(); i++)
+    {
+        const auto& shaderInfo = shaderInfos_[i];
+        if(ImGui::Selectable(shaderInfo.filename.data(), currentIndex_ == i))
+        {
+            currentIndex_ = i;
+            wasFocused = true;
+        }
+    }
+    return wasFocused;
 }
 }

@@ -22,6 +22,8 @@ public:
     virtual bool CheckExtensions(std::string_view extension) = 0;
     virtual void DrawMainView() = 0;
     virtual void DrawInspector() = 0;
+    // Return true if getting focused
+    virtual bool DrawContentList(bool unfocus = false) = 0;
     virtual std::string_view GetSubFolder() = 0;
     virtual EditorType GetEditorType() = 0;
 };

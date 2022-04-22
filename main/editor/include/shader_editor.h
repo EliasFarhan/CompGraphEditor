@@ -7,6 +7,7 @@ namespace gpr5300
 
 struct ShaderInfo
 {
+    std::string filename;
     pb::Shader info;
     ResourceId resourceId = INVALID_RESOURCE_ID;
 };
@@ -22,8 +23,10 @@ public:
     void DrawInspector() override;
     std::string_view GetSubFolder() override;
     EditorType GetEditorType() override;
+    bool DrawContentList(bool unfocus = false) override;
 private:
     std::vector<ShaderInfo> shaderInfos_;
+    std::size_t currentIndex_ = -1;
 };
 
 }
