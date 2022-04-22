@@ -4,7 +4,9 @@
 
 #include "utils/locator.h"
 #include <string_view>
+#include <filesystem>
 
+namespace fs = std::filesystem;
 namespace gpr5300
 {
     
@@ -92,5 +94,8 @@ public:
 };
 
 using FilesystemLocator = Locator<FilesystemInterface, NullFilesystem>;
+
+std::string GetFileExtension(std::string_view path);
+fs::file_time_type GetLastTimeWrite(std::string_view path);
 
 } // namespace gpr5300

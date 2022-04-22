@@ -8,7 +8,7 @@ function(copydata main_folder exe_name)
             "${main_folder}/data/*.hdr"
             "${main_folder}/data/*.obj"
             "${main_folder}/data/*.mtl"
-            "${main_folder}/data/*.bin",
+            "${main_folder}/data/*.bin"
             "${main_folder}/data/*.rpass"
             "${main_folder}/data/*.py"
             )
