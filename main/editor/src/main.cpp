@@ -1,7 +1,7 @@
 #include <SDL_main.h>
 #include "engine/engine.h"
 #include "engine/filesystem.h"
-#include "scene_editor.h"
+#include "editor.h"
 #include "utils/log.h"
 
 int main(int argc, char** argv)

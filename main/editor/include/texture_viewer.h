@@ -1,5 +1,5 @@
 #pragma once
-
+#include "renderer/texture.h"
 namespace gpr5300
 {
 class TextureViewer
@@ -7,6 +7,5 @@ class TextureViewer
 public:
 
 private:
-    TextureManager textureManager_;
 };
 }

@@ -6,11 +6,16 @@
 
 #include <imgui.h>
 #include "imfilebrowser.h"
+#include "resource.h"
+#include "resource_manager.h"
+#include "editor_system.h"
+
+#include <memory>
 
 namespace gpr5300
 {
 
-class Editor : public System, public ImguiDrawInterface, public OnEventInterface
+class Editor : public System, public ImguiDrawInterface, public OnEventInterface, public ResourceChangeInterface
 {
 public:
     void DrawImGui() override;
@@ -18,6 +23,9 @@ public:
     void Update(float dt) override;
     void End() override;
     void OnEvent(SDL_Event &event) override;
+    void AddResource(const Resource &resource) override;
+    void RemoveResource(const Resource &resource) override;
+    void UpdateResource(const Resource &resource) override;
 private:
     void DrawMenuBar();
     void DrawEditorContent();
@@ -28,9 +36,12 @@ private:
     void UpdateFileDialog();
     void LoadFileIntoEditor(std::string_view path);
 
+    EditorSystem* FindEditorSystem(std::string_view path);
+
     pb::Scene scene_;
     ResourceManager resourceManager_;
     ImGui::FileBrowser fileDialog_;
+    std::vector<std::unique_ptr<EditorSystem>> editorSystems_;
 
 };
 

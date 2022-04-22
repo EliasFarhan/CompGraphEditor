@@ -1,7 +1,7 @@
 #include <unordered_set>
 #include <functional>
 #include <algorithm>
-#include "editor_resource.h"
+#include "resource_manager.h"
 
 namespace gpr5300
 {
@@ -64,9 +64,12 @@ ResourceId ResourceManager::GenerateResourceId()
     static ResourceId resourceId = 1;
     return resourceId++;
 }
-void ResourceManager::RemoveResource(const Resource &Resource)
+void ResourceManager::RemoveResource(const Resource &resource)
 {
-    //TODO call the editor to remove an editor resource
+    for(auto* resourceChange : resourceChangeInterfaces_)
+    {
+        resourceChange->RemoveResource(resource);
+    }
 }
 void ResourceManager::AddResource(std::string_view path)
 {
@@ -77,11 +80,21 @@ void ResourceManager::AddResource(std::string_view path)
     newResource.resourceId = GenerateResourceId();
 
     resources_.push_back(newResource);
-    //TODO call the editor to add a new editor resource
+    for(auto* resourceChange : resourceChangeInterfaces_)
+    {
+        resourceChange->AddResource(newResource);
+    }
 
 }
-void ResourceManager::UpdateResource(const Resource &Resource)
+void ResourceManager::UpdateResource(const Resource &resource)
 {
-    //TODO call the editor to update an editor resource
+    for(auto* resourceChange : resourceChangeInterfaces_)
+    {
+        resourceChange->UpdateResource(resource);
+    }
+}
+void ResourceManager::RegisterResourceChange(ResourceChangeInterface *resourceChange)
+{
+    resourceChangeInterfaces_.push_back(resourceChange);
 }
 }

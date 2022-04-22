@@ -1,6 +1,7 @@
 #pragma once
 
 #include <GL/glew.h>
+#include "proto/renderer.pb.h"
 
 namespace gpr5300
 {

@@ -1,12 +1,43 @@
-#include "scene_editor.h"
+#include "editor.h"
+#include "shader_editor.h"
+#include "utils/log.h"
 #include <imgui.h>
 #include <SDL.h>
 #include <pybind11/embed.h>
 #include <fmt/format.h>
-#include <engine/filesystem.h>
+#include "engine/filesystem.h"
+#include "editor_filesystem.h"
 
 namespace gpr5300
 {
+
+void Editor::Begin()
+{
+    editorSystems_.resize(static_cast<std::size_t>(EditorType::LENGTH));
+    editorSystems_[static_cast<std::size_t>(EditorType::SHADER)] = std::make_unique<ShaderEditor>();
+
+
+    resourceManager_.RegisterResourceChange(this);
+    py::initialize_interpreter();
+    auto& filesystem = FilesystemLocator::get();
+    if(!filesystem.IsDirectory(ResourceManager::dataFolder))
+    {
+        CreateDirectory(ResourceManager::dataFolder);
+
+    }
+    else
+    {
+        resourceManager_.CheckDataFolder();
+    }
+    for(const auto& editorSystem: editorSystems_)
+    {
+        if(!editorSystem)
+            continue;
+        const auto subFolder = fmt::format("{}{}", ResourceManager::dataFolder, editorSystem->GetSubFolder());
+        if(!filesystem.IsDirectory(subFolder))
+            CreateDirectory(subFolder);
+    }
+}
 
 void Editor::DrawImGui()
 {
@@ -34,21 +65,6 @@ void Editor::DrawImGui()
     DrawLogWindow();
 
     UpdateFileDialog();
-}
-void Editor::Begin()
-{
-    py::initialize_interpreter();
-    auto& filesystem = FilesystemLocator::get();
-    if(!filesystem.IsDirectory(ResourceManager::dataFolder))
-    {
-        auto os = py::module_::import("os");
-        os.attr("mkdir")(ResourceManager::dataFolder);
-    }
-    else
-    {
-        //TODO Recursively add the file to the editor
-        resourceManager_.CheckDataFolder();
-    }
 }
 void Editor::Update(float dt)
 {
@@ -187,33 +203,23 @@ void Editor::OnEvent(SDL_Event &event)
 }
 void Editor::LoadFileIntoEditor(std::string_view path)
 {
-    //TODO Copy the file in path into the data folder depending on the category
 
-    /*
-    const auto extension = GetFileExtension(path);
-    static constexpr std::array<std::string_view, 3> shaderExtensions =
-        {
-        ".vert",
-        ".frag",
-        ".comp"
-        };
-    if(std::ranges::any_of(shaderExtensions, [&extension](auto& shaderExtension){
-        return extension == shaderExtension;
-    }))
+    EditorSystem* editorSystem = FindEditorSystem(path);
+    if(editorSystem == nullptr)
     {
-        py::function analyzeShaderFunc = py::module_::import("scripts.shader_parser").attr("analyze_shader");
-        try
-        {
-            std::string result = (py::str) analyzeShaderFunc(path);
-            LogDebug(fmt::format("Loading shader: {} with content:\n{}", path, result));
-        }
-        catch (py::error_already_set& e)
-        {
-            LogError(fmt::format("Analyze shader failed\n{}", e.what()));
-        }
+        LogError(fmt::format("Could not find appropriated editor system for file: {}", path));
+        return;
     }
-     */
+    auto dstPath = fmt::format("{}{}{}",
+                               ResourceManager::dataFolder,
+                               editorSystem->GetSubFolder(),
+                               GetFilename(path));
+    if(CopyFile(path, dstPath))
+    {
+        resourceManager_.AddResource(dstPath);
+    }
 }
+
 void Editor::DrawEditorContent()
 {
     ImGui::Begin("Editor Content");
@@ -238,5 +244,45 @@ void Editor::DrawEditorContent()
         ImGui::TreePop();
     }
     ImGui::End();
+}
+
+void Editor::AddResource(const Resource &resource)
+{
+    EditorSystem* editorSystem = FindEditorSystem(resource.path);
+    if(editorSystem == nullptr)
+        return;
+    editorSystem->AddResource(resource);
+}
+
+void Editor::RemoveResource(const Resource &resource)
+{
+    EditorSystem* editorSystem = FindEditorSystem(resource.path);
+    if(editorSystem == nullptr)
+        return;
+    editorSystem->RemoveResource(resource);
+}
+
+void Editor::UpdateResource(const Resource &resource)
+{
+    EditorSystem* editorSystem = FindEditorSystem(resource.path);
+    if(editorSystem == nullptr)
+        return;
+    editorSystem->UpdateResource(resource);
+}
+
+EditorSystem *Editor::FindEditorSystem(std::string_view path)
+{
+    EditorSystem* editorSystem = nullptr;
+    const auto extension = GetFileExtension(path);
+    for(auto& editorSystemTmp : editorSystems_)
+    {
+        if(!editorSystemTmp)
+            continue;
+        if(!editorSystemTmp->CheckExtensions(extension))
+            continue;
+        editorSystem = editorSystemTmp.get();
+        break;
+    }
+    return editorSystem;
 }
 }

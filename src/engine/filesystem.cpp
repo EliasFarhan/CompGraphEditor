@@ -1,7 +1,11 @@
 #include "engine/filesystem.h"
-
+#include "utils/log.h"
+#include <fmt/format.h>
 #include <fstream>
 #include <filesystem>
+
+namespace fs = std::filesystem;
+
 
 namespace gpr5300
 {
@@ -81,16 +85,5 @@ bool PhysFilesystem::IsDirectory(std::string_view path) const
 void PhysFilesystem::WriteString(std::string_view path, std::string_view content) const
 {
 
-}
-std::string GetFileExtension(std::string_view path)
-{
-    fs::path p = path;
-    return p.extension();
-}
-
-fs::file_time_type GetLastTimeWrite(std::string_view path)
-{
-    fs::path p = path;
-    return last_write_time(p);
 }
 }
