@@ -32,15 +32,15 @@ void ResourceManager::CheckDataFolder()
         for(const auto& entry : fs::directory_iterator(dir))
         {
             auto path = entry.path();
-            if(filesystem.IsDirectory(path.c_str()))
+            if(filesystem.IsDirectory(path.string()))
             {
-                recursiveIterateFile(path.c_str());
+                recursiveIterateFile(path.string());
             }
             else
             {
-                if(!currentResources.contains(path.c_str()))
+                if(!currentResources.contains(path.string()))
                 {
-                    AddResource(path.c_str());
+                    AddResource(path.string());
                 }
                 else
                 {
@@ -48,7 +48,7 @@ void ResourceManager::CheckDataFolder()
                     {
                         return resource.path == path;
                     });
-                    if(it->lastTimeWrite < GetLastTimeWrite(path.c_str()))
+                    if(it->lastTimeWrite < GetLastTimeWrite(path.string()))
                     {
                         UpdateResource(*it);
                     }

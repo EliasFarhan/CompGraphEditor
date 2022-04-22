@@ -9,7 +9,7 @@ namespace gpr5300
 std::string GetFileExtension(std::string_view path)
 {
     fs::path p = path;
-    return p.extension();
+    return p.extension().string();
 }
 
 fs::file_time_type GetLastTimeWrite(std::string_view path)
@@ -20,7 +20,7 @@ fs::file_time_type GetLastTimeWrite(std::string_view path)
 std::string GetFilename(std::string_view path, bool withExtension)
 {
     fs::path p = path;
-    return withExtension?p.filename():p.stem();
+    return withExtension?p.filename().string() : p.stem().string();
 }
 bool CopyFile(std::string_view srcPath, std::string_view dstPath)
 {
