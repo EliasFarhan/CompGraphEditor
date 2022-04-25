@@ -20,11 +20,10 @@ void Editor::Begin()
     editorSystems_.resize(static_cast<std::size_t>(EditorType::LENGTH));
     editorSystems_[static_cast<std::size_t>(EditorType::SHADER)] = std::make_unique<ShaderEditor>();
 
-
     resourceManager_.RegisterResourceChange(this);
     py::initialize_interpreter();
     auto& filesystem = FilesystemLocator::get();
-    if(!filesystem.IsDirectory(ResourceManager::dataFolder))
+    if (!filesystem.IsDirectory(ResourceManager::dataFolder))
     {
         CreateDirectory(ResourceManager::dataFolder);
 
@@ -33,12 +32,12 @@ void Editor::Begin()
     {
         resourceManager_.CheckDataFolder();
     }
-    for(const auto& editorSystem: editorSystems_)
+    for (const auto& editorSystem : editorSystems_)
     {
-        if(!editorSystem)
+        if (!editorSystem)
             continue;
         const auto subFolder = fmt::format("{}{}", ResourceManager::dataFolder, editorSystem->GetSubFolder());
-        if(!filesystem.IsDirectory(subFolder))
+        if (!filesystem.IsDirectory(subFolder))
             CreateDirectory(subFolder);
     }
 }
@@ -48,24 +47,23 @@ void Editor::DrawImGui()
     auto* engine = Engine::GetInstance();
     const auto windowSize = engine->GetWindowSize();
 
-
-    ImGui::SetNextWindowPos(ImVec2(0,0), ImGuiCond_FirstUseEver);
-    ImGui::SetNextWindowSize(ImVec2(windowSize.x*0.2f, windowSize.y), ImGuiCond_FirstUseEver);
+    ImGui::SetNextWindowPos(ImVec2(0, 0), ImGuiCond_FirstUseEver);
+    ImGui::SetNextWindowSize(ImVec2(windowSize.x * 0.2f, windowSize.y), ImGuiCond_FirstUseEver);
     DrawEditorContent();
 
-    ImGui::SetNextWindowPos(ImVec2(windowSize.x*0.2f,0), ImGuiCond_FirstUseEver);
-    ImGui::SetNextWindowSize(ImVec2(windowSize.x*0.6f, windowSize.y), ImGuiCond_FirstUseEver);
+    ImGui::SetNextWindowPos(ImVec2(windowSize.x * 0.2f, 0), ImGuiCond_FirstUseEver);
+    ImGui::SetNextWindowSize(ImVec2(windowSize.x * 0.6f, windowSize.y), ImGuiCond_FirstUseEver);
     ImGui::Begin("Center View", nullptr, ImGuiWindowFlags_NoTitleBar);
     DrawMenuBar();
     DrawCenterView();
     ImGui::End();
 
-    ImGui::SetNextWindowPos(ImVec2(windowSize.x*0.8f,0), ImGuiCond_FirstUseEver);
-    ImGui::SetNextWindowSize(ImVec2(windowSize.x*0.2f, windowSize.y), ImGuiCond_FirstUseEver);
+    ImGui::SetNextWindowPos(ImVec2(windowSize.x * 0.8f, 0), ImGuiCond_FirstUseEver);
+    ImGui::SetNextWindowSize(ImVec2(windowSize.x * 0.2f, windowSize.y), ImGuiCond_FirstUseEver);
     DrawInspector();
 
-    ImGui::SetNextWindowPos(ImVec2(0,windowSize.y*0.6f), ImGuiCond_FirstUseEver);
-    ImGui::SetNextWindowSize(ImVec2(windowSize.x, windowSize.y*0.4f), ImGuiCond_FirstUseEver);
+    ImGui::SetNextWindowPos(ImVec2(0, windowSize.y * 0.6f), ImGuiCond_FirstUseEver);
+    ImGui::SetNextWindowSize(ImVec2(windowSize.x, windowSize.y * 0.4f), ImGuiCond_FirstUseEver);
     DrawLogWindow();
 
     UpdateFileDialog();
@@ -82,17 +80,19 @@ void Editor::End()
 }
 void Editor::DrawMenuBar()
 {
-    if(ImGui::BeginMainMenuBar())
+    if (ImGui::BeginMainMenuBar())
     {
-        if(ImGui::BeginMenu("File"))
+        if (ImGui::BeginMenu("File"))
         {
-            if(ImGui::MenuItem("Open"))
+            if (ImGui::MenuItem("Open"))
             {
+                fileBrowserMode_ = FileBrowserMode::OPEN_FILE;
+                fileDialog_ = ImGui::FileBrowser();
                 fileDialog_.Open();
             }
             ImGui::EndMenu();
         }
-        if(ImGui::BeginMenu("Window"))
+        if (ImGui::BeginMenu("Window"))
         {
             ImGui::EndMenu();
         }
@@ -104,22 +104,22 @@ void Editor::DrawSceneContent()
 {
     ImGui::Begin("Scene Content");
 
-    if(ImGui::TreeNode("Shaders"))
+    if (ImGui::TreeNode("Shaders"))
     {
         ImGui::TreePop();
     }
 
-    if(ImGui::TreeNode("Pipelines"))
+    if (ImGui::TreeNode("Pipelines"))
     {
         ImGui::TreePop();
     }
 
-    if(ImGui::TreeNode("Materials"))
+    if (ImGui::TreeNode("Materials"))
     {
         ImGui::TreePop();
     }
 
-    if(ImGui::TreeNode("Textures"))
+    if (ImGui::TreeNode("Textures"))
     {
         ImGui::TreePop();
     }
@@ -127,28 +127,27 @@ void Editor::DrawSceneContent()
 }
 void Editor::DrawCenterView()
 {
-    if(ImGui::BeginTabBar("Center View"))
+    if (ImGui::BeginTabBar("Center View"))
     {
         ImGuiTabItemFlags_ flag = ImGuiTabItemFlags_None;
 
-
-        if(ImGui::BeginTabItem("Pipeline"))
+        if (ImGui::BeginTabItem("Pipeline"))
         {
             ImGui::EndTabItem();
         }
         //FIXME probable bug when switching to ther tabs
-        flag = currentFocusedSystem_ == EditorType::SHADER ? ImGuiTabItemFlags_SetSelected:ImGuiTabItemFlags_None;
-        if(ImGui::BeginTabItem("Shader", nullptr, flag))
+        flag = currentFocusedSystem_ == EditorType::SHADER ? ImGuiTabItemFlags_SetSelected : ImGuiTabItemFlags_None;
+        if (ImGui::BeginTabItem("Shader", nullptr, flag))
         {
-            editorSystems_[(int)EditorType::SHADER]->DrawMainView();
+            editorSystems_[(int) EditorType::SHADER]->DrawMainView();
             currentFocusedSystem_ = EditorType::SHADER;
             ImGui::EndTabItem();
         }
-        if(ImGui::BeginTabItem("Material"))
+        if (ImGui::BeginTabItem("Material"))
         {
             ImGui::EndTabItem();
         }
-        if(ImGui::BeginTabItem("Texture"))
+        if (ImGui::BeginTabItem("Texture"))
         {
             ImGui::EndTabItem();
         }
@@ -158,10 +157,10 @@ void Editor::DrawCenterView()
 void Editor::DrawInspector()
 {
     ImGui::Begin("Inspector");
-    if(currentFocusedSystem_ != EditorType::LENGTH)
+    if (currentFocusedSystem_ != EditorType::LENGTH)
     {
-        auto* editorSystem = editorSystems_[(int)currentFocusedSystem_].get();
-        if(editorSystem)
+        auto* editorSystem = editorSystems_[(int) currentFocusedSystem_].get();
+        if (editorSystem)
         {
             editorSystem->DrawInspector();
         }
@@ -172,11 +171,35 @@ void Editor::UpdateFileDialog()
 {
     fileDialog_.Display();
 
-    if(fileDialog_.HasSelected())
+    if (fileDialog_.HasSelected())
     {
         const auto path = fileDialog_.GetSelected().string();
-        LogDebug(fmt::format("Selected filename: {}", path));
-        LoadFileIntoEditor(path);
+        switch(fileBrowserMode_)
+        {
+        case FileBrowserMode::OPEN_FILE:
+        {
+            LogDebug(fmt::format("Selected filename: {}", path));
+            LoadFileIntoEditor(path);
+            break;
+        }
+        case FileBrowserMode::CREATE_NEW_SHADER:
+        {
+            const auto extension = GetFileExtension(path);
+            if (!editorSystems_[(int) EditorType::SHADER]->CheckExtensions(extension))
+            {
+                LogWarning(fmt::format("Invalid extension name for newly created shader: {} path: {}",
+                                       extension,
+                                       path));
+                break;
+            }
+            auto& filesystem = FilesystemLocator::get();
+            filesystem.WriteString(path, "#version 310 es\nprecision highp float;\nvoid main() {}");
+            resourceManager_.AddResource(path);
+            break;
+        }
+        default:
+            break;
+        }
         fileDialog_.ClearSelected();
     }
 }
@@ -184,18 +207,18 @@ void Editor::DrawLogWindow()
 {
     const auto& logs = GetLogs();
     ImGui::Begin("Log");
-    for(const auto& log : logs)
+    for (const auto& log : logs)
     {
-        switch(log.type)
+        switch (log.type)
         {
         case Log::Type::Error:
-            ImGui::TextColored(ImColor(255,0,0,255), "%s", log.msg.c_str());
+            ImGui::TextColored(ImColor(255, 0, 0, 255), "%s", log.msg.c_str());
             break;
         case Log::Type::Warning:
-            ImGui::TextColored(ImColor(255,255,0,255), "%s", log.msg.c_str());
+            ImGui::TextColored(ImColor(255, 255, 0, 255), "%s", log.msg.c_str());
             break;
         case Log::Type::Debug:
-            ImGui::TextColored(ImColor(150,150,150,255), "%s", log.msg.c_str());
+            ImGui::TextColored(ImColor(150, 150, 150, 255), "%s", log.msg.c_str());
             break;
         default:
             break;
@@ -204,13 +227,13 @@ void Editor::DrawLogWindow()
     ImGui::End();
 
 }
-void Editor::OnEvent(SDL_Event &event)
+void Editor::OnEvent(SDL_Event& event)
 {
-    switch(event.type)
+    switch (event.type)
     {
     case SDL_WINDOWEVENT:
     {
-        switch(event.window.event)
+        switch (event.window.event)
         {
         case SDL_WINDOWEVENT_FOCUS_GAINED:
         {
@@ -227,7 +250,7 @@ void Editor::LoadFileIntoEditor(std::string_view path)
 {
 
     EditorSystem* editorSystem = FindEditorSystem(path);
-    if(editorSystem == nullptr)
+    if (editorSystem == nullptr)
     {
         LogError(fmt::format("Could not find appropriated editor system for file: {}", path));
         return;
@@ -236,7 +259,7 @@ void Editor::LoadFileIntoEditor(std::string_view path)
                                ResourceManager::dataFolder,
                                editorSystem->GetSubFolder(),
                                GetFilename(path));
-    if(CopyFile(path, dstPath))
+    if (CopyFile(path, dstPath))
     {
         resourceManager_.AddResource(dstPath);
     }
@@ -246,65 +269,80 @@ void Editor::DrawEditorContent()
 {
     ImGui::Begin("Editor Content");
 
-    if(ImGui::TreeNode("Shaders"))
+    bool open = ImGui::TreeNode("Shaders");
+    if (ImGui::BeginPopupContextItem())
     {
-        if(editorSystems_[(int)EditorType::SHADER]->DrawContentList())
+        if(ImGui::Button("Create New Shader"))
+        {
+            fileBrowserMode_ = FileBrowserMode::CREATE_NEW_SHADER;
+            fileDialog_ = ImGui::FileBrowser(ImGuiFileBrowserFlags_EnterNewFilename|ImGuiFileBrowserFlags_CreateNewDir);
+            const auto shaderPath = fmt::format("{}{}", ResourceManager::dataFolder, editorSystems_[(int)EditorType::SHADER]->GetSubFolder());
+            fileDialog_.SetPwd(shaderPath);
+            fileDialog_.SetTypeFilters({".vert", ".frag", ".comp"});
+            fileDialog_.Open();
+            ImGui::CloseCurrentPopup();
+        }
+        ImGui::EndPopup();
+    }
+    if(open)
+    {
+        if (editorSystems_[(int) EditorType::SHADER]->DrawContentList())
         {
             currentFocusedSystem_ = EditorType::SHADER;
         }
         ImGui::TreePop();
     }
 
-    if(ImGui::TreeNode("Pipelines"))
+    if (ImGui::TreeNode("Pipelines"))
     {
         ImGui::TreePop();
     }
 
-    if(ImGui::TreeNode("Materials"))
+    if (ImGui::TreeNode("Materials"))
     {
         ImGui::TreePop();
     }
 
-    if(ImGui::TreeNode("Textures"))
+    if (ImGui::TreeNode("Textures"))
     {
         ImGui::TreePop();
     }
     ImGui::End();
 }
 
-void Editor::AddResource(const Resource &resource)
+void Editor::AddResource(const Resource& resource)
 {
     EditorSystem* editorSystem = FindEditorSystem(resource.path);
-    if(editorSystem == nullptr)
+    if (editorSystem == nullptr)
         return;
     editorSystem->AddResource(resource);
 }
 
-void Editor::RemoveResource(const Resource &resource)
+void Editor::RemoveResource(const Resource& resource)
 {
     EditorSystem* editorSystem = FindEditorSystem(resource.path);
-    if(editorSystem == nullptr)
+    if (editorSystem == nullptr)
         return;
     editorSystem->RemoveResource(resource);
 }
 
-void Editor::UpdateResource(const Resource &resource)
+void Editor::UpdateResource(const Resource& resource)
 {
     EditorSystem* editorSystem = FindEditorSystem(resource.path);
-    if(editorSystem == nullptr)
+    if (editorSystem == nullptr)
         return;
     editorSystem->UpdateResource(resource);
 }
 
-EditorSystem *Editor::FindEditorSystem(std::string_view path)
+EditorSystem* Editor::FindEditorSystem(std::string_view path)
 {
     EditorSystem* editorSystem = nullptr;
     const auto extension = GetFileExtension(path);
-    for(auto& editorSystemTmp : editorSystems_)
+    for (auto& editorSystemTmp : editorSystems_)
     {
-        if(!editorSystemTmp)
+        if (!editorSystemTmp)
             continue;
-        if(!editorSystemTmp->CheckExtensions(extension))
+        if (!editorSystemTmp->CheckExtensions(extension))
             continue;
         editorSystem = editorSystemTmp.get();
         break;

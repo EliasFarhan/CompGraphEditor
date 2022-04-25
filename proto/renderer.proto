@@ -20,6 +20,32 @@ message Sampler
     string name = 1;
 }
 
+message Attribute
+{
+    enum Type
+    {
+        FLOAT = 0;
+        VEC2 = 1;
+        VEC3 = 2;
+        VEC4 = 3;
+        MAT2 = 4;
+        MAT3 = 5;
+        MAT4 = 6;
+        INT = 7;
+        IVEC2 = 8;
+        IVEC3 = 9;
+        IVEC4 = 10;
+        BOOL = 11;
+        SAMPLER2D = 12;
+        SAMPLERCUBE = 13;
+        VOID = 14;
+        CUSTOM = 15;
+    }
+    string name = 1;
+    Type type = 2;
+    string type_name = 3;
+}
+
 message Shader
 {
     enum Type
@@ -30,6 +56,9 @@ message Shader
     }
     string path = 1;
     Type type = 2;
+    repeated Attribute in_attributes = 3;
+    repeated Attribute out_attributes = 4;
+    repeated Attribute uniforms = 5;
 }
 
 message Pipeline
@@ -44,7 +73,8 @@ message Pipeline
     int32 fragment_shader_index = 3;
     int32 compute_shader_index = 4;
     int32 geometry_shader_index = 5;
-
+    repeated Attribute in_vertex_attributes = 6;
+    repeated Attribute uniforms = 7;
 }
 
 message Texture
@@ -62,6 +92,8 @@ message Material
 {
     repeated MaterialTexture textures = 1;
     int32 pipeline_index = 2;
+    repeated Attribute in_vertex_attributes = 3;
+    repeated Attribute uniforms = 4;
 }
 
 message Mesh

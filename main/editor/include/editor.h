@@ -36,6 +36,13 @@ private:
     void UpdateFileDialog();
     void LoadFileIntoEditor(std::string_view path);
 
+    enum class FileBrowserMode
+    {
+        OPEN_FILE,
+        CREATE_NEW_SHADER,
+        NONE
+    };
+
     EditorSystem* FindEditorSystem(std::string_view path);
 
     pb::Scene scene_;
@@ -44,6 +51,7 @@ private:
     EditorType currentFocusedSystem_ = EditorType::LENGTH;
     std::vector<std::unique_ptr<EditorSystem>> editorSystems_;
 
+    FileBrowserMode fileBrowserMode_ = FileBrowserMode::NONE;
 };
 
 }
