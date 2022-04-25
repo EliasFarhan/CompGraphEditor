@@ -4,6 +4,7 @@
 #include <imgui_stdlib.h>
 #include "engine/filesystem.h"
 #include "utils/log.h"
+#include <fmt/format.h>
 
 namespace gpr5300
 {
@@ -42,51 +43,92 @@ void PipelineEditor::DrawInspector()
         currentPipelineInfo.info.set_type(static_cast<pb::Pipeline_Type>(index));
     }
 
-    if (currentPipelineInfo.vertexShaderId == INVALID_RESOURCE_ID && !currentPipelineInfo.info.vertex_shader_path().empty())
+    //Rasterizer pipeline
+    if (currentPipelineInfo.info.type() == pb::Pipeline_Type_RASTERIZE)
     {
-        currentPipelineInfo.vertexShaderId = resourceManager.FindResourceByPath(currentPipelineInfo.info.vertex_shader_path());
-    }
+        if (currentPipelineInfo.vertexShaderId == INVALID_RESOURCE_ID && !currentPipelineInfo.info.vertex_shader_path().empty())
+        {
+            currentPipelineInfo.vertexShaderId = resourceManager.FindResourceByPath(currentPipelineInfo.info.vertex_shader_path());
+        }
 
-    if (currentPipelineInfo.fragmentShaderId == INVALID_RESOURCE_ID && !currentPipelineInfo.info.fragment_shader_path().empty())
-    {
-        currentPipelineInfo.fragmentShaderId = resourceManager.FindResourceByPath(currentPipelineInfo.info.fragment_shader_path());
-    }
-    auto* shaderEditor = dynamic_cast<ShaderEditor*>(editor->GetEditorSystem(EditorType::SHADER));
-    const auto& shaders = shaderEditor->GetShaders();
-    const auto* vertexShader = shaderEditor->GetShader(currentPipelineInfo.vertexShaderId);
-    if(ImGui::BeginCombo("Vertex Shader", vertexShader?vertexShader->filename.data():"No vertex shader"))
-    {
-        for(auto& shader : shaders)
+        if (currentPipelineInfo.fragmentShaderId == INVALID_RESOURCE_ID && !currentPipelineInfo.info.fragment_shader_path().empty())
         {
-            if(shader.info.type() != pb::Shader_Type_VERTEX)
-            {
-                continue;
-            }
-            if(ImGui::Selectable(shader.filename.c_str(), shader.resourceId == currentPipelineInfo.resourceId))
-            {
-                currentPipelineInfo.vertexShaderId = shader.resourceId;
-                currentPipelineInfo.info.set_vertex_shader_path(shader.info.path());
-            }
+            currentPipelineInfo.fragmentShaderId = resourceManager.FindResourceByPath(currentPipelineInfo.info.fragment_shader_path());
         }
-        ImGui::EndCombo();
-    }
-    
-    const auto* fragmentShader = shaderEditor->GetShader(currentPipelineInfo.fragmentShaderId);
-    if (ImGui::BeginCombo("Fragment Shader", fragmentShader ? fragmentShader->filename.data() : "No fragment shader"))
-    {
-        for (auto& shader : shaders)
+        auto* shaderEditor = dynamic_cast<ShaderEditor*>(editor->GetEditorSystem(EditorType::SHADER));
+        const auto& shaders = shaderEditor->GetShaders();
+        const auto* vertexShader = shaderEditor->GetShader(currentPipelineInfo.vertexShaderId);
+        if (ImGui::BeginCombo("Vertex Shader", vertexShader ? vertexShader->filename.data() : "No vertex shader"))
         {
-            if (shader.info.type() != pb::Shader_Type_FRAGMENT)
+            for (auto& shader : shaders)
             {
-                continue;
+                if (shader.info.type() != pb::Shader_Type_VERTEX)
+                {
+                    continue;
+                }
+                if (ImGui::Selectable(shader.filename.c_str(), shader.resourceId == currentPipelineInfo.resourceId))
+                {
+                    currentPipelineInfo.vertexShaderId = shader.resourceId;
+                    currentPipelineInfo.info.set_vertex_shader_path(shader.info.path());
+                }
             }
-            if (ImGui::Selectable(shader.filename.c_str(), shader.resourceId == currentPipelineInfo.resourceId))
-            {
-                currentPipelineInfo.fragmentShaderId = shader.resourceId;
-                currentPipelineInfo.info.set_fragment_shader_path(shader.info.path());
-            }
+            ImGui::EndCombo();
         }
-        ImGui::EndCombo();
+
+        const auto* fragmentShader = shaderEditor->GetShader(currentPipelineInfo.fragmentShaderId);
+        if (ImGui::BeginCombo("Fragment Shader", fragmentShader ? fragmentShader->filename.data() : "No fragment shader"))
+        {
+            for (auto& shader : shaders)
+            {
+                if (shader.info.type() != pb::Shader_Type_FRAGMENT)
+                {
+                    continue;
+                }
+                if (ImGui::Selectable(shader.filename.c_str(), shader.resourceId == currentPipelineInfo.resourceId))
+                {
+                    currentPipelineInfo.fragmentShaderId = shader.resourceId;
+                    currentPipelineInfo.info.set_fragment_shader_path(shader.info.path());
+                }
+            }
+            ImGui::EndCombo();
+        }
+
+        if (ImGui::BeginListBox("Uniforms"))
+        {
+            if (vertexShader != nullptr)
+            {
+                for (int i = 0; i < vertexShader->info.uniforms_size(); i++)
+                {
+                    const auto& uniformInfo = vertexShader->info.uniforms(i);
+                    const auto text = fmt::format("Name: {} Type: {}", uniformInfo.name(), uniformInfo.type_name());
+                    ImGui::Selectable(text.c_str(), false);
+                }
+            }
+            if (fragmentShader != nullptr)
+            {
+                for (int i = 0; i < fragmentShader->info.uniforms_size(); i++)
+                {
+                    const auto& uniformInfo = fragmentShader->info.uniforms(i);
+                    const auto text = fmt::format("Name: {} Type: {}", uniformInfo.name(), uniformInfo.type_name());
+                    ImGui::Selectable(text.c_str(), false);
+                }
+            }
+            ImGui::EndListBox();
+        }
+
+        if (ImGui::BeginListBox("In Attributes"))
+        {
+            if (vertexShader != nullptr)
+            {
+                for (int i = 0; i < vertexShader->info.in_attributes_size(); i++)
+                {
+                    const auto& inAttributeInfo = vertexShader->info.in_attributes(i);
+                    const auto text = fmt::format("Name: {} Type: {}", inAttributeInfo.name(), inAttributeInfo.type_name());
+                    ImGui::Selectable(text.c_str(), false);
+                }
+            }
+            ImGui::EndListBox();
+        }
     }
 }
 bool PipelineEditor::DrawContentList(bool unfocus)
