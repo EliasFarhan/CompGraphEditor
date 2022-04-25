@@ -2,6 +2,7 @@
 #include <functional>
 #include <algorithm>
 #include "resource_manager.h"
+#include "engine/filesystem.h"
 
 namespace gpr5300
 {
@@ -21,7 +22,7 @@ void ResourceManager::CheckDataFolder()
         }
         else
         {
-            fileIt++;
+            ++fileIt;
             currentResources.emplace(fileIt->path);
         }
     }
@@ -59,6 +60,20 @@ void ResourceManager::CheckDataFolder()
 
     recursiveIterateFile(dataFolder);
 }
+
+ResourceId ResourceManager::FindResourceByPath(std::string_view path) const
+{
+    const auto it = std::ranges::find_if(resources_, [path](const auto& resource)
+    {
+        return path == resource.path;
+    });
+    if(it != resources_.end())
+    {
+        return it->resourceId;
+    }
+    return INVALID_RESOURCE_ID;
+}
+
 ResourceId ResourceManager::GenerateResourceId()
 {
     static ResourceId resourceId = 1;

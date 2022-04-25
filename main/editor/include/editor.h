@@ -18,6 +18,7 @@ namespace gpr5300
 class Editor : public System, public ImguiDrawInterface, public OnEventInterface, public ResourceChangeInterface
 {
 public:
+    Editor();
     void DrawImGui() override;
     void Begin() override;
     void Update(float dt) override;
@@ -26,7 +27,11 @@ public:
     void AddResource(const Resource &resource) override;
     void RemoveResource(const Resource &resource) override;
     void UpdateResource(const Resource &resource) override;
+    EditorSystem* GetEditorSystem(EditorType type) const;
+    const ResourceManager& GetResourceManager() { return resourceManager_; }
+    static Editor* GetInstance() { return instance_; }
 private:
+    void SaveProject();
     void DrawMenuBar();
     void DrawEditorContent();
     void DrawSceneContent();
@@ -46,7 +51,7 @@ private:
 
 
 
-    EditorSystem* FindEditorSystem(std::string_view path);
+    EditorSystem* FindEditorSystem(std::string_view path) const;
 
     pb::Scene scene_;
     ResourceManager resourceManager_;
@@ -55,6 +60,8 @@ private:
     std::vector<std::unique_ptr<EditorSystem>> editorSystems_;
 
     FileBrowserMode fileBrowserMode_ = FileBrowserMode::NONE;
+
+    inline static Editor* instance_ = nullptr;
 };
 
 }

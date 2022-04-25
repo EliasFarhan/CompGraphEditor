@@ -2,6 +2,13 @@
 
 #include <nlohmann/json.hpp>
 
+#include <imgui.h>
+#include "proto/renderer.pb.h"
+#include <fmt/format.h>
+
+#include <pybind11/embed.h>
+#include <pybind11/pybind11.h>
+
 // for convenience
 using json = nlohmann::json;
 
@@ -56,12 +63,12 @@ void ShaderEditor::DrawMainView()
 }
 void ShaderEditor::DrawInspector()
 {
-    if (currentIndex_ == shaderInfos_.size())
+    if (currentIndex_ >= shaderInfos_.size())
     {
         return;
     }
 
-    auto& currentShaderInfo = shaderInfos_[currentIndex_];
+    const auto& currentShaderInfo = shaderInfos_[currentIndex_];
 
     ImGui::Text("Path: %s", currentShaderInfo.filename.c_str());
     switch (currentShaderInfo.info.type())
@@ -137,12 +144,30 @@ bool ShaderEditor::DrawContentList(bool unfocus)
     }
     return wasFocused;
 }
+
+const ShaderInfo* ShaderEditor::GetShader(ResourceId resourceId)
+{
+    if(resourceId == INVALID_RESOURCE_ID)
+    {
+        return nullptr;
+    }
+    const auto it = std::ranges::find_if(shaderInfos_, [resourceId](const auto& shader)
+    {
+        return resourceId == shader.resourceId;
+    });
+    if(it != shaderInfos_.end())
+    {
+        return &*it;
+    }
+    return nullptr;
+}
+
 bool ShaderEditor::AnalyzeShader(std::string_view path, pb::Shader& shaderInfo)
 {
     py::function analyzeShaderFunc = py::module_::import("scripts.shader_parser").attr("analyze_shader");
     try
     {
-        std::string result = (py::str) analyzeShaderFunc(path);
+        std::string result = static_cast<py::str>(analyzeShaderFunc(path));
         LogDebug(fmt::format("Loading shader: {} with content:\n{}", path, result));
         auto shaderJson = json::parse(result);
 

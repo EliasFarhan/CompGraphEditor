@@ -13,9 +13,11 @@ class ResourceManager
 public:
 
     void CheckDataFolder();
+    ResourceId FindResourceByPath(std::string_view path) const;
     static constexpr std::string_view dataFolder = "data/";
     void RegisterResourceChange(ResourceChangeInterface* resourceChange);
     void AddResource(std::string_view path);
+
 private:
     static ResourceId GenerateResourceId();
 

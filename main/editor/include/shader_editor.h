@@ -24,6 +24,9 @@ public:
     std::string_view GetSubFolder() override;
     EditorType GetEditorType() override;
     bool DrawContentList(bool unfocus = false) override;
+    void Save() override{}
+    const ShaderInfo* GetShader(ResourceId resourceId);
+    const std::vector<ShaderInfo>& GetShaders() const { return shaderInfos_; }
 private:
     bool AnalyzeShader(std::string_view path, pb::Shader& shaderInfo);
     static pb::Attribute::Type GetType(std::string_view attibuteTypeString);

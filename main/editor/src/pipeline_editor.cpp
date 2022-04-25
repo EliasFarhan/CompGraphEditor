@@ -1,5 +1,10 @@
 #include "pipeline_editor.h"
+#include "editor.h"
+#include "shader_editor.h"
 #include <imgui_stdlib.h>
+#include "engine/filesystem.h"
+#include "utils/log.h"
+
 namespace gpr5300
 {
 
@@ -17,12 +22,88 @@ void PipelineEditor::DrawInspector()
     {
         return;
     }
+    auto* editor = Editor::GetInstance();
+    const auto& resourceManager = editor->GetResourceManager();
     auto& currentPipelineInfo = pipelineInfos_[currentIndex_];
-    ImGui::Text("Current Pipeline");
+
+    //Pipeline type
+    if(currentPipelineInfo.info.type() != pb::Pipeline_Type_RASTERIZE &&
+        currentPipelineInfo.info.type() != pb::Pipeline_Type_COMPUTE)
+    {
+        currentPipelineInfo.info.set_type(pb::Pipeline_Type_RASTERIZE);
+    }
+    int index = currentPipelineInfo.info.type();
+    const char* pipelineTypeText[] = {
+        "Rasterizer",
+        "Compute"
+    };
+    if(ImGui::Combo("Combo", &index, pipelineTypeText, IM_ARRAYSIZE(pipelineTypeText)))
+    {
+        currentPipelineInfo.info.set_type(static_cast<pb::Pipeline_Type>(index));
+    }
+
+    if (currentPipelineInfo.vertexShaderId == INVALID_RESOURCE_ID && !currentPipelineInfo.info.vertex_shader_path().empty())
+    {
+        currentPipelineInfo.vertexShaderId = resourceManager.FindResourceByPath(currentPipelineInfo.info.vertex_shader_path());
+    }
+
+    if (currentPipelineInfo.fragmentShaderId == INVALID_RESOURCE_ID && !currentPipelineInfo.info.fragment_shader_path().empty())
+    {
+        currentPipelineInfo.fragmentShaderId = resourceManager.FindResourceByPath(currentPipelineInfo.info.fragment_shader_path());
+    }
+    auto* shaderEditor = dynamic_cast<ShaderEditor*>(editor->GetEditorSystem(EditorType::SHADER));
+    const auto& shaders = shaderEditor->GetShaders();
+    const auto* vertexShader = shaderEditor->GetShader(currentPipelineInfo.vertexShaderId);
+    if(ImGui::BeginCombo("Vertex Shader", vertexShader?vertexShader->filename.data():"No vertex shader"))
+    {
+        for(auto& shader : shaders)
+        {
+            if(shader.info.type() != pb::Shader_Type_VERTEX)
+            {
+                continue;
+            }
+            if(ImGui::Selectable(shader.filename.c_str(), shader.resourceId == currentPipelineInfo.resourceId))
+            {
+                currentPipelineInfo.vertexShaderId = shader.resourceId;
+                currentPipelineInfo.info.set_vertex_shader_path(shader.info.path());
+            }
+        }
+        ImGui::EndCombo();
+    }
+    
+    const auto* fragmentShader = shaderEditor->GetShader(currentPipelineInfo.fragmentShaderId);
+    if (ImGui::BeginCombo("Fragment Shader", fragmentShader ? fragmentShader->filename.data() : "No fragment shader"))
+    {
+        for (auto& shader : shaders)
+        {
+            if (shader.info.type() != pb::Shader_Type_FRAGMENT)
+            {
+                continue;
+            }
+            if (ImGui::Selectable(shader.filename.c_str(), shader.resourceId == currentPipelineInfo.resourceId))
+            {
+                currentPipelineInfo.fragmentShaderId = shader.resourceId;
+                currentPipelineInfo.info.set_fragment_shader_path(shader.info.path());
+            }
+        }
+        ImGui::EndCombo();
+    }
 }
 bool PipelineEditor::DrawContentList(bool unfocus)
 {
-    return false;
+    bool wasFocused = false;
+    if (unfocus)
+        currentIndex_ = pipelineInfos_.size();
+    for (std::size_t i = 0; i < pipelineInfos_.size(); i++)
+    {
+        const auto& shaderInfo = pipelineInfos_[i];
+        if (ImGui::Selectable(shaderInfo.filename.data(),  currentIndex_ == i))
+        {
+            currentIndex_ = i;
+            wasFocused = true;
+        }
+    }
+    return wasFocused;
 }
 std::string_view PipelineEditor::GetSubFolder()
 {
@@ -34,7 +115,25 @@ EditorType PipelineEditor::GetEditorType()
 }
 void PipelineEditor::AddResource(const Resource& resource)
 {
+    PipelineInfo pipelineInfo{};
+    pipelineInfo.filename = GetFilename(resource.path);
+    pipelineInfo.resourceId = resource.resourceId;
+    pipelineInfo.path = resource.path;
 
+    const auto& fileSystem = FilesystemLocator::get();
+
+    if (!fileSystem.IsRegularFile(resource.path))
+    {
+        LogWarning(fmt::format("Could not find pipeline file: {}", resource.path));
+        return;
+    }
+    const auto file = fileSystem.LoadFile(resource.path);
+    if (!pipelineInfo.info.ParseFromString(reinterpret_cast<const char*>(file.data)))
+    {
+        LogWarning(fmt::format("Could not open protobuf file: {}", resource.path));
+        return;
+    }
+    pipelineInfos_.push_back(pipelineInfo);
 }
 void PipelineEditor::RemoveResource(const Resource& resource)
 {
@@ -43,5 +142,14 @@ void PipelineEditor::RemoveResource(const Resource& resource)
 void PipelineEditor::UpdateResource(const Resource& resource)
 {
 
+}
+
+void PipelineEditor::Save()
+{
+    const auto& filesystem = FilesystemLocator::get();
+    for(auto& pipelineInfo : pipelineInfos_)
+    {
+        filesystem.WriteString(pipelineInfo.path,pipelineInfo.info.SerializeAsString());
+    }
 }
 }

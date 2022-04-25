@@ -26,5 +26,6 @@ public:
     virtual bool DrawContentList(bool unfocus = false) = 0;
     virtual std::string_view GetSubFolder() = 0;
     virtual EditorType GetEditorType() = 0;
+    virtual void Save() = 0;
 };
 }

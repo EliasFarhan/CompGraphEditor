@@ -59,7 +59,7 @@ bool DefaultFilesystem::IsDirectory(std::string_view path) const
 }
 void DefaultFilesystem::WriteString(std::string_view path, std::string_view content) const
 {
-    std::ofstream outFile(path.data());
+    std::ofstream outFile(path.data(), std::ofstream::binary);
     outFile << content;
 }
 

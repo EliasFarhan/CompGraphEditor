@@ -31,7 +31,7 @@ target_link_libraries(Common PUBLIC CommonProto GLEW::GLEW glm::glm SDL2::SDL2 S
     tinyobjloader::tinyobjloader pybind11::embed ${Python3_LIBRARIES} spdlog::spdlog)
 set_target_properties(Common PROPERTIES UNITY_BUILD ON)
 if(MSVC)
-    target_compile_definitions(Common PUBLIC "_USE_MATH_DEFINES")
+    target_compile_definitions(Common PUBLIC "_USE_MATH_DEFINES" WIN32_LEAN_AND_MEAN)
     target_compile_options(Common PUBLIC /arch:AVX2 /Oi /GL /fp:fast)
     target_link_options(Common PUBLIC /LTCG)
 else()

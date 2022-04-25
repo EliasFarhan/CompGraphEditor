@@ -6,8 +6,11 @@ namespace gpr5300
 struct PipelineInfo
 {
     std::string path;
+    std::string filename;
     pb::Pipeline info;
     ResourceId resourceId = INVALID_RESOURCE_ID;
+    ResourceId vertexShaderId = INVALID_RESOURCE_ID;
+    ResourceId fragmentShaderId = INVALID_RESOURCE_ID;
 };
 
 class PipelineEditor : public EditorSystem
@@ -22,6 +25,7 @@ public:
     void AddResource(const Resource& resource) override;
     void RemoveResource(const Resource& resource) override;
     void UpdateResource(const Resource& resource) override;
+    void Save() override;
 private:
     std::vector<PipelineInfo> pipelineInfos_;
     std::size_t currentIndex_ = 0;

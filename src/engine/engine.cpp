@@ -13,6 +13,11 @@
 
 #include <chrono>
 #include <cassert>
+#include <glm/vec2.hpp>
+
+#include "utils/log.h"
+
+#include <fmt/format.h>
 
 namespace gpr5300
 {
@@ -33,13 +38,13 @@ void Engine::Begin()
 
     SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
     SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 8);
-
+    const auto windowSize = glm::ivec2(config_.windowsize().x(), config_.windowsize().y());
     window_ = SDL_CreateWindow(
         config_.window_name().c_str(),
         SDL_WINDOWPOS_UNDEFINED,
         SDL_WINDOWPOS_UNDEFINED,
-        config_.windowsize().x(),
-        config_.windowsize().y(),
+        windowSize.x,
+        windowSize.y,
         SDL_WINDOW_RESIZABLE | SDL_WINDOW_OPENGL
     );
     glRenderContext_ = SDL_GL_CreateContext(window_);
@@ -168,7 +173,7 @@ void Engine::End()
     SDL_DestroyWindow(window_);
     SDL_Quit();
 
-    auto& fileSystem = FilesystemLocator::get();
+    const auto& fileSystem = FilesystemLocator::get();
     fileSystem.WriteString(configFilename, config_.SerializeAsString());
 
 }
@@ -190,12 +195,13 @@ void Engine::RegisterSystem(System* system)
 Engine::Engine()
 {
     engine_ = this;
-    auto& fileSystem = FilesystemLocator::get();
+    const auto& fileSystem = FilesystemLocator::get();
 
     if(fileSystem.IsRegularFile(configFilename))
     {
-        auto file = fileSystem.LoadFile(configFilename);
-        config_.ParseFromArray(file.data, file.length);
+        const auto file = fileSystem.LoadFile(configFilename);
+        config_.ParseFromString(reinterpret_cast<const char*>(file.data));
+        
     }
     else
     {
