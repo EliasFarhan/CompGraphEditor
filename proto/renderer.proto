@@ -75,6 +75,11 @@ message Pipeline
     int32 geometry_shader_index = 5;
     repeated Attribute in_vertex_attributes = 6;
     repeated Attribute uniforms = 7;
+
+    string vertex_shader_path = 8;// Used by the editor
+    string fragment_shader_path = 9;// Used by the editor
+    string compute_shader_path = 10;// Used by the editor
+    string geometry_shader_path = 11;// Used by the editor
 }
 
 message Texture
@@ -94,6 +99,7 @@ message Material
     int32 pipeline_index = 2;
     repeated Attribute in_vertex_attributes = 3;
     repeated Attribute uniforms = 4;
+    string pipeline_path = 5; //used for the editor
 }
 
 message Mesh

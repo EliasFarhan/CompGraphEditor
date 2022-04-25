@@ -9,6 +9,7 @@
 #include "editor_filesystem.h"
 
 #include "imnodes.h"
+#include "pipeline_editor.h"
 
 namespace gpr5300
 {
@@ -19,6 +20,7 @@ void Editor::Begin()
 
     editorSystems_.resize(static_cast<std::size_t>(EditorType::LENGTH));
     editorSystems_[static_cast<std::size_t>(EditorType::SHADER)] = std::make_unique<ShaderEditor>();
+    editorSystems_[static_cast<std::size_t>(EditorType::PIPELINE)] = std::make_unique<PipelineEditor>();
 
     resourceManager_.RegisterResourceChange(this);
     py::initialize_interpreter();
@@ -26,7 +28,6 @@ void Editor::Begin()
     if (!filesystem.IsDirectory(ResourceManager::dataFolder))
     {
         CreateDirectory(ResourceManager::dataFolder);
-
     }
     else
     {
@@ -86,9 +87,7 @@ void Editor::DrawMenuBar()
         {
             if (ImGui::MenuItem("Open"))
             {
-                fileBrowserMode_ = FileBrowserMode::OPEN_FILE;
-                fileDialog_ = ImGui::FileBrowser();
-                fileDialog_.Open();
+                OpenFileBrowserDialog(FileBrowserMode::OPEN_FILE);
             }
             ImGui::EndMenu();
         }
@@ -130,9 +129,12 @@ void Editor::DrawCenterView()
     if (ImGui::BeginTabBar("Center View"))
     {
         ImGuiTabItemFlags_ flag = ImGuiTabItemFlags_None;
+        flag = currentFocusedSystem_ == EditorType::PIPELINE ? ImGuiTabItemFlags_SetSelected : ImGuiTabItemFlags_None;
 
-        if (ImGui::BeginTabItem("Pipeline"))
+        if (ImGui::BeginTabItem("Pipeline", nullptr, flag))
         {
+            editorSystems_[(int) EditorType::PIPELINE]->DrawMainView();
+            currentFocusedSystem_ = EditorType::PIPELINE;
             ImGui::EndTabItem();
         }
         //FIXME probable bug when switching to ther tabs
@@ -173,6 +175,7 @@ void Editor::UpdateFileDialog()
 
     if (fileDialog_.HasSelected())
     {
+        auto& filesystem = FilesystemLocator::get();
         const auto path = fileDialog_.GetSelected().string();
         switch(fileBrowserMode_)
         {
@@ -192,8 +195,23 @@ void Editor::UpdateFileDialog()
                                        path));
                 break;
             }
-            auto& filesystem = FilesystemLocator::get();
+
             filesystem.WriteString(path, "#version 310 es\nprecision highp float;\nvoid main() {}");
+            resourceManager_.AddResource(path);
+            break;
+        }
+        case FileBrowserMode::CREATE_NEW_PIPELINE:
+        {
+            const auto extension = GetFileExtension(path);
+            if (!editorSystems_[(int) EditorType::PIPELINE]->CheckExtensions(extension))
+            {
+                LogWarning(fmt::format("Invalid extension name for newly created pipeline: {} path: {}",
+                                       extension,
+                                       path));
+                break;
+            }
+            pb::Pipeline emptyPipeline;
+            filesystem.WriteString(path, emptyPipeline.SerializeAsString());
             resourceManager_.AddResource(path);
             break;
         }
@@ -274,12 +292,7 @@ void Editor::DrawEditorContent()
     {
         if(ImGui::Button("Create New Shader"))
         {
-            fileBrowserMode_ = FileBrowserMode::CREATE_NEW_SHADER;
-            fileDialog_ = ImGui::FileBrowser(ImGuiFileBrowserFlags_EnterNewFilename|ImGuiFileBrowserFlags_CreateNewDir);
-            const auto shaderPath = fmt::format("{}{}", ResourceManager::dataFolder, editorSystems_[(int)EditorType::SHADER]->GetSubFolder());
-            fileDialog_.SetPwd(shaderPath);
-            fileDialog_.SetTypeFilters({".vert", ".frag", ".comp"});
-            fileDialog_.Open();
+            OpenFileBrowserDialog(FileBrowserMode::CREATE_NEW_SHADER);
             ImGui::CloseCurrentPopup();
         }
         ImGui::EndPopup();
@@ -348,5 +361,30 @@ EditorSystem* Editor::FindEditorSystem(std::string_view path)
         break;
     }
     return editorSystem;
+}
+void Editor::OpenFileBrowserDialog(Editor::FileBrowserMode mode)
+{
+    switch(mode)
+    {
+    case FileBrowserMode::OPEN_FILE:
+    {
+        fileBrowserMode_ = FileBrowserMode::OPEN_FILE;
+        fileDialog_ = ImGui::FileBrowser();
+        fileDialog_.Open();
+        break;
+    }
+    case FileBrowserMode::CREATE_NEW_SHADER:
+    {
+        fileBrowserMode_ = FileBrowserMode::CREATE_NEW_SHADER;
+        fileDialog_ = ImGui::FileBrowser(ImGuiFileBrowserFlags_EnterNewFilename|ImGuiFileBrowserFlags_CreateNewDir);
+        const auto shaderPath = fmt::format("{}{}", ResourceManager::dataFolder, editorSystems_[(int)EditorType::SHADER]->GetSubFolder());
+        fileDialog_.SetPwd(shaderPath);
+        fileDialog_.SetTypeFilters({".vert", ".frag", ".comp"});
+        fileDialog_.Open();
+        break;
+    }
+    default:
+        break;
+    }
 }
 }

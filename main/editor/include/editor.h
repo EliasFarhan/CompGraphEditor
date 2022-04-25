@@ -35,13 +35,16 @@ private:
     void DrawLogWindow();
     void UpdateFileDialog();
     void LoadFileIntoEditor(std::string_view path);
-
     enum class FileBrowserMode
     {
         OPEN_FILE,
         CREATE_NEW_SHADER,
+        CREATE_NEW_PIPELINE,
         NONE
     };
+    void OpenFileBrowserDialog(FileBrowserMode mode);
+
+
 
     EditorSystem* FindEditorSystem(std::string_view path);
 

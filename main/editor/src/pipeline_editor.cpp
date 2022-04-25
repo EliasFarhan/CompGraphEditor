@@ -1,5 +1,5 @@
 #include "pipeline_editor.h"
-
+#include <imgui_stdlib.h>
 namespace gpr5300
 {
 
@@ -13,7 +13,12 @@ void PipelineEditor::DrawMainView()
 }
 void PipelineEditor::DrawInspector()
 {
-
+    if (currentIndex_ == pipelineInfos_.size())
+    {
+        return;
+    }
+    auto& currentPipelineInfo = pipelineInfos_[currentIndex_];
+    ImGui::Text("Current Pipeline");
 }
 bool PipelineEditor::DrawContentList(bool unfocus)
 {

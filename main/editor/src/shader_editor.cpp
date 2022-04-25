@@ -63,7 +63,6 @@ void ShaderEditor::DrawInspector()
 
     auto& currentShaderInfo = shaderInfos_[currentIndex_];
 
-    ImGui::Text("Current Shader");
     ImGui::Text("Path: %s", currentShaderInfo.filename.c_str());
     switch (currentShaderInfo.info.type())
     {
