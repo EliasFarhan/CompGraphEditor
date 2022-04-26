@@ -112,7 +112,7 @@ void MeshEditor::Save()
 {
     for(auto& meshInfo : meshInfos_)
     {
-        std::ofstream fileOut(meshInfo.path, std::ios::binary, std::ios::binary);
+        std::ofstream fileOut(meshInfo.path, std::ios::binary);
         if (!meshInfo.info.SerializeToOstream(&fileOut))
         {
             LogWarning(fmt::format("Could not save mesh at: {}", meshInfo.path));

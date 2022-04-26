@@ -139,7 +139,7 @@ message SubPass
     Color4 clear_color = 1;
     repeated DrawCommand commands = 2;
     //Used by editor
-    repeated string commandPaths = 3;
+    repeated string command_paths = 3;
 }
 
 message RenderPass

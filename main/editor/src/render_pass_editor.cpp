@@ -4,6 +4,8 @@
 #include "editor_system.h"
 #include "engine/filesystem.h"
 #include "utils/log.h"
+#include "command_editor.h"
+#include "editor.h"
 #include <fmt/format.h>
 #include <imgui.h>
 #include <array>
@@ -28,6 +30,10 @@ void RenderPassEditor::DrawInspector()
     {
         return;
     }
+    auto* editor = Editor::GetInstance();
+    const auto& resourceManager = editor->GetResourceManager();
+    auto* commandEditor = dynamic_cast<CommandEditor*>(editor->GetEditorSystem(EditorType::COMMAND));
+    const auto& commands = commandEditor->GetCommands();
     auto& currentRenderPass = renderPassInfos_[currentIndex_];
     for(int i = 0; i < currentRenderPass.info.sub_passes_size(); i++)
     {
@@ -53,6 +59,53 @@ void RenderPassEditor::DrawInspector()
                 clearColor->set_g(color[1]);
                 clearColor->set_b(color[2]);
                 clearColor->set_a(color[3]);
+            }
+            ImGui::PopID();
+            std::vector<int> removedCommandIndices;
+            for(int j = 0; j < subpassInfo->command_paths_size(); j++)
+            {
+                auto& commandPath = subpassInfo->command_paths(j);
+                const auto commandId = resourceManager.FindResourceByPath(commandPath);
+                const auto* command = commandEditor->GetCommand(commandId);
+
+                const auto commandHeaderTitle = fmt::format("Command {}", j);
+                bool visible = true;
+                const auto commandHeaderId = fmt::format("{}{}", headerTitle, commandHeaderTitle);
+                ImGui::PushID(commandHeaderId.c_str());
+                if(ImGui::CollapsingHeader(commandHeaderTitle.c_str(), &visible))
+                {
+                    const auto comboId = commandHeaderId+"combo";
+                    ImGui::PushID(comboId.c_str());
+                    if(ImGui::BeginCombo("Command", command?command->filename.c_str():"Empty command"))
+                    {
+                        for(auto& availableCommand : commands)
+                        {
+                            if(ImGui::Selectable(availableCommand.filename.c_str(),availableCommand.resourceId == commandId))
+                            {
+                                subpassInfo->set_command_paths(j, availableCommand.path);
+                            }
+                            ImGui::EndCombo();
+                        }
+                    }
+                    ImGui::PopID();
+                }
+                ImGui::PopID();
+                if(!visible)
+                {
+                    removedCommandIndices.push_back(j);
+                }
+            }
+            std::ranges::sort(removedCommandIndices);
+            std::ranges::reverse(removedCommandIndices);
+            for(auto removedCommandIndex : removedCommandIndices)
+            {
+                subpassInfo->mutable_command_paths()->DeleteSubrange(removedCommandIndex, 1);
+            }
+            const auto buttonId = fmt::format("{}_add_command_button", headerTitle);
+            ImGui::PushID(buttonId.c_str());
+            if(ImGui::Button("Add Command"))
+            {
+                subpassInfo->add_command_paths();
             }
             ImGui::PopID();
         }

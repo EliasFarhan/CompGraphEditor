@@ -173,12 +173,25 @@ void CommandEditor::Save()
 {
     for (auto& commandInfo : commandInfos_)
     {
-        std::ofstream fileOut(commandInfo.path, std::ios::binary, std::ios::binary);
+        std::ofstream fileOut(commandInfo.path, std::ios::binary);
         if (!commandInfo.info.SerializeToOstream(&fileOut))
         {
             LogWarning(fmt::format("Could not save command at: {}", commandInfo.path));
         }
 
     }
+}
+
+const CommandInfo* CommandEditor::GetCommand(ResourceId resourceId) const
+{
+    const auto it = std::ranges::find_if(commandInfos_, [resourceId](const auto& command)
+    {
+       return resourceId == command.resourceId;
+    });
+    if(it != commandInfos_.end())
+    {
+        return &*it;
+    }
+    return nullptr;
 }
 } // namespace gpr5300

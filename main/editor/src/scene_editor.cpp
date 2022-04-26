@@ -117,7 +117,7 @@ void SceneEditor::Save()
 {
     for (auto& sceneInfo : sceneInfos_)
     {
-        std::ofstream fileOut(sceneInfo.path, std::ios::binary, std::ios::binary);
+        std::ofstream fileOut(sceneInfo.path, std::ios::binary);
         if (!sceneInfo.info.SerializeToOstream(&fileOut))
         {
             LogWarning(fmt::format("Could not save scene at: {}", sceneInfo.path));
