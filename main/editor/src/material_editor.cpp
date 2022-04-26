@@ -71,7 +71,10 @@ void MaterialEditor::DrawInspector()
             }
             ImGui::EndListBox();
         }
+
+        //TODO add and select textures
     }
+
 }
 
 bool MaterialEditor::DrawContentList(bool unfocus) {

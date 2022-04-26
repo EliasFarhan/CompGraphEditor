@@ -1,20 +1,18 @@
 #pragma once
 
-#include "proto/renderer.pb.h"
-#include "editor_system.h"
-
 namespace gpr5300
 {
 
-struct SceneInfo
+
+struct RenderPassInfo
 {
-    std::string filename;
     std::string path;
-    pb::Scene scene;
+    std::string filename;
+    pb::RenderPass info;
     ResourceId resourceId = INVALID_RESOURCE_ID;
 };
 
-class SceneEditor : public EditorSystem
+class RenderPassEditor : public EditorSystem
 {
 public:
     bool CheckExtensions(std::string_view extension) override;
@@ -38,5 +36,4 @@ public:
     void UpdateResource(const Resource &resource) override;
 
 };
-
 }

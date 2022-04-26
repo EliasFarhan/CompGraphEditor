@@ -129,7 +129,6 @@ void PipelineEditor::DrawInspector()
             }
             ImGui::EndListBox();
         }
-        //TODO add and select textures
     }
 }
 bool PipelineEditor::DrawContentList(bool unfocus)

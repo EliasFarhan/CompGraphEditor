@@ -12,6 +12,8 @@ enum class EditorType
     TEXTURE,
     MODEL,
     MATERIAL,
+    SCENE,
+    RENDER_PASS,
     LENGTH
 };
 

@@ -11,6 +11,7 @@
 #include "imnodes.h"
 #include "pipeline_editor.h"
 #include "material_editor.h"
+#include "mesh_editor.h"
 
 namespace gpr5300
 {
@@ -23,6 +24,8 @@ void Editor::Begin()
     editorSystems_[static_cast<std::size_t>(EditorType::SHADER)] = std::make_unique<ShaderEditor>();
     editorSystems_[static_cast<std::size_t>(EditorType::PIPELINE)] = std::make_unique<PipelineEditor>();
     editorSystems_[static_cast<std::size_t>(EditorType::MATERIAL)] = std::make_unique<MaterialEditor>();
+    editorSystems_[static_cast<std::size_t>(EditorType::MODEL)] = std::make_unique<MeshEditor>();
+
     resourceManager_.RegisterResourceChange(this);
     py::initialize_interpreter();
     const auto& filesystem = FilesystemLocator::get();
@@ -121,31 +124,6 @@ void Editor::DrawMenuBar()
     }
 }
 
-void Editor::DrawSceneContent()
-{
-    ImGui::Begin("Scene Content");
-
-    if (ImGui::TreeNode("Shaders"))
-    {
-        ImGui::TreePop();
-    }
-
-    if (ImGui::TreeNode("Pipelines"))
-    {
-        ImGui::TreePop();
-    }
-
-    if (ImGui::TreeNode("Materials"))
-    {
-        ImGui::TreePop();
-    }
-
-    if (ImGui::TreeNode("Textures"))
-    {
-        ImGui::TreePop();
-    }
-    ImGui::End();
-}
 void Editor::DrawCenterView()
 {
     if (ImGui::BeginTabBar("Center View"))
@@ -166,13 +144,16 @@ void Editor::DrawCenterView()
         }
 
         flag = currentFocusedSystem_ == EditorType::MATERIAL ? ImGuiTabItemFlags_SetSelected : ImGuiTabItemFlags_None;
-        if (ImGui::BeginTabItem("Material"))
+        if (ImGui::BeginTabItem("Material", nullptr, flag))
         {
             editorSystems_[static_cast<int>(EditorType::MATERIAL)]->DrawMainView();
             ImGui::EndTabItem();
         }
-        if (ImGui::BeginTabItem("Texture"))
+        flag = currentFocusedSystem_ == EditorType::MODEL ? ImGuiTabItemFlags_SetSelected : ImGuiTabItemFlags_None;
+
+        if (ImGui::BeginTabItem("Mesh", nullptr, flag))
         {
+            editorSystems_[static_cast<int>(EditorType::MODEL)]->DrawMainView();
             ImGui::EndTabItem();
         }
         ImGui::EndTabBar();
@@ -249,6 +230,21 @@ void Editor::UpdateFileDialog()
             }
             pb::Material emptyMaterial;
             filesystem.WriteString(path, emptyMaterial.SerializeAsString());
+            resourceManager_.AddResource(path);
+            break;
+        }
+        case FileBrowserMode::CREATE_NEW_MESH:
+        {
+            const auto extension = GetFileExtension(path);
+            if (!editorSystems_[(int) EditorType::MODEL]->CheckExtensions(extension))
+            {
+                LogWarning(fmt::format("Invalid extension name for newly created mesh: {} path: {}",
+                                       extension,
+                                       path));
+                break;
+            }
+            pb::Mesh emptyMesh;
+            filesystem.WriteString(path, emptyMesh.SerializeAsString());
             resourceManager_.AddResource(path);
             break;
         }
@@ -413,6 +409,26 @@ void Editor::DrawEditorContent()
         ImGui::TreePop();
     }
 
+    open = ImGui::TreeNode("Meshes");
+    if (ImGui::BeginPopupContextItem())
+    {
+        if (ImGui::Button("Create New Mesh"))
+        {
+            OpenFileBrowserDialog(FileBrowserMode::CREATE_NEW_MESH);
+            ImGui::CloseCurrentPopup();
+        }
+        ImGui::EndPopup();
+    }
+    if(open)
+    {
+        if (editorSystems_[static_cast<int>(EditorType::MODEL)]
+                ->DrawContentList(currentFocusedSystem_ != EditorType::MODEL))
+        {
+            currentFocusedSystem_ = EditorType::MODEL;
+        }
+        ImGui::TreePop();
+    }
+
     if (ImGui::TreeNode("Textures"))
     {
         ImGui::TreePop();
@@ -505,6 +521,17 @@ void Editor::OpenFileBrowserDialog(Editor::FileBrowserMode mode)
                                               editorSystems_[static_cast<int>(EditorType::MATERIAL)]->GetSubFolder());
         fileDialog_.SetPwd(materialPath);
         fileDialog_.SetTypeFilters({ ".mat" });
+        fileDialog_.Open();
+        break;
+    }
+    case FileBrowserMode::CREATE_NEW_MESH:
+    {
+        fileBrowserMode_ = FileBrowserMode::CREATE_NEW_MESH;
+        fileDialog_ = ImGui::FileBrowser(ImGuiFileBrowserFlags_EnterNewFilename | ImGuiFileBrowserFlags_CreateNewDir);
+        const auto modelPath = fmt::format("{}{}", ResourceManager::dataFolder,
+                                              editorSystems_[static_cast<int>(EditorType::MODEL)]->GetSubFolder());
+        fileDialog_.SetPwd(modelPath);
+        fileDialog_.SetTypeFilters({ ".mesh" });
         fileDialog_.Open();
         break;
     }

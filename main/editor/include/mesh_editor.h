@@ -1,23 +1,20 @@
 #pragma once
 
-#include "proto/renderer.pb.h"
-#include "editor_system.h"
-
 namespace gpr5300
 {
 
-struct SceneInfo
+struct MeshInfo
 {
-    std::string filename;
     std::string path;
-    pb::Scene scene;
+    std::string filename;
+    pb::Mesh info;
     ResourceId resourceId = INVALID_RESOURCE_ID;
 };
 
-class SceneEditor : public EditorSystem
+class MeshEditor : public EditorSystem
 {
 public:
-    bool CheckExtensions(std::string_view extension) override;
+    bool CheckExtensions(std::string_view modelExtension) override;
 
     void DrawMainView() override;
 
@@ -36,7 +33,9 @@ public:
     void RemoveResource(const Resource &resource) override;
 
     void UpdateResource(const Resource &resource) override;
-
+private:
+    std::vector<MeshInfo> meshInfos_;
+    std::size_t currentIndex_ = -1;
 };
 
 }

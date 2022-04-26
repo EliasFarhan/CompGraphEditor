@@ -49,11 +49,12 @@ void ShaderEditor::UpdateResource(const Resource& resource)
 }
 bool ShaderEditor::CheckExtensions(std::string_view extension)
 {
-    static constexpr std::array<std::string_view, 3> extensions
+    static constexpr std::array<std::string_view, 4> extensions
         {
             ".vert",
             ".frag",
-            ".comp"
+            ".comp",
+            ".geom"
         };
     return std::ranges::any_of(extensions, [extension](auto shaderExtension)
     {

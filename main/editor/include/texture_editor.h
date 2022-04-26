@@ -1,20 +1,17 @@
 #pragma once
-
-#include "proto/renderer.pb.h"
-#include "editor_system.h"
-
+#include "renderer/texture.h"
 namespace gpr5300
 {
 
-struct SceneInfo
+struct TextureInfo
 {
-    std::string filename;
     std::string path;
-    pb::Scene scene;
+    std::string filename;
+    pb::Texture info;
     ResourceId resourceId = INVALID_RESOURCE_ID;
 };
 
-class SceneEditor : public EditorSystem
+class TextureEditor : public EditorSystem
 {
 public:
     bool CheckExtensions(std::string_view extension) override;
@@ -36,7 +33,7 @@ public:
     void RemoveResource(const Resource &resource) override;
 
     void UpdateResource(const Resource &resource) override;
-
+private:
+    std::vector<TextureInfo> textureInfos_;
 };
-
 }

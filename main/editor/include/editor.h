@@ -34,7 +34,6 @@ private:
     void SaveProject();
     void DrawMenuBar();
     void DrawEditorContent();
-    void DrawSceneContent();
     void DrawCenterView();
     void DrawInspector();
     void DrawLogWindow();
@@ -46,6 +45,7 @@ private:
         CREATE_NEW_SHADER,
         CREATE_NEW_PIPELINE,
         CREATE_NEW_MATERIAL,
+        CREATE_NEW_MESH,
         NONE
     };
     void OpenFileBrowserDialog(FileBrowserMode mode);

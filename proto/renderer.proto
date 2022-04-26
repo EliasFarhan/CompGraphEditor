@@ -109,6 +109,7 @@ message Mesh
         QUAD = 0;
         CUBE = 1;
         SPHERE = 2;
+        MODEL = 3;
         NONE = 4;
     }
     PrimitveType primitve_type = 1;
