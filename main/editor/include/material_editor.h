@@ -13,7 +13,6 @@ struct MaterialInfo
     pb::Material info;
     ResourceId resourceId = INVALID_RESOURCE_ID;
     ResourceId pipelineId = INVALID_RESOURCE_ID;
-    std::string pipelinePath;
 };
 
 class MaterialEditor : public EditorSystem

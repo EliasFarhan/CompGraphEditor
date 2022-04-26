@@ -19,7 +19,7 @@ void PipelineEditor::DrawMainView()
 }
 void PipelineEditor::DrawInspector()
 {
-    if (currentIndex_ == pipelineInfos_.size())
+    if (currentIndex_ >= pipelineInfos_.size())
     {
         return;
     }
@@ -66,7 +66,7 @@ void PipelineEditor::DrawInspector()
                 {
                     continue;
                 }
-                if (ImGui::Selectable(shader.filename.c_str(), shader.resourceId == currentPipelineInfo.resourceId))
+                if (ImGui::Selectable(shader.filename.c_str(), shader.resourceId == currentPipelineInfo.vertexShaderId))
                 {
                     currentPipelineInfo.vertexShaderId = shader.resourceId;
                     currentPipelineInfo.info.set_vertex_shader_path(shader.info.path());
@@ -84,7 +84,7 @@ void PipelineEditor::DrawInspector()
                 {
                     continue;
                 }
-                if (ImGui::Selectable(shader.filename.c_str(), shader.resourceId == currentPipelineInfo.resourceId))
+                if (ImGui::Selectable(shader.filename.c_str(), shader.resourceId == currentPipelineInfo.fragmentShaderId))
                 {
                     currentPipelineInfo.fragmentShaderId = shader.resourceId;
                     currentPipelineInfo.info.set_fragment_shader_path(shader.info.path());
@@ -129,6 +129,7 @@ void PipelineEditor::DrawInspector()
             }
             ImGui::EndListBox();
         }
+        //TODO add and select textures
     }
 }
 bool PipelineEditor::DrawContentList(bool unfocus)
@@ -193,5 +194,17 @@ void PipelineEditor::Save()
     {
         filesystem.WriteString(pipelineInfo.path,pipelineInfo.info.SerializeAsString());
     }
+}
+
+const PipelineInfo *PipelineEditor::GetPipeline(ResourceId resourceId) const {
+    auto it = std::ranges::find_if(pipelineInfos_, [resourceId](const auto& pipeline)
+    {
+       return resourceId == pipeline.resourceId;
+    });
+    if(it != pipelineInfos_.end())
+    {
+        return &*it;
+    }
+    return nullptr;
 }
 }

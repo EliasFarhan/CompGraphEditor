@@ -148,7 +148,7 @@ bool ShaderEditor::DrawContentList(bool unfocus)
     return wasFocused;
 }
 
-const ShaderInfo* ShaderEditor::GetShader(ResourceId resourceId)
+const ShaderInfo* ShaderEditor::GetShader(ResourceId resourceId) const
 {
     if(resourceId == INVALID_RESOURCE_ID)
     {
