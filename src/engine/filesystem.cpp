@@ -63,27 +63,4 @@ void DefaultFilesystem::WriteString(std::string_view path, std::string_view cont
     outFile << content;
 }
 
-BufferFile PhysFilesystem::LoadFile(std::string_view path) const
-{
-    return {};
-}
-
-bool PhysFilesystem::FileExists(std::string_view path) const
-{
-    return false;
-}
-
-bool PhysFilesystem::IsRegularFile(std::string_view path) const
-{
-    return false;
-}
-
-bool PhysFilesystem::IsDirectory(std::string_view path) const
-{
-    return false;
-}
-void PhysFilesystem::WriteString(std::string_view path, std::string_view content) const
-{
-
-}
 }

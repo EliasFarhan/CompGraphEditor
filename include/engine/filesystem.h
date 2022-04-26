@@ -1,8 +1,9 @@
 #pragma once
 
-#include <cassert>
-
 #include "utils/locator.h"
+#include <cassert>
+#include <string_view>
+
 
 namespace gpr5300
 {
@@ -81,16 +82,6 @@ public:
     void WriteString(std::string_view path, std::string_view content) const override;
 };
 
-class PhysFilesystem final : public FilesystemInterface
-{
-public:
-    [[nodiscard]] BufferFile LoadFile(std::string_view path) const override;
-    [[nodiscard]] bool FileExists(std::string_view path) const override;
-    [[nodiscard]] bool IsRegularFile(std::string_view path) const override;
-    [[nodiscard]] bool IsDirectory(std::string_view path) const override;
-    void WriteString(std::string_view path, std::string_view content) const override;
-
-};
 
 using FilesystemLocator = Locator<FilesystemInterface, NullFilesystem>;
 

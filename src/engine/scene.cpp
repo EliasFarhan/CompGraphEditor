@@ -75,6 +75,7 @@ void Scene::LoadScene(PyManager &pyManager)
         case pb::Mesh_PrimitveType_SPHERE:
             break;
         case pb::Mesh_PrimitveType_NONE:
+            meshes_[i] = GenerateEmpty();
             break;
         default:
             break;
@@ -186,8 +187,11 @@ void SceneManager::LoadScene(Scene *scene)
 
 void SceneManager::End()
 {
-    currentScene_->UnloadScene();
-    currentScene_ = nullptr;
+    if (currentScene_ != nullptr)
+    {
+        currentScene_->UnloadScene();
+        currentScene_ = nullptr;
+    }
     pyManager_.End();
 }
 

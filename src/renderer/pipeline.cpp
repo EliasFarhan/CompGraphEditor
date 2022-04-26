@@ -29,7 +29,7 @@ void Shader::LoadShader(const pb::Shader &shader)
     }
     const auto &filesystem = FilesystemLocator::get();
     std::string_view path = shader.path();
-    if (filesystem.IsRegularFile(path))
+    if (filesystem.FileExists(path))
     {
         const auto file = filesystem.LoadFile(path);
         const GLuint shaderName = glCreateShader(glType);

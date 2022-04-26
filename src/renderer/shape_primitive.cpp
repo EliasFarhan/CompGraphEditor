@@ -89,4 +89,12 @@ Mesh GenerateQuad()
 
     return mesh;
 }
+
+Mesh GenerateEmpty()
+{
+    Mesh mesh{};
+    glCreateVertexArrays(1, &mesh.vao);
+
+    return mesh;
+}
 }

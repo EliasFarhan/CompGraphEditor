@@ -326,7 +326,7 @@ bool SceneEditor::ExportScene()
     shaderPaths.reserve(currentScene.info.shaders_size());
     for(int i = 0; i < exportScene.info.shaders_size(); i++)
     {
-        shaderPaths.push_back(exportScene.info.shaders(i).path());
+        shaderPaths.push_back(fs::path(exportScene.info.shaders(i).path(), std::filesystem::path::generic_format).string());
     }
     sceneJson["shaders"] = shaderPaths;
     sceneJson["textures"] = json::array();

@@ -8,18 +8,18 @@ namespace gpr5300
 
 std::string GetFileExtension(std::string_view path)
 {
-    fs::path p = path;
+    const fs::path p = path;
     return p.extension().string();
 }
 
 fs::file_time_type GetLastTimeWrite(std::string_view path)
 {
-    fs::path p = path;
+    const fs::path p = path;
     return last_write_time(p);
 }
 std::string GetFilename(std::string_view path, bool withExtension)
 {
-    fs::path p = path;
+    const fs::path p = path;
     return withExtension?p.filename().string() : p.stem().string();
 }
 bool CopyFileFromTo(std::string_view srcPath, std::string_view dstPath)
@@ -42,6 +42,7 @@ bool CreateNewDirectory(std::string_view newDir)
 
 bool RemoveFile(std::string_view path)
 {
-    return fs::remove(path);
+    const fs::path p = path;
+    return fs::remove(p);
 }
 }
