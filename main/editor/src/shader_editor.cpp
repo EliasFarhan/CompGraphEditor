@@ -4,10 +4,13 @@
 
 #include <imgui.h>
 #include "proto/renderer.pb.h"
+#include "utils/log.h"
 #include <fmt/format.h>
 
 #include <pybind11/embed.h>
 #include <pybind11/pybind11.h>
+
+namespace py = pybind11;
 
 // for convenience
 using json = nlohmann::json;

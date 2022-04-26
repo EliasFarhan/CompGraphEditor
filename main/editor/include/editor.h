@@ -45,6 +45,7 @@ private:
         OPEN_FILE,
         CREATE_NEW_SHADER,
         CREATE_NEW_PIPELINE,
+        CREATE_NEW_MATERIAL,
         NONE
     };
     void OpenFileBrowserDialog(FileBrowserMode mode);

@@ -28,7 +28,7 @@ public:
     void Save() override;
 private:
     std::vector<PipelineInfo> pipelineInfos_;
-    std::size_t currentIndex_ = 0;
+    std::size_t currentIndex_ = -1;
 };
 
 }

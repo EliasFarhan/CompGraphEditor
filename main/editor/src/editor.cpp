@@ -10,6 +10,7 @@
 
 #include "imnodes.h"
 #include "pipeline_editor.h"
+#include "material_editor.h"
 
 namespace gpr5300
 {
@@ -21,7 +22,7 @@ void Editor::Begin()
     editorSystems_.resize(static_cast<std::size_t>(EditorType::LENGTH));
     editorSystems_[static_cast<std::size_t>(EditorType::SHADER)] = std::make_unique<ShaderEditor>();
     editorSystems_[static_cast<std::size_t>(EditorType::PIPELINE)] = std::make_unique<PipelineEditor>();
-
+    editorSystems_[static_cast<std::size_t>(EditorType::MATERIAL)] = std::make_unique<MaterialEditor>();
     resourceManager_.RegisterResourceChange(this);
     py::initialize_interpreter();
     const auto& filesystem = FilesystemLocator::get();
@@ -163,8 +164,11 @@ void Editor::DrawCenterView()
             editorSystems_[static_cast<int>(EditorType::SHADER)]->DrawMainView();
             ImGui::EndTabItem();
         }
+
+        flag = currentFocusedSystem_ == EditorType::MATERIAL ? ImGuiTabItemFlags_SetSelected : ImGuiTabItemFlags_None;
         if (ImGui::BeginTabItem("Material"))
         {
+            editorSystems_[static_cast<int>(EditorType::MATERIAL)]->DrawMainView();
             ImGui::EndTabItem();
         }
         if (ImGui::BeginTabItem("Texture"))
@@ -230,6 +234,21 @@ void Editor::UpdateFileDialog()
             }
             pb::Pipeline emptyPipeline;
             filesystem.WriteString(path, emptyPipeline.SerializeAsString());
+            resourceManager_.AddResource(path);
+            break;
+        }
+        case FileBrowserMode::CREATE_NEW_MATERIAL:
+        {
+            const auto extension = GetFileExtension(path);
+            if (!editorSystems_[(int) EditorType::MATERIAL]->CheckExtensions(extension))
+            {
+                LogWarning(fmt::format("Invalid extension name for newly created pipeline: {} path: {}",
+                                       extension,
+                                       path));
+                break;
+            }
+            pb::Material emptyMaterial;
+            filesystem.WriteString(path, emptyMaterial.SerializeAsString());
             resourceManager_.AddResource(path);
             break;
         }
@@ -346,7 +365,8 @@ void Editor::DrawEditorContent()
     }
     if(open)
     {
-        if (editorSystems_[static_cast<int>(EditorType::SHADER)]->DrawContentList(currentFocusedSystem_ != EditorType::SHADER))
+        if (editorSystems_[static_cast<int>(EditorType::SHADER)]
+            ->DrawContentList(currentFocusedSystem_ != EditorType::SHADER))
         {
             currentFocusedSystem_ = EditorType::SHADER;
         }
@@ -365,15 +385,31 @@ void Editor::DrawEditorContent()
     }
     if(open)
     {
-        if (editorSystems_[static_cast<int>(EditorType::PIPELINE)]->DrawContentList(currentFocusedSystem_ != EditorType::PIPELINE))
+        if (editorSystems_[static_cast<int>(EditorType::PIPELINE)]
+            ->DrawContentList(currentFocusedSystem_ != EditorType::PIPELINE))
         {
             currentFocusedSystem_ = EditorType::PIPELINE;
         }
         ImGui::TreePop();
     }
 
-    if (ImGui::TreeNode("Materials"))
+    open = ImGui::TreeNode("Materials");
+    if (ImGui::BeginPopupContextItem())
     {
+        if (ImGui::Button("Create New Material"))
+        {
+            OpenFileBrowserDialog(FileBrowserMode::CREATE_NEW_MATERIAL);
+            ImGui::CloseCurrentPopup();
+        }
+        ImGui::EndPopup();
+    }
+    if(open)
+    {
+        if (editorSystems_[static_cast<int>(EditorType::MATERIAL)]
+            ->DrawContentList(currentFocusedSystem_ != EditorType::MATERIAL))
+        {
+            currentFocusedSystem_ = EditorType::MATERIAL;
+        }
         ImGui::TreePop();
     }
 
@@ -453,9 +489,22 @@ void Editor::OpenFileBrowserDialog(Editor::FileBrowserMode mode)
     {
         fileBrowserMode_ = FileBrowserMode::CREATE_NEW_PIPELINE;
         fileDialog_ = ImGui::FileBrowser(ImGuiFileBrowserFlags_EnterNewFilename | ImGuiFileBrowserFlags_CreateNewDir);
-        const auto pipelinePath = fmt::format("{}{}", ResourceManager::dataFolder, editorSystems_[static_cast<int>(EditorType::PIPELINE)]->GetSubFolder());
+        const auto pipelinePath = fmt::format("{}{}",
+                                              ResourceManager::dataFolder,
+                                              editorSystems_[static_cast<int>(EditorType::PIPELINE)]->GetSubFolder());
         fileDialog_.SetPwd(pipelinePath);
         fileDialog_.SetTypeFilters({ ".pipe" });
+        fileDialog_.Open();
+        break;
+    }
+    case FileBrowserMode::CREATE_NEW_MATERIAL:
+    {
+        fileBrowserMode_ = FileBrowserMode::CREATE_NEW_MATERIAL;
+        fileDialog_ = ImGui::FileBrowser(ImGuiFileBrowserFlags_EnterNewFilename | ImGuiFileBrowserFlags_CreateNewDir);
+        const auto materialPath = fmt::format("{}{}", ResourceManager::dataFolder,
+                                              editorSystems_[static_cast<int>(EditorType::MATERIAL)]->GetSubFolder());
+        fileDialog_.SetPwd(materialPath);
+        fileDialog_.SetTypeFilters({ ".mat" });
         fileDialog_.Open();
         break;
     }
