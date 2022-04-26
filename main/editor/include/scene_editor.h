@@ -29,7 +29,7 @@ public:
     std::string_view GetSubFolder() override;
     EditorType GetEditorType() override;
     void Save() override;
-
+    bool ExportScene();
 private:
     std::vector<SceneInfo> sceneInfos_;
     std::size_t currentIndex_ = -1;

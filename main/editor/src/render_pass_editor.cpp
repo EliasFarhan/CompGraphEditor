@@ -84,8 +84,8 @@ void RenderPassEditor::DrawInspector()
                             {
                                 subpassInfo->set_command_paths(j, availableCommand.path);
                             }
-                            ImGui::EndCombo();
                         }
+                        ImGui::EndCombo();
                     }
                     ImGui::PopID();
                 }
