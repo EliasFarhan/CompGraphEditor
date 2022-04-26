@@ -104,6 +104,11 @@ void CommandEditor::DrawInspector()
         }
         ImGui::EndCombo();
     }
+    bool automaticDraw = currentCommand.info.automatic_draw();
+    if(ImGui::Checkbox("Automatic Draw", &automaticDraw))
+    {
+        currentCommand.info.set_automatic_draw(automaticDraw);
+    }
 
     if(meshInfo != nullptr)
     {

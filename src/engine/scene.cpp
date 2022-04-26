@@ -124,6 +124,8 @@ void Scene::Update(float dt)
         for (int j = 0; j < commandSize; j++)
         {
             const auto &command = subPass.commands(j);
+            if(!command.automatic_draw())
+                continue;
             auto& material = materials_[command.material_index()];
             auto& pipeline = pipelines_[material.pipelineIndex];
 

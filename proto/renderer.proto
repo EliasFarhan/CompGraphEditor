@@ -126,10 +126,12 @@ message DrawCommand
     int32 count = 4;
     int32 mesh_index = 5;
     bool draw_elements = 6;
-
+    bool automatic_draw = 9;
     //for the editor
     string material_path = 7;
     string mesh_path = 8;
+
+
 }
 
 message SubPass

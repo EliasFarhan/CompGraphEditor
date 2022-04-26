@@ -38,6 +38,7 @@ pb::Scene Scene1()
     drawCommand->set_mesh_index(-1);
     drawCommand->set_draw_elements(false);
     drawCommand->set_mode(pb::DrawCommand_Mode_TRIANGLES);
+    drawCommand->set_automatic_draw(true);
     return scene;
 }
 
@@ -80,6 +81,7 @@ pb::Scene Scene2()
     drawCommand->set_mesh_index(0);
     drawCommand->set_draw_elements(true);
     drawCommand->set_mode(pb::DrawCommand_Mode_TRIANGLES);
+    drawCommand->set_automatic_draw(true);
     return scene;
 }
 
@@ -122,6 +124,7 @@ pb::Scene Scene3()
     drawCommand->set_mesh_index(0);
     drawCommand->set_draw_elements(true);
     drawCommand->set_mode(pb::DrawCommand_Mode_TRIANGLES);
+    drawCommand->set_automatic_draw(true);
 
     auto* pySystem = scene.add_py_systems();
     pySystem->set_class_("Scene03");
@@ -175,6 +178,7 @@ pb::Scene Scene4()
     drawCommand->set_mesh_index(0);
     drawCommand->set_draw_elements(true);
     drawCommand->set_mode(pb::DrawCommand_Mode_TRIANGLES);
+    drawCommand->set_automatic_draw(true);
     return scene;
 }
 
@@ -228,6 +232,7 @@ pb::Scene Scene5()
     drawCommand->set_mesh_index(0);
     drawCommand->set_draw_elements(true);
     drawCommand->set_mode(pb::DrawCommand_Mode_TRIANGLES);
+    drawCommand->set_automatic_draw(true);
     return scene;
 }
 
