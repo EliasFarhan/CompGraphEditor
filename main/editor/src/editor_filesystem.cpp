@@ -39,4 +39,9 @@ bool CreateNewDirectory(std::string_view newDir)
 {
     return fs::create_directories(newDir);
 }
+
+bool RemoveFile(std::string_view path)
+{
+    return fs::remove(path);
+}
 }

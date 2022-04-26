@@ -37,7 +37,7 @@ public:
     void RemoveResource(const Resource &resource) override;
 
     void UpdateExistingResource(const Resource &resource) override;
-    MaterialInfo* GetMaterial(ResourceId resourceId);
+    const MaterialInfo* GetMaterial(ResourceId resourceId) const;
     const auto& GetMaterials() const { return materialInfos_; }
 private:
     std::vector<MaterialInfo> materialInfos_;

@@ -16,7 +16,9 @@
 #include <nlohmann/json.hpp>
 
 #include "material_editor.h"
+#include "mesh_editor.h"
 #include "pipeline_editor.h"
+#include "shader_editor.h"
 
 namespace py = pybind11;
 using json = nlohmann::json;
@@ -164,10 +166,15 @@ bool SceneEditor::ExportScene()
     }
     auto* editor = Editor::GetInstance();
     const auto& resourceManager = editor->GetResourceManager();
-    auto* renderPassEditor = dynamic_cast<RenderPassEditor*>(editor->GetEditorSystem(EditorType::RENDER_PASS));
-    auto* commandEditor = dynamic_cast<CommandEditor*>(editor->GetEditorSystem(EditorType::COMMAND));
-    auto* materialEditor = dynamic_cast<MaterialEditor*>(editor->GetEditorSystem(EditorType::MATERIAL));
-    auto* pipelineEditor = dynamic_cast<PipelineEditor*>(editor->GetEditorSystem(EditorType::PIPELINE));
+    const auto* renderPassEditor = dynamic_cast<RenderPassEditor*>(editor->GetEditorSystem(EditorType::RENDER_PASS));
+    const auto* commandEditor = dynamic_cast<CommandEditor*>(editor->GetEditorSystem(EditorType::COMMAND));
+    const auto* materialEditor = dynamic_cast<MaterialEditor*>(editor->GetEditorSystem(EditorType::MATERIAL));
+    const auto* pipelineEditor = dynamic_cast<PipelineEditor*>(editor->GetEditorSystem(EditorType::PIPELINE));
+    const auto* shaderEditor = dynamic_cast<ShaderEditor*>(editor->GetEditorSystem(EditorType::SHADER));
+    const auto* meshEditor = dynamic_cast<MeshEditor*>(editor->GetEditorSystem(EditorType::MODEL));
+
+    //TODO reload all editors to get all correct resourceId
+
     const auto& currentScene = sceneInfos_[currentIndex_];
     auto exportScene = sceneInfos_[currentIndex_];
     const auto pkgSceneName = exportScene.path + ".pkg";
@@ -227,8 +234,47 @@ bool SceneEditor::ExportScene()
                     *newPipeline = pipeline->info;
                     resourceIndexMap[pipeline->resourceId] = pipelineIndex;
 
-                    //TODO check all shaders vert/frag/comp/geom to get index
+                    if(pipeline->vertexShaderId == INVALID_RESOURCE_ID)
+                    {
+                        LogWarning("Could not export scene, missing vertex shader in pipeline");
+                        return false;
+                    }
+                    const auto* vertexShader = shaderEditor->GetShader(pipeline->vertexShaderId);
+                    auto vertexShaderIt = resourceIndexMap.find(pipeline->vertexShaderId);
+                    if(vertexShaderIt == resourceIndexMap.end())
+                    {
+                        const auto vertexShaderIndex = exportScene.info.shaders_size();
+                        auto* newVertexShader = exportScene.info.add_shaders();
+                        *newVertexShader = vertexShader->info;
+                        resourceIndexMap[vertexShader->resourceId] = vertexShaderIndex;
+                        newPipeline->set_vertex_shader_index(vertexShaderIndex);
+                    }
+                    else
+                    {
+                        newPipeline->set_vertex_shader_index(vertexShaderIt->second);
+                    }
 
+                    if (pipeline->fragmentShaderId == INVALID_RESOURCE_ID)
+                    {
+                        LogWarning("Could not export scene, missing vertex shader in pipeline");
+                        return false;
+                    }
+                    const auto* fragmentShader = shaderEditor->GetShader(pipeline->fragmentShaderId);
+                    auto fragmentShaderIt = resourceIndexMap.find(pipeline->fragmentShaderId);
+                    if (fragmentShaderIt == resourceIndexMap.end())
+                    {
+                        const auto fragmentShaderIndex = exportScene.info.shaders_size();
+                        auto* newFragmentShader = exportScene.info.add_shaders();
+                        *newFragmentShader = fragmentShader->info;
+                        resourceIndexMap[vertexShader->resourceId] = fragmentShaderIndex;
+                        newPipeline->set_fragment_shader_index(fragmentShaderIndex);
+                    }
+                    else
+                    {
+                        newPipeline->set_fragment_shader_index(vertexShaderIt->second);
+                    }
+
+                    //TODO check comp/geom shaders to get index
 
                     newMaterial->set_pipeline_index(pipelineIndex);
                 }
@@ -242,17 +288,61 @@ bool SceneEditor::ExportScene()
             {
                 exportCommand->set_material_index(materialIndexIt->second);
             }
-            //TODO link mesh index
+            //link mesh index
+            if(command->meshId == INVALID_RESOURCE_ID)
+            {
+                LogWarning("Could not export scene, missing mesh in command");
+                return false;
+            }
+            const auto* mesh = meshEditor->GetMesh(command->meshId);
+            auto meshIndexIt = resourceIndexMap.find(mesh->resourceId);
+            if(meshIndexIt == resourceIndexMap.end())
+            {
+                const auto meshIndex = exportScene.info.meshes_size();
+                auto* newMesh = exportScene.info.add_meshes();
+                *newMesh = mesh->info;
+                resourceIndexMap[mesh->resourceId] = meshIndex;
+                exportCommand->set_mesh_index(meshIndex);
+            }
+            else
+            {
+                exportCommand->set_mesh_index(meshIndexIt->second);
+            }
         }
     }
-
+    exportScene.path = "root.scene";
+    //Write scene
+    std::ofstream fileOut(exportScene.path, std::ios::binary);
+    if (!exportScene.info.SerializeToOstream(&fileOut))
+    {
+        LogWarning(fmt::format("Could not save scene for export at: {}", exportScene.path));
+        return false;
+    }
+    fileOut.close(); //force write
     //Create scene json
     json sceneJson;
+    sceneJson["scene"] = exportScene.path;
+    std::vector<std::string> shaderPaths;
+    shaderPaths.reserve(currentScene.info.shaders_size());
+    for(int i = 0; i < exportScene.info.shaders_size(); i++)
+    {
+        shaderPaths.push_back(exportScene.info.shaders(i).path());
+    }
+    sceneJson["shaders"] = shaderPaths;
+    sceneJson["textures"] = json::array();
 
     //Call python function exporting the scene
-    py::function exportSceneFunc = py::module_::import("scripts.generate_scene").attr("export_scene");
-
-
+    try
+    {
+        py::function exportSceneFunc = py::module_::import("scripts.generate_scene").attr("export_scene");
+        exportSceneFunc(pkgSceneName, sceneJson.dump());
+    }
+    catch (py::error_already_set& e)
+    {
+        LogError(e.what());
+        return false;
+    }
+    RemoveFile(exportScene.path);
     return true;
 }
 }

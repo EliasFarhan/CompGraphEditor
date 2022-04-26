@@ -152,7 +152,7 @@ void MaterialEditor::UpdateExistingResource(const Resource &resource)
 
 }
 
-MaterialInfo* MaterialEditor::GetMaterial(ResourceId resourceId)
+const MaterialInfo* MaterialEditor::GetMaterial(ResourceId resourceId) const
 {
     const auto it = std::ranges::find_if(materialInfos_, [resourceId](const auto& materialInfo)
     {
