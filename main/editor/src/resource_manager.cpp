@@ -105,7 +105,7 @@ void ResourceManager::UpdateResource(const Resource &resource)
 {
     for(auto* resourceChange : resourceChangeInterfaces_)
     {
-        resourceChange->UpdateResource(resource);
+        resourceChange->UpdateExistingResource(resource);
     }
 }
 void ResourceManager::RegisterResourceChange(ResourceChangeInterface *resourceChange)

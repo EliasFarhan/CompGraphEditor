@@ -12,6 +12,7 @@
 #include "pipeline_editor.h"
 #include "material_editor.h"
 #include "mesh_editor.h"
+#include "render_pass_editor.h"
 
 namespace gpr5300
 {
@@ -25,7 +26,8 @@ void Editor::Begin()
     editorSystems_[static_cast<std::size_t>(EditorType::PIPELINE)] = std::make_unique<PipelineEditor>();
     editorSystems_[static_cast<std::size_t>(EditorType::MATERIAL)] = std::make_unique<MaterialEditor>();
     editorSystems_[static_cast<std::size_t>(EditorType::MODEL)] = std::make_unique<MeshEditor>();
-
+    editorSystems_[static_cast<std::size_t>(EditorType::RENDER_PASS)] = std::make_unique<RenderPassEditor>();
+    
     resourceManager_.RegisterResourceChange(this);
     py::initialize_interpreter();
     const auto& filesystem = FilesystemLocator::get();
@@ -156,6 +158,15 @@ void Editor::DrawCenterView()
             editorSystems_[static_cast<int>(EditorType::MODEL)]->DrawMainView();
             ImGui::EndTabItem();
         }
+        flag = currentFocusedSystem_ == EditorType::RENDER_PASS ? ImGuiTabItemFlags_SetSelected : ImGuiTabItemFlags_None;
+
+        if (ImGui::BeginTabItem("Render Pass", nullptr, flag))
+        {
+            editorSystems_[static_cast<int>(EditorType::RENDER_PASS)]->DrawMainView();
+            ImGui::EndTabItem();
+        }
+
+
         ImGui::EndTabBar();
     }
 }
@@ -245,6 +256,21 @@ void Editor::UpdateFileDialog()
             }
             pb::Mesh emptyMesh;
             filesystem.WriteString(path, emptyMesh.SerializeAsString());
+            resourceManager_.AddResource(path);
+            break;
+        }
+        case FileBrowserMode::CREATE_NEW_RENDER_PASS:
+        {
+            const auto extension = GetFileExtension(path);
+            if (!editorSystems_[static_cast<int>(EditorType::RENDER_PASS)]->CheckExtensions(extension))
+            {
+                LogWarning(fmt::format("Invalid extension name for newly created mesh: {} path: {}",
+                    extension,
+                    path));
+                break;
+            }
+            pb::RenderPass emptyRenderPass;
+            filesystem.WriteString(path, emptyRenderPass.SerializeAsString());
             resourceManager_.AddResource(path);
             break;
         }
@@ -429,6 +455,26 @@ void Editor::DrawEditorContent()
         ImGui::TreePop();
     }
 
+    open = ImGui::TreeNode("Render Passes");
+    if (ImGui::BeginPopupContextItem())
+    {
+        if (ImGui::Button("Create New Render Passes"))
+        {
+            OpenFileBrowserDialog(FileBrowserMode::CREATE_NEW_RENDER_PASS);
+            ImGui::CloseCurrentPopup();
+        }
+        ImGui::EndPopup();
+    }
+    if (open)
+    {
+        if (editorSystems_[static_cast<int>(EditorType::RENDER_PASS)]
+            ->DrawContentList(currentFocusedSystem_ != EditorType::RENDER_PASS))
+        {
+            currentFocusedSystem_ = EditorType::RENDER_PASS;
+        }
+        ImGui::TreePop();
+    }
+
     if (ImGui::TreeNode("Textures"))
     {
         ImGui::TreePop();
@@ -452,12 +498,12 @@ void Editor::RemoveResource(const Resource& resource)
     editorSystem->RemoveResource(resource);
 }
 
-void Editor::UpdateResource(const Resource& resource)
+void Editor::UpdateExistingResource(const Resource& resource)
 {
     EditorSystem* editorSystem = FindEditorSystem(resource.path);
     if (editorSystem == nullptr)
         return;
-    editorSystem->UpdateResource(resource);
+    editorSystem->UpdateExistingResource(resource);
 }
 
 EditorSystem* Editor::GetEditorSystem(EditorType type) const
@@ -532,6 +578,17 @@ void Editor::OpenFileBrowserDialog(Editor::FileBrowserMode mode)
                                               editorSystems_[static_cast<int>(EditorType::MODEL)]->GetSubFolder());
         fileDialog_.SetPwd(modelPath);
         fileDialog_.SetTypeFilters({ ".mesh" });
+        fileDialog_.Open();
+        break;
+    }
+    case FileBrowserMode::CREATE_NEW_RENDER_PASS:
+    {
+        fileBrowserMode_ = FileBrowserMode::CREATE_NEW_RENDER_PASS;
+        fileDialog_ = ImGui::FileBrowser(ImGuiFileBrowserFlags_EnterNewFilename | ImGuiFileBrowserFlags_CreateNewDir);
+        const auto modelPath = fmt::format("{}{}", ResourceManager::dataFolder,
+            editorSystems_[static_cast<int>(EditorType::RENDER_PASS)]->GetSubFolder());
+        fileDialog_.SetPwd(modelPath);
+        fileDialog_.SetTypeFilters({ ".r_pass" });
         fileDialog_.Open();
         break;
     }

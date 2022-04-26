@@ -1,4 +1,10 @@
 #include "material_editor.h"
+#include "editor.h"
+#include "pipeline_editor.h"
+#include "utils/log.h"
+#include "engine/filesystem.h"
+#include <fmt/format.h>
+#include <fstream>
 
 namespace gpr5300
 {
@@ -103,10 +109,14 @@ EditorType MaterialEditor::GetEditorType() {
 
 void MaterialEditor::Save()
 {
-    const auto& filesystem = FilesystemLocator::get();
     for(auto& materialInfo : materialInfos_)
     {
-        filesystem.WriteString(materialInfo.path,materialInfo.info.SerializeAsString());
+        std::ofstream fileOut(materialInfo.path, std::ios::binary);
+        if (!materialInfo.info.SerializeToOstream(&fileOut))
+        {
+            LogWarning(fmt::format("Could not save material at: {}", materialInfo.path));
+        }
+        
     }
 }
 
@@ -123,8 +133,8 @@ void MaterialEditor::AddResource(const Resource &resource)
         LogWarning(fmt::format("Could not find material file: {}", resource.path));
         return;
     }
-    const auto file = fileSystem.LoadFile(resource.path);
-    if (!materialInfo.info.ParseFromString(reinterpret_cast<const char*>(file.data)))
+    std::ifstream fileIn(resource.path, std::ios::binary);
+    if (!materialInfo.info.ParsePartialFromIstream(&fileIn))
     {
         LogWarning(fmt::format("Could not open protobuf file: {}", resource.path));
         return;
@@ -137,7 +147,7 @@ void MaterialEditor::RemoveResource(const Resource &resource)
 
 }
 
-void MaterialEditor::UpdateResource(const Resource &resource)
+void MaterialEditor::UpdateExistingResource(const Resource &resource)
 {
 
 }

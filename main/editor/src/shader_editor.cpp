@@ -43,7 +43,7 @@ void ShaderEditor::RemoveResource(const Resource& resource)
 {
 
 }
-void ShaderEditor::UpdateResource(const Resource& resource)
+void ShaderEditor::UpdateExistingResource(const Resource& resource)
 {
 
 }
@@ -241,10 +241,10 @@ pb::Attribute::Type ShaderEditor::GetType(std::string_view attibuteTypeString)
         "samplerCube",
         "void"
         };
-    auto it = std::ranges::find(typeString, attibuteTypeString);
+    const auto it = std::ranges::find(typeString, attibuteTypeString);
     if(it != typeString.end())
     {
-        return (pb::Attribute::Type)std::distance(typeString.begin(), it);
+        return static_cast<pb::Attribute::Type>(std::distance(typeString.begin(), it));
     }
     return pb::Attribute_Type_CUSTOM;
 }

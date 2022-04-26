@@ -1,10 +1,11 @@
 #include "pipeline_editor.h"
 #include "editor.h"
 #include "shader_editor.h"
-#include <imgui_stdlib.h>
 #include "engine/filesystem.h"
 #include "utils/log.h"
 #include <fmt/format.h>
+#include <imgui_stdlib.h>
+#include <fstream>
 
 namespace gpr5300
 {
@@ -169,8 +170,8 @@ void PipelineEditor::AddResource(const Resource& resource)
         LogWarning(fmt::format("Could not find pipeline file: {}", resource.path));
         return;
     }
-    const auto file = fileSystem.LoadFile(resource.path);
-    if (!pipelineInfo.info.ParseFromString(reinterpret_cast<const char*>(file.data)))
+    std::ifstream fileIn (resource.path, std::ios::binary);
+    if (!pipelineInfo.info.ParseFromIstream(&fileIn))
     {
         LogWarning(fmt::format("Could not open protobuf file: {}", resource.path));
         return;
@@ -181,24 +182,28 @@ void PipelineEditor::RemoveResource(const Resource& resource)
 {
 
 }
-void PipelineEditor::UpdateResource(const Resource& resource)
+void PipelineEditor::UpdateExistingResource(const Resource& resource)
 {
 
 }
 
 void PipelineEditor::Save()
 {
-    const auto& filesystem = FilesystemLocator::get();
     for(auto& pipelineInfo : pipelineInfos_)
     {
-        filesystem.WriteString(pipelineInfo.path,pipelineInfo.info.SerializeAsString());
+        std::ofstream fileOut(pipelineInfo.path, std::ios::binary);
+        if (!pipelineInfo.info.SerializeToOstream(&fileOut))
+        {
+            LogWarning(fmt::format("Could not save pipeline at: {}", pipelineInfo.path));
+        }
+        
     }
 }
 
 const PipelineInfo *PipelineEditor::GetPipeline(ResourceId resourceId) const {
-    auto it = std::ranges::find_if(pipelineInfos_, [resourceId](const auto& pipeline)
+    const auto it = std::ranges::find_if(pipelineInfos_, [resourceId](const auto& pipeline)
     {
-       return resourceId == pipeline.resourceId;
+        return resourceId == pipeline.resourceId;
     });
     if(it != pipelineInfos_.end())
     {

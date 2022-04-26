@@ -20,7 +20,7 @@ class ResourceChangeInterface
 public:
     virtual void AddResource(const Resource& resource) = 0;
     virtual void RemoveResource(const Resource& resource) = 0;
-    virtual void UpdateResource(const Resource& resource) = 0;
+    virtual void UpdateExistingResource(const Resource& resource) = 0;
 };
 
 }

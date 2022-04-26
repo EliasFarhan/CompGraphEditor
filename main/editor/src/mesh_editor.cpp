@@ -1,4 +1,12 @@
 #include "mesh_editor.h"
+#include "engine/filesystem.h"
+#include "utils/log.h"
+#include <imgui.h>
+#include <fmt/format.h>
+#include <string_view>
+#include <algorithm>
+#include <array>
+#include <fstream>
 
 namespace gpr5300
 {
@@ -102,10 +110,14 @@ EditorType MeshEditor::GetEditorType() {
 
 void MeshEditor::Save()
 {
-    const auto& filesystem = FilesystemLocator::get();
     for(auto& meshInfo : meshInfos_)
     {
-        filesystem.WriteString(meshInfo.path,meshInfo.info.SerializeAsString());
+        std::ofstream fileOut(meshInfo.path, std::ios::binary, std::ios::binary);
+        if (!meshInfo.info.SerializeToOstream(&fileOut))
+        {
+            LogWarning(fmt::format("Could not save mesh at: {}", meshInfo.path));
+        }
+        
     }
 }
 
@@ -124,8 +136,8 @@ void MeshEditor::AddResource(const Resource &resource)
             LogWarning(fmt::format("Could not find mesh file: {}", resource.path));
             return;
         }
-        const auto file = fileSystem.LoadFile(resource.path);
-        if (!meshInfo.info.ParseFromString(reinterpret_cast<const char*>(file.data)))
+        std::ifstream fileIn(resource.path, std::ios::binary);
+        if (!meshInfo.info.ParseFromIstream(&fileIn))
         {
             LogWarning(fmt::format("Could not open protobuf file: {}", resource.path));
             return;
@@ -145,7 +157,7 @@ void MeshEditor::RemoveResource(const Resource &resource)
 
 }
 
-void MeshEditor::UpdateResource(const Resource &resource)
+void MeshEditor::UpdateExistingResource(const Resource &resource)
 {
 
 }

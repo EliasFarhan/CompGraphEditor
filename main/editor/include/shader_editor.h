@@ -18,7 +18,7 @@ class ShaderEditor : public EditorSystem
 public:
     void AddResource(const Resource &resource) override;
     void RemoveResource(const Resource &resource) override;
-    void UpdateResource(const Resource &resource) override;
+    void UpdateExistingResource(const Resource &resource) override;
     bool CheckExtensions(std::string_view extension) override;
     void DrawMainView() override;
     void DrawInspector() override;

@@ -24,7 +24,7 @@ public:
     EditorType GetEditorType() override;
     void AddResource(const Resource& resource) override;
     void RemoveResource(const Resource& resource) override;
-    void UpdateResource(const Resource& resource) override;
+    void UpdateExistingResource(const Resource& resource) override;
     void Save() override;
     const PipelineInfo* GetPipeline(ResourceId resourceId) const;
     const auto& GetPipelines() const{ return pipelineInfos_;}

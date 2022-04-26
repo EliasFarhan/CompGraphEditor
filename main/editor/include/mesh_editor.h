@@ -1,5 +1,9 @@
 #pragma once
 
+#include "resource.h"
+#include "editor_system.h"
+#include "proto/renderer.pb.h"
+
 namespace gpr5300
 {
 
@@ -32,7 +36,7 @@ public:
 
     void RemoveResource(const Resource &resource) override;
 
-    void UpdateResource(const Resource &resource) override;
+    void UpdateExistingResource(const Resource &resource) override;
 private:
     std::vector<MeshInfo> meshInfos_;
     std::size_t currentIndex_ = -1;

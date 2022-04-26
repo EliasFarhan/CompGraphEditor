@@ -3,7 +3,6 @@
 #include <cassert>
 
 #include "utils/locator.h"
-#include <string_view>
 
 namespace gpr5300
 {
@@ -18,10 +17,12 @@ public:
     BufferFile(BufferFile&& other) noexcept
     {
         std::swap(data, other.data);
+        std::swap(length, other.length);
     }
     BufferFile& operator=(BufferFile&& other) noexcept
     {
         std::swap(data, other.data);
+        std::swap(length, other.length);
         return *this;
     }
 

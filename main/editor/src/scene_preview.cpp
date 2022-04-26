@@ -39,7 +39,7 @@ void SceneEditor::RemoveResource(const Resource &resource) {
 
 }
 
-void SceneEditor::UpdateResource(const Resource &resource) {
+void SceneEditor::UpdateExistingResource(const Resource &resource) {
 
 }
 }

@@ -30,8 +30,8 @@ BufferFile DefaultFilesystem::LoadFile(std::string_view path) const
     std::filebuf* pbuf = file.rdbuf();
 
     // get file size using buffer's members
-    const std::size_t size = pbuf->pubseekoff(0, file.end, file.in);
-    pbuf->pubseekpos(0, file.in);
+    const std::size_t size = pbuf->pubseekoff(0, std::ifstream::end, file.in);
+    pbuf->pubseekpos(0, std::ifstream::in);
 
     bufferFile.data = static_cast<unsigned char*>(std::malloc(size + 1));
     

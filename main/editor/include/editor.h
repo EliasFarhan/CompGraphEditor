@@ -26,7 +26,7 @@ public:
     void OnEvent(SDL_Event &event) override;
     void AddResource(const Resource &resource) override;
     void RemoveResource(const Resource &resource) override;
-    void UpdateResource(const Resource &resource) override;
+    void UpdateExistingResource(const Resource &resource) override;
     EditorSystem* GetEditorSystem(EditorType type) const;
     const ResourceManager& GetResourceManager() { return resourceManager_; }
     static Editor* GetInstance() { return instance_; }
@@ -46,6 +46,7 @@ private:
         CREATE_NEW_PIPELINE,
         CREATE_NEW_MATERIAL,
         CREATE_NEW_MESH,
+        CREATE_NEW_RENDER_PASS,
         NONE
     };
     void OpenFileBrowserDialog(FileBrowserMode mode);

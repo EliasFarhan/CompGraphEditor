@@ -42,7 +42,7 @@ void TextureEditor::RemoveResource(const Resource &resource) {
 
 }
 
-void TextureEditor::UpdateResource(const Resource &resource) {
+void TextureEditor::UpdateExistingResource(const Resource &resource) {
 
 }
 }

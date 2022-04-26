@@ -1,5 +1,8 @@
 #pragma once
 
+#include <string_view>
+#include "resource.h"
+
 namespace gpr5300
 {
 
@@ -33,7 +36,9 @@ public:
 
     void RemoveResource(const Resource &resource) override;
 
-    void UpdateResource(const Resource &resource) override;
-
+    void UpdateExistingResource(const Resource &resource) override;
+private:
+    std::vector<RenderPassInfo> renderPassInfos_;
+    std::size_t currentIndex_ = -1;
 };
 }

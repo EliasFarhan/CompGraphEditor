@@ -32,7 +32,7 @@ public:
 
     void RemoveResource(const Resource &resource) override;
 
-    void UpdateResource(const Resource &resource) override;
+    void UpdateExistingResource(const Resource &resource) override;
 private:
     std::vector<TextureInfo> textureInfos_;
 };
