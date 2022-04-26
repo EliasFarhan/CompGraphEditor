@@ -14,6 +14,7 @@
 #include "mesh_editor.h"
 #include "render_pass_editor.h"
 #include "command_editor.h"
+#include "scene_editor.h"
 
 namespace gpr5300
 {
@@ -29,6 +30,7 @@ void Editor::Begin()
     editorSystems_[static_cast<std::size_t>(EditorType::MODEL)] = std::make_unique<MeshEditor>();
     editorSystems_[static_cast<std::size_t>(EditorType::RENDER_PASS)] = std::make_unique<RenderPassEditor>();
     editorSystems_[static_cast<std::size_t>(EditorType::COMMAND)] = std::make_unique<CommandEditor>();
+    editorSystems_[static_cast<std::size_t>(EditorType::SCENE)] = std::make_unique<SceneEditor>();
     
     resourceManager_.RegisterResourceChange(this);
     py::initialize_interpreter();
@@ -174,6 +176,13 @@ void Editor::DrawCenterView()
             editorSystems_[static_cast<int>(EditorType::COMMAND)]->DrawMainView();
             ImGui::EndTabItem();
         }
+        flag = currentFocusedSystem_ == EditorType::SCENE ? ImGuiTabItemFlags_SetSelected : ImGuiTabItemFlags_None;
+
+        if (ImGui::BeginTabItem("Command", nullptr, flag))
+        {
+            editorSystems_[static_cast<int>(EditorType::SCENE)]->DrawMainView();
+            ImGui::EndTabItem();
+        }
 
 
         ImGui::EndTabBar();
@@ -295,6 +304,21 @@ void Editor::UpdateFileDialog()
             }
             pb::DrawCommand emptyDrawCommand;
             filesystem.WriteString(path, emptyDrawCommand.SerializeAsString());
+            resourceManager_.AddResource(path);
+            break;
+        }
+        case FileBrowserMode::CREATE_NEW_SCENE:
+        {
+            const auto extension = GetFileExtension(path);
+            if (!editorSystems_[static_cast<int>(EditorType::SCENE)]->CheckExtensions(extension))
+            {
+                LogWarning(fmt::format("Invalid extension name for newly created scene: {} path: {}",
+                    extension,
+                    path));
+                break;
+            }
+            pb::Scene emptyScene;
+            filesystem.WriteString(path, emptyScene.SerializeAsString());
             resourceManager_.AddResource(path);
             break;
         }
@@ -519,6 +543,26 @@ void Editor::DrawEditorContent()
         ImGui::TreePop();
     }
 
+    open = ImGui::TreeNode("Scenes");
+    if (ImGui::BeginPopupContextItem())
+    {
+        if (ImGui::Button("Create New Scene"))
+        {
+            OpenFileBrowserDialog(FileBrowserMode::CREATE_NEW_SCENE);
+            ImGui::CloseCurrentPopup();
+        }
+        ImGui::EndPopup();
+    }
+    if (open)
+    {
+        if (editorSystems_[static_cast<int>(EditorType::SCENE)]
+            ->DrawContentList(currentFocusedSystem_ != EditorType::SCENE))
+        {
+            currentFocusedSystem_ = EditorType::SCENE;
+        }
+        ImGui::TreePop();
+    }
+
     if (ImGui::TreeNode("Textures"))
     {
         ImGui::TreePop();
@@ -644,6 +688,17 @@ void Editor::OpenFileBrowserDialog(Editor::FileBrowserMode mode)
             editorSystems_[static_cast<int>(EditorType::COMMAND)]->GetSubFolder());
         fileDialog_.SetPwd(modelPath);
         fileDialog_.SetTypeFilters({ ".cmd" });
+        fileDialog_.Open();
+        break;
+    }
+    case FileBrowserMode::CREATE_NEW_SCENE:
+    {
+        fileBrowserMode_ = FileBrowserMode::CREATE_NEW_SCENE;
+        fileDialog_ = ImGui::FileBrowser(ImGuiFileBrowserFlags_EnterNewFilename | ImGuiFileBrowserFlags_CreateNewDir);
+        const auto modelPath = fmt::format("{}{}", ResourceManager::dataFolder,
+            editorSystems_[static_cast<int>(EditorType::SCENE)]->GetSubFolder());
+        fileDialog_.SetPwd(modelPath);
+        fileDialog_.SetTypeFilters({ ".scene" });
         fileDialog_.Open();
         break;
     }

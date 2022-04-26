@@ -163,4 +163,7 @@ message Scene
     repeated Texture textures = 6;
     repeated Material materials = 7;
     repeated PySystem py_systems = 8;
+
+    //used by editor
+    string render_pass_path = 9;
 }

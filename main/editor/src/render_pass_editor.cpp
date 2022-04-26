@@ -138,4 +138,17 @@ void RenderPassEditor::UpdateExistingResource(const Resource &resource)
 {
 
 }
+
+const RenderPassInfo* RenderPassEditor::GetRenderPass(ResourceId resourceId) const
+{
+    const auto it = std::ranges::find_if(renderPassInfos_, [resourceId](const auto& renderPass)
+    {
+        return resourceId == renderPass.resourceId;
+    });
+    if(it != renderPassInfos_.end())
+    {
+        return &*it;
+    }
+    return nullptr;
+}
 }

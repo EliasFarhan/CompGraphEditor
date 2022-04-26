@@ -40,6 +40,8 @@ public:
     void RemoveResource(const Resource &resource) override;
 
     void UpdateExistingResource(const Resource &resource) override;
+    const auto& GetRenderPasses() const { return renderPassInfos_; }
+    const RenderPassInfo* GetRenderPass(ResourceId resourceId) const;
 private:
     std::vector<RenderPassInfo> renderPassInfos_;
     std::size_t currentIndex_ = -1;
