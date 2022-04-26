@@ -1,7 +1,10 @@
 #pragma once
 
 #include <string_view>
+
+#include "editor_system.h"
 #include "resource.h"
+#include "proto/renderer.pb.h"
 
 namespace gpr5300
 {

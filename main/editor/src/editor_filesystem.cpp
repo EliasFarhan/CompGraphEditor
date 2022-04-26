@@ -22,7 +22,7 @@ std::string GetFilename(std::string_view path, bool withExtension)
     fs::path p = path;
     return withExtension?p.filename().string() : p.stem().string();
 }
-bool CopyFile(std::string_view srcPath, std::string_view dstPath)
+bool CopyFileFromTo(std::string_view srcPath, std::string_view dstPath)
 {
     try
     {
@@ -35,7 +35,7 @@ bool CopyFile(std::string_view srcPath, std::string_view dstPath)
     }
     return true;
 }
-bool CreateDirectory(std::string_view newDir)
+bool CreateNewDirectory(std::string_view newDir)
 {
     return fs::create_directories(newDir);
 }

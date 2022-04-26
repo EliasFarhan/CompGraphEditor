@@ -14,6 +14,7 @@ enum class EditorType
     MATERIAL,
     SCENE,
     RENDER_PASS,
+    COMMAND,
     LENGTH
 };
 

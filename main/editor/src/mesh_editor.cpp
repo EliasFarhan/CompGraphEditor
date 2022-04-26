@@ -90,8 +90,8 @@ bool MeshEditor::DrawContentList(bool unfocus)
         currentIndex_ = meshInfos_.size();
     for (std::size_t i = 0; i < meshInfos_.size(); i++)
     {
-        const auto& shaderInfo = meshInfos_[i];
-        if (ImGui::Selectable(shaderInfo.filename.data(), currentIndex_ == i))
+        const auto& meshInfo = meshInfos_[i];
+        if (ImGui::Selectable(meshInfo.filename.data(), currentIndex_ == i))
         {
             currentIndex_ = i;
             wasFocused = true;
@@ -160,5 +160,18 @@ void MeshEditor::RemoveResource(const Resource &resource)
 void MeshEditor::UpdateExistingResource(const Resource &resource)
 {
 
+}
+
+const MeshInfo* MeshEditor::GetMesh(ResourceId resourceId)
+{
+    const auto it = std::ranges::find_if(meshInfos_, [resourceId](const auto& meshInfo)
+        {
+            return resourceId == meshInfo.resourceId;
+        });
+    if(it != meshInfos_.end())
+    {
+        return &*it;
+    }
+    return nullptr;
 }
 }

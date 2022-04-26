@@ -13,6 +13,7 @@
 #include "material_editor.h"
 #include "mesh_editor.h"
 #include "render_pass_editor.h"
+#include "command_editor.h"
 
 namespace gpr5300
 {
@@ -27,13 +28,14 @@ void Editor::Begin()
     editorSystems_[static_cast<std::size_t>(EditorType::MATERIAL)] = std::make_unique<MaterialEditor>();
     editorSystems_[static_cast<std::size_t>(EditorType::MODEL)] = std::make_unique<MeshEditor>();
     editorSystems_[static_cast<std::size_t>(EditorType::RENDER_PASS)] = std::make_unique<RenderPassEditor>();
+    editorSystems_[static_cast<std::size_t>(EditorType::COMMAND)] = std::make_unique<CommandEditor>();
     
     resourceManager_.RegisterResourceChange(this);
     py::initialize_interpreter();
     const auto& filesystem = FilesystemLocator::get();
     if (!filesystem.IsDirectory(ResourceManager::dataFolder))
     {
-        CreateDirectory(ResourceManager::dataFolder);
+        CreateNewDirectory(ResourceManager::dataFolder);
     }
     else
     {
@@ -45,7 +47,7 @@ void Editor::Begin()
             continue;
         const auto subFolder = fmt::format("{}{}", ResourceManager::dataFolder, editorSystem->GetSubFolder());
         if (!filesystem.IsDirectory(subFolder))
-            CreateDirectory(subFolder);
+            CreateNewDirectory(subFolder);
     }
 }
 
@@ -165,6 +167,13 @@ void Editor::DrawCenterView()
             editorSystems_[static_cast<int>(EditorType::RENDER_PASS)]->DrawMainView();
             ImGui::EndTabItem();
         }
+        flag = currentFocusedSystem_ == EditorType::COMMAND ? ImGuiTabItemFlags_SetSelected : ImGuiTabItemFlags_None;
+
+        if (ImGui::BeginTabItem("Command", nullptr, flag))
+        {
+            editorSystems_[static_cast<int>(EditorType::COMMAND)]->DrawMainView();
+            ImGui::EndTabItem();
+        }
 
 
         ImGui::EndTabBar();
@@ -274,6 +283,21 @@ void Editor::UpdateFileDialog()
             resourceManager_.AddResource(path);
             break;
         }
+        case FileBrowserMode::CREATE_NEW_COMMAND:
+        {
+            const auto extension = GetFileExtension(path);
+            if (!editorSystems_[static_cast<int>(EditorType::COMMAND)]->CheckExtensions(extension))
+            {
+                LogWarning(fmt::format("Invalid extension name for newly created command: {} path: {}",
+                    extension,
+                    path));
+                break;
+            }
+            pb::DrawCommand emptyDrawCommand;
+            filesystem.WriteString(path, emptyDrawCommand.SerializeAsString());
+            resourceManager_.AddResource(path);
+            break;
+        }
         default:
             break;
         }
@@ -365,7 +389,7 @@ void Editor::LoadFileIntoEditor(std::string_view path)
                                      ResourceManager::dataFolder,
                                      editorSystem->GetSubFolder(),
                                      GetFilename(path));
-    if (CopyFile(path, dstPath))
+    if (CopyFileFromTo(path, dstPath))
     {
         resourceManager_.AddResource(dstPath);
     }
@@ -458,7 +482,7 @@ void Editor::DrawEditorContent()
     open = ImGui::TreeNode("Render Passes");
     if (ImGui::BeginPopupContextItem())
     {
-        if (ImGui::Button("Create New Render Passes"))
+        if (ImGui::Button("Create New Render Pass"))
         {
             OpenFileBrowserDialog(FileBrowserMode::CREATE_NEW_RENDER_PASS);
             ImGui::CloseCurrentPopup();
@@ -471,6 +495,26 @@ void Editor::DrawEditorContent()
             ->DrawContentList(currentFocusedSystem_ != EditorType::RENDER_PASS))
         {
             currentFocusedSystem_ = EditorType::RENDER_PASS;
+        }
+        ImGui::TreePop();
+    }
+
+    open = ImGui::TreeNode("Commands");
+    if (ImGui::BeginPopupContextItem())
+    {
+        if (ImGui::Button("Create New Command"))
+        {
+            OpenFileBrowserDialog(FileBrowserMode::CREATE_NEW_COMMAND);
+            ImGui::CloseCurrentPopup();
+        }
+        ImGui::EndPopup();
+    }
+    if (open)
+    {
+        if (editorSystems_[static_cast<int>(EditorType::COMMAND)]
+            ->DrawContentList(currentFocusedSystem_ != EditorType::COMMAND))
+        {
+            currentFocusedSystem_ = EditorType::COMMAND;
         }
         ImGui::TreePop();
     }
@@ -589,6 +633,17 @@ void Editor::OpenFileBrowserDialog(Editor::FileBrowserMode mode)
             editorSystems_[static_cast<int>(EditorType::RENDER_PASS)]->GetSubFolder());
         fileDialog_.SetPwd(modelPath);
         fileDialog_.SetTypeFilters({ ".r_pass" });
+        fileDialog_.Open();
+        break;
+    }
+    case FileBrowserMode::CREATE_NEW_COMMAND:
+    {
+        fileBrowserMode_ = FileBrowserMode::CREATE_NEW_COMMAND;
+        fileDialog_ = ImGui::FileBrowser(ImGuiFileBrowserFlags_EnterNewFilename | ImGuiFileBrowserFlags_CreateNewDir);
+        const auto modelPath = fmt::format("{}{}", ResourceManager::dataFolder,
+            editorSystems_[static_cast<int>(EditorType::COMMAND)]->GetSubFolder());
+        fileDialog_.SetPwd(modelPath);
+        fileDialog_.SetTypeFilters({ ".cmd" });
         fileDialog_.Open();
         break;
     }

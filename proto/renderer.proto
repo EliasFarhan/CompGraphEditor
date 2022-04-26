@@ -126,12 +126,18 @@ message DrawCommand
     int32 count = 4;
     int32 mesh_index = 5;
     bool draw_elements = 6;
+
+    //for the editor
+    string material_path = 7;
+    string mesh_path = 8;
 }
 
 message SubPass
 {
     Color4 clear_color = 1;
     repeated DrawCommand commands = 2;
+    //Used by editor
+    repeated string commandPaths = 3;
 }
 
 message RenderPass

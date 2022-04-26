@@ -47,6 +47,7 @@ private:
         CREATE_NEW_MATERIAL,
         CREATE_NEW_MESH,
         CREATE_NEW_RENDER_PASS,
+        CREATE_NEW_COMMAND,
         NONE
     };
     void OpenFileBrowserDialog(FileBrowserMode mode);
