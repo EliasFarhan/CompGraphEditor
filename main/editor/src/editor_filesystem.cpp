@@ -45,4 +45,10 @@ bool RemoveFile(std::string_view path)
     const fs::path p = path;
     return fs::remove(p);
 }
+
+std::string GetFolder(std::string_view path)
+{
+    fs::path p = path;
+    return p.parent_path().string();
+}
 }

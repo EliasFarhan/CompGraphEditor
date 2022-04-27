@@ -1,13 +1,15 @@
 #pragma once
 #include "editor_system.h"
+#include "proto/renderer.pb.h"
 
 namespace gpr5300
 {
     struct ScriptInfo
     {
-        std::string path;
-        std::string className;
+        std::string filename;
         ResourceId resourceId;
+        pb::PySystem info;
+        std::vector<std::string> classesInScript;
 
     };
 
@@ -25,7 +27,10 @@ public:
     EditorType GetEditorType() override;
     void Save() override;
     void ReloadId() override;
+    const ScriptInfo* GetScriptInfo(ResourceId resourceId) const;
+    const auto& GetScriptInfos() const { return scriptInfos_; }
 private:
     std::vector<ScriptInfo> scriptInfos_;
+    std::size_t currentIndex_ = -1;
 };
 } // namespace grp5300

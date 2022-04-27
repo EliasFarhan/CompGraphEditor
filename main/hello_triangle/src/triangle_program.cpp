@@ -239,7 +239,7 @@ pb::Scene Scene5()
 
 void HelloTriangleProgram::Begin()
 {
-    scene_.SetScene(Scene5());
+    scene_.SetScene(Scene3());
 
     sceneManager_.LoadScene(&scene_);
 }

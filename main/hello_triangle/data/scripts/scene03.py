@@ -11,7 +11,7 @@ class Scene03(gpr5300.System):
 
     def update(self, dt):
         self.t += dt
-        self.pipeline.set_float("value", math.sin(self.t))
+        self.pipeline.set_float("value", (math.sin(self.t)+1)/2)
 
     def end(self):
         print("End")

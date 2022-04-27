@@ -151,6 +151,7 @@ message PySystem
 {
     string module = 1;
     string class = 2;
+    string path = 3;
 }
 
 message Scene
@@ -166,4 +167,5 @@ message Scene
 
     //used by editor
     string render_pass_path = 9;
+    repeated string py_system_paths = 10;
 }

@@ -10,7 +10,7 @@ def analyze_script(script_path):
             if "class" in line:
                 par_index = line.find('(')
                 class_name = line[5:par_index]
-                class_name.replace(' ', '')
+                class_name = class_name.replace(' ', '')
                 classes.append(class_name)
 
     script_json = {"classes":classes}
