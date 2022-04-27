@@ -47,6 +47,7 @@ void ShaderEditor::UpdateExistingResource(const Resource& resource)
         if(shaderInfo.resourceId == resource.resourceId)
         {
             shaderInfo.compiledCorrectly = AnalyzeShader(resource.path, shaderInfo.info);
+            return;
         }
     }
 }

@@ -1,12 +1,15 @@
 #pragma once
-#include "renderer/texture.h"
+#include "proto/renderer.pb.h"
+#include "resource.h"
+#include "editor_system.h"
+
 namespace gpr5300
 {
 
 struct TextureInfo
 {
-    std::string path;
     std::string filename;
+    std::string infoPath;
     pb::Texture info;
     ResourceId resourceId = INVALID_RESOURCE_ID;
 };
@@ -33,7 +36,9 @@ public:
     void RemoveResource(const Resource &resource) override;
 
     void UpdateExistingResource(const Resource &resource) override;
+    void ReloadId() override;
 private:
     std::vector<TextureInfo> textureInfos_;
+    std::size_t currentIndex_ = -1;
 };
 }

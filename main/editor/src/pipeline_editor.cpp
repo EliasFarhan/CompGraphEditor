@@ -62,6 +62,7 @@ void PipelineEditor::DrawInspector()
                 {
                     currentPipelineInfo.vertexShaderId = shader.resourceId;
                     currentPipelineInfo.info.set_vertex_shader_path(shader.info.path());
+                    ReloadPipeline(currentIndex_);
                 }
             }
             ImGui::EndCombo();
@@ -80,6 +81,7 @@ void PipelineEditor::DrawInspector()
                 {
                     currentPipelineInfo.fragmentShaderId = shader.resourceId;
                     currentPipelineInfo.info.set_fragment_shader_path(shader.info.path());
+                    ReloadPipeline(currentIndex_);
                 }
             }
             ImGui::EndCombo();
@@ -204,22 +206,34 @@ const PipelineInfo *PipelineEditor::GetPipeline(ResourceId resourceId) const {
 }
 void PipelineEditor::ReloadId()
 {
+    
+    for (std::size_t i = 0; i < pipelineInfos_.size();i++)
+    {
+        ReloadPipeline(i);
+    }
+}
+
+void PipelineEditor::ReloadPipeline(int index)
+{
+    if(index >= pipelineInfos_.size())
+    {
+        return;
+    }
     auto* editor = Editor::GetInstance();
     const auto& resourceManager = editor->GetResourceManager();
-    for (auto& currentPipelineInfo : pipelineInfos_)
+    auto& pipelineInfo = pipelineInfos_[index];
+    if (pipelineInfo.info.type() == pb::Pipeline_Type_RASTERIZE)
     {
-        if (currentPipelineInfo.info.type() == pb::Pipeline_Type_RASTERIZE)
+        if (pipelineInfo.vertexShaderId == INVALID_RESOURCE_ID && !pipelineInfo.info.vertex_shader_path().empty())
         {
-            if (currentPipelineInfo.vertexShaderId == INVALID_RESOURCE_ID && !currentPipelineInfo.info.vertex_shader_path().empty())
-            {
-                currentPipelineInfo.vertexShaderId = resourceManager.FindResourceByPath(currentPipelineInfo.info.vertex_shader_path());
-            }
+            pipelineInfo.vertexShaderId = resourceManager.FindResourceByPath(pipelineInfo.info.vertex_shader_path());
+        }
 
-            if (currentPipelineInfo.fragmentShaderId == INVALID_RESOURCE_ID && !currentPipelineInfo.info.fragment_shader_path().empty())
-            {
-                currentPipelineInfo.fragmentShaderId = resourceManager.FindResourceByPath(currentPipelineInfo.info.fragment_shader_path());
-            }
+        if (pipelineInfo.fragmentShaderId == INVALID_RESOURCE_ID && !pipelineInfo.info.fragment_shader_path().empty())
+        {
+            pipelineInfo.fragmentShaderId = resourceManager.FindResourceByPath(pipelineInfo.info.fragment_shader_path());
         }
     }
+    //TODO load uniforms and input attributes to pipeline
 }
 }

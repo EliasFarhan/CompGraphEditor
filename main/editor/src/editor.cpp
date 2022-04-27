@@ -16,6 +16,7 @@
 #include "command_editor.h"
 #include "scene_editor.h"
 #include "script_editor.h"
+#include "texture_editor.h"
 
 namespace gpr5300
 {
@@ -33,6 +34,7 @@ void Editor::Begin()
     editorSystems_[static_cast<std::size_t>(EditorType::COMMAND)] = std::make_unique<CommandEditor>();
     editorSystems_[static_cast<std::size_t>(EditorType::SCENE)] = std::make_unique<SceneEditor>();
     editorSystems_[static_cast<std::size_t>(EditorType::SCRIPT)] = std::make_unique<ScriptEditor>();
+    editorSystems_[static_cast<std::size_t>(EditorType::TEXTURE)] = std::make_unique<TextureEditor>();
     
     resourceManager_.RegisterResourceChange(this);
     py::initialize_interpreter();
@@ -194,6 +196,14 @@ void Editor::DrawCenterView()
         if (ImGui::BeginTabItem("Scripts", nullptr, flag))
         {
             editorSystems_[static_cast<int>(EditorType::SCRIPT)]->DrawMainView();
+            ImGui::EndTabItem();
+        }
+
+        flag = currentFocusedSystem_ == EditorType::SCRIPT ? ImGuiTabItemFlags_SetSelected : ImGuiTabItemFlags_None;
+
+        if (ImGui::BeginTabItem("Textures", nullptr, flag))
+        {
+            editorSystems_[static_cast<int>(EditorType::TEXTURE)]->DrawMainView();
             ImGui::EndTabItem();
         }
 
@@ -611,8 +621,14 @@ void Editor::DrawEditorContent()
         ImGui::TreePop();
     }
 
-    if (ImGui::TreeNode("Textures"))
+    open = ImGui::TreeNode("Textures");
+    if (open)
     {
+        if (editorSystems_[static_cast<int>(EditorType::TEXTURE)]
+            ->DrawContentList(currentFocusedSystem_ != EditorType::TEXTURE))
+        {
+            currentFocusedSystem_ = EditorType::TEXTURE;
+        }
         ImGui::TreePop();
     }
     ImGui::End();

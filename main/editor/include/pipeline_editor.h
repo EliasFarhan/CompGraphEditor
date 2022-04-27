@@ -1,4 +1,5 @@
 #pragma once
+#include "editor_system.h"
 
 namespace gpr5300
 {
@@ -30,6 +31,7 @@ public:
     const auto& GetPipelines() const{ return pipelineInfos_;}
     void ReloadId() override;
 private:
+    void ReloadPipeline(int index);
     std::vector<PipelineInfo> pipelineInfos_;
     std::size_t currentIndex_ = -1;
 };

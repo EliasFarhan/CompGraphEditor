@@ -1,6 +1,7 @@
 #pragma once
 
 #include "editor_system.h"
+#include "pipeline_editor.h"
 #include "proto/renderer.pb.h"
 
 namespace gpr5300
@@ -41,6 +42,7 @@ public:
     const auto& GetMaterials() const { return materialInfos_; }
     void ReloadId() override;
 private:
+    void SetPipeline(const PipelineInfo& pipelineInfo);
     std::vector<MaterialInfo> materialInfos_;
     std::size_t currentIndex_ = -1;
 };

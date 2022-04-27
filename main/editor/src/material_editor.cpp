@@ -41,6 +41,7 @@ void MaterialEditor::DrawInspector()
         {
             if(ImGui::Selectable(pipeline.filename.c_str(), pipeline.resourceId == currentMaterialInfo.pipelineId))
             {
+                SetPipeline(pipeline);
                 currentMaterialInfo.pipelineId = pipeline.resourceId;
                 currentMaterialInfo.info.set_pipeline_path(pipeline.path);
             }
@@ -50,6 +51,9 @@ void MaterialEditor::DrawInspector()
 
     if(pipelineInfo != nullptr)
     {
+
+        //TODO add and select textures
+
         if (ImGui::BeginListBox("Uniforms"))
         {
             for(int i = 0; i < pipelineInfo->info.uniforms_size(); i++)
@@ -75,7 +79,6 @@ void MaterialEditor::DrawInspector()
             ImGui::EndListBox();
         }
 
-        //TODO add and select textures
     }
 
 }
@@ -171,6 +174,27 @@ void MaterialEditor::ReloadId()
         if (currentMaterialInfo.pipelineId == INVALID_RESOURCE_ID && !currentMaterialInfo.info.pipeline_path().empty())
         {
             currentMaterialInfo.pipelineId = resourceManager.FindResourceByPath(currentMaterialInfo.info.pipeline_path());
+        }
+    }
+}
+
+void MaterialEditor::SetPipeline(const PipelineInfo& pipelineInfo)
+{
+
+    auto& currentMaterialInfo = materialInfos_[currentIndex_];
+    currentMaterialInfo.pipelineId = pipelineInfo.resourceId;
+    currentMaterialInfo.info.set_pipeline_path(pipelineInfo.path);
+
+    currentMaterialInfo.info.mutable_textures()->Clear();
+    int samplerIndex = 0;
+    for(int i = 0; pipelineInfo.info.uniforms_size(); i++)
+    {
+        const auto& uniformInfo = pipelineInfo.info.uniforms(i);
+        if(uniformInfo.type() == pb::Attribute_Type_SAMPLER2D || uniformInfo.type() == pb::Attribute_Type_SAMPLERCUBE)
+        {
+            auto* newMaterialTexture = currentMaterialInfo.info.add_textures();
+            newMaterialTexture->set_sampler_name(uniformInfo.name());
+            samplerIndex++;
         }
     }
 }
