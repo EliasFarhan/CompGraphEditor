@@ -44,9 +44,7 @@ void Editor::Begin()
     else
     {
         resourceManager_.CheckDataFolder();
-        for(const auto& editorSystem : editorSystems_)
-        {
-        }
+        
     }
     for (const auto& editorSystem : editorSystems_)
     {
@@ -223,7 +221,7 @@ void Editor::UpdateFileDialog()
     if (fileDialog_.HasSelected())
     {
         const auto& filesystem = FilesystemLocator::get();
-        const auto path = fileDialog_.GetSelected().string();
+        const auto path = fs::relative(fileDialog_.GetSelected()).string();
         switch(fileBrowserMode_)
         {
         case FileBrowserMode::OPEN_FILE:
@@ -337,7 +335,20 @@ void Editor::UpdateFileDialog()
             resourceManager_.AddResource(path);
             break;
         }
-        
+        case FileBrowserMode::CREATE_NEW_SCRIPT:
+        {
+            const auto extension = GetFileExtension(path);
+            if (!editorSystems_[static_cast<int>(EditorType::SCRIPT)]->CheckExtensions(extension))
+            {
+                LogWarning(fmt::format("Invalid extension name for newly created script: {} path: {}",
+                    extension,
+                    path));
+                break;
+            }
+            filesystem.WriteString(path, "import gpr5300\n");
+            resourceManager_.AddResource(path);
+            break;
+        }
         default:
             break;
         }
@@ -583,12 +594,12 @@ void Editor::DrawEditorContent()
     open = ImGui::TreeNode("Scripts");
     if (ImGui::BeginPopupContextItem())
     {
-        /*if (ImGui::Button("Create New Scene"))
+        if (ImGui::Button("Create New Script"))
         {
-            OpenFileBrowserDialog(FileBrowserMode::CREATE_NEW_SCENE);
+            OpenFileBrowserDialog(FileBrowserMode::CREATE_NEW_SCRIPT);
             ImGui::CloseCurrentPopup();
         }
-        ImGui::EndPopup();*/
+        ImGui::EndPopup();
     }
     if (open)
     {
@@ -732,10 +743,21 @@ void Editor::OpenFileBrowserDialog(Editor::FileBrowserMode mode)
     {
         fileBrowserMode_ = FileBrowserMode::CREATE_NEW_SCENE;
         fileDialog_ = ImGui::FileBrowser(ImGuiFileBrowserFlags_EnterNewFilename | ImGuiFileBrowserFlags_CreateNewDir);
-        const auto modelPath = fmt::format("{}{}", ResourceManager::dataFolder,
+        const auto scenePath = fmt::format("{}{}", ResourceManager::dataFolder,
             editorSystems_[static_cast<int>(EditorType::SCENE)]->GetSubFolder());
-        fileDialog_.SetPwd(modelPath);
+        fileDialog_.SetPwd(scenePath);
         fileDialog_.SetTypeFilters({ ".scene" });
+        fileDialog_.Open();
+        break;
+    }
+    case FileBrowserMode::CREATE_NEW_SCRIPT:
+    {
+        fileBrowserMode_ = FileBrowserMode::CREATE_NEW_SCRIPT;
+        fileDialog_ = ImGui::FileBrowser(ImGuiFileBrowserFlags_EnterNewFilename | ImGuiFileBrowserFlags_CreateNewDir);
+        const auto scriptPath = fmt::format("{}{}", ResourceManager::dataFolder,
+            editorSystems_[static_cast<int>(EditorType::SCRIPT)]->GetSubFolder());
+        fileDialog_.SetPwd(scriptPath);
+        fileDialog_.SetTypeFilters({ ".py" });
         fileDialog_.Open();
         break;
     }

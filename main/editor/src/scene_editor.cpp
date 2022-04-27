@@ -223,7 +223,7 @@ bool SceneEditor::ExportScene()
     const auto* pipelineEditor = dynamic_cast<PipelineEditor*>(editor->GetEditorSystem(EditorType::PIPELINE));
     const auto* shaderEditor = dynamic_cast<ShaderEditor*>(editor->GetEditorSystem(EditorType::SHADER));
     const auto* meshEditor = dynamic_cast<MeshEditor*>(editor->GetEditorSystem(EditorType::MODEL));
-
+    const auto* scriptEditor = dynamic_cast<ScriptEditor*>(editor->GetEditorSystem(EditorType::SCRIPT));
     //TODO reload all editors to get all correct resourceId
 
     const auto& currentScene = sceneInfos_[currentIndex_];
@@ -361,6 +361,14 @@ bool SceneEditor::ExportScene()
             }
         }
     }
+    for(int i = 0; i < currentScene.info.py_system_paths_size();i++)
+    {
+        const auto& pySystemPath = currentScene.info.py_system_paths(i);
+        const auto pySystemId = resourceManager.FindResourceByPath(pySystemPath);
+        const auto* pySystemInfo = scriptEditor->GetScriptInfo(pySystemId);
+
+        *exportScene.info.add_py_systems() = pySystemInfo->info;
+    }
     exportScene.path = "root.scene";
     //Write scene
     std::ofstream fileOut(exportScene.path, std::ios::binary);
@@ -380,6 +388,13 @@ bool SceneEditor::ExportScene()
         shaderPaths.push_back(fs::path(exportScene.info.shaders(i).path(), std::filesystem::path::generic_format).string());
     }
     sceneJson["shaders"] = shaderPaths;
+    std::vector<std::string> scriptPaths;
+    scriptPaths.reserve(exportScene.info.py_systems_size());
+    for (int i = 0; i < exportScene.info.py_systems_size(); i++)
+    {
+        scriptPaths.push_back(fs::path(exportScene.info.py_systems(i).path(), std::filesystem::path::generic_format).string());
+    }
+    sceneJson["scripts"] = scriptPaths;
     sceneJson["textures"] = json::array();
 
     //Call python function exporting the scene

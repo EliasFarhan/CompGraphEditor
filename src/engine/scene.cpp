@@ -191,8 +191,8 @@ void SceneManager::End()
     {
         currentScene_->UnloadScene();
         currentScene_ = nullptr;
+        pyManager_.End();
     }
-    pyManager_.End();
 }
 
 void SceneManager::Update(float dt)

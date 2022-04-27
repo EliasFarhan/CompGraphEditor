@@ -23,6 +23,7 @@ void ScriptEditor::AddResource(const Resource& resource)
     auto module = GetFolder(resource.path);
     std::ranges::replace(module, '/', '.');
     std::ranges::replace(module, '\\', '.');
+    module = fmt::format("{}.{}", module, GetFilename(resource.path, false));
     scriptInfo.info.set_module(module);
     scriptInfo.info.set_path(resource.path);
 
@@ -54,6 +55,31 @@ void ScriptEditor::RemoveResource(const Resource& resource)
 
 void ScriptEditor::UpdateExistingResource(const Resource& resource)
 {
+    for(auto& scriptInfo : scriptInfos_)
+    {
+        if(scriptInfo.resourceId == resource.resourceId)
+        {
+            const auto analyzeScriptFunc = py::module_::import("scripts.script_parser").attr("analyze_script");
+            try
+            {
+                std::string result = static_cast<py::str>(analyzeScriptFunc(resource.path));
+                LogDebug(fmt::format("Loading script: {} with content:\n{}", resource.path, result));
+                json scriptJson = json::parse(result);
+                for (auto& className : scriptJson["classes"])
+                {
+                    scriptInfo.classesInScript.push_back(className.get<std::string>());
+                }
+                if (!scriptInfo.classesInScript.empty())
+                {
+                    scriptInfo.info.set_class_(scriptInfo.classesInScript[0]);
+                }
+            }
+            catch (py::error_already_set& e)
+            {
+                LogWarning(fmt::format("Could not analyze script: {}\n{}", resource.path, e.what()));
+            }
+        }
+    }
 }
 
 bool ScriptEditor::CheckExtensions(std::string_view extension)

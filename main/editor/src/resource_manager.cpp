@@ -69,6 +69,8 @@ void ResourceManager::CheckDataFolder()
 
 ResourceId ResourceManager::FindResourceByPath(std::string_view path) const
 {
+    if (path.empty())
+        return INVALID_RESOURCE_ID;
     const auto it = std::ranges::find_if(resources_, [path](const auto& resource)
     {
         return fs::equivalent(path,resource.path);

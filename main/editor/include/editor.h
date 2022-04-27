@@ -49,6 +49,7 @@ private:
         CREATE_NEW_RENDER_PASS,
         CREATE_NEW_COMMAND,
         CREATE_NEW_SCENE,
+        CREATE_NEW_SCRIPT,
         NONE
     };
     void OpenFileBrowserDialog(FileBrowserMode mode);

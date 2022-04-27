@@ -32,7 +32,7 @@ public:
     void ReloadId() override{}
 private:
     bool AnalyzeShader(std::string_view path, pb::Shader& shaderInfo);
-    static pb::Attribute::Type GetType(std::string_view attibuteTypeString);
+    static pb::Attribute::Type GetType(std::string_view attributeTypeString);
     std::vector<ShaderInfo> shaderInfos_;
     std::size_t currentIndex_ = -1;
 };
