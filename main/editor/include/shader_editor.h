@@ -11,6 +11,7 @@ struct ShaderInfo
     std::string filename;
     pb::Shader info;
     ResourceId resourceId = INVALID_RESOURCE_ID;
+    bool compiledCorrectly = true;
 };
 
 class ShaderEditor : public EditorSystem
@@ -28,6 +29,7 @@ public:
     void Save() override{}
     const ShaderInfo* GetShader(ResourceId resourceId) const;
     [[nodiscard]] const auto& GetShaders() const { return shaderInfos_; }
+    void ReloadId() override{}
 private:
     bool AnalyzeShader(std::string_view path, pb::Shader& shaderInfo);
     static pb::Attribute::Type GetType(std::string_view attibuteTypeString);

@@ -67,15 +67,7 @@ void CommandEditor::DrawInspector()
     auto* meshEditor = dynamic_cast<MeshEditor*>(editor->GetEditorSystem(EditorType::MODEL));
     auto& currentCommand = commandInfos_[currentIndex_];
 
-    if(currentCommand.materialId == INVALID_RESOURCE_ID && !currentCommand.info.material_path().empty())
-    {
-        currentCommand.materialId = resourceManager.FindResourceByPath(currentCommand.info.material_path());
-    }
-
-    if(currentCommand.meshId == INVALID_RESOURCE_ID && !currentCommand.info.mesh_path().empty())
-    {
-        currentCommand.meshId = resourceManager.FindResourceByPath(currentCommand.info.mesh_path());
-    }
+    
     const auto& materials = materialEditor->GetMaterials();
     const auto* materialInfo = materialEditor->GetMaterial(currentCommand.materialId);
     if(ImGui::BeginCombo("Material", materialInfo?materialInfo->filename.c_str():"Empty Material"))
@@ -193,5 +185,23 @@ const CommandInfo* CommandEditor::GetCommand(ResourceId resourceId) const
         return &*it;
     }
     return nullptr;
+}
+
+void CommandEditor::ReloadId()
+{
+    auto* editor = Editor::GetInstance();
+    const auto& resourceManager = editor->GetResourceManager();
+    for (auto& commandInfo : commandInfos_)
+    {
+        if (commandInfo.materialId == INVALID_RESOURCE_ID && !commandInfo.info.material_path().empty())
+        {
+            commandInfo.materialId = resourceManager.FindResourceByPath(commandInfo.info.material_path());
+        }
+
+        if (commandInfo.meshId == INVALID_RESOURCE_ID && !commandInfo.info.mesh_path().empty())
+        {
+            commandInfo.meshId = resourceManager.FindResourceByPath(commandInfo.info.mesh_path());
+        }
+    }
 }
 } // namespace gpr5300

@@ -204,4 +204,9 @@ const RenderPassInfo* RenderPassEditor::GetRenderPass(ResourceId resourceId) con
     }
     return nullptr;
 }
+
+void RenderPassEditor::ReloadId()
+{
+
+}
 }

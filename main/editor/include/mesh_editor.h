@@ -39,6 +39,7 @@ public:
     void UpdateExistingResource(const Resource &resource) override;
     const auto& GetMeshes() const { return meshInfos_; }
     const MeshInfo* GetMesh(ResourceId resourceId) const;
+    void ReloadId() override{}
 private:
     std::vector<MeshInfo> meshInfos_;
     std::size_t currentIndex_ = -1;

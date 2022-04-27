@@ -22,10 +22,7 @@ void ShaderEditor::AddResource(const Resource& resource)
 {
 
     ShaderInfo shaderInfo{};
-    if(!AnalyzeShader(resource.path, shaderInfo.info))
-    {
-        return;
-    }
+    shaderInfo.compiledCorrectly = AnalyzeShader(resource.path, shaderInfo.info);
     shaderInfo.filename = GetFilename(resource.path);
     shaderInfo.resourceId = resource.resourceId;
     shaderInfo.info.set_path(resource.path);
@@ -45,7 +42,13 @@ void ShaderEditor::RemoveResource(const Resource& resource)
 }
 void ShaderEditor::UpdateExistingResource(const Resource& resource)
 {
-
+    for(auto& shaderInfo : shaderInfos_)
+    {
+        if(shaderInfo.resourceId == resource.resourceId)
+        {
+            shaderInfo.compiledCorrectly = AnalyzeShader(resource.path, shaderInfo.info);
+        }
+    }
 }
 bool ShaderEditor::CheckExtensions(std::string_view extension)
 {
@@ -75,6 +78,14 @@ void ShaderEditor::DrawInspector()
     const auto& currentShaderInfo = shaderInfos_[currentIndex_];
 
     ImGui::Text("Path: %s", currentShaderInfo.filename.c_str());
+    if(currentShaderInfo.compiledCorrectly)
+    {
+        ImGui::TextColored(ImVec4(0.f, 1.0f, 0.f, 1.0f), "Shader compiled correctly");
+    }
+    else
+    {
+        ImGui::TextColored(ImVec4(1.0f, 0.0f, 0.0f, 1.0f), "Shader failed compilation!");
+    }
     switch (currentShaderInfo.info.type())
     {
     case pb::Shader_Type_VERTEX:

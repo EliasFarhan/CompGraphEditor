@@ -24,7 +24,7 @@ private:
     std::vector<Resource> resources_;
     std::vector<ResourceChangeInterface*> resourceChangeInterfaces_;
     void RemoveResource(const Resource& resource);
-    void UpdateResource(const Resource& resource);
+    void UpdateExistingResource(const Resource& resource);
 };
 
 

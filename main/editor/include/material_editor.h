@@ -39,6 +39,7 @@ public:
     void UpdateExistingResource(const Resource &resource) override;
     const MaterialInfo* GetMaterial(ResourceId resourceId) const;
     const auto& GetMaterials() const { return materialInfos_; }
+    void ReloadId() override;
 private:
     std::vector<MaterialInfo> materialInfos_;
     std::size_t currentIndex_ = -1;

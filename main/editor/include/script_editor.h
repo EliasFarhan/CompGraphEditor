@@ -1,22 +1,17 @@
 #pragma once
-
-#include "resource.h"
-#include "proto/renderer.pb.h"
 #include "editor_system.h"
 
 namespace gpr5300
 {
+    struct ScriptInfo
+    {
+        std::string path;
+        std::string className;
+        ResourceId resourceId;
 
-struct SceneInfo
-{
-    std::string filename;
-    std::string path;
-    pb::Scene info;
-    ResourceId resourceId = INVALID_RESOURCE_ID;
-    ResourceId renderPassId = INVALID_RESOURCE_ID;
-};
+    };
 
-class SceneEditor : public EditorSystem
+class ScriptEditor : public EditorSystem
 {
 public:
     void AddResource(const Resource& resource) override;
@@ -29,10 +24,8 @@ public:
     std::string_view GetSubFolder() override;
     EditorType GetEditorType() override;
     void Save() override;
-    bool ExportScene();
     void ReloadId() override;
 private:
-    std::vector<SceneInfo> sceneInfos_;
-    std::size_t currentIndex_ = -1;
+    std::vector<ScriptInfo> scriptInfos_;
 };
-}
+} // namespace grp5300

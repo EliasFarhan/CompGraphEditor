@@ -15,6 +15,7 @@ enum class EditorType
     SCENE,
     RENDER_PASS,
     COMMAND,
+    SCRIPT,
     LENGTH
 };
 
@@ -30,5 +31,6 @@ public:
     virtual std::string_view GetSubFolder() = 0;
     virtual EditorType GetEditorType() = 0;
     virtual void Save() = 0;
+    virtual void ReloadId() = 0;
 };
 }

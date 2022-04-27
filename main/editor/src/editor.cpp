@@ -15,6 +15,7 @@
 #include "render_pass_editor.h"
 #include "command_editor.h"
 #include "scene_editor.h"
+#include "script_editor.h"
 
 namespace gpr5300
 {
@@ -31,6 +32,7 @@ void Editor::Begin()
     editorSystems_[static_cast<std::size_t>(EditorType::RENDER_PASS)] = std::make_unique<RenderPassEditor>();
     editorSystems_[static_cast<std::size_t>(EditorType::COMMAND)] = std::make_unique<CommandEditor>();
     editorSystems_[static_cast<std::size_t>(EditorType::SCENE)] = std::make_unique<SceneEditor>();
+    editorSystems_[static_cast<std::size_t>(EditorType::SCRIPT)] = std::make_unique<ScriptEditor>();
     
     resourceManager_.RegisterResourceChange(this);
     py::initialize_interpreter();
@@ -42,6 +44,9 @@ void Editor::Begin()
     else
     {
         resourceManager_.CheckDataFolder();
+        for(const auto& editorSystem : editorSystems_)
+        {
+        }
     }
     for (const auto& editorSystem : editorSystems_)
     {
@@ -50,6 +55,8 @@ void Editor::Begin()
         const auto subFolder = fmt::format("{}{}", ResourceManager::dataFolder, editorSystem->GetSubFolder());
         if (!filesystem.IsDirectory(subFolder))
             CreateNewDirectory(subFolder);
+
+        editorSystem->ReloadId();
     }
 }
 
@@ -181,6 +188,14 @@ void Editor::DrawCenterView()
         if (ImGui::BeginTabItem("Command", nullptr, flag))
         {
             editorSystems_[static_cast<int>(EditorType::SCENE)]->DrawMainView();
+            ImGui::EndTabItem();
+        }
+
+        flag = currentFocusedSystem_ == EditorType::SCRIPT ? ImGuiTabItemFlags_SetSelected : ImGuiTabItemFlags_None;
+
+        if (ImGui::BeginTabItem("Scripts", nullptr, flag))
+        {
+            editorSystems_[static_cast<int>(EditorType::SCRIPT)]->DrawMainView();
             ImGui::EndTabItem();
         }
 
@@ -322,6 +337,7 @@ void Editor::UpdateFileDialog()
             resourceManager_.AddResource(path);
             break;
         }
+        
         default:
             break;
         }
@@ -362,7 +378,8 @@ void Editor::OnEvent(SDL_Event& event)
         {
         case SDL_WINDOWEVENT_FOCUS_GAINED:
         {
-            //TODO check if data content changed
+            resourceManager_.CheckDataFolder();
+
             break;
         }
         default:break;
@@ -559,6 +576,26 @@ void Editor::DrawEditorContent()
             ->DrawContentList(currentFocusedSystem_ != EditorType::SCENE))
         {
             currentFocusedSystem_ = EditorType::SCENE;
+        }
+        ImGui::TreePop();
+    }
+
+    open = ImGui::TreeNode("Scripts");
+    if (ImGui::BeginPopupContextItem())
+    {
+        /*if (ImGui::Button("Create New Scene"))
+        {
+            OpenFileBrowserDialog(FileBrowserMode::CREATE_NEW_SCENE);
+            ImGui::CloseCurrentPopup();
+        }
+        ImGui::EndPopup();*/
+    }
+    if (open)
+    {
+        if (editorSystems_[static_cast<int>(EditorType::SCRIPT)]
+            ->DrawContentList(currentFocusedSystem_ != EditorType::SCRIPT))
+        {
+            currentFocusedSystem_ = EditorType::SCRIPT;
         }
         ImGui::TreePop();
     }

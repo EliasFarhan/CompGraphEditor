@@ -34,6 +34,7 @@ public:
 
     const auto& GetCommands() const { return commandInfos_; }
     const CommandInfo* GetCommand(ResourceId resourceId) const;
+    void ReloadId() override;
 private:
     std::vector<CommandInfo> commandInfos_;
     std::size_t currentIndex_ = -1;

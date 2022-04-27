@@ -28,6 +28,7 @@ public:
     void Save() override;
     const PipelineInfo* GetPipeline(ResourceId resourceId) const;
     const auto& GetPipelines() const{ return pipelineInfos_;}
+    void ReloadId() override;
 private:
     std::vector<PipelineInfo> pipelineInfos_;
     std::size_t currentIndex_ = -1;

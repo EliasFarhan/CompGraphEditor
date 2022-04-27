@@ -11,7 +11,7 @@ void ResourceManager::CheckDataFolder()
 {
     auto& filesystem = FilesystemLocator::get();
     // Remove deleted file
-    std::unordered_set<std::string_view> currentResources;
+    std::vector <fs::path> currentResources;
     auto fileIt = resources_.begin();
     while(fileIt != resources_.end())
     {
@@ -22,14 +22,14 @@ void ResourceManager::CheckDataFolder()
         }
         else
         {
+            currentResources.push_back(fileIt->path);
             ++fileIt;
-            currentResources.emplace(fileIt->path);
         }
     }
     std::function<void(std::string_view)> recursiveIterateFile = [this, &filesystem, &recursiveIterateFile, &currentResources]
         (std::string_view directoryPath)
     {
-        fs::path dir = directoryPath;
+        const fs::path dir = directoryPath;
         for(const auto& entry : fs::directory_iterator(dir))
         {
             auto path = entry.path();
@@ -39,20 +39,26 @@ void ResourceManager::CheckDataFolder()
             }
             else
             {
-                if(!currentResources.contains(path.string()))
+                bool newResource = true;
+                for(auto& currentResource : currentResources)
+                {
+                    if(fs::equivalent(currentResource, path))
+                    {
+                        auto it = std::ranges::find_if(resources_, [&path](const Resource& resource)
+                            {
+                                return fs::equivalent(resource.path,path);
+                            });
+                        if (it->lastTimeWrite < GetLastTimeWrite(path.string()))
+                        {
+                            UpdateExistingResource(*it);
+                        }
+                        newResource = false;
+                        break;
+                    }
+                }
+                if(newResource)
                 {
                     AddResource(path.string());
-                }
-                else
-                {
-                    auto it = std::ranges::find_if(resources_,[&path](const Resource& resource)
-                    {
-                        return resource.path == path;
-                    });
-                    if(it->lastTimeWrite < GetLastTimeWrite(path.string()))
-                    {
-                        UpdateResource(*it);
-                    }
                 }
             }
         }
@@ -65,7 +71,7 @@ ResourceId ResourceManager::FindResourceByPath(std::string_view path) const
 {
     const auto it = std::ranges::find_if(resources_, [path](const auto& resource)
     {
-        return path == resource.path;
+        return fs::equivalent(path,resource.path);
     });
     if(it != resources_.end())
     {
@@ -101,7 +107,7 @@ void ResourceManager::AddResource(std::string_view path)
     }
 
 }
-void ResourceManager::UpdateResource(const Resource &resource)
+void ResourceManager::UpdateExistingResource(const Resource &resource)
 {
     for(auto* resourceChange : resourceChangeInterfaces_)
     {

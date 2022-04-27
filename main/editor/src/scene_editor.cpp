@@ -79,10 +79,6 @@ void SceneEditor::DrawInspector()
     auto* renderPassEditor = dynamic_cast<RenderPassEditor*>(editor->GetEditorSystem(EditorType::RENDER_PASS));
     auto& currentScene = sceneInfos_[currentIndex_];
 
-    if(currentScene.renderPassId == INVALID_RESOURCE_ID && !currentScene.info.render_pass_path().empty())
-    {
-        currentScene.renderPassId = resourceManager.FindResourceByPath(currentScene.info.render_pass_path());
-    }
 
     const auto& renderPasses = renderPassEditor->GetRenderPasses();
     const auto* renderPassInfo = renderPassEditor->GetRenderPass(currentScene.renderPassId);
@@ -344,5 +340,18 @@ bool SceneEditor::ExportScene()
     }
     RemoveFile(exportScene.path);
     return true;
+}
+
+void SceneEditor::ReloadId()
+{
+    auto* editor = Editor::GetInstance();
+    const auto& resourceManager = editor->GetResourceManager();
+    for(auto& sceneInfo: sceneInfos_)
+    {
+        if (sceneInfo.renderPassId == INVALID_RESOURCE_ID && !sceneInfo.info.render_pass_path().empty())
+        {
+            sceneInfo.renderPassId = resourceManager.FindResourceByPath(sceneInfo.info.render_pass_path());
+        }
+    }
 }
 }

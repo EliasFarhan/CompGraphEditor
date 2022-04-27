@@ -47,15 +47,6 @@ void PipelineEditor::DrawInspector()
     //Rasterizer pipeline
     if (currentPipelineInfo.info.type() == pb::Pipeline_Type_RASTERIZE)
     {
-        if (currentPipelineInfo.vertexShaderId == INVALID_RESOURCE_ID && !currentPipelineInfo.info.vertex_shader_path().empty())
-        {
-            currentPipelineInfo.vertexShaderId = resourceManager.FindResourceByPath(currentPipelineInfo.info.vertex_shader_path());
-        }
-
-        if (currentPipelineInfo.fragmentShaderId == INVALID_RESOURCE_ID && !currentPipelineInfo.info.fragment_shader_path().empty())
-        {
-            currentPipelineInfo.fragmentShaderId = resourceManager.FindResourceByPath(currentPipelineInfo.info.fragment_shader_path());
-        }
         auto* shaderEditor = dynamic_cast<ShaderEditor*>(editor->GetEditorSystem(EditorType::SHADER));
         const auto& shaders = shaderEditor->GetShaders();
         const auto* vertexShader = shaderEditor->GetShader(currentPipelineInfo.vertexShaderId);
@@ -210,5 +201,25 @@ const PipelineInfo *PipelineEditor::GetPipeline(ResourceId resourceId) const {
         return &*it;
     }
     return nullptr;
+}
+void PipelineEditor::ReloadId()
+{
+    auto* editor = Editor::GetInstance();
+    const auto& resourceManager = editor->GetResourceManager();
+    for (auto& currentPipelineInfo : pipelineInfos_)
+    {
+        if (currentPipelineInfo.info.type() == pb::Pipeline_Type_RASTERIZE)
+        {
+            if (currentPipelineInfo.vertexShaderId == INVALID_RESOURCE_ID && !currentPipelineInfo.info.vertex_shader_path().empty())
+            {
+                currentPipelineInfo.vertexShaderId = resourceManager.FindResourceByPath(currentPipelineInfo.info.vertex_shader_path());
+            }
+
+            if (currentPipelineInfo.fragmentShaderId == INVALID_RESOURCE_ID && !currentPipelineInfo.info.fragment_shader_path().empty())
+            {
+                currentPipelineInfo.fragmentShaderId = resourceManager.FindResourceByPath(currentPipelineInfo.info.fragment_shader_path());
+            }
+        }
+    }
 }
 }

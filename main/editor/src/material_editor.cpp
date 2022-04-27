@@ -30,10 +30,7 @@ void MaterialEditor::DrawInspector()
     const auto& resourceManager = editor->GetResourceManager();
     auto& currentMaterialInfo = materialInfos_[currentIndex_];
 
-    if(currentMaterialInfo.pipelineId == INVALID_RESOURCE_ID && !currentMaterialInfo.info.pipeline_path().empty())
-    {
-        currentMaterialInfo.pipelineId = resourceManager.FindResourceByPath(currentMaterialInfo.info.pipeline_path());
-    }
+
 
     auto* pipelineEditor = dynamic_cast<PipelineEditor*>(editor->GetEditorSystem(EditorType::PIPELINE));
     const auto& pipelines = pipelineEditor->GetPipelines();
@@ -163,5 +160,18 @@ const MaterialInfo* MaterialEditor::GetMaterial(ResourceId resourceId) const
         return &*it;
     }
     return nullptr;
+}
+
+void MaterialEditor::ReloadId()
+{
+    auto* editor = Editor::GetInstance();
+    const auto& resourceManager = editor->GetResourceManager();
+    for (auto& currentMaterialInfo : materialInfos_)
+    {
+        if (currentMaterialInfo.pipelineId == INVALID_RESOURCE_ID && !currentMaterialInfo.info.pipeline_path().empty())
+        {
+            currentMaterialInfo.pipelineId = resourceManager.FindResourceByPath(currentMaterialInfo.info.pipeline_path());
+        }
+    }
 }
 }
