@@ -37,6 +37,9 @@ public:
 
     void UpdateExistingResource(const Resource &resource) override;
     void ReloadId() override;
+
+    const auto& GetTextures() const { return textureInfos_; }
+    const TextureInfo* GetTexture(ResourceId resourceId) const;
 private:
     std::vector<TextureInfo> textureInfos_;
     std::size_t currentIndex_ = -1;

@@ -104,4 +104,17 @@ void TextureEditor::UpdateExistingResource(const Resource &resource)
 void TextureEditor::ReloadId()
 {
 }
+
+const TextureInfo* TextureEditor::GetTexture(ResourceId resourceId) const
+{
+    const auto it = std::ranges::find_if(textureInfos_, [resourceId](const auto& textureInfo)
+        {
+            return resourceId == textureInfo.resourceId;
+        });
+    if(it != textureInfos_.end())
+    {
+        return &*it;
+    }
+    return nullptr;
+}
 }

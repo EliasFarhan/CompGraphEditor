@@ -20,6 +20,7 @@
 #include "pipeline_editor.h"
 #include "script_editor.h"
 #include "shader_editor.h"
+#include "texture_editor.h"
 
 namespace py = pybind11;
 using json = nlohmann::json;
@@ -224,6 +225,7 @@ bool SceneEditor::ExportScene()
     const auto* shaderEditor = dynamic_cast<ShaderEditor*>(editor->GetEditorSystem(EditorType::SHADER));
     const auto* meshEditor = dynamic_cast<MeshEditor*>(editor->GetEditorSystem(EditorType::MODEL));
     const auto* scriptEditor = dynamic_cast<ScriptEditor*>(editor->GetEditorSystem(EditorType::SCRIPT));
+    const auto* textureEditor = dynamic_cast<TextureEditor*>(editor->GetEditorSystem(EditorType::TEXTURE));
     //TODO reload all editors to get all correct resourceId
 
     const auto& currentScene = sceneInfos_[currentIndex_];
@@ -270,6 +272,31 @@ bool SceneEditor::ExportScene()
                 auto* newMaterial = exportScene.info.add_materials();
                 *newMaterial = material->info;
                 resourceIndexMap[material->resourceId] = materialIndex;
+
+                //list textures
+                for(int textureIndex = 0; textureIndex < newMaterial->textures_size(); textureIndex++)
+                {
+                    auto* materialTexture = newMaterial->mutable_textures(textureIndex);
+                    auto textureId = resourceManager.FindResourceByPath(materialTexture->texture_name());
+                    if(textureId == INVALID_RESOURCE_ID)
+                    {
+                        LogWarning("Could not export scene, missing texture in material sampler");
+                        return false;
+                    }
+                    auto textureIt = resourceIndexMap.find(textureId);
+                    if(textureIt == resourceIndexMap.end())
+                    {
+                        const auto index = exportScene.info.textures_size();
+                        *exportScene.info.add_textures() = textureEditor->GetTexture(textureId)->info;
+                        resourceIndexMap[textureId] = index;
+                        materialTexture->set_texture_index(index);
+                    }
+                    else
+                    {
+                        materialTexture->set_texture_index(textureIt->second);
+                    }
+                }
+
                 //check if pipeline exists
                 if(material->pipelineId == INVALID_RESOURCE_ID)
                 {
@@ -395,7 +422,13 @@ bool SceneEditor::ExportScene()
         scriptPaths.push_back(fs::path(exportScene.info.py_systems(i).path(), std::filesystem::path::generic_format).string());
     }
     sceneJson["scripts"] = scriptPaths;
-    sceneJson["textures"] = json::array();
+    std::vector<std::string> texturePaths;
+    texturePaths.reserve(exportScene.info.textures_size());
+    for(int i = 0; i < exportScene.info.textures_size(); i++)
+    {
+        texturePaths.push_back(exportScene.info.textures(i).path());
+    }
+    sceneJson["textures"] = texturePaths;
 
     //Call python function exporting the scene
     try

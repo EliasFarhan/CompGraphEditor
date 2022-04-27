@@ -25,7 +25,6 @@ void PipelineEditor::DrawInspector()
         return;
     }
     auto* editor = Editor::GetInstance();
-    const auto& resourceManager = editor->GetResourceManager();
     auto& currentPipelineInfo = pipelineInfos_[currentIndex_];
 
     //Pipeline type
@@ -89,37 +88,23 @@ void PipelineEditor::DrawInspector()
 
         if (ImGui::BeginListBox("Uniforms"))
         {
-            if (vertexShader != nullptr)
+            for (int i = 0; i < currentPipelineInfo.info.uniforms_size(); i++)
             {
-                for (int i = 0; i < vertexShader->info.uniforms_size(); i++)
-                {
-                    const auto& uniformInfo = vertexShader->info.uniforms(i);
-                    const auto text = fmt::format("Name: {} Type: {}", uniformInfo.name(), uniformInfo.type_name());
-                    ImGui::Selectable(text.c_str(), false);
-                }
+                const auto& uniformInfo = currentPipelineInfo.info.uniforms(i);
+                const auto text = fmt::format("Name: {} Type: {}", uniformInfo.name(), uniformInfo.type_name());
+                ImGui::Selectable(text.c_str(), false);
             }
-            if (fragmentShader != nullptr)
-            {
-                for (int i = 0; i < fragmentShader->info.uniforms_size(); i++)
-                {
-                    const auto& uniformInfo = fragmentShader->info.uniforms(i);
-                    const auto text = fmt::format("Name: {} Type: {}", uniformInfo.name(), uniformInfo.type_name());
-                    ImGui::Selectable(text.c_str(), false);
-                }
-            }
+            
             ImGui::EndListBox();
         }
 
         if (ImGui::BeginListBox("In Attributes"))
         {
-            if (vertexShader != nullptr)
+            for (int i = 0; i < currentPipelineInfo.info.in_vertex_attributes_size(); i++)
             {
-                for (int i = 0; i < vertexShader->info.in_attributes_size(); i++)
-                {
-                    const auto& inAttributeInfo = vertexShader->info.in_attributes(i);
-                    const auto text = fmt::format("Name: {} Type: {}", inAttributeInfo.name(), inAttributeInfo.type_name());
-                    ImGui::Selectable(text.c_str(), false);
-                }
+                const auto& inAttributeInfo = currentPipelineInfo.info.in_vertex_attributes(i);
+                const auto text = fmt::format("Name: {} Type: {}", inAttributeInfo.name(), inAttributeInfo.type_name());
+                ImGui::Selectable(text.c_str(), false);
             }
             ImGui::EndListBox();
         }
@@ -221,6 +206,8 @@ void PipelineEditor::ReloadPipeline(int index)
     }
     auto* editor = Editor::GetInstance();
     const auto& resourceManager = editor->GetResourceManager();
+    const auto* shaderEditor = dynamic_cast<ShaderEditor*>(editor->GetEditorSystem(EditorType::SHADER));
+
     auto& pipelineInfo = pipelineInfos_[index];
     if (pipelineInfo.info.type() == pb::Pipeline_Type_RASTERIZE)
     {
@@ -234,6 +221,28 @@ void PipelineEditor::ReloadPipeline(int index)
             pipelineInfo.fragmentShaderId = resourceManager.FindResourceByPath(pipelineInfo.info.fragment_shader_path());
         }
     }
-    //TODO load uniforms and input attributes to pipeline
+    pipelineInfo.info.mutable_uniforms()->Clear();
+    pipelineInfo.info.mutable_in_vertex_attributes()->Clear();
+    //load uniforms and input attributes to pipeline
+    if(pipelineInfo.vertexShaderId != INVALID_RESOURCE_ID)
+    {
+        const auto* vertexShader = shaderEditor->GetShader(pipelineInfo.vertexShaderId);
+        for(int i = 0; i < vertexShader->info.in_attributes_size(); i++)
+        {
+            *pipelineInfo.info.add_in_vertex_attributes() = vertexShader->info.in_attributes(i);
+        }
+        for(int i = 0; i < vertexShader->info.uniforms_size(); i++)
+        {
+            *pipelineInfo.info.add_uniforms() = vertexShader->info.uniforms(i);
+        }
+    }
+    if(pipelineInfo.fragmentShaderId != INVALID_RESOURCE_ID)
+    {
+        const auto* fragmentShader = shaderEditor->GetShader(pipelineInfo.fragmentShaderId);
+        for (int i = 0; i < fragmentShader->info.uniforms_size(); i++)
+        {
+            *pipelineInfo.info.add_uniforms() = fragmentShader->info.uniforms(i);
+        }
+    }
 }
 }

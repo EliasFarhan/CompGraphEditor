@@ -1,6 +1,7 @@
 #include "material_editor.h"
 #include "editor.h"
 #include "pipeline_editor.h"
+#include "texture_editor.h"
 #include "utils/log.h"
 #include "engine/filesystem.h"
 #include <fmt/format.h>
@@ -31,8 +32,8 @@ void MaterialEditor::DrawInspector()
     auto& currentMaterialInfo = materialInfos_[currentIndex_];
 
 
-
-    auto* pipelineEditor = dynamic_cast<PipelineEditor*>(editor->GetEditorSystem(EditorType::PIPELINE));
+    const auto* textureEditor = dynamic_cast<TextureEditor*>(editor->GetEditorSystem(EditorType::TEXTURE));
+    const auto* pipelineEditor = dynamic_cast<PipelineEditor*>(editor->GetEditorSystem(EditorType::PIPELINE));
     const auto& pipelines = pipelineEditor->GetPipelines();
     const auto* pipelineInfo = pipelineEditor->GetPipeline(currentMaterialInfo.pipelineId);
     if(ImGui::BeginCombo("Pipeline", pipelineInfo?pipelineInfo->filename.c_str():"Empty pipeline"))
@@ -42,17 +43,33 @@ void MaterialEditor::DrawInspector()
             if(ImGui::Selectable(pipeline.filename.c_str(), pipeline.resourceId == currentMaterialInfo.pipelineId))
             {
                 SetPipeline(pipeline);
-                currentMaterialInfo.pipelineId = pipeline.resourceId;
-                currentMaterialInfo.info.set_pipeline_path(pipeline.path);
             }
         }
         ImGui::EndCombo();
     }
 
+    for(int i = 0; i < currentMaterialInfo.info.textures_size(); i++)
+    {
+        auto* materialTexture = currentMaterialInfo.info.mutable_textures(i);
+        
+            if(ImGui::BeginCombo(materialTexture->sampler_name().c_str(), 
+                materialTexture->texture_name().empty()?"Empty texture":materialTexture->texture_name().c_str()))
+            {
+                for(const auto& texture : textureEditor->GetTextures())
+                {
+                    if(ImGui::Selectable(texture.filename.c_str(), texture.info.path() == materialTexture->sampler_name()))
+                    {
+                        materialTexture->set_texture_name(texture.info.path());
+                    }
+                }
+
+                ImGui::EndCombo();
+            }        
+    }
+
     if(pipelineInfo != nullptr)
     {
 
-        //TODO add and select textures
 
         if (ImGui::BeginListBox("Uniforms"))
         {
@@ -186,15 +203,14 @@ void MaterialEditor::SetPipeline(const PipelineInfo& pipelineInfo)
     currentMaterialInfo.info.set_pipeline_path(pipelineInfo.path);
 
     currentMaterialInfo.info.mutable_textures()->Clear();
-    int samplerIndex = 0;
-    for(int i = 0; pipelineInfo.info.uniforms_size(); i++)
+    for(int i = 0; i < pipelineInfo.info.uniforms_size(); i++)
     {
         const auto& uniformInfo = pipelineInfo.info.uniforms(i);
-        if(uniformInfo.type() == pb::Attribute_Type_SAMPLER2D || uniformInfo.type() == pb::Attribute_Type_SAMPLERCUBE)
+        if(uniformInfo.type() == pb::Attribute_Type_SAMPLER2D || 
+            uniformInfo.type() == pb::Attribute_Type_SAMPLERCUBE)
         {
             auto* newMaterialTexture = currentMaterialInfo.info.add_textures();
             newMaterialTexture->set_sampler_name(uniformInfo.name());
-            samplerIndex++;
         }
     }
 }

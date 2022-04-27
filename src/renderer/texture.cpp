@@ -1,12 +1,17 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb_image.h>
 #include "renderer/texture.h"
+#include "engine/filesystem.h"
+#include "utils/log.h"
+
+#include <fmt/format.h>
+#include "renderer/debug.h"
 
 
 namespace gpr5300
 {
 
-Texture gpr5300::TextureManager::LoadTexture(const pb::Texture &textureInfo)
+Texture TextureManager::LoadTexture(const pb::Texture &textureInfo)
 {
     const auto& path = textureInfo.path();
     const auto it = texturesMap_.find(path);
@@ -28,7 +33,7 @@ bool Texture::LoadTexture(const pb::Texture &textureInfo)
     stbi_set_flip_vertically_on_load(true);
     const auto &filesystem = FilesystemLocator::get();
     std::string_view path = textureInfo.path();
-    if (filesystem.IsRegularFile(path))
+    if (filesystem.FileExists(path))
     {
         const auto file = filesystem.LoadFile(path);
         int channelInFile;
