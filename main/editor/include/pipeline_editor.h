@@ -30,6 +30,7 @@ public:
     const PipelineInfo* GetPipeline(ResourceId resourceId) const;
     const auto& GetPipelines() const{ return pipelineInfos_;}
     void ReloadId() override;
+    void Delete() override;
 private:
     void ReloadPipeline(int index);
     std::vector<PipelineInfo> pipelineInfos_;

@@ -263,6 +263,17 @@ void PipelineEditor::ReloadId()
     }
 }
 
+void PipelineEditor::Delete()
+{
+    if (currentIndex_ >= pipelineInfos_.size())
+    {
+        return;
+    }
+    auto* editor = Editor::GetInstance();
+    auto& resourceManager = editor->GetResourceManager();
+    resourceManager.RemoveResource(pipelineInfos_[currentIndex_].path);
+}
+
 void PipelineEditor::ReloadPipeline(int index)
 {
     if(index >= pipelineInfos_.size())

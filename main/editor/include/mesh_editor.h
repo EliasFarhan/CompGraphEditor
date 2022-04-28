@@ -40,6 +40,7 @@ public:
     const auto& GetMeshes() const { return meshInfos_; }
     const MeshInfo* GetMesh(ResourceId resourceId) const;
     void ReloadId() override{}
+    void Delete() override;
 private:
     std::vector<MeshInfo> meshInfos_;
     std::size_t currentIndex_ = -1;

@@ -32,5 +32,6 @@ public:
     virtual EditorType GetEditorType() = 0;
     virtual void Save() = 0;
     virtual void ReloadId() = 0;
+    virtual void Delete() = 0;
 };
 }

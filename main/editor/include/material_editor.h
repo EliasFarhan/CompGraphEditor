@@ -41,6 +41,7 @@ public:
     const MaterialInfo* GetMaterial(ResourceId resourceId) const;
     const auto& GetMaterials() const { return materialInfos_; }
     void ReloadId() override;
+    void Delete() override;
 private:
     void ReloadPipeline(const PipelineInfo& pipelineInfo, int materialIndex);
     std::vector<MaterialInfo> materialInfos_;

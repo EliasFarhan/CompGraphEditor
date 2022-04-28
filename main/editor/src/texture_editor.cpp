@@ -171,4 +171,15 @@ const TextureInfo* TextureEditor::GetTexture(ResourceId resourceId) const
     }
     return nullptr;
 }
+
+void TextureEditor::Delete()
+{
+    if (currentIndex_ >= textureInfos_.size())
+    {
+        return;
+    }
+    auto* editor = Editor::GetInstance();
+    auto& resourceManager = editor->GetResourceManager();
+    resourceManager.RemoveResource(textureInfos_[currentIndex_].info.path());
+}
 }

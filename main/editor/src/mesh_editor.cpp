@@ -186,4 +186,15 @@ const MeshInfo* MeshEditor::GetMesh(ResourceId resourceId) const
     }
     return nullptr;
 }
+
+void MeshEditor::Delete()
+{
+    if (currentIndex_ >= meshInfos_.size())
+    {
+        return;
+    }
+    auto* editor = Editor::GetInstance();
+    auto& resourceManager = editor->GetResourceManager();
+    resourceManager.RemoveResource(meshInfos_[currentIndex_].path);
+}
 }

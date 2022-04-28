@@ -43,6 +43,7 @@ public:
     const auto& GetRenderPasses() const { return renderPassInfos_; }
     const RenderPassInfo* GetRenderPass(ResourceId resourceId) const;
     void ReloadId() override;
+    void Delete() override;
 private:
     std::vector<RenderPassInfo> renderPassInfos_;
     std::size_t currentIndex_ = -1;

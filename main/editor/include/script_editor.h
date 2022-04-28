@@ -29,6 +29,7 @@ public:
     void ReloadId() override;
     const ScriptInfo* GetScriptInfo(ResourceId resourceId) const;
     const auto& GetScriptInfos() const { return scriptInfos_; }
+    void Delete() override;
 private:
     std::vector<ScriptInfo> scriptInfos_;
     std::size_t currentIndex_ = -1;

@@ -40,6 +40,7 @@ public:
 
     const auto& GetTextures() const { return textureInfos_; }
     const TextureInfo* GetTexture(ResourceId resourceId) const;
+    void Delete() override;
 private:
     std::vector<TextureInfo> textureInfos_;
     std::size_t currentIndex_ = -1;

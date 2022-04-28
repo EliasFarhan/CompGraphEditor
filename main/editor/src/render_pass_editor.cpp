@@ -227,4 +227,15 @@ namespace gpr5300
     {
 
     }
+
+    void RenderPassEditor::Delete()
+    {
+        if (currentIndex_ >= renderPassInfos_.size())
+        {
+            return;
+        }
+        auto* editor = Editor::GetInstance();
+        auto& resourceManager = editor->GetResourceManager();
+        resourceManager.RemoveResource(renderPassInfos_[currentIndex_].path);
+    }
 }

@@ -175,4 +175,15 @@ const ScriptInfo* ScriptEditor::GetScriptInfo(ResourceId resourceId) const
     }
     return nullptr;
 }
+
+void ScriptEditor::Delete()
+{
+    if (currentIndex_ >= scriptInfos_.size())
+    {
+        return;
+    }
+    auto* editor = Editor::GetInstance();
+    auto& resourceManager = editor->GetResourceManager();
+    resourceManager.RemoveResource(scriptInfos_[currentIndex_].info.path());
+}
 } // namespace grp5300

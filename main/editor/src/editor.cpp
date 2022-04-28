@@ -429,6 +429,15 @@ void Editor::OnEvent(SDL_Event& event)
             }
             break;
         }
+        case SDLK_DELETE:
+        {
+            auto* editorSystem = editorSystems_[static_cast<int>(currentFocusedSystem_)].get();
+            if(editorSystem != nullptr)
+            {
+                editorSystem->Delete();
+            }
+            break;
+        }
         default:break;
         }
 

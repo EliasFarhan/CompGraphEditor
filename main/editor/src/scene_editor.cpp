@@ -480,4 +480,15 @@ void SceneEditor::ReloadId()
         }
     }
 }
+
+void SceneEditor::Delete()
+{
+    if (currentIndex_ >= sceneInfos_.size())
+    {
+        return;
+    }
+    auto* editor = Editor::GetInstance();
+    auto& resourceManager = editor->GetResourceManager();
+    resourceManager.RemoveResource(sceneInfos_[currentIndex_].path);
+}
 }

@@ -30,6 +30,7 @@ public:
     const ShaderInfo* GetShader(ResourceId resourceId) const;
     [[nodiscard]] const auto& GetShaders() const { return shaderInfos_; }
     void ReloadId() override{}
+    void Delete() override;
 private:
     bool AnalyzeShader(std::string_view path, pb::Shader& shaderInfo);
     static pb::Attribute::Type GetType(std::string_view attributeTypeString);

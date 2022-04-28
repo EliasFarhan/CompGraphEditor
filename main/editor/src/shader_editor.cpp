@@ -195,6 +195,17 @@ const ShaderInfo* ShaderEditor::GetShader(ResourceId resourceId) const
     return nullptr;
 }
 
+void ShaderEditor::Delete()
+{
+    if (currentIndex_ >= shaderInfos_.size())
+    {
+        return;
+    }
+    auto* editor = Editor::GetInstance();
+    auto& resourceManager = editor->GetResourceManager();
+    resourceManager.RemoveResource(shaderInfos_[currentIndex_].info.path());
+}
+
 bool ShaderEditor::AnalyzeShader(std::string_view path, pb::Shader& shaderInfo)
 {
     py::function analyzeShaderFunc = py::module_::import("scripts.shader_parser").attr("analyze_shader");

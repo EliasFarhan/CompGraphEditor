@@ -230,4 +230,15 @@ void CommandEditor::ReloadId()
         }
     }
 }
+
+void CommandEditor::Delete()
+{
+    if(currentIndex_ >= commandInfos_.size())
+    {
+        return;
+    }
+    auto* editor = Editor::GetInstance();
+    auto& resourceManager = editor->GetResourceManager();
+    resourceManager.RemoveResource(commandInfos_[currentIndex_].path);
+}
 } // namespace gpr5300

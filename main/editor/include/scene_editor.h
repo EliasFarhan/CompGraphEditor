@@ -31,6 +31,7 @@ public:
     void Save() override;
     bool ExportScene();
     void ReloadId() override;
+    void Delete() override;
 private:
     std::vector<SceneInfo> sceneInfos_;
     std::size_t currentIndex_ = -1;

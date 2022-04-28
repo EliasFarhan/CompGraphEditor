@@ -245,6 +245,17 @@ void MaterialEditor::ReloadId()
     }
 }
 
+void MaterialEditor::Delete()
+{
+    if (currentIndex_ >= materialInfos_.size())
+    {
+        return;
+    }
+    auto* editor = Editor::GetInstance();
+    auto& resourceManager = editor->GetResourceManager();
+    resourceManager.RemoveResource(materialInfos_[currentIndex_].path);
+}
+
 void MaterialEditor::ReloadPipeline(const PipelineInfo& pipelineInfo, int materialIndex)
 {
 
