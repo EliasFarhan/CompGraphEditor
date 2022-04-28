@@ -84,7 +84,22 @@ message Pipeline
 
 message Texture
 {
+    enum WrappingMode
+    {
+        REPEAT = 0;
+        MIRROR_REPEAT = 1;
+        CLAMP_TO_EDGE = 2;
+        CLAMP_TO_BORDER = 3;
+    }
+    enum FilteringMode
+    {
+        NEAREST = 0;
+        LINEAR = 1;
+    }
     string path = 1;
+    WrappingMode wrapping_mode = 2;
+    FilteringMode filter_mode = 3;
+    bool generate_mipmaps = 4;
 }
 
 message MaterialTexture

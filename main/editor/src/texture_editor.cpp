@@ -37,8 +37,49 @@ void TextureEditor::DrawInspector()
     {
         return;
     }
-    const auto& currentTextureInfo = textureInfos_[currentIndex_];
+    auto& currentTextureInfo = textureInfos_[currentIndex_];
     ImGui::Text("Filename: %s", currentTextureInfo.filename.c_str());
+
+    static constexpr std::array<std::string_view, 4> wrappingModeNames
+    {
+        "REPEAT",
+        "MIRROR_REPEAT",
+        "CLAMP_TO_EDGE",
+        "CLAMP_TO_BORDER"
+    };
+    if(ImGui::BeginCombo("Wrapping Mode", wrappingModeNames[currentTextureInfo.info.wrapping_mode()].data()))
+    {
+        for(std::size_t i = 0; i < wrappingModeNames.size(); ++i)
+        {
+            if(ImGui::Selectable(wrappingModeNames[i].data(), i == currentTextureInfo.info.wrapping_mode()))
+            {
+                currentTextureInfo.info.set_wrapping_mode(static_cast<pb::Texture_WrappingMode>(i));
+            }
+        }
+        ImGui::EndCombo();
+    }
+    static constexpr std::array<std::string_view, 2> filterModeNames
+    {
+        "NEAREST",
+        "LINEAR"
+    };
+    if (ImGui::BeginCombo("Filter Mode", filterModeNames[currentTextureInfo.info.filter_mode()].data()))
+    {
+        for (std::size_t i = 0; i < filterModeNames.size(); ++i)
+        {
+            if (ImGui::Selectable(filterModeNames[i].data(), i == currentTextureInfo.info.filter_mode()))
+            {
+                currentTextureInfo.info.set_filter_mode(static_cast<pb::Texture_FilteringMode>(i));
+            }
+        }
+        ImGui::EndCombo();
+    }
+
+    bool generateMipMaps = currentTextureInfo.info.generate_mipmaps();
+    if(ImGui::Checkbox("Generate Mip Map", &generateMipMaps))
+    {
+        currentTextureInfo.info.set_generate_mipmaps(generateMipMaps);
+    }
 }
 
 bool TextureEditor::DrawContentList(bool unfocus)

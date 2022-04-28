@@ -48,6 +48,46 @@ bool Texture::LoadTexture(const pb::Texture &textureInfo)
 
         glBindTexture(GL_TEXTURE_2D, name);
 
+        GLint wrappingMode = GL_REPEAT;
+        switch(textureInfo.wrapping_mode())
+        {
+        case pb::Texture_WrappingMode_REPEAT: 
+            wrappingMode = GL_REPEAT;
+            break;
+        case pb::Texture_WrappingMode_MIRROR_REPEAT: 
+            wrappingMode = GL_MIRRORED_REPEAT;
+            break;
+        case pb::Texture_WrappingMode_CLAMP_TO_EDGE: 
+            wrappingMode = GL_CLAMP_TO_EDGE;
+            break;
+        case pb::Texture_WrappingMode_CLAMP_TO_BORDER: 
+            wrappingMode = GL_CLAMP_TO_BORDER;
+            break;
+        default: 
+            break;
+        }
+
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, wrappingMode);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, wrappingMode);
+
+        int minFilterMode = GL_NEAREST;
+        int magFilterMode = GL_NEAREST;
+        switch(textureInfo.filter_mode())
+        {
+        case pb::Texture_FilteringMode_LINEAR:
+        {
+            magFilterMode = GL_LINEAR;
+            minFilterMode = textureInfo.generate_mipmaps() ? GL_LINEAR_MIPMAP_LINEAR : GL_LINEAR;
+            break;
+        }
+        case pb::Texture_FilteringMode_NEAREST:
+        {
+            magFilterMode = GL_NEAREST;
+            minFilterMode = textureInfo.generate_mipmaps() ? GL_NEAREST_MIPMAP_LINEAR : GL_NEAREST;
+            break;
+        }
+        }
+
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
@@ -84,6 +124,10 @@ bool Texture::LoadTexture(const pb::Texture &textureInfo)
             break;
         }
         glCheckError();
+        if(textureInfo.generate_mipmaps())
+        {
+            glGenerateMipmap(GL_TEXTURE_2D);
+        }
         LogDebug(fmt::format("Successfully loaded texture at path: {}", path));
         return true;
     }
