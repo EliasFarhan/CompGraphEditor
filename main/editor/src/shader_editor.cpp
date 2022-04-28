@@ -5,6 +5,10 @@
 #include <imgui.h>
 #include "proto/renderer.pb.h"
 #include "utils/log.h"
+
+#include "editor.h"
+#include "pipeline_editor.h"
+
 #include <fmt/format.h>
 
 #include <pybind11/embed.h>
@@ -38,15 +42,28 @@ void ShaderEditor::AddResource(const Resource& resource)
 }
 void ShaderEditor::RemoveResource(const Resource& resource)
 {
-
+    const auto it = std::ranges::find_if(shaderInfos_, [&resource](const auto& shaderInfo)
+        {
+            return resource.resourceId == shaderInfo.resourceId;
+        });
+    if (it != shaderInfos_.end())
+    {
+        shaderInfos_.erase(it);
+        const auto* editor = Editor::GetInstance();
+        auto* pipelineEditor = editor->GetEditorSystem(EditorType::PIPELINE);
+        pipelineEditor->RemoveResource(resource);
+    }
 }
 void ShaderEditor::UpdateExistingResource(const Resource& resource)
 {
+    const auto* editor = Editor::GetInstance();
+    auto* pipelineEditor = editor->GetEditorSystem(EditorType::PIPELINE);
     for(auto& shaderInfo : shaderInfos_)
     {
         if(shaderInfo.resourceId == resource.resourceId)
         {
             shaderInfo.compiledCorrectly = AnalyzeShader(resource.path, shaderInfo.info);
+            pipelineEditor->UpdateExistingResource(resource);
             return;
         }
     }
@@ -193,6 +210,7 @@ bool ShaderEditor::AnalyzeShader(std::string_view path, pb::Shader& shaderInfo)
             return false;
         }
         auto uniformsJson = shaderJson["uniforms"];
+        shaderInfo.mutable_uniforms()->Clear();
         for(auto& uniformJson : uniformsJson)
         {
             auto uniformName = uniformJson["name"].get<std::string>();
@@ -203,6 +221,7 @@ bool ShaderEditor::AnalyzeShader(std::string_view path, pb::Shader& shaderInfo)
             newUniformInfo->set_type(type);
             newUniformInfo->set_type_name(typeName);
         }
+        shaderInfo.mutable_in_attributes()->Clear();
         auto inAttributesJson = shaderJson["in_attributes"];
         for(auto& inAttributeJson : inAttributesJson)
         {
@@ -214,7 +233,7 @@ bool ShaderEditor::AnalyzeShader(std::string_view path, pb::Shader& shaderInfo)
             newInAttribute->set_type(type);
             newInAttribute->set_type_name(typeName);
         }
-
+        shaderInfo.mutable_out_attributes()->Clear();
         auto outAttributesJson = shaderJson["out_attributes"];
         for(auto& outAttributeJson : outAttributesJson)
         {

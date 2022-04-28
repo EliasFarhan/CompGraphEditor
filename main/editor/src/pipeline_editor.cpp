@@ -46,6 +46,11 @@ void PipelineEditor::DrawInspector()
     //Rasterizer pipeline
     if (currentPipelineInfo.info.type() == pb::Pipeline_Type_RASTERIZE)
     {
+        if(currentPipelineInfo.vertexShaderId == INVALID_RESOURCE_ID || 
+            currentPipelineInfo.fragmentShaderId == INVALID_RESOURCE_ID)
+        {
+            ImGui::TextColored(ImVec4(1, 0, 0, 1), "Pipeline is not completed (require at Vertex and Fragment shader)");
+        }
         auto* shaderEditor = dynamic_cast<ShaderEditor*>(editor->GetEditorSystem(EditorType::SHADER));
         const auto& shaders = shaderEditor->GetShaders();
         const auto* vertexShader = shaderEditor->GetShader(currentPipelineInfo.vertexShaderId);
@@ -158,11 +163,44 @@ void PipelineEditor::AddResource(const Resource& resource)
 }
 void PipelineEditor::RemoveResource(const Resource& resource)
 {
+    int i = 0; 
+    for(auto& pipelineInfo : pipelineInfos_)
+    {
+        bool modified = false;
+        if(pipelineInfo.vertexShaderId == resource.resourceId)
+        {
+            pipelineInfo.vertexShaderId = INVALID_RESOURCE_ID;
+            pipelineInfo.info.clear_vertex_shader_path();
+            modified = true;
+        }
+        if (pipelineInfo.fragmentShaderId == resource.resourceId)
+        {
+            pipelineInfo.fragmentShaderId = INVALID_RESOURCE_ID;
+            pipelineInfo.info.clear_fragment_shader_path();
+            modified = true;
+        }
+        if(modified)
+        {
+            ReloadPipeline(i);
+        }
+        i++;
+    }
 
+    const auto it = std::ranges::find_if(pipelineInfos_, [&resource](const auto& pipelineInfo)
+        {
+            return resource.resourceId == pipelineInfo.resourceId;
+        });
+    if(it != pipelineInfos_.end())
+    {
+        pipelineInfos_.erase(it);
+        const auto* editor = Editor::GetInstance();
+        auto* materialEditor = editor->GetEditorSystem(EditorType::MATERIAL);
+        materialEditor->RemoveResource(resource);
+    }
 }
 void PipelineEditor::UpdateExistingResource(const Resource& resource)
 {
-
+    //TODO update pipeline if shader modifies it
 }
 
 void PipelineEditor::Save()
