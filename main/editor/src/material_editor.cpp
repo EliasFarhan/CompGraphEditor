@@ -43,7 +43,7 @@ void MaterialEditor::DrawInspector()
         {
             if(ImGui::Selectable(pipeline.filename.c_str(), pipeline.resourceId == currentMaterialInfo.pipelineId))
             {
-                ReloadPipeline(pipeline,currentIndex_);
+                ReloadMaterialPipeline(pipeline,currentIndex_);
             }
         }
         ImGui::EndCombo();
@@ -195,6 +195,7 @@ void MaterialEditor::RemoveResource(const Resource &resource)
 
 void MaterialEditor::UpdateExistingResource(const Resource &resource)
 {
+    int i = 0;
     for(const auto& material : materialInfos_)
     {
         if (material.pipelineId == resource.resourceId)
@@ -205,9 +206,10 @@ void MaterialEditor::UpdateExistingResource(const Resource &resource)
             const auto* pipeline = pipelineEditor->GetPipeline(material.pipelineId);
             if (pipeline != nullptr)
             {
-                ReloadPipeline(*pipeline,currentIndex_);
+                ReloadMaterialPipeline(*pipeline, i);
             }
         }
+        i++;
     }
 }
 
@@ -238,7 +240,7 @@ void MaterialEditor::ReloadId()
             const auto* pipeline = pipelineEditor->GetPipeline(currentMaterialInfo.pipelineId);
             if (pipeline != nullptr)
             {
-                ReloadPipeline(*pipeline,i);
+                ReloadMaterialPipeline(*pipeline,i);
             }
         }
         i++;
@@ -256,7 +258,7 @@ void MaterialEditor::Delete()
     resourceManager.RemoveResource(materialInfos_[currentIndex_].path);
 }
 
-void MaterialEditor::ReloadPipeline(const PipelineInfo& pipelineInfo, int materialIndex)
+void MaterialEditor::ReloadMaterialPipeline(const PipelineInfo& pipelineInfo, int materialIndex)
 {
 
     auto& currentMaterialInfo = materialInfos_[materialIndex];

@@ -43,7 +43,7 @@ public:
     void ReloadId() override;
     void Delete() override;
 private:
-    void ReloadPipeline(const PipelineInfo& pipelineInfo, int materialIndex);
+    void ReloadMaterialPipeline(const PipelineInfo& pipelineInfo, int materialIndex);
     std::vector<MaterialInfo> materialInfos_;
     std::size_t currentIndex_ = -1;
 };

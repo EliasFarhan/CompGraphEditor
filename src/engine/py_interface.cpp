@@ -13,7 +13,12 @@
 PYBIND11_EMBEDDED_MODULE(gpr5300, m)
 {
     py::class_<gpr5300::Pipeline>(m, "Pipeline")
-            .def("set_float", &gpr5300::Pipeline::SetFloat);
+            .def("set_float", &gpr5300::Pipeline::SetFloat)
+            .def("set_int", &gpr5300::Pipeline::SetInt)
+            .def("set_vec2", &gpr5300::Pipeline::SetVec2)
+            .def("set_vec3", &gpr5300::Pipeline::SetVec3)
+            .def("set_vec4", &gpr5300::Pipeline::SetVec4)
+            .def("set_mat4", &gpr5300::Pipeline::SetMat4);
 
     py::class_<gpr5300::System, gpr5300::PySystem>(m, "System")
             .def(py::init())
@@ -24,6 +29,13 @@ PYBIND11_EMBEDDED_MODULE(gpr5300, m)
     py::class_<gpr5300::Scene>(m, "Scene")
             .def("get_pipeline", &gpr5300::Scene::GetPipeline,
                  py::return_value_policy::reference);
+
+    /*py::class_<glm::vec2>(m, "Vec2")
+        .def(py::init<>())
+        .def(py::init<float, float>());
+    py::class_<glm::vec3>(m, "Vec3");
+    py::class_<glm::vec4>(m, "Vec4");
+    py::class_<glm::mat4>(m, "Mat4");*/
 
     m.def("get_scene", [](){
        return gpr5300::SceneManager::GetInstance()->GetCurrentScene();

@@ -16,7 +16,6 @@ namespace gpr5300
 
 struct Shader
 {
-
     void LoadShader(const pb::Shader& shader);
     GLuint name = 0;
     void Destroy();
