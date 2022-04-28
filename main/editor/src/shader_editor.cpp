@@ -184,9 +184,14 @@ bool ShaderEditor::AnalyzeShader(std::string_view path, pb::Shader& shaderInfo)
     try
     {
         std::string result = static_cast<py::str>(analyzeShaderFunc(path));
-        LogDebug(fmt::format("Loading shader: {} with content:\n{}", path, result));
+        //LogDebug(fmt::format("Loading shader: {} with content:\n{}", path, result));
         auto shaderJson = json::parse(result);
-
+        int returnCode = shaderJson["returncode"].get<int>();
+        if(returnCode != 0)
+        {
+            LogError(shaderJson["stdout"].get<std::string>());
+            return false;
+        }
         auto uniformsJson = shaderJson["uniforms"];
         for(auto& uniformJson : uniformsJson)
         {

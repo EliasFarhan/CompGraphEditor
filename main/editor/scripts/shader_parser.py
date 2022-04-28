@@ -11,11 +11,15 @@ else:
 
 
 def analyze_shader(shader_path):
-    status = subprocess.run([program, shader_path])
-    if status.returncode != 0:
-        exit(1)
 
     meta_content = {}
+    status = subprocess.run([program, shader_path], capture_output=True, text=True)
+    meta_content["stdout"] = status.stdout
+    meta_content["stderr"] = status.stderr
+    meta_content["returncode"] = status.returncode
+    if status.returncode != 0:
+        return json.dumps(meta_content)
+
     uniforms = []
     in_attributes = []
     out_attributes = []
