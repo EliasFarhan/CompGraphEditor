@@ -183,7 +183,7 @@ void Pipeline::SetVec4(std::string_view uniformName, glm::vec4 v)
 void Pipeline::SetMat4(std::string_view uniformName, const glm::mat4& mat)
 {
     Bind();
-    glUniformMatrix4fv(GetUniformLocation(uniformName), 1, 0, &mat[0][0]);
+    glUniformMatrix4fv(GetUniformLocation(uniformName), 1, GL_FALSE, &mat[0][0]);
     glCheckError();
 }
 
