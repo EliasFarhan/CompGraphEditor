@@ -42,7 +42,7 @@ public:
     const auto& GetMaterials() const { return materialInfos_; }
     void ReloadId() override;
 private:
-    void SetPipeline(const PipelineInfo& pipelineInfo);
+    void ReloadPipeline(const PipelineInfo& pipelineInfo, int materialIndex);
     std::vector<MaterialInfo> materialInfos_;
     std::size_t currentIndex_ = -1;
 };

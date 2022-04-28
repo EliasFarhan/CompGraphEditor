@@ -200,7 +200,34 @@ void PipelineEditor::RemoveResource(const Resource& resource)
 }
 void PipelineEditor::UpdateExistingResource(const Resource& resource)
 {
-    //TODO update pipeline if shader modifies it
+    //update pipeline if shader modifies it
+    int i = 0;
+    for (auto& pipelineInfo : pipelineInfos_)
+    {
+        bool modified = false;
+        if (pipelineInfo.vertexShaderId == resource.resourceId)
+        {
+            modified = true;
+        }
+        if (pipelineInfo.fragmentShaderId == resource.resourceId)
+        {
+            modified = true;
+        }
+        if (modified)
+        {
+            ReloadPipeline(i);
+            const auto* editor = Editor::GetInstance();
+            const auto& resourceManager = editor->GetResourceManager();
+            auto* materialEditor = editor->GetEditorSystem(EditorType::MATERIAL);
+
+            const auto* pipelineResource = resourceManager.GetResource(pipelineInfo.resourceId);
+            if (pipelineResource != nullptr)
+            {
+                materialEditor->UpdateExistingResource(*pipelineResource);
+            }
+        }
+        i++;
+    }
 }
 
 void PipelineEditor::Save()

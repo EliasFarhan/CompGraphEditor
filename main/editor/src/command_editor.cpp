@@ -7,6 +7,7 @@
 #include "editor.h"
 #include "material_editor.h"
 #include "mesh_editor.h"
+#include "render_pass_editor.h"
 #include "engine/filesystem.h"
 #include "utils/log.h"
 
@@ -40,6 +41,32 @@ void CommandEditor::AddResource(const Resource& resource)
 
 void CommandEditor::RemoveResource(const Resource& resource)
 {
+    for(auto& command : commandInfos_)
+    {
+        if(command.materialId == resource.resourceId)
+        {
+            command.info.clear_material_path();
+            command.materialId = INVALID_RESOURCE_ID;
+        }
+
+        if(command.meshId == resource.resourceId)
+        {
+            command.info.clear_mesh_path();
+            command.meshId = INVALID_RESOURCE_ID;
+        }
+    }
+
+    const auto it = std::ranges::find_if(commandInfos_, [&resource](const auto& command)
+        {
+            return resource.resourceId == command.resourceId;
+        });
+    if(it != commandInfos_.end())
+    {
+        commandInfos_.erase(it);
+        const auto* editor = Editor::GetInstance();
+        auto* renderPassEditor = dynamic_cast<RenderPassEditor*>(editor->GetEditorSystem(EditorType::RENDER_PASS));
+        renderPassEditor->RemoveResource(resource);
+    }
 }
 
 void CommandEditor::UpdateExistingResource(const Resource& resource)
@@ -61,10 +88,9 @@ void CommandEditor::DrawInspector()
     {
         return;
     }
-    auto* editor = Editor::GetInstance();
-    const auto& resourceManager = editor->GetResourceManager();
-    auto* materialEditor = dynamic_cast<MaterialEditor*>(editor->GetEditorSystem(EditorType::MATERIAL));
-    auto* meshEditor = dynamic_cast<MeshEditor*>(editor->GetEditorSystem(EditorType::MODEL));
+    const auto* editor = Editor::GetInstance();
+    const auto* materialEditor = dynamic_cast<MaterialEditor*>(editor->GetEditorSystem(EditorType::MATERIAL));
+    const auto* meshEditor = dynamic_cast<MeshEditor*>(editor->GetEditorSystem(EditorType::MODEL));
     auto& currentCommand = commandInfos_[currentIndex_];
 
     

@@ -14,10 +14,11 @@ public:
 
     void CheckDataFolder();
     ResourceId FindResourceByPath(std::string_view path) const;
+    const Resource* GetResource(ResourceId resource) const;
     static constexpr std::string_view dataFolder = "data/";
     void RegisterResourceChange(ResourceChangeInterface* resourceChange);
     void AddResource(std::string_view path);
-
+    void RemoveResource(std::string_view path);
 private:
     static ResourceId GenerateResourceId();
 

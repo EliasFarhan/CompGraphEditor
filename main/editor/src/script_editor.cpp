@@ -1,6 +1,8 @@
 #include "script_editor.h"
 
 #include "utils/log.h"
+#include "editor.h"
+#include "scene_editor.h"
 
 #include <imgui.h>
 #include <fmt/format.h>
@@ -51,6 +53,18 @@ void ScriptEditor::AddResource(const Resource& resource)
 
 void ScriptEditor::RemoveResource(const Resource& resource)
 {
+    const auto it = std::ranges::find_if(scriptInfos_, [&resource](const auto& script)
+        {
+            return resource.resourceId == script.resourceId;
+        });
+    if (it != scriptInfos_.end())
+    {
+        scriptInfos_.erase(it);
+        const auto* editor = Editor::GetInstance();
+        auto* sceneEditor = dynamic_cast<SceneEditor*>(editor->GetEditorSystem(EditorType::SCENE));
+
+        sceneEditor->RemoveResource(resource);
+    }
 }
 
 void ScriptEditor::UpdateExistingResource(const Resource& resource)

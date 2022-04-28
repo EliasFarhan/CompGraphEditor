@@ -87,6 +87,19 @@ ResourceId ResourceManager::FindResourceByPath(std::string_view path) const
     return INVALID_RESOURCE_ID;
 }
 
+const Resource* ResourceManager::GetResource(ResourceId resourceId) const
+{
+    const auto it = std::ranges::find_if(resources_, [resourceId](const auto& resource)
+    {
+        return resourceId == resource.resourceId;
+    });
+    if(it != resources_.end())
+    {
+        return &*it;
+    }
+    return nullptr;
+}
+
 ResourceId ResourceManager::GenerateResourceId()
 {
     static ResourceId resourceId = 1;
@@ -114,6 +127,22 @@ void ResourceManager::AddResource(std::string_view path)
     }
 
 }
+
+void ResourceManager::RemoveResource(std::string_view path)
+{
+    const auto resourceId = FindResourceByPath(path);
+    if(resourceId != INVALID_RESOURCE_ID)
+    {
+        const auto it = std::ranges::find_if(resources_, [resourceId](const auto& resource)
+            {
+                return resourceId == resource.resourceId;
+            });
+        RemoveFile(path);
+        RemoveResource(*it);
+        resources_.erase(it);
+    }
+}
+
 void ResourceManager::UpdateExistingResource(const Resource &resource)
 {
     for(auto* resourceChange : resourceChangeInterfaces_)

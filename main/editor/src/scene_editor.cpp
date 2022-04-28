@@ -55,6 +55,23 @@ void SceneEditor::AddResource(const Resource& resource)
 
 void SceneEditor::RemoveResource(const Resource& resource)
 {
+    for(auto& sceneInfo : sceneInfos_)
+    {
+        if(resource.resourceId == sceneInfo.renderPassId)
+        {
+            sceneInfo.renderPassId = INVALID_RESOURCE_ID;
+            sceneInfo.info.clear_render_pass_path();
+        }
+    }
+
+    const auto it = std::ranges::find_if(sceneInfos_, [&resource](const auto& renderPass)
+        {
+            return resource.resourceId == renderPass.resourceId;
+        });
+    if (it != sceneInfos_.end())
+    {
+        sceneInfos_.erase(it);
+    }
 }
 
 void SceneEditor::UpdateExistingResource(const Resource& resource)
@@ -110,8 +127,15 @@ void SceneEditor::DrawInspector()
             if (!pySystemPath.empty())
             {
                 pySystemId = resourceManager.FindResourceByPath(pySystemPath);
-                pySystem = scriptEditor->GetScriptInfo(pySystemId);
-                name = fmt::format("Script: {}.{}", pySystem->info.module(), pySystem->info.class_());
+                if (pySystemId == INVALID_RESOURCE_ID)
+                {
+                    currentScene.info.mutable_py_system_paths(i)->clear();
+                }
+                else
+                {
+                    pySystem = scriptEditor->GetScriptInfo(pySystemId);
+                    name = fmt::format("Script: {}.{}", pySystem->info.module(), pySystem->info.class_());
+                }
             }
             bool visible = true;
             if (ImGui::CollapsingHeader(name.c_str(), &visible))
@@ -205,7 +229,6 @@ void SceneEditor::Save()
         {
             LogWarning(fmt::format("Could not save scene at: {}", sceneInfo.path));
         }
-
     }
 }
 

@@ -3,6 +3,8 @@
 #include "pipeline_editor.h"
 #include "texture_editor.h"
 #include "utils/log.h"
+#include "command_editor.h"
+
 #include "engine/filesystem.h"
 #include <fmt/format.h>
 #include <fstream>
@@ -27,11 +29,10 @@ void MaterialEditor::DrawInspector()
         return;
     }
 
-    auto* editor = Editor::GetInstance();
-    const auto& resourceManager = editor->GetResourceManager();
+    const auto* editor = Editor::GetInstance();
     auto& currentMaterialInfo = materialInfos_[currentIndex_];
 
-
+    const auto& resourceManager = editor->GetResourceManager();
     const auto* textureEditor = dynamic_cast<TextureEditor*>(editor->GetEditorSystem(EditorType::TEXTURE));
     const auto* pipelineEditor = dynamic_cast<PipelineEditor*>(editor->GetEditorSystem(EditorType::PIPELINE));
     const auto& pipelines = pipelineEditor->GetPipelines();
@@ -42,7 +43,7 @@ void MaterialEditor::DrawInspector()
         {
             if(ImGui::Selectable(pipeline.filename.c_str(), pipeline.resourceId == currentMaterialInfo.pipelineId))
             {
-                SetPipeline(pipeline);
+                ReloadPipeline(pipeline,currentIndex_);
             }
         }
         ImGui::EndCombo();
@@ -51,26 +52,33 @@ void MaterialEditor::DrawInspector()
     for(int i = 0; i < currentMaterialInfo.info.textures_size(); i++)
     {
         auto* materialTexture = currentMaterialInfo.info.mutable_textures(i);
-        
-            if(ImGui::BeginCombo(materialTexture->sampler_name().c_str(), 
-                materialTexture->texture_name().empty()?"Empty texture":materialTexture->texture_name().c_str()))
+        auto texturePath = materialTexture->texture_name();
+        if (!texturePath.empty())
+        {
+            const auto textureId = resourceManager.FindResourceByPath(texturePath);
+            if(textureId == INVALID_RESOURCE_ID)
             {
-                for(const auto& texture : textureEditor->GetTextures())
+                materialTexture->clear_texture_name();
+                texturePath = "";
+            }
+        }
+        if(ImGui::BeginCombo(materialTexture->sampler_name().c_str(), 
+            texturePath.empty()?"Empty texture":texturePath.c_str()))
+        {
+            for(const auto& texture : textureEditor->GetTextures())
+            {
+                if(ImGui::Selectable(texture.filename.c_str(), texture.info.path() == materialTexture->sampler_name()))
                 {
-                    if(ImGui::Selectable(texture.filename.c_str(), texture.info.path() == materialTexture->sampler_name()))
-                    {
-                        materialTexture->set_texture_name(texture.info.path());
-                    }
+                    materialTexture->set_texture_name(texture.info.path());
                 }
+            }
 
-                ImGui::EndCombo();
-            }        
+            ImGui::EndCombo();
+        }        
     }
 
     if(pipelineInfo != nullptr)
     {
-
-
         if (ImGui::BeginListBox("Uniforms"))
         {
             for(int i = 0; i < pipelineInfo->info.uniforms_size(); i++)
@@ -161,12 +169,46 @@ void MaterialEditor::AddResource(const Resource &resource)
 
 void MaterialEditor::RemoveResource(const Resource &resource)
 {
+    const auto* editor = Editor::GetInstance();
+    auto* commandEditor = dynamic_cast<CommandEditor*>(editor->GetEditorSystem(EditorType::COMMAND));
+    for (auto& material : materialInfos_)
+    {
+        if (material.pipelineId == resource.resourceId)
+        {
+            material.info.clear_pipeline_path();
+            material.pipelineId = INVALID_RESOURCE_ID;
+            material.info.mutable_textures()->Clear();
+        }
+        
+    }
 
+    auto  it = std::ranges::find_if(materialInfos_, [&resource](const auto& material)
+        {
+            return resource.resourceId == material.resourceId;
+        });
+    if(it != materialInfos_.end())
+    {
+        materialInfos_.erase(it);
+        commandEditor->RemoveResource(resource);
+    }
 }
 
 void MaterialEditor::UpdateExistingResource(const Resource &resource)
 {
+    for(const auto& material : materialInfos_)
+    {
+        if (material.pipelineId == resource.resourceId)
+        {
+            const auto* editor = Editor::GetInstance();
+            const auto* pipelineEditor = dynamic_cast<PipelineEditor*>(editor->GetEditorSystem(EditorType::PIPELINE));
 
+            const auto* pipeline = pipelineEditor->GetPipeline(material.pipelineId);
+            if (pipeline != nullptr)
+            {
+                ReloadPipeline(*pipeline,currentIndex_);
+            }
+        }
+    }
 }
 
 const MaterialInfo* MaterialEditor::GetMaterial(ResourceId resourceId) const
@@ -184,21 +226,29 @@ const MaterialInfo* MaterialEditor::GetMaterial(ResourceId resourceId) const
 
 void MaterialEditor::ReloadId()
 {
-    auto* editor = Editor::GetInstance();
+    const auto* editor = Editor::GetInstance();
     const auto& resourceManager = editor->GetResourceManager();
+    const auto* pipelineEditor = dynamic_cast<PipelineEditor*>(editor->GetEditorSystem(EditorType::PIPELINE));
+    int i = 0;
     for (auto& currentMaterialInfo : materialInfos_)
     {
         if (currentMaterialInfo.pipelineId == INVALID_RESOURCE_ID && !currentMaterialInfo.info.pipeline_path().empty())
         {
             currentMaterialInfo.pipelineId = resourceManager.FindResourceByPath(currentMaterialInfo.info.pipeline_path());
+            const auto* pipeline = pipelineEditor->GetPipeline(currentMaterialInfo.pipelineId);
+            if (pipeline != nullptr)
+            {
+                ReloadPipeline(*pipeline,i);
+            }
         }
+        i++;
     }
 }
 
-void MaterialEditor::SetPipeline(const PipelineInfo& pipelineInfo)
+void MaterialEditor::ReloadPipeline(const PipelineInfo& pipelineInfo, int materialIndex)
 {
 
-    auto& currentMaterialInfo = materialInfos_[currentIndex_];
+    auto& currentMaterialInfo = materialInfos_[materialIndex];
     currentMaterialInfo.pipelineId = pipelineInfo.resourceId;
     currentMaterialInfo.info.set_pipeline_path(pipelineInfo.path);
 

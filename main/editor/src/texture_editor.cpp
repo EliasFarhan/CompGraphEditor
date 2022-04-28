@@ -1,5 +1,7 @@
 #include "texture_editor.h"
 #include "utils/log.h"
+#include "editor.h"
+#include "material_editor.h"
 #include <imgui.h>
 #include <fmt/format.h>
 #include <array>
@@ -134,7 +136,18 @@ void TextureEditor::AddResource(const Resource &resource)
 
 void TextureEditor::RemoveResource(const Resource &resource)
 {
+    const auto it = std::ranges::find_if(textureInfos_, [&resource](const auto& texture)
+    {
+        return resource.resourceId == texture.resourceId;
+    });
+    if(it != textureInfos_.end())
+    {
+        textureInfos_.erase(it);
+        const auto* editor = Editor::GetInstance();
+        auto* materialEditor = dynamic_cast<MaterialEditor*>(editor->GetEditorSystem(EditorType::MATERIAL));
 
+        materialEditor->RemoveResource(resource);
+    }
 }
 
 void TextureEditor::UpdateExistingResource(const Resource &resource)

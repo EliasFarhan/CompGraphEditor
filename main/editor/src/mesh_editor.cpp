@@ -1,6 +1,8 @@
 #include "mesh_editor.h"
 #include "engine/filesystem.h"
 #include "utils/log.h"
+#include "editor.h"
+#include "command_editor.h"
 #include <imgui.h>
 #include <fmt/format.h>
 #include <string_view>
@@ -67,7 +69,7 @@ void MeshEditor::DrawInspector()
                         "Cube",
                         "Sphere"
                 };
-        auto index = currentMesh.info.primitve_type()-pb::Mesh_PrimitveType_QUAD;
+        const auto index = currentMesh.info.primitve_type()-pb::Mesh_PrimitveType_QUAD;
         if(ImGui::BeginCombo("Primitive Type", primitiveTypes[index].data()))
         {
             for(std::size_t i = 0; i < primitiveTypes.size(); i++)
@@ -154,7 +156,17 @@ void MeshEditor::AddResource(const Resource &resource)
 
 void MeshEditor::RemoveResource(const Resource &resource)
 {
-
+    const auto it = std::ranges::find_if(meshInfos_, [&resource](const auto& mesh)
+        {
+            return resource.resourceId == mesh.resourceId;
+        });
+    if(it != meshInfos_.end())
+    {
+        meshInfos_.erase(it);
+        const auto* editor = Editor::GetInstance();
+        auto* commandEditor = dynamic_cast<CommandEditor*>(editor->GetEditorSystem(EditorType::COMMAND));
+        commandEditor->RemoveResource(resource);
+    }
 }
 
 void MeshEditor::UpdateExistingResource(const Resource &resource)

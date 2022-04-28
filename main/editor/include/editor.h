@@ -28,7 +28,7 @@ public:
     void RemoveResource(const Resource &resource) override;
     void UpdateExistingResource(const Resource &resource) override;
     EditorSystem* GetEditorSystem(EditorType type) const;
-    const ResourceManager& GetResourceManager() { return resourceManager_; }
+    const ResourceManager& GetResourceManager() const { return resourceManager_; }
     static Editor* GetInstance() { return instance_; }
 private:
     void SaveProject();
