@@ -19,7 +19,7 @@ void Scene::LoadScene(PyManager &pyManager)
     pipelines_.resize(pipelinesSize);
     for (int i = 0; i < pipelinesSize; i++)
     {
-        auto &pipelinePb = scene_.pipelines(i);
+        auto& pipelinePb = scene_.pipelines(i);
         switch (pipelinePb.type())
         {
         case pb::Pipeline_Type_RASTERIZE:
@@ -121,6 +121,11 @@ void Scene::Update(float dt)
                      subPass.clear_color().a());
         glClear(GL_COLOR_BUFFER_BIT);
 
+        for(auto* pySystem: pySystems_)
+        {
+            pySystem->Draw(i);
+        }
+
         const auto commandSize = subPass.commands_size();
         for (int j = 0; j < commandSize; j++)
         {
@@ -131,9 +136,9 @@ void Scene::Update(float dt)
             auto& pipeline = pipelines_[material.pipelineIndex];
 
             pipeline.Bind();
-            for(std::size_t i = 0; i < material.textures.size(); i++)
+            for(std::size_t textureIndex = 0; textureIndex < material.textures.size(); textureIndex++)
             {
-                pipeline.SetTexture(material.textures[i].uniformSamplerName, material.textures[i].texture, i);
+                pipeline.SetTexture(material.textures[textureIndex].uniformSamplerName, material.textures[textureIndex].texture, textureIndex);
             }
 
             GLenum mode = 0;
@@ -166,6 +171,12 @@ void Scene::Update(float dt)
     }
 
     glCheckError();
+}
+
+SceneMaterial Scene::GetMaterial(int materialIndex)
+{
+    const SceneMaterial material{&pipelines_[materialIndex], &materials_[materialIndex] };
+    return material;
 }
 
 void SceneManager::Begin()
@@ -201,6 +212,29 @@ void SceneManager::Update(float dt)
         return;
     pyManager_.Update(dt);
     currentScene_->Update(dt);
+}
+
+SceneMaterial::SceneMaterial(Pipeline* pipeline, Material* material) :
+    pipeline_(pipeline),
+    material_(material)
+{
+}
+
+void SceneMaterial::Bind() const
+{
+    pipeline_->Bind();
+    for (std::size_t textureIndex = 0; textureIndex < material_->textures.size(); textureIndex++)
+    {
+        pipeline_->SetTexture(
+            material_->textures[textureIndex].uniformSamplerName,
+            material_->textures[textureIndex].texture,
+            textureIndex);
+    }
+}
+
+Pipeline* SceneMaterial::GetPipeline() const
+{
+    return pipeline_;
 }
 
 SceneManager::SceneManager()

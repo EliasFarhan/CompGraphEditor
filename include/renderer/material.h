@@ -1,9 +1,7 @@
 #pragma once
 
-#include "renderer/pipeline.h"
 #include "renderer/texture.h"
 
-#include <span>
 
 namespace gpr5300
 {

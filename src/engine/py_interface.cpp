@@ -10,6 +10,7 @@
 
 #include "renderer/pipeline.h"
 #include "engine/scene.h"
+#include "engine/engine.h"
 #include "utils/log.h"
 
 PYBIND11_EMBEDDED_MODULE(gpr5300, m)
@@ -22,15 +23,19 @@ PYBIND11_EMBEDDED_MODULE(gpr5300, m)
             .def("set_vec4", &gpr5300::Pipeline::SetVec4)
             .def("set_mat4", &gpr5300::Pipeline::SetMat4);
 
-    py::class_<gpr5300::System, gpr5300::PySystem>(m, "System")
+    py::class_<gpr5300::Script, gpr5300::PySystem>(m, "System")
             .def(py::init())
-            .def("begin", &gpr5300::System::Begin)
-            .def("update", &gpr5300::System::Update)
-            .def("end", &gpr5300::System::End);
+            .def("begin", &gpr5300::Script::Begin)
+            .def("update", &gpr5300::Script::Update)
+            .def("end", &gpr5300::Script::End)
+            .def("draw", &gpr5300::Script::Draw)
+    ;
 
     py::class_<gpr5300::Scene>(m, "Scene")
             .def("get_pipeline", &gpr5300::Scene::GetPipeline,
-                 py::return_value_policy::reference);
+                 py::return_value_policy::reference)
+            .def("get_material", &gpr5300::Scene::GetMaterial);
+            
 
     py::class_<glm::vec2>(m, "Vec2")
         .def(py::init<>())
@@ -106,11 +111,29 @@ PYBIND11_EMBEDDED_MODULE(gpr5300, m)
         .def_property_readonly_static("identity", []() {return glm::mat4(1.0f); })
         .def("translate", [](const glm::mat4& mat, glm::vec3 v) {return glm::translate(mat, v); })
         .def("scale", [](const glm::mat4& mat, glm::vec3 v) {return glm::scale(mat, v); })
+        .def("rotate", [](const glm::mat4& mat, float radian, glm::vec3 v) {return glm::rotate(mat, radian, v); })
+        .def_static("view", [](glm::vec3 eye, glm::vec3 center, glm::vec3 up) {return glm::lookAt(eye, center, up); })
+        .def_static("perspective", [](float fovRadian, float aspect, float near, float far) {return glm::perspective(fovRadian, aspect, near, far); })
     ;
 
     m.def("get_scene", [](){
        return gpr5300::SceneManager::GetInstance()->GetCurrentScene();
     }, py::return_value_policy::reference);
+
+    m.def("get_window_size", []
+        {
+            return gpr5300::Engine::GetInstance()->GetWindowSize();
+        });
+
+    m.def("get_aspect", []
+        {
+            const auto windowSize = gpr5300::Engine::GetInstance()->GetWindowSize();
+            return static_cast<float>(windowSize.x)/static_cast<float>(windowSize.y);
+        });
+
+    py::class_<gpr5300::SceneMaterial>(m, "Material")
+        .def("bind", &gpr5300::SceneMaterial::Bind)
+        .def("get_pipeline", &gpr5300::SceneMaterial::GetPipeline, py::return_value_policy::reference);
 }
 
 namespace gpr5300
@@ -143,13 +166,13 @@ void PyManager::End()
     py::finalize_interpreter();
 }
 
-System* PyManager::LoadScript(std::string_view path, std::string_view className)
+Script* PyManager::LoadScript(std::string_view path, std::string_view className)
 {
     try
     {
         const auto module = py::module_::import(path.data());
         auto newObject = module.attr(className.data())();
-        auto* newSystem = newObject.cast<System*>();
+        auto* newSystem = newObject.cast<Script*>();
         newSystem->Begin();
         pySystems_.push_back(std::move(newObject));
         return newSystem;

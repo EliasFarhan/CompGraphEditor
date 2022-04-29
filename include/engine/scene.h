@@ -11,6 +11,21 @@
 
 namespace gpr5300
 {
+class Scene;
+
+
+class SceneMaterial
+    {
+    public:
+        SceneMaterial(Pipeline* pipeline, Material* material);
+        void Bind() const;
+        [[nodiscard]] Pipeline* GetPipeline() const;
+    private:
+        Pipeline* pipeline_ = nullptr;
+        Material* material_ = nullptr;
+    };
+
+
 class Scene
 {
 public:
@@ -19,6 +34,7 @@ public:
     void SetScene(const pb::Scene &scene);
     void Update(float dt);
 
+    SceneMaterial GetMaterial(int materialIndex);
     Pipeline& GetPipeline(int index){ return pipelines_[index]; }
 private:
     pb::Scene scene_;
@@ -27,7 +43,7 @@ private:
     std::vector<Mesh> meshes_;
     std::vector<Texture> textures_;
     std::vector<Material> materials_;
-    std::vector<System*> pySystems_;
+    std::vector<Script*> pySystems_;
     //std::vector<SubPass> subpasses_;
 
 };

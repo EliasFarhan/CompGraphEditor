@@ -8,14 +8,20 @@ namespace py = pybind11;
 namespace gpr5300
 {
 
-class PySystem : public System
+class Script : public System
+{
+public:
+    virtual void Draw(int subpassIndex) {};
+};
+
+class PySystem : public Script
 {
 public:
     void Begin() override
     {
         PYBIND11_OVERRIDE_PURE_NAME(
                 void, /* Return type */
-                System,      /* Parent class */
+                Script,      /* Parent class */
                 "begin",
                 Begin      /* Argument(s) */
         );
@@ -25,7 +31,7 @@ public:
     {
         PYBIND11_OVERRIDE_PURE_NAME(
                 void, /* Return type */
-                System,      /* Parent class */
+                Script,      /* Parent class */
                 "update",
                 Update,
                 dt /* Argument(s) */
@@ -36,9 +42,19 @@ public:
     {
         PYBIND11_OVERRIDE_PURE_NAME(
                 void, /* Return type */
-                System,      /* Parent class */
+                Script,      /* Parent class */
                 "end",
                 End      /* Argument(s) */
+        );
+    }
+    void Draw(int subpassIndex) override
+    {
+        PYBIND11_OVERRIDE_NAME(
+            void, /* Return type */
+            Script,      /* Parent class */
+            "draw",
+            Draw      /* Argument(s) */,
+            subpassIndex
         );
     }
 };
@@ -52,7 +68,7 @@ public:
 
     void End() override;
 
-    System* LoadScript(std::string_view path, std::string_view className);
+    Script* LoadScript(std::string_view path, std::string_view className);
 private:
     std::vector<py::object> pySystems_;
 };
