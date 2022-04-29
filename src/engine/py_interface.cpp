@@ -31,10 +31,20 @@ PYBIND11_EMBEDDED_MODULE(gpr5300, m)
             .def("draw", &gpr5300::Script::Draw)
     ;
 
+    py::class_<gpr5300::SceneSubPass>(m, "SubPass")
+        .def("get_draw_command", &gpr5300::SceneSubPass::GetDrawCommand)
+        .def_property_readonly("draw_command_count", &gpr5300::SceneSubPass::GetDrawCommandCount)
+        ;
+
     py::class_<gpr5300::Scene>(m, "Scene")
             .def("get_pipeline", &gpr5300::Scene::GetPipeline,
                  py::return_value_policy::reference)
-            .def("get_material", &gpr5300::Scene::GetMaterial);
+            .def("get_material", &gpr5300::Scene::GetMaterial)
+            .def("get_subpass", &gpr5300::Scene::GetSubpass)
+            .def_property_readonly("subpass_count", &gpr5300::Scene::GetSubpassCount)
+            .def_property_readonly("pipeline_count", &gpr5300::Scene::GetPipelineCount)
+            .def_property_readonly("material_count", &gpr5300::Scene::GetMaterialCount)
+            ;
             
 
     py::class_<glm::vec2>(m, "Vec2")
@@ -133,7 +143,13 @@ PYBIND11_EMBEDDED_MODULE(gpr5300, m)
 
     py::class_<gpr5300::SceneMaterial>(m, "Material")
         .def("bind", &gpr5300::SceneMaterial::Bind)
-        .def("get_pipeline", &gpr5300::SceneMaterial::GetPipeline, py::return_value_policy::reference);
+        .def("get_pipeline", &gpr5300::SceneMaterial::GetPipeline, py::return_value_policy::reference)
+        ;
+
+    py::class_<gpr5300::SceneDrawCommand>(m, "DrawCommand")
+        .def("draw", &gpr5300::SceneDrawCommand::Draw)
+        .def("get_material", &gpr5300::SceneDrawCommand::GetMaterial)
+        ;
 }
 
 namespace gpr5300

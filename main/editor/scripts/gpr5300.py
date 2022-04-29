@@ -131,7 +131,7 @@ class Pipeline:
         
 
 class Material:
-    def __init__(pipeline:Pipeline):
+    def __init__(self, pipeline:Pipeline):
         self.pipeline = pipeline
     def bind(self):
         pass
@@ -139,13 +139,13 @@ class Material:
         return self.pipeline
 
 class System:
-    def __init__():
+    def __init__(self):
         pass
-    def begin():
+    def begin(self):
         pass
-    def update(dt: float):
+    def update(self, dt: float):
         pass
-    def end():
+    def end(self):
         pass
     def draw(subpassIndex: int):
         pass
@@ -155,10 +155,11 @@ class Scene:
         pass
     def get_material(material_index: int):
         pass
+
 def get_window_size():
     return Vec2i()
 
-def get_aspect()
+def get_aspect():
     return 0.0
 
 def get_scene():

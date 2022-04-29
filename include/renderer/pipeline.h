@@ -33,7 +33,7 @@ public:
     //Uniform functions
     void SetFloat(std::string_view uniformName, float f);
 
-    void SetInt(std::string_view uniformName, int i);
+    void SetInt(std::string_view uniformName, int i) ;
 
     void SetVec2(std::string_view uniformName, glm::vec2 v);
 
@@ -43,13 +43,13 @@ public:
 
     void SetMat4(std::string_view uniformName, const glm::mat4& mat);
 
-    void SetTexture(std::string_view uniformName, const Texture& texture, GLenum textureUnit);
+    void SetTexture(std::string_view uniformName, const Texture& texture, GLenum textureUnit) ;
 private:
     GLuint name = 0;
     inline static GLuint currentBindedPipeline = 0;
 
     std::unordered_map<std::string, int> uniformMap_;
-    int GetUniformLocation(std::string_view uniformName);
+    int GetUniformLocation(std::string_view uniformName) ;
 };
 
 }

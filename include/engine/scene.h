@@ -6,6 +6,7 @@
 #include "renderer/texture.h"
 #include "py_interface.h"
 #include "renderer/material.h"
+#include "proto/renderer.pb.h"
 
 #include <vector>
 
@@ -15,7 +16,7 @@ class Scene;
 
 
 class SceneMaterial
-    {
+{
     public:
         SceneMaterial(Pipeline* pipeline, Material* material);
         void Bind() const;
@@ -23,8 +24,31 @@ class SceneMaterial
     private:
         Pipeline* pipeline_ = nullptr;
         Material* material_ = nullptr;
-    };
+};
 
+
+class SceneDrawCommand
+{
+public:
+    SceneDrawCommand(Scene& scene, const pb::DrawCommand& drawCommand);
+    SceneMaterial GetMaterial() const;
+    void Draw();
+private:
+    Scene& scene_;
+    const pb::DrawCommand& drawCommand_;
+};
+
+
+class SceneSubPass
+{
+public:
+    SceneSubPass(Scene& scene, const pb::SubPass& subPass);
+    SceneDrawCommand GetDrawCommand(int drawCommandIndex) const;
+    int GetDrawCommandCount() const;
+private:
+    Scene& scene_;
+    const pb::SubPass& subPass_;
+};
 
 class Scene
 {
@@ -34,8 +58,13 @@ public:
     void SetScene(const pb::Scene &scene);
     void Update(float dt);
 
+    SceneSubPass GetSubpass(int subPassIndex);
+    int GetSubpassCount() const;
     SceneMaterial GetMaterial(int materialIndex);
+    int GetMaterialCount() const;
     Pipeline& GetPipeline(int index){ return pipelines_[index]; }
+    int GetPipelineCount() const;
+    void Draw(const pb::DrawCommand& drawCommand);
 private:
     pb::Scene scene_;
     std::vector<Shader> shaders_;

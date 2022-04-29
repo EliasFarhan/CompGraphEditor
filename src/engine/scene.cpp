@@ -132,41 +132,7 @@ void Scene::Update(float dt)
             const auto &command = subPass.commands(j);
             if(!command.automatic_draw())
                 continue;
-            auto& material = materials_[command.material_index()];
-            auto& pipeline = pipelines_[material.pipelineIndex];
-
-            pipeline.Bind();
-            for(std::size_t textureIndex = 0; textureIndex < material.textures.size(); textureIndex++)
-            {
-                pipeline.SetTexture(material.textures[textureIndex].uniformSamplerName, material.textures[textureIndex].texture, textureIndex);
-            }
-
-            GLenum mode = 0;
-            switch (command.mode())
-            {
-            case pb::DrawCommand_Mode_TRIANGLES:
-                mode = GL_TRIANGLES;
-                break;
-            default:
-                break;
-            }
-
-            const auto meshIndex = command.mesh_index();
-            if(meshIndex >= 0)
-            {
-                glBindVertexArray(meshes_[meshIndex].vao);
-            }
-
-            if (command.draw_elements())
-            {
-                glDrawElements(mode, command.count(), GL_UNSIGNED_INT, nullptr);
-                glCheckError();
-            }
-            else
-            {
-                glDrawArrays(mode, 0, command.count());
-                glCheckError();
-            }
+            Draw(command);
         }
     }
 
@@ -175,8 +141,62 @@ void Scene::Update(float dt)
 
 SceneMaterial Scene::GetMaterial(int materialIndex)
 {
-    const SceneMaterial material{&pipelines_[materialIndex], &materials_[materialIndex] };
+    SceneMaterial material{&pipelines_[materialIndex], &materials_[materialIndex] };
     return material;
+}
+void Scene::Draw(const pb::DrawCommand& command)
+{
+    auto& material = materials_[command.material_index()];
+    auto& pipeline = pipelines_[material.pipelineIndex];
+
+    pipeline.Bind();
+    for(std::size_t textureIndex = 0; textureIndex < material.textures.size(); textureIndex++)
+    {
+        pipeline.SetTexture(material.textures[textureIndex].uniformSamplerName, material.textures[textureIndex].texture, textureIndex);
+    }
+
+    GLenum mode = 0;
+    switch (command.mode())
+    {
+    case pb::DrawCommand_Mode_TRIANGLES:
+        mode = GL_TRIANGLES;
+        break;
+    default:
+        break;
+    }
+
+    const auto meshIndex = command.mesh_index();
+    if(meshIndex >= 0)
+    {
+        glBindVertexArray(meshes_[meshIndex].vao);
+    }
+
+    if (command.draw_elements())
+    {
+        glDrawElements(mode, command.count(), GL_UNSIGNED_INT, nullptr);
+        glCheckError();
+    }
+    else
+    {
+        glDrawArrays(mode, 0, command.count());
+        glCheckError();
+    }
+}
+SceneSubPass Scene::GetSubpass(int subPassIndex)
+{
+    return SceneSubPass(*this, scene_.render_pass().sub_passes(subPassIndex));
+}
+int Scene::GetSubpassCount() const
+{
+    return scene_.render_pass().sub_passes_size();
+}
+int Scene::GetMaterialCount() const
+{
+    return scene_.materials_size();
+}
+int Scene::GetPipelineCount() const
+{
+    return scene_.pipelines_size();
 }
 
 void SceneManager::Begin()
@@ -240,5 +260,30 @@ Pipeline* SceneMaterial::GetPipeline() const
 SceneManager::SceneManager()
 {
     sceneManager_ = this;
+}
+SceneDrawCommand::SceneDrawCommand(Scene& scene, const pb::DrawCommand& drawCommand) :
+    scene_(scene), drawCommand_(drawCommand)
+{
+
+}
+SceneMaterial SceneDrawCommand::GetMaterial() const
+{
+    return scene_.GetMaterial(drawCommand_.material_index());
+}
+void SceneDrawCommand::Draw()
+{
+    scene_.Draw(drawCommand_);
+}
+int SceneSubPass::GetDrawCommandCount() const
+{
+    return subPass_.commands_size();
+}
+SceneSubPass::SceneSubPass(Scene& scene, const pb::SubPass& subPass) : scene_(scene), subPass_(subPass)
+{
+
+}
+SceneDrawCommand SceneSubPass::GetDrawCommand(int drawCommandIndex) const
+{
+    return SceneDrawCommand(scene_, subPass_.commands(drawCommandIndex));
 }
 }
