@@ -13,7 +13,7 @@ Mesh GenerateQuad()
     Mesh mesh{};
     GLuint ebo;
     std::array<GLuint, 4> vbo{};
-    const glm::vec2 vertices[4] = {
+    constexpr glm::vec2 vertices[4] = {
         glm::vec2(0.5f, 0.5f),  // top right
         glm::vec2(0.5f, -0.5f),  // bottom right
         glm::vec2(-0.5f, -0.5f),  // bottom left
@@ -94,7 +94,194 @@ Mesh GenerateEmpty()
 {
     Mesh mesh{};
     glCreateVertexArrays(1, &mesh.vao);
-
+    
     return mesh;
+}
+
+Mesh GenerateCube()
+{
+    Mesh cube{};
+    constexpr glm::vec3 position[36] =
+    {
+        //Right face
+        glm::vec3(0.5f, 0.5f, 0.5f),
+        glm::vec3(0.5f, -0.5f, -0.5f),
+        glm::vec3(0.5f, 0.5f, -0.5f),
+        glm::vec3(0.5f, -0.5f, -0.5f),
+        glm::vec3(0.5f, 0.5f, 0.5f),
+        glm::vec3(0.5f, -0.5f, 0.5f),
+        //Left face                 *size_+offset_
+        glm::vec3(-0.5f, 0.5f, 0.5f) ,
+        glm::vec3(-0.5f, 0.5f, -0.5f) ,
+        glm::vec3(-0.5f, -0.5f, -0.5f) ,
+        glm::vec3(-0.5f, -0.5f, -0.5f) ,
+        glm::vec3(-0.5f, -0.5f, 0.5f) ,
+        glm::vec3(-0.5f, 0.5f, 0.5f) ,
+        //Top face                  *size_+offset_
+        glm::vec3(-0.5f, 0.5f, -0.5f) ,
+        glm::vec3(0.5f, 0.5f, 0.5f) ,
+        glm::vec3(0.5f, 0.5f, -0.5f) ,
+        glm::vec3(0.5f, 0.5f, 0.5f) ,
+        glm::vec3(-0.5f, 0.5f, -0.5f) ,
+        glm::vec3(-0.5f, 0.5f, 0.5f) ,
+        //Bottom fa                 *size_+offset_
+        glm::vec3(-0.5f, -0.5f, -0.5f) ,
+        glm::vec3(0.5f, -0.5f, -0.5f) ,
+        glm::vec3(0.5f, -0.5f, 0.5f) ,
+        glm::vec3(0.5f, -0.5f, 0.5f) ,
+        glm::vec3(-0.5f, -0.5f, 0.5f) ,
+        glm::vec3(-0.5f, -0.5f, -0.5f) ,
+        //Front fac                 *size_+offset_
+        glm::vec3(-0.5f, -0.5f, 0.5f) ,
+        glm::vec3(0.5f, -0.5f, 0.5f) ,
+        glm::vec3(0.5f, 0.5f, 0.5f) ,
+        glm::vec3(0.5f, 0.5f, 0.5f) ,
+        glm::vec3(-0.5f, 0.5f, 0.5f) ,
+        glm::vec3(-0.5f, -0.5f, 0.5f) ,
+        //Back face
+        glm::vec3(-0.5f, -0.5f, -0.5f) ,
+        glm::vec3(0.5f, 0.5f, -0.5f) ,
+        glm::vec3(0.5f, -0.5f, -0.5f) ,
+        glm::vec3(0.5f, 0.5f, -0.5f) ,
+        glm::vec3(-0.5f, -0.5f, -0.5f) ,
+        glm::vec3(-0.5f, 0.5f, -0.5f) ,
+    };
+    constexpr glm::vec2 texCoords[36] = {
+            glm::vec2(1.0f, 0.0f),
+            glm::vec2(0.0f, 1.0f),
+            glm::vec2(1.0f, 1.0f),
+            glm::vec2(0.0f, 1.0f),
+            glm::vec2(1.0f, 0.0f),
+            glm::vec2(0.0f, 0.0f),
+
+            glm::vec2(1.0f, 0.0f),
+            glm::vec2(1.0f, 1.0f),
+            glm::vec2(0.0f, 1.0f),
+            glm::vec2(0.0f, 1.0f),
+            glm::vec2(0.0f, 0.0f),
+            glm::vec2(1.0f, 0.0f),
+
+            glm::vec2(0.0f, 1.0f),
+            glm::vec2(1.0f, 0.0f),
+            glm::vec2(1.0f, 1.0f),
+            glm::vec2(1.0f, 0.0f),
+            glm::vec2(0.0f, 1.0f),
+            glm::vec2(0.0f, 0.0f),
+
+            glm::vec2(0.0f, 1.0f),
+            glm::vec2(1.0f, 1.0f),
+            glm::vec2(1.0f, 0.0f),
+            glm::vec2(1.0f, 0.0f),
+            glm::vec2(0.0f, 0.0f),
+            glm::vec2(0.0f, 1.0f),
+
+            glm::vec2(0.0f, 0.0f),
+            glm::vec2(1.0f, 0.0f),
+            glm::vec2(1.0f, 1.0f),
+            glm::vec2(1.0f, 1.0f),
+            glm::vec2(0.0f, 1.0f),
+            glm::vec2(0.0f, 0.0f),
+
+            glm::vec2(0.0f, 0.0f),
+            glm::vec2(1.0f, 1.0f),
+            glm::vec2(1.0f, 0.0f),
+            glm::vec2(1.0f, 1.0f),
+            glm::vec2(0.0f, 0.0f),
+            glm::vec2(0.0f, 1.0f),
+    };
+
+    constexpr glm::vec3 normals[36] =
+    {
+            glm::vec3(1.0f, 0.0f, 0.0f),
+            glm::vec3(1.0f, 0.0f, 0.0f),
+            glm::vec3(1.0f, 0.0f, 0.0f),
+            glm::vec3(1.0f, 0.0f, 0.0f),
+            glm::vec3(1.0f, 0.0f, 0.0f),
+            glm::vec3(1.0f, 0.0f, 0.0f),
+
+            glm::vec3(-1.0f, 0.0f, 0.0f),
+            glm::vec3(-1.0f, 0.0f, 0.0f),
+            glm::vec3(-1.0f, 0.0f, 0.0f),
+            glm::vec3(-1.0f, 0.0f, 0.0f),
+            glm::vec3(-1.0f, 0.0f, 0.0f),
+            glm::vec3(-1.0f, 0.0f, 0.0f),
+
+            glm::vec3(0.0f, 1.0f, 0.0f),
+            glm::vec3(0.0f, 1.0f, 0.0f),
+            glm::vec3(0.0f, 1.0f, 0.0f),
+            glm::vec3(0.0f, 1.0f, 0.0f),
+            glm::vec3(0.0f, 1.0f, 0.0f),
+            glm::vec3(0.0f, 1.0f, 0.0f),
+
+            glm::vec3(0.0f, -1.0f, 0.0f),
+            glm::vec3(0.0f, -1.0f, 0.0f),
+            glm::vec3(0.0f, -1.0f, 0.0f),
+            glm::vec3(0.0f, -1.0f, 0.0f),
+            glm::vec3(0.0f, -1.0f, 0.0f),
+            glm::vec3(0.0f, -1.0f, 0.0f),
+
+            glm::vec3(0.0f, 0.0f, 1.0f),
+            glm::vec3(0.0f, 0.0f, 1.0f),
+            glm::vec3(0.0f, 0.0f, 1.0f),
+            glm::vec3(0.0f, 0.0f, 1.0f),
+            glm::vec3(0.0f, 0.0f, 1.0f),
+            glm::vec3(0.0f, 0.0f, 1.0f),
+
+            glm::vec3(0.0f, 0.0f, -1.0f),
+            glm::vec3(0.0f, 0.0f, -1.0f),
+            glm::vec3(0.0f, 0.0f, -1.0f),
+            glm::vec3(0.0f, 0.0f, -1.0f),
+            glm::vec3(0.0f, 0.0f, -1.0f),
+            glm::vec3(0.0f, 0.0f, -1.0f),
+    };
+
+    //TODO add ebo
+
+    glm::vec3 tangent[36]{};
+    for (int i = 0; i < 36; i += 3)
+    {
+        const glm::vec3 edge1 = position[i + 1] - position[i];
+        const glm::vec3 edge2 = position[i + 2] - position[i];
+        const glm::vec2 deltaUV1 = texCoords[i + 1] - texCoords[i];
+        const glm::vec2 deltaUV2 = texCoords[i + 2] - texCoords[i];
+
+        const float f =
+            1.0f / (deltaUV1.x * deltaUV2.y - deltaUV2.x * deltaUV1.y);
+        tangent[i].x = f * (deltaUV2.y * edge1.x - deltaUV1.y * edge2.x);
+        tangent[i].y = f * (deltaUV2.y * edge1.y - deltaUV1.y * edge2.y);
+        tangent[i].z = f * (deltaUV2.y * edge1.z - deltaUV1.y * edge2.z);
+        tangent[i + 1] = tangent[i];
+        tangent[i + 2] = tangent[i];
+    }
+    std::array<GLuint, 4> vbo;
+    glGenBuffers(4, &vbo[0]);
+    glCheckError();
+    glGenVertexArrays(1, &cube.vao);
+    glBindVertexArray(cube.vao);
+    // position attribute
+    glBindBuffer(GL_ARRAY_BUFFER, vbo[0]);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(position), position, GL_STATIC_DRAW);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), nullptr);
+    glEnableVertexAttribArray(0);
+    // texture coord attribute
+    glBindBuffer(GL_ARRAY_BUFFER, vbo[1]);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(texCoords), texCoords, GL_STATIC_DRAW);
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), nullptr);
+    glEnableVertexAttribArray(1);
+    // normal attribute
+    glBindBuffer(GL_ARRAY_BUFFER, vbo[2]);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(normals), normals, GL_STATIC_DRAW);
+    glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), nullptr);
+    glEnableVertexAttribArray(2);
+    //tangent attribute
+    glBindBuffer(GL_ARRAY_BUFFER, vbo[3]);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(tangent), tangent, GL_STATIC_DRAW);
+    glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), nullptr);
+    glEnableVertexAttribArray(3);
+
+    glBindVertexArray(0);
+    glCheckError();
+
+    return cube;
 }
 }

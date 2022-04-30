@@ -6,4 +6,5 @@ namespace gpr5300
 {
 Mesh GenerateQuad();
 Mesh GenerateEmpty();
+Mesh GenerateCube();
 }
