@@ -102,49 +102,49 @@ Mesh GenerateCube()
 {
     Mesh cube{};
 
-    constexpr int indices[] =
+    constexpr std::array indices =
     {
         0,1,2,0,1,3,
-        4,5,6,4,5,7,
+        4,5,6,6,7,4,
         8,9,10,9,8,11,
-        12,13,14,13,12,15,
-        16,17,18,17,16,19,
+        12,13,14,14,15,12,
+        16,17,18,18,19,16,
         20,21,22,21,20,23
     };
-    constexpr glm::vec3 position[36] =
+    constexpr std::array position =
     {
         //Right face
-        glm::vec3(0.5f, 0.5f, 0.5f), //0
-        glm::vec3(0.5f, -0.5f, -0.5f), //1
-        glm::vec3(0.5f, 0.5f, -0.5f), //2
-        glm::vec3(0.5f, -0.5f, 0.5f), //3
+        glm::vec3(0.5f, 0.5f, 0.5f) , //0
+        glm::vec3(0.5f, -0.5f, -0.5f) , //1
+        glm::vec3(0.5f, 0.5f, -0.5f) , //2
+        glm::vec3(0.5f, -0.5f, 0.5f) ,//3
         //Left face                 
         glm::vec3(-0.5f, 0.5f, 0.5f) , //4
         glm::vec3(-0.5f, 0.5f, -0.5f) , //5
         glm::vec3(-0.5f, -0.5f, -0.5f) , //6
-        glm::vec3(-0.5f, 0.5f, 0.5f) , //7
-        //Top face                  
-        glm::vec3(-0.5f, 0.5f, -0.5f) , //8
-        glm::vec3(0.5f, 0.5f, 0.5f) , //9
-        glm::vec3(0.5f, 0.5f, -0.5f) , //10
-        glm::vec3(-0.5f, 0.5f, 0.5f) , //11
-        //Bottom fa                 
-        glm::vec3(-0.5f, -0.5f, -0.5f) , //12
-        glm::vec3(0.5f, -0.5f, -0.5f) , //13
-        glm::vec3(0.5f, -0.5f, 0.5f) , //14
-        glm::vec3(-0.5f, -0.5f, -0.5f) , //15
-        //Front fac                 
-        glm::vec3(-0.5f, -0.5f, 0.5f) , //16 bottom left
-        glm::vec3(0.5f, -0.5f, 0.5f) , //17 bottom right
-        glm::vec3(0.5f, 0.5f, 0.5f) , //18 top right
-        glm::vec3(-0.5f, -0.5f, 0.5f) , //19 top left
+        glm::vec3(-0.5f, -0.5f, 0.5f) ,//7
+        //Top face 
+        glm::vec3(-0.5f, 0.5f, -0.5f) ,//8
+        glm::vec3(0.5f, 0.5f, 0.5f) ,//9
+        glm::vec3(0.5f, 0.5f, -0.5f) ,//10
+        glm::vec3(-0.5f, 0.5f, 0.5f) ,//11
+        //Bottom face
+        glm::vec3(-0.5f, -0.5f, -0.5f) ,//12
+        glm::vec3(0.5f, -0.5f, -0.5f) ,//13
+        glm::vec3(0.5f, -0.5f, 0.5f) ,//14
+        glm::vec3(-0.5f, -0.5f, 0.5f) ,//15
+        //Front face
+        glm::vec3(-0.5f, -0.5f, 0.5f) ,//16
+        glm::vec3(0.5f, -0.5f, 0.5f) ,//17
+        glm::vec3(0.5f, 0.5f, 0.5f) ,//18
+        glm::vec3(-0.5f, 0.5f, 0.5f) ,//19
         //Back face
-        glm::vec3(-0.5f, -0.5f, -0.5f) , //20
-        glm::vec3(0.5f, 0.5f, -0.5f) , //21
-        glm::vec3(0.5f, -0.5f, -0.5f) , //22
-        glm::vec3(-0.5f, 0.5f, -0.5f) , //23
+        glm::vec3(-0.5f, -0.5f, -0.5f) ,//20
+        glm::vec3(0.5f, 0.5f, -0.5f) ,//21
+        glm::vec3(0.5f, -0.5f, -0.5f) ,//22
+        glm::vec3(-0.5f, 0.5f, -0.5f) ,//23
     };
-    constexpr glm::vec2 texCoords[] = {
+    constexpr std::array texCoords = {
             glm::vec2(1.0f, 0.0f),
             glm::vec2(0.0f, 1.0f),
             glm::vec2(1.0f, 1.0f),
@@ -153,7 +153,7 @@ Mesh GenerateCube()
             glm::vec2(1.0f, 0.0f),
             glm::vec2(1.0f, 1.0f),
             glm::vec2(0.0f, 1.0f),
-            glm::vec2(1.0f, 0.0f),
+            glm::vec2(0.0f, 0.0f),
 
             glm::vec2(0.0f, 1.0f),
             glm::vec2(1.0f, 0.0f),
@@ -163,12 +163,12 @@ Mesh GenerateCube()
             glm::vec2(0.0f, 1.0f),
             glm::vec2(1.0f, 1.0f),
             glm::vec2(1.0f, 0.0f),
-            glm::vec2(0.0f, 1.0f),
+            glm::vec2(0.0f, 0.0f),
 
             glm::vec2(0.0f, 0.0f),
             glm::vec2(1.0f, 0.0f),
             glm::vec2(1.0f, 1.0f),
-            glm::vec2(0.0f, 0.0f),
+            glm::vec2(0.0f, 1.0f),
 
             glm::vec2(0.0f, 0.0f),
             glm::vec2(1.0f, 1.0f),
@@ -176,7 +176,7 @@ Mesh GenerateCube()
             glm::vec2(0.0f, 1.0f),
     };
 
-    constexpr glm::vec3 normals[] =
+    constexpr std::array normals =
     {
             glm::vec3(1.0f, 0.0f, 0.0f),
             glm::vec3(1.0f, 0.0f, 0.0f),
@@ -208,6 +208,7 @@ Mesh GenerateCube()
             glm::vec3(0.0f, 0.0f, -1.0f),
             glm::vec3(0.0f, 0.0f, -1.0f),
     };
+    
 
     /*glm::vec3 tangent[24]{};
     for (int i = 0; i < 24; i += 3)
@@ -235,17 +236,17 @@ Mesh GenerateCube()
     glBindVertexArray(cube.vao);
     // position attribute
     glBindBuffer(GL_ARRAY_BUFFER, vbo[0]);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(position), position, GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, position.size()*sizeof(glm::vec3), position.data(), GL_STATIC_DRAW);
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), nullptr);
     glEnableVertexAttribArray(0);
     // texture coord attribute
     glBindBuffer(GL_ARRAY_BUFFER, vbo[1]);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(texCoords), texCoords, GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, texCoords.size()*sizeof(glm::vec2), texCoords.data(), GL_STATIC_DRAW);
     glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), nullptr);
     glEnableVertexAttribArray(1);
     // normal attribute
     glBindBuffer(GL_ARRAY_BUFFER, vbo[2]);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(normals), normals, GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, normals.size()*sizeof(glm::vec3), normals.data(), GL_STATIC_DRAW);
     glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), nullptr);
     glEnableVertexAttribArray(2);
     /*
@@ -257,7 +258,7 @@ Mesh GenerateCube()
     */
     //ebo
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size()*sizeof(int), indices.data(), GL_STATIC_DRAW);
     glBindVertexArray(0);
     glCheckError();
 
