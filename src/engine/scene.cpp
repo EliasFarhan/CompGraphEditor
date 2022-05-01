@@ -71,6 +71,7 @@ void Scene::LoadScene(PyManager &pyManager)
             meshes_[i] = GenerateQuad();
             break;
         case pb::Mesh_PrimitveType_CUBE:
+            meshes_[i] = GenerateCube();
             break;
         case pb::Mesh_PrimitveType_SPHERE:
             break;
@@ -86,7 +87,7 @@ void Scene::LoadScene(PyManager &pyManager)
     for(int i = 0; i < pySystemSize; i++)
     {
         const auto& pySystem = scene_.py_systems(i);
-        pySystems_.push_back(pyManager.LoadScript(pySystem.module(), pySystem.class_()));
+        pySystems_.push_back(pyManager.LoadScript(pySystem.path(), pySystem.module(), pySystem.class_()));
     }
 }
 
@@ -121,9 +122,12 @@ void Scene::Update(float dt)
                      subPass.clear_color().a());
         glClear(GL_COLOR_BUFFER_BIT);
 
-        for(auto* pySystem: pySystems_)
+        for (auto* pySystem : pySystems_)
         {
-            pySystem->Draw(i);
+            if (pySystem != nullptr)
+            {
+                pySystem->Draw(i);
+            }
         }
 
         const auto commandSize = subPass.commands_size();
@@ -141,12 +145,12 @@ void Scene::Update(float dt)
 
 SceneMaterial Scene::GetMaterial(int materialIndex)
 {
-    SceneMaterial material{&pipelines_[materialIndex], &materials_[materialIndex] };
+    const SceneMaterial material{&pipelines_[materialIndex], &materials_[materialIndex] };
     return material;
 }
 void Scene::Draw(const pb::DrawCommand& command)
 {
-    auto& material = materials_[command.material_index()];
+    const auto& material = materials_[command.material_index()];
     auto& pipeline = pipelines_[material.pipelineIndex];
 
     pipeline.Bind();

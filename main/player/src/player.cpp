@@ -31,7 +31,10 @@ void Player::Begin()
             }
         }
     };
-    recursiveIterateFile("data/");
+    if (fs::exists("data/"))
+    {
+        recursiveIterateFile("data/");
+    }
     sceneManager_.Begin();
 }
 

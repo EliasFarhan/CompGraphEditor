@@ -166,7 +166,7 @@ void PyManager::Update(float dt)
 {
     for(auto& object : pySystems_)
     {
-        auto& system = object.cast<System&>();
+        auto& system = object.cast<Script&>();
         system.Update(dt);
     }
 }
@@ -175,19 +175,25 @@ void PyManager::End()
 {
     for(auto& object : pySystems_)
     {
-        auto& system = object.cast<System&>();
+        auto& system = object.cast<Script&>();
         system.End();
     }
     pySystems_.clear();
     py::finalize_interpreter();
 }
 
-Script* PyManager::LoadScript(std::string_view path, std::string_view className)
+Script* PyManager::LoadScript(std::string_view path, std::string_view module, std::string_view className)
 {
+    const auto& filesystem = FilesystemLocator::get();
+    if(!filesystem.FileExists(path))
+    {
+        LogError(fmt::format("Could not find script file at path: {}", path));
+        return nullptr;
+    }
     try
     {
-        const auto module = py::module_::import(path.data());
-        auto newObject = module.attr(className.data())();
+        const auto moduleObj = py::module_::import(module.data());
+        auto newObject = moduleObj.attr(className.data())();
         auto* newSystem = newObject.cast<Script*>();
         newSystem->Begin();
         pySystems_.push_back(std::move(newObject));
@@ -195,8 +201,24 @@ Script* PyManager::LoadScript(std::string_view path, std::string_view className)
     }
     catch (pybind11::error_already_set& e)
     {
-        LogError(fmt::format("{}", e.what()));
+        try
+        {
+            const auto scriptFile = filesystem.LoadFile(path);
+            const auto locals = py::dict();
+            py::eval(reinterpret_cast<const char*>(scriptFile.data), py::globals(), locals);
+            const auto classObject = locals[className.data()];
+            auto newObject = classObject();
+            auto* newSystem = newObject.cast<Script*>();
+            newSystem->Begin();
+            pySystems_.push_back(std::move(newObject));
+            return newSystem;
+        }
+        catch(pybind11::error_already_set& e)
+        {
+            LogError(fmt::format("{}", e.what()));
+        }
         return nullptr;
     }
+
 }
 }

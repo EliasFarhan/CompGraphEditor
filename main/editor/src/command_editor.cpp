@@ -138,7 +138,12 @@ void CommandEditor::DrawInspector()
             currentCommand.info.set_count(6);
             break;
         }
-        case pb::Mesh_PrimitveType_CUBE: break;
+        case pb::Mesh_PrimitveType_CUBE: 
+        {
+            currentCommand.info.set_draw_elements(true);
+            currentCommand.info.set_count(36);
+            break;
+        }
         case pb::Mesh_PrimitveType_SPHERE: break;
         case pb::Mesh_PrimitveType_MODEL: break;
         case pb::Mesh_PrimitveType_NONE:

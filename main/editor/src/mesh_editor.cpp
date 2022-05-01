@@ -69,7 +69,12 @@ void MeshEditor::DrawInspector()
                         "Cube",
                         "Sphere"
                 };
-        const auto index = currentMesh.info.primitve_type()-pb::Mesh_PrimitveType_QUAD;
+        auto index = currentMesh.info.primitve_type()-pb::Mesh_PrimitveType_QUAD;
+        if(index < 0 || index >= primitiveTypes.size())
+        {
+            index = 0;
+            currentMesh.info.set_primitve_type(pb::Mesh_PrimitveType_QUAD);
+        }
         if(ImGui::BeginCombo("Primitive Type", primitiveTypes[index].data()))
         {
             for(std::size_t i = 0; i < primitiveTypes.size(); i++)
