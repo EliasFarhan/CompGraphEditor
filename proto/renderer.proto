@@ -75,6 +75,21 @@ message Pipeline
     int32 geometry_shader_index = 5;
     repeated Attribute in_vertex_attributes = 6;
     repeated Attribute uniforms = 7;
+    bool depth_test_enable = 12;
+    enum DepthCompareOp
+    {
+        LESS = 0;
+        LESS_OR_EQUAL = 1;
+        EQUAL = 2;
+        GREATER = 3;
+        NOT_EQUAL = 4;
+        GREATER_OR_EQUAL = 5;
+        ALWAYS = 6;
+        NEVER = 7;
+    }
+    DepthCompareOp depth_compare_op = 13;
+    bool depth_mask = 14;
+
 
     string vertex_shader_path = 8;// Used by the editor
     string fragment_shader_path = 9;// Used by the editor

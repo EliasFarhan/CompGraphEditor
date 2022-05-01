@@ -120,7 +120,7 @@ void Scene::Update(float dt)
                      subPass.clear_color().g(),
                      subPass.clear_color().b(),
                      subPass.clear_color().a());
-        glClear(GL_COLOR_BUFFER_BIT);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         for (auto* pySystem : pySystems_)
         {
@@ -152,12 +152,52 @@ void Scene::Draw(const pb::DrawCommand& command)
 {
     const auto& material = materials_[command.material_index()];
     auto& pipeline = pipelines_[material.pipelineIndex];
+    auto& pipelineInfo = scene_.pipelines(material.pipelineIndex);
+
+    if(pipelineInfo.depth_test_enable())
+    {
+        glEnable(GL_DEPTH_TEST);
+        switch(pipelineInfo.depth_compare_op())
+        {
+        case pb::Pipeline_DepthCompareOp_LESS: 
+            glDepthFunc(GL_LESS);
+            break;
+        case pb::Pipeline_DepthCompareOp_LESS_OR_EQUAL: 
+            glDepthFunc(GL_LEQUAL);
+            break;
+        case pb::Pipeline_DepthCompareOp_EQUAL: 
+            glDepthFunc(GL_EQUAL);
+            break;
+        case pb::Pipeline_DepthCompareOp_GREATER: 
+            glDepthFunc(GL_GREATER);
+            break;
+        case pb::Pipeline_DepthCompareOp_NOT_EQUAL: 
+            glDepthFunc(GL_NOTEQUAL);
+            break;
+        case pb::Pipeline_DepthCompareOp_GREATER_OR_EQUAL: 
+            glDepthFunc(GL_GEQUAL);
+            break;
+        case pb::Pipeline_DepthCompareOp_ALWAYS: 
+            glDepthFunc(GL_ALWAYS);
+            break;
+        case pb::Pipeline_DepthCompareOp_NEVER: 
+            glDepthFunc(GL_NEVER);
+            break;
+        default: ;
+        }
+        glDepthMask(pipelineInfo.depth_mask());
+    }
+    else
+    {
+        glDisable(GL_DEPTH_TEST);
+    }
 
     pipeline.Bind();
     for(std::size_t textureIndex = 0; textureIndex < material.textures.size(); textureIndex++)
     {
         pipeline.SetTexture(material.textures[textureIndex].uniformSamplerName, material.textures[textureIndex].texture, textureIndex);
     }
+    
 
     GLenum mode = 0;
     switch (command.mode())

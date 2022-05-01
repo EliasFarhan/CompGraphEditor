@@ -91,6 +91,43 @@ void PipelineEditor::DrawInspector()
             ImGui::EndCombo();
         }
 
+        bool depthTesting = currentPipelineInfo.info.depth_test_enable();
+        if(ImGui::Checkbox("Depth Testing", &depthTesting))
+        {
+            currentPipelineInfo.info.set_depth_test_enable(depthTesting);
+        }
+        if(depthTesting)
+        {
+            static constexpr std::array<std::string_view, 8> depthCompareOpNames =
+            {
+                "LESS",
+                "LESS_OR_EQUAL",
+                "EQUAL",
+                "GREATER",
+                "NOT_EQUAL",
+                "GREATER_OR_EQUAL",
+                "ALWAYS",
+                "NEVER"
+            };
+            int index = currentPipelineInfo.info.depth_compare_op();
+            if(ImGui::BeginCombo("Depth Compare Op", depthCompareOpNames[index].data()))
+            {
+                for (std::size_t i = 0; i < depthCompareOpNames.size(); i++)
+                {
+                    if (ImGui::Selectable(depthCompareOpNames[i].data(), i == index))
+                    {
+                        currentPipelineInfo.info.set_depth_compare_op(static_cast<gpr5300::pb::Pipeline_DepthCompareOp>(i));
+                    }
+                }
+                ImGui::EndCombo();
+            }
+            bool depthMask = currentPipelineInfo.info.depth_mask();
+            if(ImGui::Checkbox("Depth Mask", &depthMask))
+            {
+                currentPipelineInfo.info.set_depth_mask(depthMask);
+            }
+        }
+
         if (ImGui::BeginListBox("Uniforms"))
         {
             for (int i = 0; i < currentPipelineInfo.info.uniforms_size(); i++)

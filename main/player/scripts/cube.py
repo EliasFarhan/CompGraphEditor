@@ -28,12 +28,12 @@ class Cube(gpr5300.System):
 
     def draw(self, subpassIndex: int):
         self.material.bind()
-        self.pipeline.set_mat4("view", gpr5300.Mat4.view(gpr5300.Vec3(0,0,-1), gpr5300.Vec3(0,0,0), gpr5300.Vec3(0,1,0)))
+        self.pipeline.set_mat4("view", gpr5300.Mat4.view(gpr5300.Vec3(0,0,3), gpr5300.Vec3(0,0,0), gpr5300.Vec3(0,1,0)))
         self.pipeline.set_mat4("projection", gpr5300.Mat4.perspective(math.radians(45), gpr5300.get_aspect(), 0.1, 100.0))
         for pos in self.positions:
             model = gpr5300.Mat4(1.0)
+            model = model.translate(pos)
             model = model.rotate(self.t, gpr5300.Vec3(0,0,1))
             model = model.rotate(self.t, gpr5300.Vec3(0,1,0))
-            model = model.translate(pos)
             self.pipeline.set_mat4("model", model)
             self.draw_command.draw()

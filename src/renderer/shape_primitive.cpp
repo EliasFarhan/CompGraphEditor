@@ -104,8 +104,8 @@ Mesh GenerateCube()
 
     constexpr int indices[] =
     {
-        0,1,2,1,0,3,
-        4,5,6,5,4,7,
+        0,1,2,0,1,3,
+        4,5,6,4,5,7,
         8,9,10,9,8,11,
         12,13,14,13,12,15,
         16,17,18,17,16,19,
@@ -134,17 +134,17 @@ Mesh GenerateCube()
         glm::vec3(0.5f, -0.5f, 0.5f) , //14
         glm::vec3(-0.5f, -0.5f, -0.5f) , //15
         //Front fac                 
-        glm::vec3(-0.5f, -0.5f, 0.5f) , //16
-        glm::vec3(0.5f, -0.5f, 0.5f) , //17
-        glm::vec3(0.5f, 0.5f, 0.5f) , //18
-        glm::vec3(-0.5f, -0.5f, 0.5f) , //19
+        glm::vec3(-0.5f, -0.5f, 0.5f) , //16 bottom left
+        glm::vec3(0.5f, -0.5f, 0.5f) , //17 bottom right
+        glm::vec3(0.5f, 0.5f, 0.5f) , //18 top right
+        glm::vec3(-0.5f, -0.5f, 0.5f) , //19 top left
         //Back face
         glm::vec3(-0.5f, -0.5f, -0.5f) , //20
         glm::vec3(0.5f, 0.5f, -0.5f) , //21
         glm::vec3(0.5f, -0.5f, -0.5f) , //22
         glm::vec3(-0.5f, 0.5f, -0.5f) , //23
     };
-    constexpr glm::vec2 texCoords[36] = {
+    constexpr glm::vec2 texCoords[] = {
             glm::vec2(1.0f, 0.0f),
             glm::vec2(0.0f, 1.0f),
             glm::vec2(1.0f, 1.0f),
@@ -176,7 +176,7 @@ Mesh GenerateCube()
             glm::vec2(0.0f, 1.0f),
     };
 
-    constexpr glm::vec3 normals[36] =
+    constexpr glm::vec3 normals[] =
     {
             glm::vec3(1.0f, 0.0f, 0.0f),
             glm::vec3(1.0f, 0.0f, 0.0f),
@@ -209,8 +209,8 @@ Mesh GenerateCube()
             glm::vec3(0.0f, 0.0f, -1.0f),
     };
 
-    glm::vec3 tangent[36]{};
-    for (int i = 0; i < 36; i += 3)
+    /*glm::vec3 tangent[24]{};
+    for (int i = 0; i < 24; i += 3)
     {
         const glm::vec3 edge1 = position[i + 1] - position[i];
         const glm::vec3 edge2 = position[i + 2] - position[i];
@@ -225,6 +225,7 @@ Mesh GenerateCube()
         tangent[i + 1] = tangent[i];
         tangent[i + 2] = tangent[i];
     }
+    */
     std::array<GLuint, 4> vbo;
     GLuint ebo;
     glGenBuffers(4, &vbo[0]);
@@ -247,11 +248,13 @@ Mesh GenerateCube()
     glBufferData(GL_ARRAY_BUFFER, sizeof(normals), normals, GL_STATIC_DRAW);
     glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), nullptr);
     glEnableVertexAttribArray(2);
+    /*
     //tangent attribute
     glBindBuffer(GL_ARRAY_BUFFER, vbo[3]);
     glBufferData(GL_ARRAY_BUFFER, sizeof(tangent), tangent, GL_STATIC_DRAW);
     glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), nullptr);
     glEnableVertexAttribArray(3);
+    */
     //ebo
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
