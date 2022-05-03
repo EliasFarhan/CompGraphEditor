@@ -37,19 +37,19 @@ Mesh GenerateQuad()
     std::array<glm::vec3, 4> tangent{};
 
     {
-        const glm::vec3 edge1 = glm::vec3(vertices[1] - vertices[0], 0);
-        const glm::vec3 edge2 = glm::vec3(vertices[2] - vertices[0], 0);
-        const glm::vec2 deltaUV1 = texCoords[1] - texCoords[0];
-        const glm::vec2 deltaUV2 = texCoords[2] - texCoords[0];
+        constexpr glm::vec3 edge1 = glm::vec3(vertices[1] - vertices[0], 0);
+        constexpr glm::vec3 edge2 = glm::vec3(vertices[2] - vertices[0], 0);
+        constexpr glm::vec2 deltaUV1 = texCoords[1] - texCoords[0];
+        constexpr glm::vec2 deltaUV2 = texCoords[2] - texCoords[0];
 
-        float f = 1.0f / (deltaUV1.x * deltaUV2.y - deltaUV2.x * deltaUV1.y);
+        constexpr float f = 1.0f / (deltaUV1.x * deltaUV2.y - deltaUV2.x * deltaUV1.y);
         tangent[0].x = f * (deltaUV2.y * edge1.x - deltaUV1.y * edge2.x);
         tangent[0].y = f * (deltaUV2.y * edge1.y - deltaUV1.y * edge2.y);
         tangent[0].z = f * (deltaUV2.y * edge1.z - deltaUV1.y * edge2.z);
     }
     std::fill(tangent.begin() + 1, tangent.end(), tangent[0]);
 
-    unsigned int indices[6] = {
+    constexpr unsigned int indices[6] = {
         // note that we start from 0!
         0, 1, 3,   // first triangle
         1, 2, 3    // second triangle
@@ -210,24 +210,30 @@ Mesh GenerateCube()
     };
     
 
-    /*glm::vec3 tangent[24]{};
-    for (int i = 0; i < 24; i += 3)
+    glm::vec3 tangent[24]{};
+    for (int i = 0; i < 36; i += 3)
     {
-        const glm::vec3 edge1 = position[i + 1] - position[i];
-        const glm::vec3 edge2 = position[i + 2] - position[i];
-        const glm::vec2 deltaUV1 = texCoords[i + 1] - texCoords[i];
-        const glm::vec2 deltaUV2 = texCoords[i + 2] - texCoords[i];
+        std::array triIndices =
+        {
+            indices[i],
+            indices[i+1],
+            indices[i+2],
+        };
+        const glm::vec3 edge1 = position[triIndices[1]] - position[triIndices[0]];
+        const glm::vec3 edge2 = position[triIndices[2]] - position[triIndices[0]];
+        const glm::vec2 deltaUV1 = texCoords[triIndices[1]] - texCoords[triIndices[0]];
+        const glm::vec2 deltaUV2 = texCoords[triIndices[2]] - texCoords[triIndices[0]];
 
         const float f =
             1.0f / (deltaUV1.x * deltaUV2.y - deltaUV2.x * deltaUV1.y);
-        tangent[i].x = f * (deltaUV2.y * edge1.x - deltaUV1.y * edge2.x);
-        tangent[i].y = f * (deltaUV2.y * edge1.y - deltaUV1.y * edge2.y);
-        tangent[i].z = f * (deltaUV2.y * edge1.z - deltaUV1.y * edge2.z);
-        tangent[i + 1] = tangent[i];
-        tangent[i + 2] = tangent[i];
+        tangent[triIndices[0]].x = f * (deltaUV2.y * edge1.x - deltaUV1.y * edge2.x);
+        tangent[triIndices[0]].y = f * (deltaUV2.y * edge1.y - deltaUV1.y * edge2.y);
+        tangent[triIndices[0]].z = f * (deltaUV2.y * edge1.z - deltaUV1.y * edge2.z);
+        tangent[triIndices[1]] = tangent[triIndices[0]];
+        tangent[triIndices[2]] = tangent[triIndices[0]];
     }
-    */
-    std::array<GLuint, 4> vbo;
+    
+    std::array<GLuint, 4> vbo{};
     GLuint ebo;
     glGenBuffers(4, &vbo[0]);
     glGenBuffers(1, &ebo);
@@ -249,13 +255,13 @@ Mesh GenerateCube()
     glBufferData(GL_ARRAY_BUFFER, normals.size()*sizeof(glm::vec3), normals.data(), GL_STATIC_DRAW);
     glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), nullptr);
     glEnableVertexAttribArray(2);
-    /*
+    
     //tangent attribute
     glBindBuffer(GL_ARRAY_BUFFER, vbo[3]);
     glBufferData(GL_ARRAY_BUFFER, sizeof(tangent), tangent, GL_STATIC_DRAW);
     glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), nullptr);
     glEnableVertexAttribArray(3);
-    */
+    
     //ebo
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size()*sizeof(int), indices.data(), GL_STATIC_DRAW);
