@@ -15,10 +15,9 @@ struct MeshInfo
     ResourceId resourceId = INVALID_RESOURCE_ID;
 };
 
-class MeshEditor : public EditorSystem
+class MeshEditor final : public EditorSystem
 {
 public:
-    bool CheckExtensions(std::string_view modelExtension) override;
 
     void DrawMainView() override;
 
@@ -41,6 +40,7 @@ public:
     const MeshInfo* GetMesh(ResourceId resourceId) const;
     void ReloadId() override{}
     void Delete() override;
+    [[nodiscard]] std::span<const std::string_view> GetExtensions() const override;
 private:
     std::vector<MeshInfo> meshInfos_;
     std::size_t currentIndex_ = -1;

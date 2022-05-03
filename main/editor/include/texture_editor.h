@@ -14,10 +14,9 @@ struct TextureInfo
     ResourceId resourceId = INVALID_RESOURCE_ID;
 };
 
-class TextureEditor : public EditorSystem
+class TextureEditor final : public EditorSystem
 {
 public:
-    bool CheckExtensions(std::string_view extension) override;
 
     void DrawMainView() override;
 
@@ -41,6 +40,7 @@ public:
     const auto& GetTextures() const { return textureInfos_; }
     const TextureInfo* GetTexture(ResourceId resourceId) const;
     void Delete() override;
+    std::span<const std::string_view> GetExtensions() const override;
 private:
     std::vector<TextureInfo> textureInfos_;
     std::size_t currentIndex_ = -1;

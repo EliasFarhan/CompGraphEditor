@@ -32,28 +32,19 @@ public:
     const ResourceManager& GetResourceManager() const { return resourceManager_; }
     static Editor* GetInstance() { return instance_; }
 private:
+    void OpenMenuCreateNewFile(EditorType editorType);
     void SaveProject();
     void DrawMenuBar();
+    void CreateNewFile(std::string_view path);
+    bool UpdateCreateNewFile();
     void DrawEditorContent();
     void DrawCenterView();
     void DrawInspector();
-    void DrawLogWindow();
+    static void DrawLogWindow();
     void UpdateFileDialog();
     void LoadFileIntoEditor(std::string_view path);
-    enum class FileBrowserMode
-    {
-        OPEN_FILE,
-        CREATE_NEW_SHADER,
-        CREATE_NEW_PIPELINE,
-        CREATE_NEW_MATERIAL,
-        CREATE_NEW_MESH,
-        CREATE_NEW_RENDER_PASS,
-        CREATE_NEW_COMMAND,
-        CREATE_NEW_SCENE,
-        CREATE_NEW_SCRIPT,
-        NONE
-    };
-    void OpenFileBrowserDialog(FileBrowserMode mode);
+
+    void OpenFileBrowserDialog(std::span<const std::string_view> extensions);
 
 
 
@@ -62,10 +53,11 @@ private:
     pb::Scene scene_;
     ResourceManager resourceManager_;
     ImGui::FileBrowser fileDialog_;
-    EditorType currentFocusedSystem_ = EditorType::LENGTH;
     std::vector<std::unique_ptr<EditorSystem>> editorSystems_;
-
-    FileBrowserMode fileBrowserMode_ = FileBrowserMode::NONE;
+    EditorType currentFocusedSystem_ = EditorType::LENGTH;
+    EditorType currentCreateFileSystem_ = EditorType::LENGTH;
+    std::string newCreateFilename_;
+    int currentExtensionCreateFileIndex_ = 0;
 
     inline static Editor* instance_ = nullptr;
 };

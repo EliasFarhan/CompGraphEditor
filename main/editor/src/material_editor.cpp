@@ -11,11 +11,7 @@
 
 namespace gpr5300
 {
-
-bool MaterialEditor::CheckExtensions(std::string_view extension)
-{
-    return extension == ".mat";
-}
+    
 
 void MaterialEditor::DrawMainView()
 {
@@ -256,6 +252,12 @@ void MaterialEditor::Delete()
     auto* editor = Editor::GetInstance();
     auto& resourceManager = editor->GetResourceManager();
     resourceManager.RemoveResource(materialInfos_[currentIndex_].path);
+}
+
+std::span<const std::string_view> MaterialEditor::GetExtensions() const
+{
+    static constexpr std::array<std::string_view, 1> extensions = { ".mat" };
+    return std::span{ extensions };
 }
 
 void MaterialEditor::ReloadMaterialPipeline(const PipelineInfo& pipelineInfo, int materialIndex)

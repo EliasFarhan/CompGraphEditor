@@ -10,10 +10,6 @@
 namespace gpr5300
 {
 
-bool PipelineEditor::CheckExtensions(std::string_view extension)
-{
-    return extension == ".pipe";
-}
 void PipelineEditor::DrawMainView()
 {
 
@@ -51,7 +47,7 @@ void PipelineEditor::DrawInspector()
         {
             ImGui::TextColored(ImVec4(1, 0, 0, 1), "Pipeline is not completed (require at Vertex and Fragment shader)");
         }
-        auto* shaderEditor = dynamic_cast<ShaderEditor*>(editor->GetEditorSystem(EditorType::SHADER));
+        const auto* shaderEditor = dynamic_cast<ShaderEditor*>(editor->GetEditorSystem(EditorType::SHADER));
         const auto& shaders = shaderEditor->GetShaders();
         const auto* vertexShader = shaderEditor->GetShader(currentPipelineInfo.vertexShaderId);
         if (ImGui::BeginCombo("Vertex Shader", vertexShader ? vertexShader->filename.data() : "No vertex shader"))
@@ -309,6 +305,12 @@ void PipelineEditor::Delete()
     auto* editor = Editor::GetInstance();
     auto& resourceManager = editor->GetResourceManager();
     resourceManager.RemoveResource(pipelineInfos_[currentIndex_].path);
+}
+
+std::span<const std::string_view> PipelineEditor::GetExtensions() const
+{
+    static constexpr std::array<std::string_view, 1> extensions = { ".pipe" };
+    return std::span{ extensions };
 }
 
 void PipelineEditor::ReloadPipeline(int index)

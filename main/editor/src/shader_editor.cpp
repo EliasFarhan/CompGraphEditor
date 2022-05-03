@@ -68,20 +68,6 @@ void ShaderEditor::UpdateExistingResource(const Resource& resource)
         }
     }
 }
-bool ShaderEditor::CheckExtensions(std::string_view extension)
-{
-    static constexpr std::array<std::string_view, 4> extensions
-        {
-            ".vert",
-            ".frag",
-            ".comp",
-            ".geom"
-        };
-    return std::ranges::any_of(extensions, [extension](auto shaderExtension)
-    {
-        return extension == shaderExtension;
-    });
-}
 void ShaderEditor::DrawMainView()
 {
 
@@ -204,6 +190,18 @@ void ShaderEditor::Delete()
     auto* editor = Editor::GetInstance();
     auto& resourceManager = editor->GetResourceManager();
     resourceManager.RemoveResource(shaderInfos_[currentIndex_].info.path());
+}
+
+std::span<const std::string_view> ShaderEditor::GetExtensions() const
+{
+    static constexpr std::array<std::string_view, 4> extensions
+    {
+        ".vert",
+        ".frag",
+        ".comp",
+        ".geom"
+    };
+    return extensions;
 }
 
 bool ShaderEditor::AnalyzeShader(std::string_view path, pb::Shader& shaderInfo)

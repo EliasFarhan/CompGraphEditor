@@ -31,7 +31,7 @@ class SceneDrawCommand
 {
 public:
     SceneDrawCommand(Scene& scene, const pb::DrawCommand& drawCommand);
-    SceneMaterial GetMaterial() const;
+    [[nodiscard]] SceneMaterial GetMaterial() const;
     void Draw();
 private:
     Scene& scene_;

@@ -10,24 +10,6 @@
 namespace gpr5300
 {
 
-bool TextureEditor::CheckExtensions(std::string_view extension)
-{
-    static constexpr std::array<std::string_view, 7> extensions
-    {
-        ".jpg",
-        ".jpeg",
-        ".png",
-        ".bmp",
-        ".tga",
-        ".hdr",
-        ".gif"
-    };
-    return std::ranges::any_of(extensions, [extension](const auto imgExtension)
-    {
-            return extension == imgExtension;
-    });
-}
-
 void TextureEditor::DrawMainView()
 {
 
@@ -181,5 +163,20 @@ void TextureEditor::Delete()
     auto* editor = Editor::GetInstance();
     auto& resourceManager = editor->GetResourceManager();
     resourceManager.RemoveResource(textureInfos_[currentIndex_].info.path());
+}
+
+std::span<const std::string_view> TextureEditor::GetExtensions() const
+{
+    static constexpr std::array<std::string_view, 7> extensions
+    {
+        ".jpg",
+        ".jpeg",
+        ".png",
+        ".bmp",
+        ".tga",
+        ".hdr",
+        ".gif"
+    };
+    return extensions;
 }
 }

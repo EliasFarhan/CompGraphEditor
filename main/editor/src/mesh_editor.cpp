@@ -13,19 +13,6 @@
 namespace gpr5300
 {
 
-bool MeshEditor::CheckExtensions(std::string_view extension)
-{
-    static constexpr std::array<std::string_view, 3> extensions
-            {
-                    ".obj",
-                    ".mtl",
-                    ".mesh"
-            };
-    return std::ranges::any_of(extensions, [extension](auto modelExtension)
-    {
-        return extension == modelExtension;
-    });
-}
 
 void MeshEditor::DrawMainView()
 {
@@ -108,11 +95,11 @@ bool MeshEditor::DrawContentList(bool unfocus)
 }
 
 std::string_view MeshEditor::GetSubFolder() {
-    return "models/";
+    return "meshes/";
 }
 
 EditorType MeshEditor::GetEditorType() {
-    return EditorType::MODEL;
+    return EditorType::MESH;
 }
 
 void MeshEditor::Save()
@@ -201,5 +188,11 @@ void MeshEditor::Delete()
     auto* editor = Editor::GetInstance();
     auto& resourceManager = editor->GetResourceManager();
     resourceManager.RemoveResource(meshInfos_[currentIndex_].path);
+}
+
+std::span<const std::string_view> MeshEditor::GetExtensions() const
+{
+    static constexpr std::array<std::string_view, 1> extensions = { ".mesh" };
+    return std::span{ extensions };
 }
 }

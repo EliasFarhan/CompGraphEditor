@@ -16,10 +16,9 @@ struct MaterialInfo
     ResourceId pipelineId = INVALID_RESOURCE_ID;
 };
 
-class MaterialEditor : public EditorSystem
+class MaterialEditor final : public EditorSystem
 {
 public:
-    bool CheckExtensions(std::string_view extension) override;
 
     void DrawMainView() override;
 
@@ -42,6 +41,8 @@ public:
     const auto& GetMaterials() const { return materialInfos_; }
     void ReloadId() override;
     void Delete() override;
+
+    [[nodiscard]] std::span<const std::string_view> GetExtensions() const override;
 private:
     void ReloadMaterialPipeline(const PipelineInfo& pipelineInfo, int materialIndex);
     std::vector<MaterialInfo> materialInfos_;

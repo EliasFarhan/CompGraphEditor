@@ -18,13 +18,12 @@ struct CommandInfo
     ResourceId meshId = INVALID_RESOURCE_ID;
 };
 
-class CommandEditor : public EditorSystem
+class CommandEditor final : public EditorSystem
 {
 public:
     void AddResource(const Resource& resource) override;
     void RemoveResource(const Resource& resource) override;
     void UpdateExistingResource(const Resource& resource) override;
-    bool CheckExtensions(std::string_view extension) override;
     void DrawMainView() override;
     void DrawInspector() override;
     bool DrawContentList(bool unfocus) override;
@@ -36,6 +35,7 @@ public:
     const CommandInfo* GetCommand(ResourceId resourceId) const;
     void ReloadId() override;
     void Delete() override;
+    [[nodiscard]] std::span<const std::string_view> GetExtensions() const override;
 private:
     std::vector<CommandInfo> commandInfos_;
     std::size_t currentIndex_ = -1;

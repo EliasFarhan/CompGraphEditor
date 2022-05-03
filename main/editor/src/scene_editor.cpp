@@ -78,11 +78,6 @@ void SceneEditor::UpdateExistingResource(const Resource& resource)
 {
 }
 
-bool SceneEditor::CheckExtensions(std::string_view extension)
-{
-    return extension == ".scene";
-}
-
 void SceneEditor::DrawMainView()
 {
 }
@@ -246,7 +241,7 @@ bool SceneEditor::ExportScene()
     const auto* materialEditor = dynamic_cast<MaterialEditor*>(editor->GetEditorSystem(EditorType::MATERIAL));
     const auto* pipelineEditor = dynamic_cast<PipelineEditor*>(editor->GetEditorSystem(EditorType::PIPELINE));
     const auto* shaderEditor = dynamic_cast<ShaderEditor*>(editor->GetEditorSystem(EditorType::SHADER));
-    const auto* meshEditor = dynamic_cast<MeshEditor*>(editor->GetEditorSystem(EditorType::MODEL));
+    const auto* meshEditor = dynamic_cast<MeshEditor*>(editor->GetEditorSystem(EditorType::MESH));
     const auto* scriptEditor = dynamic_cast<ScriptEditor*>(editor->GetEditorSystem(EditorType::SCRIPT));
     const auto* textureEditor = dynamic_cast<TextureEditor*>(editor->GetEditorSystem(EditorType::TEXTURE));
     //TODO reload all editors to get all correct resourceId
@@ -490,5 +485,11 @@ void SceneEditor::Delete()
     auto* editor = Editor::GetInstance();
     auto& resourceManager = editor->GetResourceManager();
     resourceManager.RemoveResource(sceneInfos_[currentIndex_].path);
+}
+
+std::span<const std::string_view> SceneEditor::GetExtensions() const
+{
+    static constexpr std::array<std::string_view, 1> extensions = { ".scene" };
+    return std::span{ extensions };
 }
 }

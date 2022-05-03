@@ -18,10 +18,9 @@ struct RenderPassInfo
     ResourceId resourceId = INVALID_RESOURCE_ID;
 };
 
-class RenderPassEditor : public EditorSystem
+class RenderPassEditor final : public EditorSystem
 {
 public:
-    bool CheckExtensions(std::string_view extension) override;
 
     void DrawMainView() override;
 
@@ -44,6 +43,7 @@ public:
     const RenderPassInfo* GetRenderPass(ResourceId resourceId) const;
     void ReloadId() override;
     void Delete() override;
+    std::span<const std::string_view> GetExtensions() const override;
 private:
     std::vector<RenderPassInfo> renderPassInfos_;
     std::size_t currentIndex_ = -1;

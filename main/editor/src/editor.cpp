@@ -2,6 +2,7 @@
 #include "shader_editor.h"
 #include "utils/log.h"
 #include <imgui.h>
+#include <imgui_stdlib.h>
 #include <SDL.h>
 #include <pybind11/embed.h>
 #include <fmt/format.h>
@@ -14,6 +15,7 @@
 #include "mesh_editor.h"
 #include "render_pass_editor.h"
 #include "command_editor.h"
+#include "model_editor.h"
 #include "scene_editor.h"
 #include "script_editor.h"
 #include "texture_editor.h"
@@ -29,12 +31,13 @@ void Editor::Begin()
     editorSystems_[static_cast<std::size_t>(EditorType::SHADER)] = std::make_unique<ShaderEditor>();
     editorSystems_[static_cast<std::size_t>(EditorType::PIPELINE)] = std::make_unique<PipelineEditor>();
     editorSystems_[static_cast<std::size_t>(EditorType::MATERIAL)] = std::make_unique<MaterialEditor>();
-    editorSystems_[static_cast<std::size_t>(EditorType::MODEL)] = std::make_unique<MeshEditor>();
+    editorSystems_[static_cast<std::size_t>(EditorType::MESH)] = std::make_unique<MeshEditor>();
     editorSystems_[static_cast<std::size_t>(EditorType::RENDER_PASS)] = std::make_unique<RenderPassEditor>();
     editorSystems_[static_cast<std::size_t>(EditorType::COMMAND)] = std::make_unique<CommandEditor>();
     editorSystems_[static_cast<std::size_t>(EditorType::SCENE)] = std::make_unique<SceneEditor>();
     editorSystems_[static_cast<std::size_t>(EditorType::SCRIPT)] = std::make_unique<ScriptEditor>();
     editorSystems_[static_cast<std::size_t>(EditorType::TEXTURE)] = std::make_unique<TextureEditor>();
+    editorSystems_[static_cast<std::size_t>(EditorType::MODEL)] = std::make_unique<ModelEditor>();
     
     resourceManager_.RegisterResourceChange(this);
     py::initialize_interpreter();
@@ -102,6 +105,15 @@ void Editor::End()
     ImNodes::DestroyContext();
 }
 
+
+void Editor::OpenMenuCreateNewFile(EditorType editorType)
+{
+    ImGui::OpenPopup("Create New File");
+    currentCreateFileSystem_ = editorType;
+    currentExtensionCreateFileIndex_ = 0;
+    newCreateFilename_.clear();
+}
+
 void Editor::SaveProject()
 {
     for(auto& editor : editorSystems_)
@@ -121,7 +133,7 @@ void Editor::DrawMenuBar()
         {
             if (ImGui::MenuItem("Open"))
             {
-                OpenFileBrowserDialog(FileBrowserMode::OPEN_FILE);
+                OpenFileBrowserDialog({});
             }
             if(ImGui::MenuItem("Save"))
             {
@@ -135,6 +147,141 @@ void Editor::DrawMenuBar()
         }
         ImGui::EndMainMenuBar();
     }
+}
+
+void Editor::CreateNewFile(std::string_view path)
+{
+    const auto& filesystem = FilesystemLocator::get();
+    switch (currentCreateFileSystem_)
+    {
+    case EditorType::SHADER:
+    {
+        filesystem.WriteString(path, "#version 310 es\nprecision highp float;\nvoid main() {}");
+        resourceManager_.AddResource(path);
+        break;
+    }
+    case EditorType::PIPELINE:
+    {
+        const pb::Pipeline emptyPipeline;
+        filesystem.WriteString(path, emptyPipeline.SerializeAsString());
+        resourceManager_.AddResource(path);
+        break;
+    }
+    case EditorType::MESH: 
+    {
+        const pb::Mesh emptyMesh;
+        filesystem.WriteString(path, emptyMesh.SerializeAsString());
+        resourceManager_.AddResource(path);
+        break;
+    }
+    case EditorType::MATERIAL: 
+    {
+        const pb::Material emptyMaterial;
+        filesystem.WriteString(path, emptyMaterial.SerializeAsString());
+        resourceManager_.AddResource(path);
+        break;
+    }
+    case EditorType::SCENE:
+    {
+        pb::Scene emptyScene;
+        filesystem.WriteString(path, emptyScene.SerializeAsString());
+        resourceManager_.AddResource(path);
+        break;
+    }
+    case EditorType::RENDER_PASS:
+    {
+        const pb::RenderPass emptyRenderPass;
+        filesystem.WriteString(path, emptyRenderPass.SerializeAsString());
+        resourceManager_.AddResource(path);
+        break;
+    }
+    case EditorType::COMMAND:
+    {
+        pb::DrawCommand emptyDrawCommand;
+        filesystem.WriteString(path, emptyDrawCommand.SerializeAsString());
+        resourceManager_.AddResource(path);
+        break;
+    }
+    case EditorType::SCRIPT: 
+    {
+        filesystem.WriteString(path, "import gpr5300\n");
+        resourceManager_.AddResource(path);
+        break;
+    }
+    default: 
+        break;
+    }
+}
+
+bool Editor::UpdateCreateNewFile()
+{
+    if (ImGui::BeginPopupModal("Create New File"))
+    {
+        const auto& filesystem = FilesystemLocator::get();
+        auto* editorSystem = editorSystems_[static_cast<int>(currentCreateFileSystem_)].get();
+        const auto extensions = editorSystem->GetExtensions();
+
+        ImGui::InputText("Filename", &newCreateFilename_);
+        std::string actualFilename = newCreateFilename_;
+        if(actualFilename.empty())
+        {
+            ImGui::TextColored(ImVec4(1, 0, 0, 1), "Empty filename");
+            if (ImGui::Button("Close"))
+            {
+                ImGui::CloseCurrentPopup();
+            }
+            ImGui::EndPopup();
+            return false;
+        }
+        if (!editorSystem->CheckExtensions(GetFileExtension(actualFilename)))
+        {
+            if (extensions.size() > 1)
+            {
+                if (ImGui::BeginCombo("Extension", extensions[currentExtensionCreateFileIndex_].data()))
+                {
+                    for(std::size_t i = 0; i < extensions.size();i++)
+                    {
+                        if(ImGui::Selectable(extensions[i].data(), i == currentExtensionCreateFileIndex_))
+                        {
+                            currentExtensionCreateFileIndex_ = i;
+                        }
+                    }
+                    ImGui::EndCombo();
+                }
+                actualFilename += extensions[currentExtensionCreateFileIndex_];
+            }
+            else
+            {
+                actualFilename += extensions[0];
+            }
+        }
+        const auto path = fmt::format("{}{}{}", 
+            ResourceManager::dataFolder, 
+            editorSystem->GetSubFolder(), 
+            actualFilename);
+        
+        if (!filesystem.FileExists(path))
+        {
+            ImGui::Text("%s", path.c_str());
+            if (ImGui::Button("Confirm"))
+            {
+                CreateNewFile(path);
+                ImGui::CloseCurrentPopup();
+                ImGui::EndPopup();
+                return true;
+            }
+        }
+        else
+        {
+            ImGui::TextColored(ImVec4(1, 0, 0, 1), "File Exists: %s", path.c_str());
+        }
+        if(ImGui::Button("Close"))
+        {
+            ImGui::CloseCurrentPopup();
+        }
+        ImGui::EndPopup();
+    }
+    return false;
 }
 
 void Editor::DrawCenterView()
@@ -162,11 +309,11 @@ void Editor::DrawCenterView()
             editorSystems_[static_cast<int>(EditorType::MATERIAL)]->DrawMainView();
             ImGui::EndTabItem();
         }
-        flag = currentFocusedSystem_ == EditorType::MODEL ? ImGuiTabItemFlags_SetSelected : ImGuiTabItemFlags_None;
+        flag = currentFocusedSystem_ == EditorType::MESH ? ImGuiTabItemFlags_SetSelected : ImGuiTabItemFlags_None;
 
         if (ImGui::BeginTabItem("Mesh", nullptr, flag))
         {
-            editorSystems_[static_cast<int>(EditorType::MODEL)]->DrawMainView();
+            editorSystems_[static_cast<int>(EditorType::MESH)]->DrawMainView();
             ImGui::EndTabItem();
         }
         flag = currentFocusedSystem_ == EditorType::RENDER_PASS ? ImGuiTabItemFlags_SetSelected : ImGuiTabItemFlags_None;
@@ -185,7 +332,7 @@ void Editor::DrawCenterView()
         }
         flag = currentFocusedSystem_ == EditorType::SCENE ? ImGuiTabItemFlags_SetSelected : ImGuiTabItemFlags_None;
 
-        if (ImGui::BeginTabItem("Command", nullptr, flag))
+        if (ImGui::BeginTabItem("Scene", nullptr, flag))
         {
             editorSystems_[static_cast<int>(EditorType::SCENE)]->DrawMainView();
             ImGui::EndTabItem();
@@ -193,17 +340,25 @@ void Editor::DrawCenterView()
 
         flag = currentFocusedSystem_ == EditorType::SCRIPT ? ImGuiTabItemFlags_SetSelected : ImGuiTabItemFlags_None;
 
-        if (ImGui::BeginTabItem("Scripts", nullptr, flag))
+        if (ImGui::BeginTabItem("Script", nullptr, flag))
         {
             editorSystems_[static_cast<int>(EditorType::SCRIPT)]->DrawMainView();
             ImGui::EndTabItem();
         }
 
-        flag = currentFocusedSystem_ == EditorType::SCRIPT ? ImGuiTabItemFlags_SetSelected : ImGuiTabItemFlags_None;
+        flag = currentFocusedSystem_ == EditorType::TEXTURE ? ImGuiTabItemFlags_SetSelected : ImGuiTabItemFlags_None;
 
-        if (ImGui::BeginTabItem("Textures", nullptr, flag))
+        if (ImGui::BeginTabItem("Texture", nullptr, flag))
         {
             editorSystems_[static_cast<int>(EditorType::TEXTURE)]->DrawMainView();
+            ImGui::EndTabItem();
+        }
+
+        flag = currentFocusedSystem_ == EditorType::MODEL ? ImGuiTabItemFlags_SetSelected : ImGuiTabItemFlags_None;
+
+        if (ImGui::BeginTabItem("Model", nullptr, flag))
+        {
+            editorSystems_[static_cast<int>(EditorType::MODEL)]->DrawMainView();
             ImGui::EndTabItem();
         }
 
@@ -230,140 +385,13 @@ void Editor::UpdateFileDialog()
 
     if (fileDialog_.HasSelected())
     {
-        const auto& filesystem = FilesystemLocator::get();
         const auto path = fs::relative(fileDialog_.GetSelected()).string();
-        switch(fileBrowserMode_)
-        {
-        case FileBrowserMode::OPEN_FILE:
-        {
-            LogDebug(fmt::format("Selected filename: {}", path));
-            LoadFileIntoEditor(path);
-            break;
-        }
-        case FileBrowserMode::CREATE_NEW_SHADER:
-        {
-            const auto extension = GetFileExtension(path);
-            if (!editorSystems_[(int) EditorType::SHADER]->CheckExtensions(extension))
-            {
-                LogWarning(fmt::format("Invalid extension name for newly created shader: {} path: {}",
-                                       extension,
-                                       path));
-                break;
-            }
 
-            filesystem.WriteString(path, "#version 310 es\nprecision highp float;\nvoid main() {}");
-            resourceManager_.AddResource(path);
-            break;
-        }
-        case FileBrowserMode::CREATE_NEW_PIPELINE:
-        {
-            const auto extension = GetFileExtension(path);
-            if (!editorSystems_[(int) EditorType::PIPELINE]->CheckExtensions(extension))
-            {
-                LogWarning(fmt::format("Invalid extension name for newly created pipeline: {} path: {}",
-                                       extension,
-                                       path));
-                break;
-            }
-            pb::Pipeline emptyPipeline;
-            filesystem.WriteString(path, emptyPipeline.SerializeAsString());
-            resourceManager_.AddResource(path);
-            break;
-        }
-        case FileBrowserMode::CREATE_NEW_MATERIAL:
-        {
-            const auto extension = GetFileExtension(path);
-            if (!editorSystems_[(int) EditorType::MATERIAL]->CheckExtensions(extension))
-            {
-                LogWarning(fmt::format("Invalid extension name for newly created pipeline: {} path: {}",
-                                       extension,
-                                       path));
-                break;
-            }
-            pb::Material emptyMaterial;
-            filesystem.WriteString(path, emptyMaterial.SerializeAsString());
-            resourceManager_.AddResource(path);
-            break;
-        }
-        case FileBrowserMode::CREATE_NEW_MESH:
-        {
-            const auto extension = GetFileExtension(path);
-            if (!editorSystems_[(int) EditorType::MODEL]->CheckExtensions(extension))
-            {
-                LogWarning(fmt::format("Invalid extension name for newly created mesh: {} path: {}",
-                                       extension,
-                                       path));
-                break;
-            }
-            pb::Mesh emptyMesh;
-            filesystem.WriteString(path, emptyMesh.SerializeAsString());
-            resourceManager_.AddResource(path);
-            break;
-        }
-        case FileBrowserMode::CREATE_NEW_RENDER_PASS:
-        {
-            const auto extension = GetFileExtension(path);
-            if (!editorSystems_[static_cast<int>(EditorType::RENDER_PASS)]->CheckExtensions(extension))
-            {
-                LogWarning(fmt::format("Invalid extension name for newly created mesh: {} path: {}",
-                    extension,
-                    path));
-                break;
-            }
-            pb::RenderPass emptyRenderPass;
-            filesystem.WriteString(path, emptyRenderPass.SerializeAsString());
-            resourceManager_.AddResource(path);
-            break;
-        }
-        case FileBrowserMode::CREATE_NEW_COMMAND:
-        {
-            const auto extension = GetFileExtension(path);
-            if (!editorSystems_[static_cast<int>(EditorType::COMMAND)]->CheckExtensions(extension))
-            {
-                LogWarning(fmt::format("Invalid extension name for newly created command: {} path: {}",
-                    extension,
-                    path));
-                break;
-            }
-            pb::DrawCommand emptyDrawCommand;
-            filesystem.WriteString(path, emptyDrawCommand.SerializeAsString());
-            resourceManager_.AddResource(path);
-            break;
-        }
-        case FileBrowserMode::CREATE_NEW_SCENE:
-        {
-            const auto extension = GetFileExtension(path);
-            if (!editorSystems_[static_cast<int>(EditorType::SCENE)]->CheckExtensions(extension))
-            {
-                LogWarning(fmt::format("Invalid extension name for newly created scene: {} path: {}",
-                    extension,
-                    path));
-                break;
-            }
-            pb::Scene emptyScene;
-            filesystem.WriteString(path, emptyScene.SerializeAsString());
-            resourceManager_.AddResource(path);
-            break;
-        }
-        case FileBrowserMode::CREATE_NEW_SCRIPT:
-        {
-            const auto extension = GetFileExtension(path);
-            if (!editorSystems_[static_cast<int>(EditorType::SCRIPT)]->CheckExtensions(extension))
-            {
-                LogWarning(fmt::format("Invalid extension name for newly created script: {} path: {}",
-                    extension,
-                    path));
-                break;
-            }
-            filesystem.WriteString(path, "import gpr5300\n");
-            resourceManager_.AddResource(path);
-            break;
-        }
-        default:
-            break;
-        }
+        LogDebug(fmt::format("Selected filename: {}", path));
+        LoadFileIntoEditor(path);
         fileDialog_.ClearSelected();
     }
+    
 }
 void Editor::DrawLogWindow()
 {
@@ -425,7 +453,7 @@ void Editor::OnEvent(SDL_Event& event)
         {
             if (state[SDL_SCANCODE_LCTRL])
             {
-                OpenFileBrowserDialog(FileBrowserMode::OPEN_FILE);
+                OpenFileBrowserDialog({});
             }
             break;
         }
@@ -475,8 +503,15 @@ void Editor::DrawEditorContent()
     {
         if(ImGui::Button("Create New Shader"))
         {
-            OpenFileBrowserDialog(FileBrowserMode::CREATE_NEW_SHADER);
+            OpenMenuCreateNewFile(EditorType::SHADER);
+        }
+        if(UpdateCreateNewFile())
+        {
             ImGui::CloseCurrentPopup();
+        }
+        if(ImGui::Button("Import Shader"))
+        {
+            OpenFileBrowserDialog(editorSystems_[static_cast<int>(EditorType::SHADER)]->GetExtensions());
         }
         ImGui::EndPopup();
     }
@@ -495,7 +530,10 @@ void Editor::DrawEditorContent()
     {
         if (ImGui::Button("Create New Pipeline"))
         {
-            OpenFileBrowserDialog(FileBrowserMode::CREATE_NEW_PIPELINE);
+            OpenMenuCreateNewFile(EditorType::PIPELINE);
+        }
+        if (UpdateCreateNewFile())
+        {
             ImGui::CloseCurrentPopup();
         }
         ImGui::EndPopup();
@@ -515,7 +553,10 @@ void Editor::DrawEditorContent()
     {
         if (ImGui::Button("Create New Material"))
         {
-            OpenFileBrowserDialog(FileBrowserMode::CREATE_NEW_MATERIAL);
+            OpenMenuCreateNewFile(EditorType::MATERIAL);
+        }
+        if(UpdateCreateNewFile())
+        {
             ImGui::CloseCurrentPopup();
         }
         ImGui::EndPopup();
@@ -535,17 +576,20 @@ void Editor::DrawEditorContent()
     {
         if (ImGui::Button("Create New Mesh"))
         {
-            OpenFileBrowserDialog(FileBrowserMode::CREATE_NEW_MESH);
+            OpenMenuCreateNewFile(EditorType::MESH);
+        }
+        if (UpdateCreateNewFile())
+        {
             ImGui::CloseCurrentPopup();
         }
         ImGui::EndPopup();
     }
     if(open)
     {
-        if (editorSystems_[static_cast<int>(EditorType::MODEL)]
-                ->DrawContentList(currentFocusedSystem_ != EditorType::MODEL))
+        if (editorSystems_[static_cast<int>(EditorType::MESH)]
+                ->DrawContentList(currentFocusedSystem_ != EditorType::MESH))
         {
-            currentFocusedSystem_ = EditorType::MODEL;
+            currentFocusedSystem_ = EditorType::MESH;
         }
         ImGui::TreePop();
     }
@@ -555,7 +599,10 @@ void Editor::DrawEditorContent()
     {
         if (ImGui::Button("Create New Render Pass"))
         {
-            OpenFileBrowserDialog(FileBrowserMode::CREATE_NEW_RENDER_PASS);
+            OpenMenuCreateNewFile(EditorType::RENDER_PASS);
+        }
+        if (UpdateCreateNewFile())
+        {
             ImGui::CloseCurrentPopup();
         }
         ImGui::EndPopup();
@@ -575,7 +622,10 @@ void Editor::DrawEditorContent()
     {
         if (ImGui::Button("Create New Command"))
         {
-            OpenFileBrowserDialog(FileBrowserMode::CREATE_NEW_COMMAND);
+            OpenMenuCreateNewFile(EditorType::COMMAND);
+        }
+        if (UpdateCreateNewFile())
+        {
             ImGui::CloseCurrentPopup();
         }
         ImGui::EndPopup();
@@ -595,7 +645,10 @@ void Editor::DrawEditorContent()
     {
         if (ImGui::Button("Create New Scene"))
         {
-            OpenFileBrowserDialog(FileBrowserMode::CREATE_NEW_SCENE);
+            OpenMenuCreateNewFile(EditorType::SCENE);
+        }
+        if (UpdateCreateNewFile())
+        {
             ImGui::CloseCurrentPopup();
         }
         ImGui::EndPopup();
@@ -615,8 +668,16 @@ void Editor::DrawEditorContent()
     {
         if (ImGui::Button("Create New Script"))
         {
-            OpenFileBrowserDialog(FileBrowserMode::CREATE_NEW_SCRIPT);
+            OpenMenuCreateNewFile(EditorType::SCRIPT);
+        }
+
+        if (UpdateCreateNewFile())
+        {
             ImGui::CloseCurrentPopup();
+        }
+        if (ImGui::Button("Import Script"))
+        {
+            OpenFileBrowserDialog(editorSystems_[static_cast<int>(EditorType::SCRIPT)]->GetExtensions());
         }
         ImGui::EndPopup();
     }
@@ -631,6 +692,14 @@ void Editor::DrawEditorContent()
     }
 
     open = ImGui::TreeNode("Textures");
+    if (ImGui::BeginPopupContextItem())
+    {
+        if (ImGui::Button("Import Textures"))
+        {
+            OpenFileBrowserDialog(editorSystems_[static_cast<int>(EditorType::TEXTURE)]->GetExtensions());
+        }
+        ImGui::EndPopup();
+    }
     if (open)
     {
         if (editorSystems_[static_cast<int>(EditorType::TEXTURE)]
@@ -640,6 +709,26 @@ void Editor::DrawEditorContent()
         }
         ImGui::TreePop();
     }
+
+    open = ImGui::TreeNode("Models");
+    if (ImGui::BeginPopupContextItem())
+    {
+        if (ImGui::Button("Import Models"))
+        {
+            OpenFileBrowserDialog(editorSystems_[static_cast<int>(EditorType::MODEL)]->GetExtensions());
+        }
+        ImGui::EndPopup();
+    }
+    if (open)
+    {
+        if (editorSystems_[static_cast<int>(EditorType::MODEL)]
+            ->DrawContentList(currentFocusedSystem_ != EditorType::MODEL))
+        {
+            currentFocusedSystem_ = EditorType::MODEL;
+        }
+        ImGui::TreePop();
+    }
+
     ImGui::End();
 }
 
@@ -687,107 +776,16 @@ EditorSystem* Editor::FindEditorSystem(std::string_view path) const
     }
     return editorSystem;
 }
-void Editor::OpenFileBrowserDialog(Editor::FileBrowserMode mode)
+void Editor::OpenFileBrowserDialog(std::span<const std::string_view> extensions)
 {
-    switch(mode)
+    std::vector<std::string> args;
+    args.reserve(extensions.size());
+    for(std::size_t i = 0; i < extensions.size(); i++)
     {
-    case FileBrowserMode::OPEN_FILE:
-    {
-        fileBrowserMode_ = FileBrowserMode::OPEN_FILE;
-        fileDialog_ = ImGui::FileBrowser();
-        fileDialog_.Open();
-        break;
+        args.push_back(extensions[i].data());
     }
-    case FileBrowserMode::CREATE_NEW_SHADER:
-    {
-        fileBrowserMode_ = FileBrowserMode::CREATE_NEW_SHADER;
-        fileDialog_ = ImGui::FileBrowser(ImGuiFileBrowserFlags_EnterNewFilename|ImGuiFileBrowserFlags_CreateNewDir);
-        const auto shaderPath = fmt::format("{}{}", ResourceManager::dataFolder, editorSystems_[(int)EditorType::SHADER]->GetSubFolder());
-        fileDialog_.SetPwd(shaderPath);
-        fileDialog_.SetTypeFilters({".vert", ".frag", ".comp"});
-        fileDialog_.Open();
-        break;
-    }
-        case FileBrowserMode::CREATE_NEW_PIPELINE:
-    {
-        fileBrowserMode_ = FileBrowserMode::CREATE_NEW_PIPELINE;
-        fileDialog_ = ImGui::FileBrowser(ImGuiFileBrowserFlags_EnterNewFilename | ImGuiFileBrowserFlags_CreateNewDir);
-        const auto pipelinePath = fmt::format("{}{}",
-                                              ResourceManager::dataFolder,
-                                              editorSystems_[static_cast<int>(EditorType::PIPELINE)]->GetSubFolder());
-        fileDialog_.SetPwd(pipelinePath);
-        fileDialog_.SetTypeFilters({ ".pipe" });
-        fileDialog_.Open();
-        break;
-    }
-    case FileBrowserMode::CREATE_NEW_MATERIAL:
-    {
-        fileBrowserMode_ = FileBrowserMode::CREATE_NEW_MATERIAL;
-        fileDialog_ = ImGui::FileBrowser(ImGuiFileBrowserFlags_EnterNewFilename | ImGuiFileBrowserFlags_CreateNewDir);
-        const auto materialPath = fmt::format("{}{}", ResourceManager::dataFolder,
-                                              editorSystems_[static_cast<int>(EditorType::MATERIAL)]->GetSubFolder());
-        fileDialog_.SetPwd(materialPath);
-        fileDialog_.SetTypeFilters({ ".mat" });
-        fileDialog_.Open();
-        break;
-    }
-    case FileBrowserMode::CREATE_NEW_MESH:
-    {
-        fileBrowserMode_ = FileBrowserMode::CREATE_NEW_MESH;
-        fileDialog_ = ImGui::FileBrowser(ImGuiFileBrowserFlags_EnterNewFilename | ImGuiFileBrowserFlags_CreateNewDir);
-        const auto modelPath = fmt::format("{}{}", ResourceManager::dataFolder,
-                                              editorSystems_[static_cast<int>(EditorType::MODEL)]->GetSubFolder());
-        fileDialog_.SetPwd(modelPath);
-        fileDialog_.SetTypeFilters({ ".mesh" });
-        fileDialog_.Open();
-        break;
-    }
-    case FileBrowserMode::CREATE_NEW_RENDER_PASS:
-    {
-        fileBrowserMode_ = FileBrowserMode::CREATE_NEW_RENDER_PASS;
-        fileDialog_ = ImGui::FileBrowser(ImGuiFileBrowserFlags_EnterNewFilename | ImGuiFileBrowserFlags_CreateNewDir);
-        const auto modelPath = fmt::format("{}{}", ResourceManager::dataFolder,
-            editorSystems_[static_cast<int>(EditorType::RENDER_PASS)]->GetSubFolder());
-        fileDialog_.SetPwd(modelPath);
-        fileDialog_.SetTypeFilters({ ".r_pass" });
-        fileDialog_.Open();
-        break;
-    }
-    case FileBrowserMode::CREATE_NEW_COMMAND:
-    {
-        fileBrowserMode_ = FileBrowserMode::CREATE_NEW_COMMAND;
-        fileDialog_ = ImGui::FileBrowser(ImGuiFileBrowserFlags_EnterNewFilename | ImGuiFileBrowserFlags_CreateNewDir);
-        const auto modelPath = fmt::format("{}{}", ResourceManager::dataFolder,
-            editorSystems_[static_cast<int>(EditorType::COMMAND)]->GetSubFolder());
-        fileDialog_.SetPwd(modelPath);
-        fileDialog_.SetTypeFilters({ ".cmd" });
-        fileDialog_.Open();
-        break;
-    }
-    case FileBrowserMode::CREATE_NEW_SCENE:
-    {
-        fileBrowserMode_ = FileBrowserMode::CREATE_NEW_SCENE;
-        fileDialog_ = ImGui::FileBrowser(ImGuiFileBrowserFlags_EnterNewFilename | ImGuiFileBrowserFlags_CreateNewDir);
-        const auto scenePath = fmt::format("{}{}", ResourceManager::dataFolder,
-            editorSystems_[static_cast<int>(EditorType::SCENE)]->GetSubFolder());
-        fileDialog_.SetPwd(scenePath);
-        fileDialog_.SetTypeFilters({ ".scene" });
-        fileDialog_.Open();
-        break;
-    }
-    case FileBrowserMode::CREATE_NEW_SCRIPT:
-    {
-        fileBrowserMode_ = FileBrowserMode::CREATE_NEW_SCRIPT;
-        fileDialog_ = ImGui::FileBrowser(ImGuiFileBrowserFlags_EnterNewFilename | ImGuiFileBrowserFlags_CreateNewDir);
-        const auto scriptPath = fmt::format("{}{}", ResourceManager::dataFolder,
-            editorSystems_[static_cast<int>(EditorType::SCRIPT)]->GetSubFolder());
-        fileDialog_.SetPwd(scriptPath);
-        fileDialog_.SetTypeFilters({ ".py" });
-        fileDialog_.Open();
-        break;
-    }
-    default:
-        break;
-    }
+    fileDialog_ = ImGui::FileBrowser();
+    fileDialog_.SetTypeFilters(args);
+    fileDialog_.Open();
 }
 }

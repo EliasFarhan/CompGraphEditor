@@ -15,12 +15,7 @@
 
 namespace gpr5300
 {
-
-
-    bool RenderPassEditor::CheckExtensions(std::string_view extension)
-    {
-        return extension == ".r_pass";
-    }
+    
 
     void RenderPassEditor::DrawMainView() {
 
@@ -237,5 +232,11 @@ namespace gpr5300
         auto* editor = Editor::GetInstance();
         auto& resourceManager = editor->GetResourceManager();
         resourceManager.RemoveResource(renderPassInfos_[currentIndex_].path);
+    }
+
+    std::span<const std::string_view> RenderPassEditor::GetExtensions() const
+    {
+        static constexpr std::array<std::string_view, 1> extensions = { ".r_pass" };
+        return std::span{ extensions };
     }
 }

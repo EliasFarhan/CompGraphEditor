@@ -73,10 +73,7 @@ void CommandEditor::UpdateExistingResource(const Resource& resource)
 {
 }
 
-bool CommandEditor::CheckExtensions(std::string_view extension)
-{
-    return extension == ".cmd";
-}
+
 
 void CommandEditor::DrawMainView()
 {
@@ -90,7 +87,7 @@ void CommandEditor::DrawInspector()
     }
     const auto* editor = Editor::GetInstance();
     const auto* materialEditor = dynamic_cast<MaterialEditor*>(editor->GetEditorSystem(EditorType::MATERIAL));
-    const auto* meshEditor = dynamic_cast<MeshEditor*>(editor->GetEditorSystem(EditorType::MODEL));
+    const auto* meshEditor = dynamic_cast<MeshEditor*>(editor->GetEditorSystem(EditorType::MESH));
     auto& currentCommand = commandInfos_[currentIndex_];
 
     
@@ -245,5 +242,11 @@ void CommandEditor::Delete()
     auto* editor = Editor::GetInstance();
     auto& resourceManager = editor->GetResourceManager();
     resourceManager.RemoveResource(commandInfos_[currentIndex_].path);
+}
+
+std::span<const std::string_view> CommandEditor::GetExtensions() const
+{
+    static constexpr std::array<std::string_view, 1> extensions = { ".cmd" };
+    return std::span{ extensions };
 }
 } // namespace gpr5300

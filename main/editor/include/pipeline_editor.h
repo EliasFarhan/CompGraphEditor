@@ -1,5 +1,6 @@
 #pragma once
 #include "editor_system.h"
+#include "proto/renderer.pb.h"
 
 namespace gpr5300
 {
@@ -14,10 +15,9 @@ struct PipelineInfo
     ResourceId fragmentShaderId = INVALID_RESOURCE_ID;
 };
 
-class PipelineEditor : public EditorSystem
+class PipelineEditor final : public EditorSystem
 {
 public:
-    bool CheckExtensions(std::string_view extension) override;
     void DrawMainView() override;
     void DrawInspector() override;
     bool DrawContentList(bool unfocus = false) override;
@@ -31,6 +31,7 @@ public:
     const auto& GetPipelines() const{ return pipelineInfos_;}
     void ReloadId() override;
     void Delete() override;
+    [[nodiscard]] std::span<const std::string_view> GetExtensions() const override;
 private:
     void ReloadPipeline(int index);
     std::vector<PipelineInfo> pipelineInfos_;

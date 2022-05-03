@@ -8,6 +8,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <fmt/format.h>
 
+#include "engine/filesystem.h"
 #include "renderer/pipeline.h"
 #include "engine/scene.h"
 #include "engine/engine.h"
@@ -159,7 +160,7 @@ namespace gpr5300
 void PyManager::Begin()
 {
     py::initialize_interpreter();
-    //auto module = py::module_::import("gpr5300");
+    //
 }
 
 void PyManager::Update(float dt)
@@ -201,22 +202,24 @@ Script* PyManager::LoadScript(std::string_view path, std::string_view module, st
     }
     catch (pybind11::error_already_set& e)
     {
-        try
+        /*try
         {
             const auto scriptFile = filesystem.LoadFile(path);
             const auto locals = py::dict();
-            py::eval(reinterpret_cast<const char*>(scriptFile.data), py::globals(), locals);
+            py::exec(reinterpret_cast<const char*>(scriptFile.data), 
+                py::globals(), 
+                locals);
             const auto classObject = locals[className.data()];
             auto newObject = classObject();
             auto* newSystem = newObject.cast<Script*>();
-            newSystem->Begin();
             pySystems_.push_back(std::move(newObject));
+            newSystem->Begin();
             return newSystem;
         }
         catch(pybind11::error_already_set& e)
-        {
+        {*/
             LogError(fmt::format("{}", e.what()));
-        }
+        //}
         return nullptr;
     }
 

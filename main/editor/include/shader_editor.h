@@ -14,13 +14,12 @@ struct ShaderInfo
     bool compiledCorrectly = true;
 };
 
-class ShaderEditor : public EditorSystem
+class ShaderEditor final : public EditorSystem
 {
 public:
     void AddResource(const Resource &resource) override;
     void RemoveResource(const Resource &resource) override;
     void UpdateExistingResource(const Resource &resource) override;
-    bool CheckExtensions(std::string_view extension) override;
     void DrawMainView() override;
     void DrawInspector() override;
     std::string_view GetSubFolder() override;
@@ -30,7 +29,8 @@ public:
     const ShaderInfo* GetShader(ResourceId resourceId) const;
     [[nodiscard]] const auto& GetShaders() const { return shaderInfos_; }
     void ReloadId() override{}
-    void Delete() override;
+    void Delete() override; std::span<const std::string_view> GetExtensions() const override;
+
 private:
     bool AnalyzeShader(std::string_view path, pb::Shader& shaderInfo);
     static pb::Attribute::Type GetType(std::string_view attributeTypeString);

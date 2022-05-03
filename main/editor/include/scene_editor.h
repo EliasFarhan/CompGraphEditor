@@ -16,13 +16,12 @@ struct SceneInfo
     ResourceId renderPassId = INVALID_RESOURCE_ID;
 };
 
-class SceneEditor : public EditorSystem
+class SceneEditor final : public EditorSystem
 {
 public:
     void AddResource(const Resource& resource) override;
     void RemoveResource(const Resource& resource) override;
     void UpdateExistingResource(const Resource& resource) override;
-    bool CheckExtensions(std::string_view extension) override;
     void DrawMainView() override;
     void DrawInspector() override;
     bool DrawContentList(bool unfocus) override;
@@ -32,6 +31,7 @@ public:
     bool ExportScene();
     void ReloadId() override;
     void Delete() override;
+    std::span<const std::string_view> GetExtensions() const override;
 private:
     std::vector<SceneInfo> sceneInfos_;
     std::size_t currentIndex_ = -1;

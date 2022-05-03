@@ -96,10 +96,6 @@ void ScriptEditor::UpdateExistingResource(const Resource& resource)
     }
 }
 
-bool ScriptEditor::CheckExtensions(std::string_view extension)
-{
-    return extension == ".py";
-}
 
 void ScriptEditor::DrawMainView()
 {
@@ -185,5 +181,11 @@ void ScriptEditor::Delete()
     auto* editor = Editor::GetInstance();
     auto& resourceManager = editor->GetResourceManager();
     resourceManager.RemoveResource(scriptInfos_[currentIndex_].info.path());
+}
+
+std::span<const std::string_view> ScriptEditor::GetExtensions() const
+{
+    static constexpr std::array<std::string_view, 1> extensions = { ".py" };
+    return std::span{ extensions };
 }
 } // namespace grp5300
