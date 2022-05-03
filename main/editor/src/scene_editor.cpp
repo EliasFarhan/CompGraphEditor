@@ -237,7 +237,7 @@ bool SceneEditor::ExportScene()
     auto* editor = Editor::GetInstance();
     const auto& resourceManager = editor->GetResourceManager();
     const auto* renderPassEditor = dynamic_cast<RenderPassEditor*>(editor->GetEditorSystem(EditorType::RENDER_PASS));
-    const auto* commandEditor = dynamic_cast<CommandEditor*>(editor->GetEditorSystem(EditorType::COMMAND));
+    auto* commandEditor = dynamic_cast<CommandEditor*>(editor->GetEditorSystem(EditorType::COMMAND));
     const auto* materialEditor = dynamic_cast<MaterialEditor*>(editor->GetEditorSystem(EditorType::MATERIAL));
     const auto* pipelineEditor = dynamic_cast<PipelineEditor*>(editor->GetEditorSystem(EditorType::PIPELINE));
     const auto* shaderEditor = dynamic_cast<ShaderEditor*>(editor->GetEditorSystem(EditorType::SHADER));
@@ -245,7 +245,7 @@ bool SceneEditor::ExportScene()
     const auto* scriptEditor = dynamic_cast<ScriptEditor*>(editor->GetEditorSystem(EditorType::SCRIPT));
     const auto* textureEditor = dynamic_cast<TextureEditor*>(editor->GetEditorSystem(EditorType::TEXTURE));
     //TODO reload all editors to get all correct resourceId
-
+    commandEditor->ReloadId();
     const auto& currentScene = sceneInfos_[currentIndex_];
     auto exportScene = sceneInfos_[currentIndex_];
     const auto pkgSceneName = exportScene.path + ".pkg";

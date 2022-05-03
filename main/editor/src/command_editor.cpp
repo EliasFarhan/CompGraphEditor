@@ -73,8 +73,6 @@ void CommandEditor::UpdateExistingResource(const Resource& resource)
 {
 }
 
-
-
 void CommandEditor::DrawMainView()
 {
 }
@@ -125,24 +123,11 @@ void CommandEditor::DrawInspector()
         currentCommand.info.set_automatic_draw(automaticDraw);
     }
 
+    UpdateMeshInCommand(currentIndex_);
     if(meshInfo != nullptr)
     {
         switch(meshInfo->info.primitve_type())
         {
-        case pb::Mesh_PrimitveType_QUAD:
-        {
-            currentCommand.info.set_draw_elements(true);
-            currentCommand.info.set_count(6);
-            break;
-        }
-        case pb::Mesh_PrimitveType_CUBE: 
-        {
-            currentCommand.info.set_draw_elements(true);
-            currentCommand.info.set_count(36);
-            break;
-        }
-        case pb::Mesh_PrimitveType_SPHERE: break;
-        case pb::Mesh_PrimitveType_MODEL: break;
         case pb::Mesh_PrimitveType_NONE:
         {
             int count = currentCommand.info.count();
@@ -157,7 +142,8 @@ void CommandEditor::DrawInspector()
             }
             break;
         }
-        default: break;
+        default:
+            break;
         }
     }
 }
@@ -230,6 +216,7 @@ void CommandEditor::ReloadId()
         {
             commandInfo.meshId = resourceManager.FindResourceByPath(commandInfo.info.mesh_path());
         }
+        UpdateMeshInCommand(std::distance(commandInfos_.data(), &commandInfo));
     }
 }
 
@@ -248,5 +235,32 @@ std::span<const std::string_view> CommandEditor::GetExtensions() const
 {
     static constexpr std::array<std::string_view, 1> extensions = { ".cmd" };
     return std::span{ extensions };
+}
+
+void CommandEditor::UpdateMeshInCommand(int index)
+{
+    auto& currentCommand = commandInfos_[index];
+    const auto* editor = Editor::GetInstance();
+    const auto* meshEditor = dynamic_cast<MeshEditor*>(editor->GetEditorSystem(EditorType::MESH));
+    const auto* meshInfo = meshEditor->GetMesh(currentCommand.meshId);
+    if (meshInfo != nullptr)
+    {
+        switch (meshInfo->info.primitve_type())
+        {
+        case pb::Mesh_PrimitveType_QUAD:
+        {
+            currentCommand.info.set_draw_elements(true);
+            currentCommand.info.set_count(6);
+            break;
+        }
+        case pb::Mesh_PrimitveType_CUBE:
+        {
+            currentCommand.info.set_draw_elements(true);
+            currentCommand.info.set_count(36);
+            break;
+        }
+        default: break;
+        }
+    }
 }
 } // namespace gpr5300

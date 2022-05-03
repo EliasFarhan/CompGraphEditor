@@ -35,10 +35,13 @@ public:
     const CommandInfo* GetCommand(ResourceId resourceId) const;
     void ReloadId() override;
     void Delete() override;
+    void UpdateMeshInCommand(int index);
     [[nodiscard]] std::span<const std::string_view> GetExtensions() const override;
 private:
+
     std::vector<CommandInfo> commandInfos_;
     std::size_t currentIndex_ = -1;
+
 };
 
 } // namespace gpr5300

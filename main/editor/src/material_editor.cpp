@@ -267,15 +267,46 @@ void MaterialEditor::ReloadMaterialPipeline(const PipelineInfo& pipelineInfo, in
     currentMaterialInfo.pipelineId = pipelineInfo.resourceId;
     currentMaterialInfo.info.set_pipeline_path(pipelineInfo.path);
 
+    std::unordered_set<std::string> samplerNames;
+    for (int i = 0; i < pipelineInfo.info.uniforms_size(); i++)
+    {
+        const auto& uniformInfo = pipelineInfo.info.uniforms(i);
+        if (uniformInfo.type() == pb::Attribute_Type_SAMPLER2D ||
+            uniformInfo.type() == pb::Attribute_Type_SAMPLERCUBE)
+        {
+            samplerNames.emplace(uniformInfo.name());
+        }
+    }
+    std::vector<pb::MaterialTexture> materialTextures;
+    for(int i = 0; i < currentMaterialInfo.info.textures_size(); i++)
+    {
+        const auto& materialTexture = currentMaterialInfo.info.textures(i);
+        if(samplerNames.contains(materialTexture.sampler_name()))
+        {
+            materialTextures.push_back(materialTexture);
+        }
+    }
     currentMaterialInfo.info.mutable_textures()->Clear();
     for(int i = 0; i < pipelineInfo.info.uniforms_size(); i++)
     {
         const auto& uniformInfo = pipelineInfo.info.uniforms(i);
-        if(uniformInfo.type() == pb::Attribute_Type_SAMPLER2D || 
+        if (uniformInfo.type() == pb::Attribute_Type_SAMPLER2D ||
             uniformInfo.type() == pb::Attribute_Type_SAMPLERCUBE)
         {
             auto* newMaterialTexture = currentMaterialInfo.info.add_textures();
-            newMaterialTexture->set_sampler_name(uniformInfo.name());
+            std::string uniformName = uniformInfo.name();
+            const auto it = std::ranges::find_if(materialTextures, [&uniformName](const auto& matText)
+                {
+                    return uniformName == matText.sampler_name();
+                });
+            if (it != materialTextures.end())
+            {
+                *newMaterialTexture = *it;
+            }
+            else
+            {
+                newMaterialTexture->set_sampler_name(uniformInfo.name());
+            }
         }
     }
 }
