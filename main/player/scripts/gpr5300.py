@@ -1,5 +1,4 @@
 from enum import Enum
-from winreg import REG_OPTION_CREATE_LINK
 
 class Key(Enum):
     A = 1
@@ -126,6 +125,7 @@ class Vec4:
         return 0.0
 
 class Mat4:
+    identity = Mat4(1.0)
     def __init__(self):
         pass
 
@@ -176,12 +176,10 @@ class Pipeline:
         
 
 class Material:
-    def __init__(self):
-        self.pipeline = Pipeline()
     def bind(self):
         pass
-    def get_pipeline(self):
-        return self.pipeline
+    def get_pipeline(self) -> Pipeline:
+        return Pipeline()
 
 
 class System:
@@ -201,19 +199,16 @@ class System:
         pass
 
 class DrawCommand:
-    def __init__(self) -> None:
-        self.material = Material()
-    def get_material(self, draw_command_index: int) -> Material:
-        return self.material
+    def get_material(self, material_index: int) -> Material:
+        return Material()
     def draw(self):
         pass
 
 class SubPass:
     def __init__(self) -> None:
         self.draw_command_count = 0
-        self.draw_command = DrawCommand()
     def get_draw_command(self,draw_command_index: int) -> DrawCommand:
-        return self.draw_command
+        return DrawCommand()
 
 
 class Scene:
@@ -221,15 +216,12 @@ class Scene:
         self.subpass_count = 0
         self.pipeline_count = 0
         self.material_count = 0
-        self.pipeline = Pipeline()
-        self.material = Material()
-        self.subpass = SubPass()
     def get_pipeline(self,pipeline_index:int) -> Pipeline:
-        return self.pipeline
+        return Pipeline()
     def get_material(self,material_index: int) -> Material:
-        return self.material
+        return Material()
     def get_subpass(self,subpass_index: int) -> SubPass:
-        return self.subpass
+        return SubPass()
 
 def get_window_size():
     return Vec2i()

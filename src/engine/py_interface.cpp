@@ -51,6 +51,8 @@ PYBIND11_EMBEDDED_MODULE(gpr5300, m)
             
 
     py::class_<glm::vec2>(m, "Vec2")
+        .def_readwrite("x", &glm::vec2::x)
+        .def_readwrite("y", &glm::vec2::y)
         .def(py::init<>())
         .def(py::init<float, float>())
         .def(py::self+py::self)
@@ -61,11 +63,20 @@ PYBIND11_EMBEDDED_MODULE(gpr5300, m)
         .def(py::self*=float())
         .def(py::self*float())
         .def(float()*py::self)
+
+        .def("normalize", [](const glm::vec2& v) {return glm::normalize(v); })
         .def_property_readonly("length", [](glm::vec2 v) {return glm::length(v); })
         .def_static("dot", [](glm::vec2 v1, glm::vec2 v2) {return glm::dot(v1, v2); })
-
+        .def("__repr__",
+            [](const glm::vec2& a) {
+                return fmt::format("({},{})",a.x, a.y);
+            })
     ;
     py::class_<glm::vec3>(m, "Vec3")
+
+        .def_readwrite("x", &glm::vec3::x)
+        .def_readwrite("y", &glm::vec3::y)
+        .def_readwrite("z", &glm::vec3::z)
         .def(py::init<>())
         .def(py::init<float, float, float>())
         .def(py::self + py::self)
@@ -76,11 +87,20 @@ PYBIND11_EMBEDDED_MODULE(gpr5300, m)
         .def(py::self *= float())
         .def(py::self * float())
         .def(float() * py::self)
+        .def("normalize", [](const glm::vec3& v) {return glm::normalize(v); })
         .def_property_readonly("length", [](glm::vec3 v) {return glm::length(v); })
         .def_static("dot", [](glm::vec3 v1, glm::vec3 v2) {return glm::dot(v1, v2); })
         .def_static("cross", [](glm::vec3 v1, glm::vec3 v2) {return glm::cross(v1, v2); })
+    .def("__repr__",
+            [](const glm::vec3& a) {
+                return fmt::format("({},{},{})", a.x, a.y, a.z);
+            })
     ;
     py::class_<glm::vec4>(m, "Vec4")
+        .def_readwrite("x", &glm::vec4::x)
+        .def_readwrite("y", &glm::vec4::y)
+        .def_readwrite("z", &glm::vec4::z)
+        .def_readwrite("w", &glm::vec4::w)
         .def(py::init<>())
         .def(py::init<float, float, float, float>())
         .def(py::self + py::self)
@@ -91,8 +111,14 @@ PYBIND11_EMBEDDED_MODULE(gpr5300, m)
         .def(py::self *= float())
         .def(py::self * float())
         .def(float() * py::self)
+
+        .def("normalize", [](const glm::vec4& v) {return glm::normalize(v); })
         .def_property_readonly("length", [](glm::vec4 v) {return glm::length(v); })
         .def_static("dot", [](glm::vec4 v1, glm::vec4 v2) {return glm::dot(v1, v2); })
+        .def("__repr__",
+            [](const glm::vec4& a) {
+                return fmt::format("({},{},{},{})", a.x, a.y, a.z, a.w);
+            })
         ;
     py::class_<glm::mat3>(m, "Mat3")
         .def(py::init<>())
@@ -153,7 +179,7 @@ PYBIND11_EMBEDDED_MODULE(gpr5300, m)
         .def("draw", &gpr5300::SceneDrawCommand::Draw)
         .def("get_material", &gpr5300::SceneDrawCommand::GetMaterial)
         ;
-    py::enum_<SDL_Keycode>(m, "Key")
+    py::enum_<SDL_KeyCode>(m, "Key", py::arithmetic())
         .value("A", SDLK_a)
         .value("B", SDLK_b)
         .value("C", SDLK_c)
@@ -195,6 +221,7 @@ PYBIND11_EMBEDDED_MODULE(gpr5300, m)
         .value("RSHIFT", SDLK_RSHIFT)
         .value("SPACE", SDLK_SPACE)
         .value("RETURN", SDLK_RETURN)
+    .export_values()
         ;
 }
 
