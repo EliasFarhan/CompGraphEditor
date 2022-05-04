@@ -13,6 +13,8 @@ class Script : public System
 {
 public:
     virtual void Draw(int subpassIndex) {}
+    virtual void OnKeyDown(SDL_Keycode keycode) {}
+    virtual void OnKeyUp(SDL_Keycode keycode){}
 };
 
 class PySystem : public Script
@@ -82,6 +84,41 @@ public:
             );
         }
         catch(py::error_already_set& e)
+        {
+            LogError(e.what());
+        }
+    }
+
+    void OnKeyDown(SDL_Keycode keycode) override
+    {
+        try
+        {
+            PYBIND11_OVERRIDE_NAME(
+                void, /* Return type */
+                Script,      /* Parent class */
+                "on_key_down",
+                OnKeyDown      /* Name of the function(s) */,
+                keycode
+            );
+        }
+        catch (py::error_already_set& e)
+        {
+            LogError(e.what());
+        }
+    }
+    void OnKeyUp(SDL_Keycode keycode) override
+    {
+        try
+        {
+            PYBIND11_OVERRIDE_NAME(
+                void, /* Return type */
+                Script,      /* Parent class */
+                "on_key_up",
+                OnKeyUp      /* Name of the function(s) */,
+                keycode
+            );
+        }
+        catch (py::error_already_set& e)
         {
             LogError(e.what());
         }

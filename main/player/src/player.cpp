@@ -73,4 +73,9 @@ void Player::DrawImGui()
     }
     ImGui::End();
 }
+
+void Player::OnEvent(SDL_Event& event)
+{
+    sceneManager_.OnEvent(event);
+}
 } // namespace gpr5300

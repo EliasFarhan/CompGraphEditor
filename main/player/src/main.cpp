@@ -12,6 +12,7 @@ int main(int argc, char** argv)
     gpr5300::Engine engine;
     engine.RegisterImGuiDrawInterface(&player);
     engine.RegisterSystem(&player);
+    engine.RegisterEventObserver(&player);
     engine.Run();
     physFilesystem.End();
     return EXIT_SUCCESS;

@@ -1,3 +1,48 @@
+from enum import Enum
+from winreg import REG_OPTION_CREATE_LINK
+
+class Key(Enum):
+    A = 1
+    B = 2
+    C = 3
+    D = 4
+    E = 5
+    F = 6
+    G = 7
+    H = 8
+    I = 9
+    J = 10
+    K = 11
+    L = 12
+    M = 13
+    N = 14
+    O = 15
+    P = 16
+    Q = 17
+    R = 18
+    S = 19
+    T = 20
+    U = 21
+    V = 22
+    W = 23
+    X = 24
+    Y = 25
+    Z = 26
+    BACKSPACE = 27
+    DELETE = 28
+    UP = 29
+    DOWN = 30
+    LEFT = 31
+    RIGHT = 32
+    ESCAPE = 33
+    LALT = 34
+    RALT = 35
+    LCTRL = 36
+    RCTRL = 37
+    LSHIFT = 38
+    RSHIFT = 39
+    SPACE = 40
+    RETURN = 41
 
 class Vec2:
     def __init__(self):
@@ -8,17 +53,17 @@ class Vec2:
         self.x = x
         self.y = y
 
-    def __add__(self, other:Vec2):
+    def __add__(self, other:Vec2) -> Vec2:
         return Vec2()
     
-    def __sub__(self, other:Vec2):
+    def __sub__(self, other:Vec2) -> Vec2:
         return Vec2()
 
-    def __mul__(self, other:float):
+    def __mul__(self, other:float) -> Vec2:
         return Vec2()
 
     @staticmethod
-    def dot(v1: Vec2, v2: Vec2):
+    def dot(v1: Vec2, v2: Vec2) -> float:
         return 0.0
 
 
@@ -34,21 +79,21 @@ class Vec3:
         self.y = y
         self.z = z
 
-    def __add__(self, other:Vec3):
+    def __add__(self, other:Vec3) -> Vec3:
         return Vec3()
 
-    def __sub__(self, other:Vec3):
+    def __sub__(self, other:Vec3) -> Vec3:
         return Vec3()
 
-    def __mul__(self, other:float):
-        return Vec3()
-
-    @staticmethod
-    def cross(v1: Vec3, v2: Vec3):
+    def __mul__(self, other:float) -> Vec3:
         return Vec3()
 
     @staticmethod
-    def dot(v1: Vec3, v2: Vec3):
+    def cross(v1: Vec3, v2: Vec3) -> Vec3:
+        return Vec3()
+
+    @staticmethod
+    def dot(v1: Vec3, v2: Vec3) -> float:
         return 0.0
 
 
@@ -66,13 +111,13 @@ class Vec4:
         self.z = z
         self.w = w
     
-    def __add__(self, other):
+    def __add__(self, other: Vec4) -> Vec4:
         return Vec4()
 
-    def __sub__(self, other:Vec4):
+    def __sub__(self, other: Vec4) -> Vec4:
         return Vec4()
 
-    def __mul__(self, other:float):
+    def __mul__(self, other:float) -> Vec4:
         return Vec4()
 
 
@@ -84,36 +129,36 @@ class Mat4:
     def __init__(self):
         pass
 
-    def translate(self, v: Vec3):
+    def translate(self, v: Vec3)-> Mat4:
         return Mat4()
     
-    def scale(self, v: Vec3):
+    def scale(self, v: Vec3)-> Mat4:
         return Mat4()
 
-    def rotate(self, radian: float, axis: Vec3):
+    def rotate(self, radian: float, axis: Vec3)-> Mat4:
         return Mat4()
 
-    def __add__(self, other:Mat4):
+    def __add__(self, other: Mat4) -> Mat4:
         return Mat4()
 
-    def __sub__(self, other:Mat4):
+    def __sub__(self, other: Mat4) -> Mat4:
         return Mat4()
 
-    def __mul__(self, other:float):
+    def __mul__(self, other:float) -> Mat4:
         return Mat4()
 
-    def __mul__(self, other:Vec4):
+    def __mul__(self, other:Vec4) -> Vec4:
         return Vec4()
 
-    def __mul__(self, other:Mat4):
+    def __mul__(self, other: Mat4) -> Mat4:
         return Mat4()
 
     @staticmethod
-    def view(eye:Vec3, center:Vec3, up:Vec3):
+    def view(eye:Vec3, center:Vec3, up:Vec3) -> Mat4:
         return Mat4()
     
     @staticmethod
-    def perspective(fov_radian: float, aspect: float, near: float, far: float):
+    def perspective(fov_radian: float, aspect: float, near: float, far: float) -> Mat4:
         return Mat4()
     
 
@@ -131,12 +176,13 @@ class Pipeline:
         
 
 class Material:
-    def __init__(self, pipeline:Pipeline):
-        self.pipeline = pipeline
+    def __init__(self):
+        self.pipeline = Pipeline()
     def bind(self):
         pass
     def get_pipeline(self):
         return self.pipeline
+
 
 class System:
     def __init__(self):
@@ -147,14 +193,43 @@ class System:
         pass
     def end(self):
         pass
-    def draw(subpassIndex: int):
+    def draw(self, subpass_index: int):
+        pass
+    def on_key_down(self, keycode: Key):
+        pass
+    def on_key_up(self, keycode: Key):
         pass
 
+class DrawCommand:
+    def __init__(self) -> None:
+        self.material = Material()
+    def get_material(self, draw_command_index: int) -> Material:
+        return self.material
+    def draw(self):
+        pass
+
+class SubPass:
+    def __init__(self) -> None:
+        self.draw_command_count = 0
+        self.draw_command = DrawCommand()
+    def get_draw_command(self,draw_command_index: int) -> DrawCommand:
+        return self.draw_command
+
+
 class Scene:
-    def get_pipeline(pipeline_index:int):
-        pass
-    def get_material(material_index: int):
-        pass
+    def __init__(self) -> None:
+        self.subpass_count = 0
+        self.pipeline_count = 0
+        self.material_count = 0
+        self.pipeline = Pipeline()
+        self.material = Material()
+        self.subpass = SubPass()
+    def get_pipeline(self,pipeline_index:int) -> Pipeline:
+        return self.pipeline
+    def get_material(self,material_index: int) -> Material:
+        return self.material
+    def get_subpass(self,subpass_index: int) -> SubPass:
+        return self.subpass
 
 def get_window_size():
     return Vec2i()

@@ -2,6 +2,7 @@
 #include "GL/glew.h"
 #include "renderer/shape_primitive.h"
 #include "renderer/debug.h"
+#include <SDL.h>
 
 namespace gpr5300
 {
@@ -226,6 +227,39 @@ void Scene::Draw(const pb::DrawCommand& command)
         glCheckError();
     }
 }
+
+void Scene::OnEvent(SDL_Event& event)
+{
+    switch(event.type)
+    {
+    case SDL_KEYDOWN:
+    {
+        for (auto* script : pySystems_)
+        {
+            if (script != nullptr)
+            {
+                script->OnKeyDown(event.key.keysym.sym);
+            }
+        }
+        break;
+    }
+    case SDL_KEYUP:
+    {
+        for (auto* script : pySystems_)
+        {
+            if (script != nullptr)
+            {
+                script->OnKeyUp(event.key.keysym.sym);
+            }
+        }
+        break;
+    }
+    default:
+        break;
+    }
+    
+}
+
 SceneSubPass Scene::GetSubpass(int subPassIndex)
 {
     return SceneSubPass(*this, scene_.render_pass().sub_passes(subPassIndex));
@@ -268,6 +302,13 @@ void SceneManager::End()
         currentScene_ = nullptr;
         pyManager_.End();
     }
+}
+
+void SceneManager::OnEvent(SDL_Event& event)
+{
+    if(currentScene_ == nullptr)
+        return;
+    currentScene_->OnEvent(event);
 }
 
 void SceneManager::Update(float dt)

@@ -5,13 +5,15 @@
 namespace gpr5300
 {
 
-class Player : public ImguiDrawInterface, public System
+class Player : public ImguiDrawInterface, public System, public OnEventInterface
 {
 public:
     void Begin() override;
     void Update(float dt) override;
     void End() override;
     void DrawImGui() override;
+    void OnEvent(SDL_Event& event) override;
+
 private:
     SceneManager sceneManager_;
     std::vector<std::string> scenePaths_;

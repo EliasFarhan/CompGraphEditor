@@ -7,6 +7,7 @@
 #include "py_interface.h"
 #include "renderer/material.h"
 #include "proto/renderer.pb.h"
+#include "engine/engine.h"
 
 #include <vector>
 
@@ -50,7 +51,7 @@ private:
     const pb::SubPass& subPass_;
 };
 
-class Scene
+class Scene : public OnEventInterface
 {
 public:
     void LoadScene(PyManager& pyManager);
@@ -65,6 +66,7 @@ public:
     Pipeline& GetPipeline(int index){ return pipelines_[index]; }
     int GetPipelineCount() const;
     void Draw(const pb::DrawCommand& drawCommand);
+    void OnEvent(SDL_Event& event) override;
 private:
     pb::Scene scene_;
     std::vector<Shader> shaders_;
@@ -77,7 +79,7 @@ private:
 
 };
 
-class SceneManager : public System
+class SceneManager : public System, public OnEventInterface
 {
 public:
     SceneManager();
@@ -88,6 +90,7 @@ public:
     Scene* GetCurrentScene() { return currentScene_; }
     static SceneManager* GetInstance(){ return sceneManager_; }
     TextureManager& GetTextureManager(){ return textureManager_; }
+    void OnEvent(SDL_Event& event) override;
 private:
     inline static SceneManager* sceneManager_ = nullptr;
     Scene* currentScene_ = nullptr;
