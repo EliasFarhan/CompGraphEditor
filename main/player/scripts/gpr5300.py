@@ -1,4 +1,6 @@
 from enum import Enum
+from __future__ import annotations
+
 
 class Key(Enum):
     A = 1
@@ -51,6 +53,10 @@ class Vec2:
     def __init__(self, x, y):
         self.x = x
         self.y = y
+    def __init__(self, v: Vec3) -> None:
+        pass
+    def __init__(self, v: Vec4) -> None:
+        pass
 
     def __add__(self, other:Vec2) -> Vec2:
         return Vec2()
@@ -59,6 +65,9 @@ class Vec2:
         return Vec2()
 
     def __mul__(self, other:float) -> Vec2:
+        return Vec2()
+
+    def normalize(self) -> Vec2:
         return Vec2()
 
     @staticmethod
@@ -77,14 +86,22 @@ class Vec3:
         self.x = x
         self.y = y
         self.z = z
+    
+    def __init__(self, v: Vec2, f:float) -> None:
+        pass
+    def __init__(self, v: Vec4) -> None:
+        pass
 
-    def __add__(self, other:Vec3) -> Vec3:
+    def __add__(self, other: Vec3) -> Vec3:
         return Vec3()
 
-    def __sub__(self, other:Vec3) -> Vec3:
+    def __sub__(self, other: Vec3) -> Vec3:
         return Vec3()
 
     def __mul__(self, other:float) -> Vec3:
+        return Vec3()
+
+    def normalize(self) -> Vec3:
         return Vec3()
 
     @staticmethod
@@ -110,6 +127,11 @@ class Vec4:
         self.z = z
         self.w = w
     
+    def __init__(self, v: Vec2, f1: float, f2: float) -> None:
+        pass
+    def __init__(self, v:Vec3, f:float) -> None:
+        pass
+    
     def __add__(self, other: Vec4) -> Vec4:
         return Vec4()
 
@@ -120,12 +142,14 @@ class Vec4:
         return Vec4()
 
 
+    def normalize(self) -> Vec4:
+        return Vec4()
+
     @staticmethod
     def dot(v1: Vec4, v2: Vec4):
         return 0.0
 
 class Mat4:
-    identity = Mat4(1.0)
     def __init__(self):
         pass
 
@@ -163,6 +187,8 @@ class Mat4:
     
 
 class Pipeline:
+    def __init__(self) -> None:
+        pass
     def set_float(self, uniform_name: str, v: float):
         pass
     def set_vec2(self, uniform_name: str, v: Vec2):
@@ -176,6 +202,8 @@ class Pipeline:
         
 
 class Material:
+    def __init__(self) -> None:
+        pass
     def bind(self):
         pass
     def get_pipeline(self) -> Pipeline:
@@ -197,15 +225,19 @@ class System:
         pass
     def on_key_up(self, keycode: Key):
         pass
+    def on_motion_motion(self, motion: Vec2):
+        pass
 
 class DrawCommand:
+    def __init__(self) -> None:
+        pass
     def get_material(self, material_index: int) -> Material:
         return Material()
     def draw(self):
         pass
 
 class SubPass:
-    def __init__(self) -> None:
+    def __init__(self):
         self.draw_command_count = 0
     def get_draw_command(self,draw_command_index: int) -> DrawCommand:
         return DrawCommand()
@@ -224,7 +256,7 @@ class Scene:
         return SubPass()
 
 def get_window_size():
-    return Vec2i()
+    return Vec2()
 
 def get_aspect():
     return 0.0

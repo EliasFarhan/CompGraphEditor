@@ -254,6 +254,18 @@ void Scene::OnEvent(SDL_Event& event)
         }
         break;
     }
+    case SDL_MOUSEMOTION:
+    {
+        glm::vec2 mouseMotion(event.motion.xrel, event.motion.yrel);
+        for (auto* script : pySystems_)
+        {
+            if (script != nullptr)
+            {
+                script->OnMouseMotion(mouseMotion);
+            }
+        }
+        break;
+    }
     default:
         break;
     }

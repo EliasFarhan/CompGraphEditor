@@ -15,6 +15,9 @@ public:
     virtual void Draw(int subpassIndex) {}
     virtual void OnKeyDown(SDL_Keycode keycode) {}
     virtual void OnKeyUp(SDL_Keycode keycode){}
+    virtual void OnMouseMotion(glm::vec2 mouseMotion){}
+    virtual void OnMouseButtonDown(int mouseButton){}
+    virtual void OnMouseButtonUp(int mouseButton){}
 };
 
 class PySystem : public Script
@@ -116,6 +119,24 @@ public:
                 "on_key_up",
                 OnKeyUp      /* Name of the function(s) */,
                 keycode
+            );
+        }
+        catch (py::error_already_set& e)
+        {
+            LogError(e.what());
+        }
+    }
+
+    void OnMouseMotion(glm::vec2 mouseMotion) override
+    {
+        try
+        {
+            PYBIND11_OVERRIDE_NAME(
+                void, /* Return type */
+                Script,      /* Parent class */
+                "on_mouse_motion",
+                OnMouseMotion      /* Name of the function(s) */,
+                mouseMotion
             );
         }
         catch (py::error_already_set& e)
