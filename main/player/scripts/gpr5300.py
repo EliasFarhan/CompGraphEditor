@@ -149,6 +149,32 @@ class Vec4:
     def dot(v1: Vec4, v2: Vec4):
         return 0.0
 
+
+class Mat3:
+    def __init__(self):
+        pass
+
+    def __add__(self, other: Mat3) -> Mat3:
+        return Mat3()
+
+    def __sub__(self, other: Mat3) -> Mat3:
+        return Mat3()
+
+    def __mul__(self, other:float) -> Mat3:
+        return Mat3()
+
+    def __mul__(self, other:Vec3) -> Vec3:
+        return Vec3()
+
+    def __mul__(self, other: Mat3) -> Mat3:
+        return Mat3()
+
+    def inverse() -> Mat3:
+        return Mat3()
+    
+    def transpose() -> Mat3:
+        return Mat3()
+
 class Mat4:
     def __init__(self):
         pass
@@ -183,6 +209,12 @@ class Mat4:
     
     @staticmethod
     def perspective(fov_radian: float, aspect: float, near: float, far: float) -> Mat4:
+        return Mat4()
+    
+    def inverse() -> Mat4:
+        return Mat4()
+    
+    def transpose() -> Mat4:
         return Mat4()
     
 
