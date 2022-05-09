@@ -7,7 +7,7 @@ namespace gpr5300
 {
     
 
-struct Model
+struct ModelInfo
 {
     std::string path;
     std::string filename;
@@ -31,6 +31,9 @@ public:
     void Delete() override;
     [[nodiscard]] std::span<const std::string_view> GetExtensions() const override;
     void ImportResource(std::string_view path) override;
+private:
+    std::vector<ModelInfo> modelInfos_;
+    std::size_t currentIndex_ = -1;
 };
 
 }

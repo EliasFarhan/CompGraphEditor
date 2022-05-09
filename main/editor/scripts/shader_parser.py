@@ -2,6 +2,7 @@ import platform
 import subprocess
 import os
 import json
+import re
 
 if platform.system() == 'Windows':
     vulkan_path = os.getenv("VULKAN_SDK")
@@ -9,6 +10,28 @@ if platform.system() == 'Windows':
 else:
     program = 'glslangValidator'
 
+
+def analyze_struct(struct_txt: str):
+    #get struct name
+    begin_index = struct_txt.find("struct")
+    end_index = struct_txt.find("{")
+    struct_name = struct_txt[begin_index+6:end_index]
+    struct_name = re.sub(r'[^a-zA-Z0-9]', '', struct_name)
+
+
+    struct_content = struct_txt[end_index+1:struct_txt.find("}")]
+    struct_content = re.sub(r'[^a-zA-Z0-9 ;]', '', struct_content)
+    struct_lines = list(filter(None, struct_content.split(";")))
+    attributes = []
+    for line in struct_lines:
+        print("Line: {}".format(line))
+        if len(line) == 0:
+            continue
+        line_split = list(filter(None, line.split(" ")))
+        if len(line_split) < 2:
+            continue
+        attributes.append({"type": line_split[0], "name": line_split[1]})
+    return {"name": struct_name, "attributes": attributes}
 
 def analyze_shader(shader_path):
 
@@ -23,13 +46,24 @@ def analyze_shader(shader_path):
     uniforms = []
     in_attributes = []
     out_attributes = []
+    structs = []
 
     with open(shader_path, 'r') as shader_file:
+        print("Loading shader_file")
+        reading_struct = False
         lines = shader_file.readlines()
         for line in lines:
+            origin_line = line
             line = line.replace('\n', '')
             line = line.replace(';', '')
             split_line = line.split(' ')
+
+            if reading_struct:
+                struct_txt += origin_line
+                if "};" in origin_line:
+                    reading_struct = False
+                    structs.append(analyze_struct(struct_txt))
+
             if "uniform" in split_line:
                 uniform_obj = {"type": split_line[1], "name": split_line[2]}
                 uniforms.append(uniform_obj)
@@ -52,7 +86,20 @@ def analyze_shader(shader_path):
                 index = split_line.index('out')
                 out_variable = {"type": split_line[index + 1], "name": split_line[index + 2]}
                 out_attributes.append(out_variable)
+            if "struct" in origin_line:
+                reading_struct = True
+                struct_txt = origin_line
+
+    new_uniforms = []
+    for uniform in uniforms:
+        for struct in structs:
+            if uniform["type"] == struct["name"]:
+                for attrib in struct["attributes"]:
+                    new_uniforms.append({"type": attrib["type"], "name": "{}.{}".format(uniform["name"], attrib["name"])})
+    uniforms.extend(new_uniforms)
     meta_content["uniforms"] = uniforms
     meta_content["in_attributes"] = in_attributes
     meta_content["out_attributes"] = out_attributes
+    meta_content["structs"] = structs
+    
     return json.dumps(meta_content)

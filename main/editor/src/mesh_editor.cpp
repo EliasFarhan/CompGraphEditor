@@ -122,26 +122,20 @@ void MeshEditor::AddResource(const Resource &resource)
     meshInfo.filename = GetFilename(resource.path);
 
     const auto extension = GetFileExtension(resource.path);
-    if(extension == ".mesh")
+
+    const auto& fileSystem = FilesystemLocator::get();
+    if (!fileSystem.IsRegularFile(resource.path))
     {
-        const auto& fileSystem = FilesystemLocator::get();
-        if (!fileSystem.IsRegularFile(resource.path))
-        {
-            LogWarning(fmt::format("Could not find mesh file: {}", resource.path));
-            return;
-        }
-        std::ifstream fileIn(resource.path, std::ios::binary);
-        if (!meshInfo.info.ParseFromIstream(&fileIn))
-        {
-            LogWarning(fmt::format("Could not open protobuf file: {}", resource.path));
-            return;
-        }
+        LogWarning(fmt::format("Could not find mesh file: {}", resource.path));
+        return;
     }
-    else
+    std::ifstream fileIn(resource.path, std::ios::binary);
+    if (!meshInfo.info.ParseFromIstream(&fileIn))
     {
-        //TODO check with obj path
-        meshInfo.info.set_primitve_type(pb::Mesh_PrimitveType_MODEL);
+        LogWarning(fmt::format("Could not open protobuf file: {}", resource.path));
+        return;
     }
+    
     meshInfo.path = resource.path;
     meshInfos_.push_back(meshInfo);
 }

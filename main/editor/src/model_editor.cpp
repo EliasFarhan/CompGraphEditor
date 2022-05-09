@@ -10,11 +10,46 @@
 #include "texture_editor.h"
 #include "engine/filesystem.h"
 
+#include <fstream>
+
 namespace gpr5300
 {
 void ModelEditor::AddResource(const Resource& resource)
 {
-    
+    const auto extension = GetFileExtension(resource.path);
+    if(extension == ".model")
+    {
+        ModelInfo modelInfo{};
+        modelInfo.resourceId = resource.resourceId;
+        modelInfo.filename = GetFilename(resource.path);
+
+        const auto& fileSystem = FilesystemLocator::get();
+        if (!fileSystem.IsRegularFile(resource.path))
+        {
+            LogWarning(fmt::format("Could not find model file: {}", resource.path));
+            return;
+        }
+        std::ifstream fileIn(resource.path, std::ios::binary);
+        if (!modelInfo.info.ParseFromIstream(&fileIn))
+        {
+            LogWarning(fmt::format("Could not open protobuf file: {}", resource.path));
+            return;
+        }
+
+        modelInfo.path = resource.path;
+        modelInfos_.push_back(modelInfo);
+    }
+    else if(extension == ".obj")
+    {
+        const auto baseFolder = GetFolder(resource.path);
+        const auto modelInfoPath = fmt::format("{}/{}.model", baseFolder, GetFilename(resource.path, false));
+        const auto& fileSystem = FilesystemLocator::get();
+        if (!fileSystem.IsRegularFile(modelInfoPath))
+        {
+            LogWarning(fmt::format("Could not find model file: {} of obj {}", modelInfoPath, resource.path));
+            return;
+        }
+    }
 }
 
 void ModelEditor::RemoveResource(const Resource& resource)
@@ -36,7 +71,19 @@ void ModelEditor::DrawInspector()
 
 bool ModelEditor::DrawContentList(bool unfocus)
 {
-    return false;
+    bool wasFocused = false;
+    if (unfocus)
+        currentIndex_ = modelInfos_.size();
+    for (std::size_t i = 0; i < modelInfos_.size(); i++)
+    {
+        const auto& meshInfo = modelInfos_[i];
+        if (ImGui::Selectable(meshInfo.filename.data(), currentIndex_ == i))
+        {
+            currentIndex_ = i;
+            wasFocused = true;
+        }
+    }
+    return wasFocused;
 }
 
 std::string_view ModelEditor::GetSubFolder()

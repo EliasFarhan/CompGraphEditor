@@ -254,6 +254,11 @@ bool ShaderEditor::AnalyzeShader(std::string_view path, pb::Shader& shaderInfo)
             newOutAttribute->set_type(type);
             newOutAttribute->set_type_name(typeName);
         }
+        auto structsJson = shaderJson["structs"];
+        for(auto& structJson: structsJson)
+        {
+            LogDebug(structJson.dump());
+        }
         return true;
     }
     catch (py::error_already_set& e)
