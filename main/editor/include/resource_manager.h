@@ -13,8 +13,8 @@ class ResourceManager
 public:
 
     void CheckDataFolder();
-    ResourceId FindResourceByPath(std::string_view path) const;
-    const Resource* GetResource(ResourceId resource) const;
+    [[nodiscard]] ResourceId FindResourceByPath(std::string_view path) const;
+    [[nodiscard]] const Resource* GetResource(ResourceId resource) const;
     static constexpr std::string_view dataFolder = "data/";
     void RegisterResourceChange(ResourceChangeInterface* resourceChange);
     void AddResource(std::string_view path);

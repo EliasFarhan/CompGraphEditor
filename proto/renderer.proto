@@ -15,9 +15,29 @@ message FrameBuffer
 
 }
 
+enum TextureType
+{
+	NONE = 0;
+	AMBIENT = 1;
+	DIFFUSE = 2;
+	SPECULAR = 3;
+	SPECULAR_HIGHLIGHT = 4;
+	BUMP = 5;
+	DISPLACEMENT = 6;
+	ALPHA = 7;
+	REFLECTION = 8;
+	ROUGHNESS = 9;
+	METALLIC = 10;
+	SHEEN = 11;
+	EMISSIVE = 12;
+	NORMAL = 13;
+	AO = 14;
+}
+
 message Sampler
 {
     string name = 1;
+    TextureType type = 2;
 }
 
 message Attribute
@@ -111,10 +131,12 @@ message Texture
         NEAREST = 0;
         LINEAR = 1;
     }
+
     string path = 1;
     WrappingMode wrapping_mode = 2;
     FilteringMode filter_mode = 3;
     bool generate_mipmaps = 4;
+    TextureType type = 5;
 }
 
 message MaterialTexture
@@ -145,6 +167,33 @@ message Mesh
         NONE = 4;
     }
     PrimitveType primitve_type = 1;
+}
+
+message ModelMesh
+{
+    string mesh_name = 1;
+    string mesh_path = 2;
+    string material_name = 3;
+}
+
+message ModelMaterial
+{
+    string material_name = 1;
+    string material_path = 2;
+    repeated int32 texture_indices = 3;
+}
+
+message ModelTexture
+{
+    string texture_path = 1;
+    TextureType type = 2;
+}
+
+message Model
+{
+    repeated ModelMesh meshes = 1;
+    repeated ModelMaterial materials = 2;
+    repeated ModelTexture textures = 3;
 }
 
 message DrawCommand
@@ -194,6 +243,7 @@ message Scene
     repeated Texture textures = 6;
     repeated Material materials = 7;
     repeated PySystem py_systems = 8;
+    repeated Model models = 11;
 
     //used by editor
     string render_pass_path = 9;

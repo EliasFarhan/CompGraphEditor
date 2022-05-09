@@ -149,10 +149,10 @@ void Editor::DrawMenuBar()
     }
 }
 
-void Editor::CreateNewFile(std::string_view path)
+void Editor::CreateNewFile(std::string_view path, EditorType type)
 {
     const auto& filesystem = FilesystemLocator::get();
-    switch (currentCreateFileSystem_)
+    switch (type)
     {
     case EditorType::SHADER:
     {
@@ -265,7 +265,7 @@ bool Editor::UpdateCreateNewFile()
             ImGui::Text("%s", path.c_str());
             if (ImGui::Button("Confirm"))
             {
-                CreateNewFile(path);
+                CreateNewFile(path, currentCreateFileSystem_);
                 ImGui::CloseCurrentPopup();
                 ImGui::EndPopup();
                 return true;
@@ -475,7 +475,7 @@ void Editor::OnEvent(SDL_Event& event)
     }
 
 }
-void Editor::LoadFileIntoEditor(std::string_view path)
+void Editor::LoadFileIntoEditor(std::string_view path) const
 {
 
     EditorSystem* editorSystem = FindEditorSystem(path);
@@ -484,14 +484,7 @@ void Editor::LoadFileIntoEditor(std::string_view path)
         LogError(fmt::format("Could not find appropriated editor system for file: {}", path));
         return;
     }
-    const auto dstPath = fmt::format("{}{}{}",
-                                     ResourceManager::dataFolder,
-                                     editorSystem->GetSubFolder(),
-                                     GetFilename(path));
-    if (CopyFileFromTo(path, dstPath))
-    {
-        resourceManager_.AddResource(dstPath);
-    }
+    editorSystem->ImportResource(path);
 }
 
 void Editor::DrawEditorContent()

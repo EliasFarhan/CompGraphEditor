@@ -85,7 +85,7 @@ void CommandEditor::DrawInspector()
     }
     const auto* editor = Editor::GetInstance();
     const auto* materialEditor = dynamic_cast<MaterialEditor*>(editor->GetEditorSystem(EditorType::MATERIAL));
-    const auto* meshEditor = dynamic_cast<MeshEditor*>(editor->GetEditorSystem(EditorType::MESH));
+    auto* meshEditor = dynamic_cast<MeshEditor*>(editor->GetEditorSystem(EditorType::MESH));
     auto& currentCommand = commandInfos_[currentIndex_];
 
     
@@ -241,7 +241,7 @@ void CommandEditor::UpdateMeshInCommand(int index)
 {
     auto& currentCommand = commandInfos_[index];
     const auto* editor = Editor::GetInstance();
-    const auto* meshEditor = dynamic_cast<MeshEditor*>(editor->GetEditorSystem(EditorType::MESH));
+    auto* meshEditor = dynamic_cast<MeshEditor*>(editor->GetEditorSystem(EditorType::MESH));
     const auto* meshInfo = meshEditor->GetMesh(currentCommand.meshId);
     if (meshInfo != nullptr)
     {

@@ -38,7 +38,7 @@ public:
     void ReloadId() override;
 
     const auto& GetTextures() const { return textureInfos_; }
-    const TextureInfo* GetTexture(ResourceId resourceId) const;
+    TextureInfo* GetTexture(ResourceId resourceId);
     void Delete() override;
     std::span<const std::string_view> GetExtensions() const override;
 private:

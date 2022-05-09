@@ -31,18 +31,18 @@ public:
     ResourceManager& GetResourceManager() { return resourceManager_; }
     const ResourceManager& GetResourceManager() const { return resourceManager_; }
     static Editor* GetInstance() { return instance_; }
+    void CreateNewFile(std::string_view path, EditorType type);
 private:
     void OpenMenuCreateNewFile(EditorType editorType);
     void SaveProject();
     void DrawMenuBar();
-    void CreateNewFile(std::string_view path);
     bool UpdateCreateNewFile();
     void DrawEditorContent();
     void DrawCenterView();
     void DrawInspector();
     static void DrawLogWindow();
     void UpdateFileDialog();
-    void LoadFileIntoEditor(std::string_view path);
+    void LoadFileIntoEditor(std::string_view path) const;
 
     void OpenFileBrowserDialog(std::span<const std::string_view> extensions);
 

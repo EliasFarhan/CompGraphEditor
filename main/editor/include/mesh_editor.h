@@ -37,7 +37,7 @@ public:
 
     void UpdateExistingResource(const Resource &resource) override;
     const auto& GetMeshes() const { return meshInfos_; }
-    const MeshInfo* GetMesh(ResourceId resourceId) const;
+    MeshInfo* GetMesh(ResourceId resourceId);
     void ReloadId() override{}
     void Delete() override;
     [[nodiscard]] std::span<const std::string_view> GetExtensions() const override;

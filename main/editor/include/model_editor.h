@@ -1,9 +1,19 @@
 #pragma once
 
 #include "editor_system.h"
+#include "proto/renderer.pb.h"
 
 namespace gpr5300
 {
+    
+
+struct Model
+{
+    std::string path;
+    std::string filename;
+    pb::Model info;
+    ResourceId resourceId = INVALID_RESOURCE_ID;
+};
 
 class ModelEditor final : public EditorSystem
 {
@@ -19,7 +29,8 @@ public:
     void Save() override;
     void ReloadId() override;
     void Delete() override;
-    std::span<const std::string_view> GetExtensions() const override;
+    [[nodiscard]] std::span<const std::string_view> GetExtensions() const override;
+    void ImportResource(std::string_view path) override;
 };
 
 }

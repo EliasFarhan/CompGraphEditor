@@ -25,7 +25,8 @@ class EditorSystem : public ResourceChangeInterface
 {
 public:
     virtual ~EditorSystem() = default;
-    bool CheckExtensions(std::string_view extension)
+
+    [[nodiscard]] bool CheckExtensions(std::string_view extension) const
     {
         auto extensions = GetExtensions();
         return std::ranges::any_of(extensions, [extension](auto ext)
@@ -42,6 +43,7 @@ public:
     virtual void Save() = 0;
     virtual void ReloadId() = 0;
     virtual void Delete() = 0;
-    virtual std::span<const std::string_view> GetExtensions() const = 0;
+    virtual void ImportResource(std::string_view path);
+    [[nodiscard]] virtual std::span<const std::string_view> GetExtensions() const = 0;
 };
 }

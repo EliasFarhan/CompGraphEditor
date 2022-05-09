@@ -227,7 +227,7 @@ void SceneEditor::Save()
     }
 }
 
-bool SceneEditor::ExportScene()
+bool SceneEditor::ExportScene() const
 {
     if (currentIndex_ >= sceneInfos_.size())
     {
@@ -241,9 +241,9 @@ bool SceneEditor::ExportScene()
     const auto* materialEditor = dynamic_cast<MaterialEditor*>(editor->GetEditorSystem(EditorType::MATERIAL));
     const auto* pipelineEditor = dynamic_cast<PipelineEditor*>(editor->GetEditorSystem(EditorType::PIPELINE));
     const auto* shaderEditor = dynamic_cast<ShaderEditor*>(editor->GetEditorSystem(EditorType::SHADER));
-    const auto* meshEditor = dynamic_cast<MeshEditor*>(editor->GetEditorSystem(EditorType::MESH));
+    auto* meshEditor = dynamic_cast<MeshEditor*>(editor->GetEditorSystem(EditorType::MESH));
     const auto* scriptEditor = dynamic_cast<ScriptEditor*>(editor->GetEditorSystem(EditorType::SCRIPT));
-    const auto* textureEditor = dynamic_cast<TextureEditor*>(editor->GetEditorSystem(EditorType::TEXTURE));
+    auto* textureEditor = dynamic_cast<TextureEditor*>(editor->GetEditorSystem(EditorType::TEXTURE));
     //TODO reload all editors to get all correct resourceId
     commandEditor->ReloadId();
     const auto& currentScene = sceneInfos_[currentIndex_];

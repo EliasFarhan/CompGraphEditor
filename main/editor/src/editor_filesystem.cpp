@@ -48,7 +48,7 @@ bool RemoveFile(std::string_view path)
 
 std::string GetFolder(std::string_view path)
 {
-    fs::path p = path;
+    const fs::path p = path;
     return p.parent_path().string();
 }
 }

@@ -166,7 +166,7 @@ void MeshEditor::UpdateExistingResource(const Resource &resource)
 
 }
 
-const MeshInfo* MeshEditor::GetMesh(ResourceId resourceId) const
+MeshInfo* MeshEditor::GetMesh(ResourceId resourceId)
 {
     const auto it = std::ranges::find_if(meshInfos_, [resourceId](const auto& meshInfo)
         {
