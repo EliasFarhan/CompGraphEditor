@@ -9,6 +9,7 @@ namespace gpr5300
 
 void Scene::LoadScene(PyManager &pyManager)
 {
+
     const auto shadersSize = scene_.shaders_size();
     shaders_.resize(shadersSize);
     for (int i = 0; i < shadersSize; i++)
@@ -60,6 +61,13 @@ void Scene::LoadScene(PyManager &pyManager)
             materialTexture.uniformSamplerName = materialTextureInfo.sampler_name();
         }
     }
+    
+    const auto modelsSize = scene_.model_paths_size();
+    models_.resize(modelsSize);
+    for(int i = 0; i < modelsSize; i++)
+    {
+        models_[i].LoadModel(scene_.model_paths(i));
+    }
 
     const auto meshesSize = scene_.meshes_size();
     meshes_.resize(meshesSize);
@@ -78,6 +86,9 @@ void Scene::LoadScene(PyManager &pyManager)
             break;
         case pb::Mesh_PrimitveType_NONE:
             meshes_[i] = GenerateEmpty();
+            break;
+        case pb::Mesh_PrimitveType_MODEL:
+            meshes_[i] = models_[mesh.model_index()].GenerateMesh(mesh.mesh_name());
             break;
         default:
             break;
@@ -146,7 +157,7 @@ void Scene::Update(float dt)
 
 SceneMaterial Scene::GetMaterial(int materialIndex)
 {
-    const SceneMaterial material{&pipelines_[materialIndex], &materials_[materialIndex] };
+    const SceneMaterial material{&pipelines_[materials_[materialIndex].pipelineIndex], &materials_[materialIndex] };
     return material;
 }
 void Scene::Draw(const pb::DrawCommand& command)

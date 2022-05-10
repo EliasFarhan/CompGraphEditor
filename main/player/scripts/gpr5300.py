@@ -263,7 +263,7 @@ class System:
 class DrawCommand:
     def __init__(self) -> None:
         pass
-    def get_material(self, material_index: int) -> Material:
+    def get_material(self) -> Material:
         return Material()
     def draw(self):
         pass

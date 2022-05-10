@@ -11,6 +11,8 @@
 
 #include <vector>
 
+#include "renderer/model.h"
+
 namespace gpr5300
 {
 class Scene;
@@ -72,6 +74,7 @@ private:
     std::vector<Shader> shaders_;
     std::vector<Pipeline> pipelines_;
     std::vector<Mesh> meshes_;
+    std::vector<Model> models_;
     std::vector<Texture> textures_;
     std::vector<Material> materials_;
     std::vector<Script*> pySystems_;
