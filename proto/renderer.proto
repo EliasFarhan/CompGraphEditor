@@ -110,7 +110,63 @@ message Pipeline
     DepthCompareOp depth_compare_op = 13;
     bool depth_mask = 14;
     repeated Sampler samplers = 15;
+    bool blend_enable = 16;
+    enum BlendFunc
+    {
+        BLEND_ZERO = 0;
+        ONE = 1;
+        SRC_COLOR = 2;
+        ONE_MINUS_SRC_COLOR = 3;
+        DST_COLOR = 4;
+        ONE_MINUS_DST_COLOR = 5;
+        SRC_ALPHA = 6;
+        ONE_MINUS_SRC_ALPHA = 7;
+        DST_ALPHA = 8;
+        ONE_MINUS_DST_ALPHA = 9;
+        CONSTANT_COLOR = 10;
+        ONE_MINUS_CONSTANT_COLOR = 11;
+        CONSTANT_ALPHA = 12;
+        ONE_MINUS_CONSTANT_ALPHA = 13;
+        SRC_ALPHA_SATURATE = 14;
+        SRC1_COLOR = 15;
+        ONE_MINUS_SRC1_COLOR = 16;
+        SRC1_ALPHA = 17;
+        ONE_MINUS_SRC1_ALPHA = 18;
+    }
+    BlendFunc blending_source_factor = 17;
+    BlendFunc blending_destination_factor = 18;
 
+    bool enable_stencil_test = 19;
+    enum StencilOp
+    {
+        KEEP = 0;
+        STENCIL_ZERO = 1;
+        REPLACE = 2;
+        INCR = 3;
+        INCR_WRAP = 4;
+        DECR = 5;
+        DECR_WRAP = 6;
+        INVERT = 7;
+    }
+    StencilOp stencil_source_fail = 20;
+    StencilOp stencil_depth_fail = 21;
+    StencilOp stencil_depth_pass = 22;
+
+    enum StencilFunc
+    {
+        STENCIL_NEVER = 0;
+        STENCIL_LESS = 1;
+        STENCIL_LEQUAL = 2;
+        STENCIL_GREATER = 3;
+        STENCIL_GEQUAL = 4;
+        STENCIL_EQUAL = 5;
+        STENCIL_NOTEQUAL = 6;
+        STENCIL_ALWAYS = 7;
+    }
+    StencilFunc stencil_func = 23;
+    int32 stencil_ref = 24;
+    uint32 stencil_func_mask = 25;
+    uint32 stencil_mask = 26;
 
     string vertex_shader_path = 8;// Used by the editor
     string fragment_shader_path = 9;// Used by the editor
