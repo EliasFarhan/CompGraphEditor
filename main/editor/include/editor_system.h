@@ -2,6 +2,7 @@
 #include <string_view>
 #include "resource.h"
 #include <span>
+#include <algorithm>
 
 namespace gpr5300
 {

@@ -50,11 +50,14 @@ class Vec2:
         self.x = 0.0
         self.y = 0.0
         self.length = 0.0
+
     def __init__(self, x, y):
         self.x = x
         self.y = y
+
     def __init__(self, v: Vec3) -> None:
         pass
+
     def __init__(self, v: Vec4) -> None:
         pass
 
@@ -89,6 +92,7 @@ class Vec3:
     
     def __init__(self, v: Vec2, f:float) -> None:
         pass
+
     def __init__(self, v: Vec4) -> None:
         pass
 
@@ -129,7 +133,8 @@ class Vec4:
     
     def __init__(self, v: Vec2, f1: float, f2: float) -> None:
         pass
-    def __init__(self, v:Vec3, f:float) -> None:
+
+    def __init__(self, v: Vec3, f: float) -> None:
         pass
     
     def __add__(self, other: Vec4) -> Vec4:
@@ -140,7 +145,6 @@ class Vec4:
 
     def __mul__(self, other:float) -> Vec4:
         return Vec4()
-
 
     def normalize(self) -> Vec4:
         return Vec4()
@@ -160,23 +164,27 @@ class Mat3:
     def __sub__(self, other: Mat3) -> Mat3:
         return Mat3()
 
-    def __mul__(self, other:float) -> Mat3:
+    def __mul__(self, other: float) -> Mat3:
         return Mat3()
 
-    def __mul__(self, other:Vec3) -> Vec3:
+    def __mul__(self, other: Vec3) -> Vec3:
         return Vec3()
 
     def __mul__(self, other: Mat3) -> Mat3:
         return Mat3()
 
-    def inverse() -> Mat3:
+    def inverse(self) -> Mat3:
         return Mat3()
     
-    def transpose() -> Mat3:
+    def transpose(self) -> Mat3:
         return Mat3()
+
 
 class Mat4:
     def __init__(self):
+        pass
+
+    def __init__(self, v: float):
         pass
 
     def translate(self, v: Vec3)-> Mat4:
@@ -204,40 +212,47 @@ class Mat4:
         return Mat4()
 
     @staticmethod
-    def view(eye:Vec3, center:Vec3, up:Vec3) -> Mat4:
+    def view(eye: Vec3, center: Vec3, up: Vec3) -> Mat4:
         return Mat4()
     
     @staticmethod
     def perspective(fov_radian: float, aspect: float, near: float, far: float) -> Mat4:
         return Mat4()
     
-    def inverse() -> Mat4:
+    def inverse(self) -> Mat4:
         return Mat4()
     
-    def transpose() -> Mat4:
+    def transpose(self) -> Mat4:
         return Mat4()
     
 
 class Pipeline:
     def __init__(self) -> None:
         pass
+
     def set_float(self, uniform_name: str, v: float):
         pass
+
     def set_vec2(self, uniform_name: str, v: Vec2):
         pass
+
     def set_vec3(self, uniform_name: str, v: Vec3):
         pass
+
     def set_vec4(self, uniform_name: str, v: Vec4):
         pass
-    def set_mat4(self, uniform_name: str, m:Mat4):
+
+    def set_mat4(self, uniform_name: str, m: Mat4):
         pass
         
 
 class Material:
     def __init__(self) -> None:
         pass
+
     def bind(self):
         pass
+
     def get_pipeline(self) -> Pipeline:
         return Pipeline()
 
@@ -245,33 +260,45 @@ class Material:
 class System:
     def __init__(self):
         pass
+
     def begin(self):
         pass
+
     def update(self, dt: float):
         pass
+
     def end(self):
         pass
+
     def draw(self, subpass_index: int):
         pass
+
     def on_key_down(self, keycode: Key):
         pass
+
     def on_key_up(self, keycode: Key):
         pass
+
     def on_motion_motion(self, motion: Vec2):
         pass
+
 
 class DrawCommand:
     def __init__(self) -> None:
         pass
+
     def get_material(self) -> Material:
         return Material()
+
     def draw(self):
         pass
+
 
 class SubPass:
     def __init__(self):
         self.draw_command_count = 0
-    def get_draw_command(self,draw_command_index: int) -> DrawCommand:
+
+    def get_draw_command(self, draw_command_index: int) -> DrawCommand:
         return DrawCommand()
 
 
@@ -280,18 +307,24 @@ class Scene:
         self.subpass_count = 0
         self.pipeline_count = 0
         self.material_count = 0
-    def get_pipeline(self,pipeline_index:int) -> Pipeline:
+
+    def get_pipeline(self, pipeline_index:int) -> Pipeline:
         return Pipeline()
-    def get_material(self,material_index: int) -> Material:
+
+    def get_material(self, material_index: int) -> Material:
         return Material()
-    def get_subpass(self,subpass_index: int) -> SubPass:
+
+    def get_subpass(self, subpass_index: int) -> SubPass:
         return SubPass()
+
 
 def get_window_size():
     return Vec2()
 
+
 def get_aspect():
     return 0.0
+
 
 def get_scene():
     return Scene()
