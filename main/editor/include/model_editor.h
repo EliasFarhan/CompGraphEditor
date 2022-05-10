@@ -1,5 +1,7 @@
 #pragma once
 
+#include <tiny_obj_loader.h>
+
 #include "editor_system.h"
 #include "proto/renderer.pb.h"
 
@@ -12,6 +14,7 @@ struct ModelInfo
     std::string path;
     std::string filename;
     pb::Model info;
+    tinyobj::ObjReader reader;
     ResourceId resourceId = INVALID_RESOURCE_ID;
 };
 
@@ -30,6 +33,7 @@ public:
     void ReloadId() override;
     void Delete() override;
     [[nodiscard]] std::span<const std::string_view> GetExtensions() const override;
+    ModelInfo* GetModel(ResourceId resourceId);
     void ImportResource(std::string_view path) override;
 private:
     std::vector<ModelInfo> modelInfos_;

@@ -24,7 +24,6 @@ def analyze_struct(struct_txt: str):
     struct_lines = list(filter(None, struct_content.split(";")))
     attributes = []
     for line in struct_lines:
-        print("Line: {}".format(line))
         if len(line) == 0:
             continue
         line_split = list(filter(None, line.split(" ")))
@@ -49,7 +48,6 @@ def analyze_shader(shader_path):
     structs = []
 
     with open(shader_path, 'r') as shader_file:
-        print("Loading shader_file")
         reading_struct = False
         lines = shader_file.readlines()
         for line in lines:

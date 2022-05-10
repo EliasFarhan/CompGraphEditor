@@ -32,7 +32,7 @@ public:
     void Delete() override; std::span<const std::string_view> GetExtensions() const override;
 
 private:
-    bool AnalyzeShader(std::string_view path, pb::Shader& shaderInfo);
+    bool AnalyzeShader(std::string_view path, pb::Shader& shaderInfo) const;
     static pb::Attribute::Type GetType(std::string_view attributeTypeString);
     std::vector<ShaderInfo> shaderInfos_;
     std::size_t currentIndex_ = -1;

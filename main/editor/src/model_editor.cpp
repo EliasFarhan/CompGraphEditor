@@ -12,6 +12,13 @@
 
 #include <fstream>
 
+#include <pybind11/embed.h>
+#include <pybind11/pybind11.h>
+#include <nlohmann/json.hpp>
+
+using json = nlohmann::json;
+namespace py = pybind11;
+
 namespace gpr5300
 {
 void ModelEditor::AddResource(const Resource& resource)
@@ -35,7 +42,19 @@ void ModelEditor::AddResource(const Resource& resource)
             LogWarning(fmt::format("Could not open protobuf file: {}", resource.path));
             return;
         }
+        tinyobj::ObjReaderConfig readerConfig{};
+        readerConfig.triangulate = true;
+        readerConfig.vertex_color = false;
+        const auto& modelPath = modelInfo.info.model_path();
 
+        if (!modelInfo.reader.ParseFromFile(modelPath, readerConfig))
+        {
+            if (!modelInfo.reader.Error().empty())
+            {
+                LogError(fmt::format("Error parsing obj file: {}", modelPath));
+                return;
+            }
+        }
         modelInfo.path = resource.path;
         modelInfos_.push_back(modelInfo);
     }
@@ -67,6 +86,35 @@ void ModelEditor::DrawMainView()
 
 void ModelEditor::DrawInspector()
 {
+    if(currentIndex_ >= modelInfos_.size())
+    {
+        return;
+    }
+
+    const auto& currentModelInfo = modelInfos_[currentIndex_];
+    ImGui::Text("Path: %s", currentModelInfo.info.model_path());
+
+    if (ImGui::BeginListBox("Meshes"))
+    {
+        for (int i = 0; i < currentModelInfo.info.meshes_size(); i++)
+        {
+            const auto& meshInfo = currentModelInfo.info.meshes(i);
+            const auto& text = meshInfo.mesh_name();
+            ImGui::Selectable(text.c_str(), false);
+        }
+        ImGui::EndListBox();
+    }
+
+    if (ImGui::BeginListBox("Materials"))
+    {
+        for (int i = 0; i < currentModelInfo.info.materials_size(); i++)
+        {
+            const auto& materialInfo = currentModelInfo.info.materials(i);
+            const auto& text = materialInfo.material_name();
+            ImGui::Selectable(text.c_str(), false);
+        }
+        ImGui::EndListBox();
+    }
 }
 
 bool ModelEditor::DrawContentList(bool unfocus)
@@ -113,6 +161,20 @@ std::span<const std::string_view> ModelEditor::GetExtensions() const
     static constexpr std::array<std::string_view, 2> extensions = { ".obj", ".model"};
     return std::span{ extensions };
 }
+
+ModelInfo* ModelEditor::GetModel(ResourceId resourceId)
+{
+    auto it = std::ranges::find_if(modelInfos_, [&resourceId](const auto& modelInfo)
+        {
+            return modelInfo.resourceId == resourceId;
+        });
+    if(it != modelInfos_.end())
+    {
+        return &*it;
+    }
+    return nullptr;
+}
+
 void ModelEditor::ImportResource(std::string_view path)
 {
     auto& filesystem = FilesystemLocator::get();
@@ -121,6 +183,7 @@ void ModelEditor::ImportResource(std::string_view path)
         LogError("Can only import obj file");
         return;
     }
+
     tinyobj::ObjReaderConfig readerConfig{};
     readerConfig.triangulate = true;
     readerConfig.vertex_color = false;
@@ -134,6 +197,26 @@ void ModelEditor::ImportResource(std::string_view path)
             return;
         }
     }
+    std::vector<std::string> mtlFiles;
+    try
+    {
+        py::function getMaterialsFromObjFunc = py::module_::import("scripts.obj_parser").attr("get_materials_path");
+        std::string result = static_cast<py::str>(getMaterialsFromObjFunc(path));
+        auto materialsJson = json::parse(result);
+        auto mtlList = materialsJson["materials"];
+        for(auto& mtlPath: mtlList)
+        {
+            mtlFiles.push_back(mtlPath);
+        }
+    }
+    catch(py::error_already_set& e)
+    {
+        LogError("Could not parse obj to get mtl files");
+    }
+    catch(json::parse_error& e)
+    {
+        LogError("Could not parse oobj info from script");
+    }
     const auto srcFolder = GetFolder(path);
     const auto dstFolder = fmt::format("{}{}{}/", ResourceManager::dataFolder, GetSubFolder(), GetFilename(path, false));
     auto* editor = Editor::GetInstance();
@@ -141,6 +224,7 @@ void ModelEditor::ImportResource(std::string_view path)
     CreateNewDirectory(dstFolder);
 
     pb::Model newModel;
+    newModel.set_model_path(path.data());
     auto findTextureInModelFunc = [&newModel](const std::string_view texture)
     {
         for(int i = 0; i < newModel.textures_size(); i++)
@@ -195,16 +279,8 @@ void ModelEditor::ImportResource(std::string_view path)
     {
         LogDebug(fmt::format("Material: {}, diffuse: {} specular: {}", material.name, material.diffuse_texname, material.specular_texname));
 
-        auto materialInfoDstPath = fmt::format("{}{}.mat", dstFolder, material.name);
-        const auto materialInfoId = resourceManager.FindResourceByPath(materialInfoDstPath);
-        if(materialInfoId == INVALID_RESOURCE_ID)
-        {
-            editor->CreateNewFile(materialInfoDstPath, EditorType::MATERIAL);
-        }
-
         auto* newMaterial = newModel.add_materials();
         newMaterial->set_material_name(material.name);
-        newMaterial->set_material_path(materialInfoDstPath);
         
         loadMaterialTextureFunc(material.ambient_texname, pb::TextureType::AMBIENT, newMaterial);
         loadMaterialTextureFunc(material.diffuse_texname, pb::TextureType::DIFFUSE, newMaterial);
@@ -248,7 +324,12 @@ void ModelEditor::ImportResource(std::string_view path)
     filesystem.WriteString(modelInfoPath, newModel.SerializeAsString());
     resourceManager.AddResource(modelInfoPath);
 
-    
+    for(std::string_view mtlPath: mtlFiles)
+    {
+        auto mtlSrcPath = fmt::format("{}/{}", srcFolder, GetFilename(mtlPath));
+        auto mtlDstPath = fmt::format("{}{}", dstFolder, GetFilename(mtlPath));
+        CopyFileFromTo(mtlSrcPath, mtlDstPath);
+    }
 
     auto modelDstPath = fmt::format("{}{}", dstFolder, GetFilename(path));
     CopyFileFromTo(path, modelDstPath);

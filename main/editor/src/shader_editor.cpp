@@ -204,7 +204,7 @@ std::span<const std::string_view> ShaderEditor::GetExtensions() const
     return extensions;
 }
 
-bool ShaderEditor::AnalyzeShader(std::string_view path, pb::Shader& shaderInfo)
+bool ShaderEditor::AnalyzeShader(std::string_view path, pb::Shader& shaderInfo) const
 {
     py::function analyzeShaderFunc = py::module_::import("scripts.shader_parser").attr("analyze_shader");
     try
@@ -253,11 +253,6 @@ bool ShaderEditor::AnalyzeShader(std::string_view path, pb::Shader& shaderInfo)
             newOutAttribute->set_name(outAttributeName);
             newOutAttribute->set_type(type);
             newOutAttribute->set_type_name(typeName);
-        }
-        auto structsJson = shaderJson["structs"];
-        for(auto& structJson: structsJson)
-        {
-            LogDebug(structJson.dump());
         }
         return true;
     }
