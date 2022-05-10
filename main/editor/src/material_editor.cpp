@@ -39,7 +39,7 @@ void MaterialEditor::DrawInspector()
         {
             if(ImGui::Selectable(pipeline.filename.c_str(), pipeline.resourceId == currentMaterialInfo.pipelineId))
             {
-                ReloadMaterialPipeline(pipeline,currentIndex_);
+                ReloadMaterialPipeline(pipeline, currentIndex_);
             }
         }
         ImGui::EndCombo();
@@ -268,14 +268,11 @@ void MaterialEditor::ReloadMaterialPipeline(const PipelineInfo& pipelineInfo, in
     currentMaterialInfo.info.set_pipeline_path(pipelineInfo.path);
 
     std::unordered_set<std::string> samplerNames;
-    for (int i = 0; i < pipelineInfo.info.uniforms_size(); i++)
+    for (int i = 0; i < pipelineInfo.info.samplers_size(); i++)
     {
-        const auto& uniformInfo = pipelineInfo.info.uniforms(i);
-        if (uniformInfo.type() == pb::Attribute_Type_SAMPLER2D ||
-            uniformInfo.type() == pb::Attribute_Type_SAMPLERCUBE)
-        {
-            samplerNames.emplace(uniformInfo.name());
-        }
+        const auto& samplerInfo = pipelineInfo.info.samplers(i);
+        samplerNames.emplace(samplerInfo.name());
+        
     }
     std::vector<pb::MaterialTexture> materialTextures;
     for(int i = 0; i < currentMaterialInfo.info.textures_size(); i++)
@@ -287,26 +284,25 @@ void MaterialEditor::ReloadMaterialPipeline(const PipelineInfo& pipelineInfo, in
         }
     }
     currentMaterialInfo.info.mutable_textures()->Clear();
-    for(int i = 0; i < pipelineInfo.info.uniforms_size(); i++)
+    for(int i = 0; i < pipelineInfo.info.samplers_size(); i++)
     {
-        const auto& uniformInfo = pipelineInfo.info.uniforms(i);
-        if (uniformInfo.type() == pb::Attribute_Type_SAMPLER2D ||
-            uniformInfo.type() == pb::Attribute_Type_SAMPLERCUBE)
+        auto* newMaterialTexture = currentMaterialInfo.info.add_textures();
+        const auto& sampler = pipelineInfo.info.samplers(i);
+        const auto it = std::ranges::find_if(materialTextures, [&sampler](const auto& matText)
+            {
+                return sampler.name() == matText.sampler_name();
+            });
+        if (it != materialTextures.end())
         {
-            auto* newMaterialTexture = currentMaterialInfo.info.add_textures();
-            std::string uniformName = uniformInfo.name();
-            const auto it = std::ranges::find_if(materialTextures, [&uniformName](const auto& matText)
-                {
-                    return uniformName == matText.sampler_name();
-                });
-            if (it != materialTextures.end())
+            *newMaterialTexture = *it;
+            if (newMaterialTexture->texture_type() == pb::NONE && sampler.type() != pb::NONE)
             {
-                *newMaterialTexture = *it;
+                newMaterialTexture->set_texture_type(sampler.type());
             }
-            else
-            {
-                newMaterialTexture->set_sampler_name(uniformInfo.name());
-            }
+        }
+        else
+        {
+            newMaterialTexture->set_sampler_name(sampler.name());
         }
     }
 }

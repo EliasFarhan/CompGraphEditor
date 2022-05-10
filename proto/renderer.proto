@@ -109,6 +109,7 @@ message Pipeline
     }
     DepthCompareOp depth_compare_op = 13;
     bool depth_mask = 14;
+    repeated Sampler samplers = 15;
 
 
     string vertex_shader_path = 8;// Used by the editor
@@ -145,6 +146,7 @@ message MaterialTexture
     int32 texture_index = 2;
     //Used only by editor
     string texture_name = 3;
+    TextureType texture_type = 4;
 }
 
 message Material
@@ -189,12 +191,20 @@ message ModelTexture
     TextureType type = 2;
 }
 
+message ModelDrawCommand
+{
+	repeated string material_paths = 1;
+	repeated string draw_command_paths = 2;
+	string pipeline_path = 3;
+}
+
 message Model
 {
-    repeated ModelMesh meshes = 1;
-    repeated ModelMaterial materials = 2;
-    repeated ModelTexture textures = 3;
-    string model_path = 4; //the actual obj path
+	repeated ModelMesh meshes = 1;
+	repeated ModelMaterial materials = 2;
+	repeated ModelTexture textures = 3;
+	string model_path = 4; //the actual obj path
+    repeated ModelDrawCommand draw_commands = 5; // used by the editor
 }
 
 message DrawCommand
@@ -213,6 +223,7 @@ message DrawCommand
     string material_path = 7;
     string mesh_path = 8;
 }
+
 
 message SubPass
 {

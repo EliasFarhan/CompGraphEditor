@@ -7,7 +7,13 @@
 
 namespace gpr5300
 {
-    
+
+struct ModelDrawCommand
+{
+    ResourceId pipelineId = INVALID_RESOURCE_ID;
+    std::vector<ResourceId> materialIds;
+    std::vector<ResourceId> drawCommandIds;
+};
 
 struct ModelInfo
 {
@@ -16,6 +22,7 @@ struct ModelInfo
     pb::Model info;
     tinyobj::ObjReader reader;
     ResourceId resourceId = INVALID_RESOURCE_ID;
+    std::vector<ModelDrawCommand> drawCommands;
 };
 
 class ModelEditor final : public EditorSystem
@@ -36,6 +43,7 @@ public:
     ModelInfo* GetModel(ResourceId resourceId);
     void ImportResource(std::string_view path) override;
 private:
+    void ReloadDrawCommands(std::size_t modelIndex);
     std::vector<ModelInfo> modelInfos_;
     std::size_t currentIndex_ = -1;
 };

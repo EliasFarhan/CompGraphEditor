@@ -16,6 +16,8 @@
 #include <pybind11/pybind11.h>
 #include <nlohmann/json.hpp>
 
+#include "pipeline_editor.h"
+
 using json = nlohmann::json;
 namespace py = pybind11;
 
@@ -24,51 +26,39 @@ namespace gpr5300
 void ModelEditor::AddResource(const Resource& resource)
 {
     const auto extension = GetFileExtension(resource.path);
-    if(extension == ".model")
+    if(extension != ".model")
+        return;
+    ModelInfo modelInfo{};
+    modelInfo.resourceId = resource.resourceId;
+    modelInfo.filename = GetFilename(resource.path);
+
+    const auto& fileSystem = FilesystemLocator::get();
+    if (!fileSystem.IsRegularFile(resource.path))
     {
-        ModelInfo modelInfo{};
-        modelInfo.resourceId = resource.resourceId;
-        modelInfo.filename = GetFilename(resource.path);
-
-        const auto& fileSystem = FilesystemLocator::get();
-        if (!fileSystem.IsRegularFile(resource.path))
-        {
-            LogWarning(fmt::format("Could not find model file: {}", resource.path));
-            return;
-        }
-        std::ifstream fileIn(resource.path, std::ios::binary);
-        if (!modelInfo.info.ParseFromIstream(&fileIn))
-        {
-            LogWarning(fmt::format("Could not open protobuf file: {}", resource.path));
-            return;
-        }
-        tinyobj::ObjReaderConfig readerConfig{};
-        readerConfig.triangulate = true;
-        readerConfig.vertex_color = false;
-        const auto& modelPath = modelInfo.info.model_path();
-
-        if (!modelInfo.reader.ParseFromFile(modelPath, readerConfig))
-        {
-            if (!modelInfo.reader.Error().empty())
-            {
-                LogError(fmt::format("Error parsing obj file: {}", modelPath));
-                return;
-            }
-        }
-        modelInfo.path = resource.path;
-        modelInfos_.push_back(modelInfo);
+        LogWarning(fmt::format("Could not find model file: {}", resource.path));
+        return;
     }
-    else if(extension == ".obj")
+    std::ifstream fileIn(resource.path, std::ios::binary);
+    if (!modelInfo.info.ParseFromIstream(&fileIn))
     {
-        const auto baseFolder = GetFolder(resource.path);
-        const auto modelInfoPath = fmt::format("{}/{}.model", baseFolder, GetFilename(resource.path, false));
-        const auto& fileSystem = FilesystemLocator::get();
-        if (!fileSystem.IsRegularFile(modelInfoPath))
+        LogWarning(fmt::format("Could not open protobuf file: {}", resource.path));
+        return;
+    }
+    tinyobj::ObjReaderConfig readerConfig{};
+    readerConfig.triangulate = true;
+    readerConfig.vertex_color = false;
+    const auto& modelPath = modelInfo.info.model_path();
+
+    if (!modelInfo.reader.ParseFromFile(modelPath, readerConfig))
+    {
+        if (!modelInfo.reader.Error().empty())
         {
-            LogWarning(fmt::format("Could not find model file: {} of obj {}", modelInfoPath, resource.path));
+            LogError(fmt::format("Error parsing obj file: {}", modelPath));
             return;
         }
     }
+    modelInfo.path = resource.path;
+    modelInfos_.push_back(modelInfo);
 }
 
 void ModelEditor::RemoveResource(const Resource& resource)
@@ -91,8 +81,10 @@ void ModelEditor::DrawInspector()
         return;
     }
 
-    const auto& currentModelInfo = modelInfos_[currentIndex_];
-    ImGui::Text("Path: %s", currentModelInfo.info.model_path());
+    auto& currentModelInfo = modelInfos_[currentIndex_];
+    auto* editor = Editor::GetInstance();
+    auto* pipelineEditor = dynamic_cast<PipelineEditor*>(editor->GetEditorSystem(EditorType::PIPELINE));
+    ImGui::Text("Path: %s", currentModelInfo.info.model_path().c_str());
 
     if (ImGui::BeginListBox("Meshes"))
     {
@@ -114,6 +106,53 @@ void ModelEditor::DrawInspector()
             ImGui::Selectable(text.c_str(), false);
         }
         ImGui::EndListBox();
+    }
+
+    if(currentModelInfo.drawCommands.size() != currentModelInfo.info.draw_commands_size())
+    {
+        ReloadDrawCommands(currentIndex_);
+    }
+
+
+    for(int i = 0; i < currentModelInfo.info.draw_commands_size(); i++)
+    {
+        auto* drawCommandInfo = currentModelInfo.info.mutable_draw_commands(i);
+        auto& drawCommand = currentModelInfo.drawCommands[i];
+        auto headerName = fmt::format("Draw Command {}", i);
+        if (ImGui::CollapsingHeader(headerName.c_str()))
+        {
+            auto pipelineId = fmt::format("{} Set Pipeline", headerName);
+            ImGui::PushID(pipelineId.c_str());
+            const auto& pipelines = pipelineEditor->GetPipelines();
+            auto pipelinePreview = drawCommandInfo->pipeline_path().empty() ? "" : GetFilename(drawCommandInfo->pipeline_path());
+            if (ImGui::BeginCombo("Pipeline", pipelinePreview.empty() ? "Empty pipeline" : pipelinePreview.c_str()))
+            {
+                for (const auto& pipeline : pipelines)
+                {
+                    if (ImGui::Selectable(pipeline.filename.c_str(), pipeline.resourceId == drawCommand.pipelineId))
+                    {
+                        drawCommand.pipelineId = pipeline.resourceId;
+                        drawCommandInfo->set_pipeline_path(pipeline.path);
+                    }
+                }
+                ImGui::EndCombo();
+            }
+            ImGui::PopID();
+            if (drawCommand.pipelineId != INVALID_RESOURCE_ID)
+            {
+                auto buttonId = fmt::format("{} Generate Button", headerName);
+                ImGui::PushID(buttonId.c_str());
+                if (ImGui::Button("Generate Materials & Commands"))
+                {
+
+                }
+                ImGui::PopID();
+            }
+        }
+    }
+    if(ImGui::Button("Add New Command"))
+    {
+        currentModelInfo.info.add_draw_commands();
     }
 }
 
@@ -224,7 +263,6 @@ void ModelEditor::ImportResource(std::string_view path)
     CreateNewDirectory(dstFolder);
 
     pb::Model newModel;
-    newModel.set_model_path(path.data());
     auto findTextureInModelFunc = [&newModel](const std::string_view texture)
     {
         for(int i = 0; i < newModel.textures_size(); i++)
@@ -320,9 +358,6 @@ void ModelEditor::ImportResource(std::string_view path)
         newMesh->set_mesh_path(meshInfoDstPath);
     }
 
-    auto modelInfoPath = fmt::format("{}{}.model", dstFolder, GetFilename(path, false));
-    filesystem.WriteString(modelInfoPath, newModel.SerializeAsString());
-    resourceManager.AddResource(modelInfoPath);
 
     for(std::string_view mtlPath: mtlFiles)
     {
@@ -334,6 +369,50 @@ void ModelEditor::ImportResource(std::string_view path)
     auto modelDstPath = fmt::format("{}{}", dstFolder, GetFilename(path));
     CopyFileFromTo(path, modelDstPath);
     resourceManager.AddResource(modelDstPath);
+    newModel.set_model_path(modelDstPath);
 
+    auto modelInfoPath = fmt::format("{}{}.model", dstFolder, GetFilename(path, false));
+    filesystem.WriteString(modelInfoPath, newModel.SerializeAsString());
+    resourceManager.AddResource(modelInfoPath);
+
+}
+
+void ModelEditor::ReloadDrawCommands(std::size_t modelIndex)
+{
+    auto* editor = Editor::GetInstance();
+    const auto& resourceManager = editor->GetResourceManager();
+    auto& modelInfo = modelInfos_[modelIndex];
+    if(modelInfo.drawCommands.size() != modelInfo.info.draw_commands_size())
+    {
+        modelInfo.drawCommands.resize(modelInfo.info.draw_commands_size());
+    }
+    for(int i = 0; i < modelInfo.info.draw_commands_size(); i++)
+    {
+        auto& drawCommand = modelInfo.drawCommands[i];
+        auto& drawCommandInfo = modelInfo.info.draw_commands(i);
+        if(drawCommand.materialIds.size() != modelInfo.info.materials_size())
+        {
+            drawCommand.materialIds.resize(modelInfo.info.materials_size(), INVALID_RESOURCE_ID);
+        }
+        if(drawCommand.drawCommandIds.size() != modelInfo.info.meshes_size())
+        {
+            drawCommand.drawCommandIds.resize(modelInfo.info.meshes_size());
+        }
+
+        for(int j = 0; j < drawCommandInfo.material_paths_size(); j++)
+        {
+            if(drawCommand.materialIds[j] == INVALID_RESOURCE_ID)
+            {
+                drawCommand.materialIds[j] = resourceManager.FindResourceByPath(drawCommandInfo.material_paths(j));
+            }
+        }
+        for(int j = 0; j < drawCommandInfo.draw_command_paths_size(); j++)
+        {
+            if(drawCommand.drawCommandIds[j] == INVALID_RESOURCE_ID)
+            {
+                drawCommand.drawCommandIds[j] = resourceManager.FindResourceByPath(drawCommandInfo.draw_command_paths(j));
+            }
+        }
+    }
 }
 }

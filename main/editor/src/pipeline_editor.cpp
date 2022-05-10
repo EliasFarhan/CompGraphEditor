@@ -123,6 +123,55 @@ void PipelineEditor::DrawInspector()
                 currentPipelineInfo.info.set_depth_mask(depthMask);
             }
         }
+        static constexpr std::array<std::string_view, 15> textureTypesTxt =
+        {
+                "NONE",
+                "AMBIENT",
+                "DIFFUSE",
+                "SPECULAR",
+                "SPECULAR_HIGHLIGHT",
+                "BUMP",
+                "DISPLACEMENT",
+                "ALPHA",
+                "REFLECTION",
+                "ROUGHNESS",
+                "METALLIC",
+                "SHEEN",
+                "EMISSIVE",
+                "NORMAL",
+                "AO"
+        };
+        if(ImGui::BeginTable("Samplers Table", 2))
+        {
+            for(int i = 0; i < currentPipelineInfo.info.samplers_size(); i++)
+            {
+                auto* sampler = currentPipelineInfo.info.mutable_samplers(i);
+                ImGui::TableNextRow();
+                ImGui::TableSetColumnIndex(0);
+                ImGui::Text("Name: %s", sampler->name().c_str());
+                ImGui::TableSetColumnIndex(1);
+                if(ImGui::BeginCombo("Texture Type", textureTypesTxt[static_cast<int>(sampler->type())].data()))
+                {
+                    for(std::size_t j = 0; j < textureTypesTxt.size(); j++)
+                    {
+                        if(ImGui::Selectable(textureTypesTxt[j].data(), j == sampler->type()))
+                        {
+                            sampler->set_type(static_cast<pb::TextureType>(j));
+                            auto* materialEditor = editor->GetEditorSystem(EditorType::MATERIAL);
+                            auto& resourceManager = editor->GetResourceManager();
+                            const auto* pipelineResource = resourceManager.GetResource(currentPipelineInfo.resourceId);
+                            if (pipelineResource != nullptr)
+                            {
+                                materialEditor->UpdateExistingResource(*pipelineResource);
+                            }
+                        }
+                    }
+                    ImGui::EndCombo();
+                }
+            }
+            ImGui::EndTable();
+        }
+
 
         if (ImGui::BeginListBox("Uniforms"))
         {
@@ -235,7 +284,7 @@ void PipelineEditor::UpdateExistingResource(const Resource& resource)
 {
     //update pipeline if shader modifies it
     int i = 0;
-    for (auto& pipelineInfo : pipelineInfos_)
+    for (const auto& pipelineInfo : pipelineInfos_)
     {
         bool modified = false;
         if (pipelineInfo.vertexShaderId == resource.resourceId)
@@ -336,6 +385,13 @@ void PipelineEditor::ReloadPipeline(int index)
             pipelineInfo.fragmentShaderId = resourceManager.FindResourceByPath(pipelineInfo.info.fragment_shader_path());
         }
     }
+    std::vector<pb::Sampler> samplers;
+    samplers.reserve(pipelineInfo.info.samplers_size());
+    for(int i = 0; i < pipelineInfo.info.samplers_size(); i++)
+    {
+        samplers.push_back(pipelineInfo.info.samplers(i));
+    }
+    pipelineInfo.info.mutable_samplers()->Clear();
     pipelineInfo.info.mutable_uniforms()->Clear();
     pipelineInfo.info.mutable_in_vertex_attributes()->Clear();
     //load uniforms and input attributes to pipeline
@@ -357,6 +413,34 @@ void PipelineEditor::ReloadPipeline(int index)
         for (int i = 0; i < fragmentShader->info.uniforms_size(); i++)
         {
             *pipelineInfo.info.add_uniforms() = fragmentShader->info.uniforms(i);
+        }
+    }
+    for(int i = 0; i < pipelineInfo.info.uniforms_size(); i++)
+    {
+        const auto& uniform = pipelineInfo.info.uniforms(i);
+        const auto uniformType = uniform.type();
+        if(uniformType != pb::Attribute_Type_SAMPLER2D && uniformType != pb::Attribute_Type_SAMPLERCUBE)
+        {
+            continue;
+        }
+        const pb::Sampler* previousSampler = nullptr;
+        for(auto& sampler : samplers)
+        {
+            if(sampler.name() == uniform.name())
+            {
+                previousSampler = &sampler;
+                break;
+            }
+        }
+        auto* newSampler = pipelineInfo.info.add_samplers();
+        if(previousSampler != nullptr)
+        {
+            *newSampler = *previousSampler;
+        }
+        else
+        {
+            newSampler->set_name(uniform.name());
+            newSampler->set_type(pb::NONE);
         }
     }
 }
