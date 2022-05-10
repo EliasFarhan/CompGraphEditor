@@ -381,6 +381,7 @@ void ModelEditor::ImportResource(std::string_view path)
         auto mtlSrcPath = fmt::format("{}/{}", srcFolder, GetFilename(mtlPath));
         auto mtlDstPath = fmt::format("{}{}", dstFolder, GetFilename(mtlPath));
         CopyFileFromTo(mtlSrcPath, mtlDstPath);
+        *newModel.add_mtl_paths() = mtlDstPath;
     }
 
     CopyFileFromTo(path, modelDstPath);

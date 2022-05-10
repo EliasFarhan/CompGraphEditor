@@ -208,6 +208,7 @@ message Model
 	repeated ModelTexture textures = 3;
 	string model_path = 4; //the actual obj path
     repeated ModelDrawCommand draw_commands = 5; // used by the editor
+    repeated string mtl_paths = 6;
 }
 
 message SceneModel

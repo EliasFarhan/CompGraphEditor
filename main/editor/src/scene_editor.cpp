@@ -21,6 +21,7 @@
 #include "script_editor.h"
 #include "shader_editor.h"
 #include "texture_editor.h"
+#include "model_editor.h"
 
 namespace py = pybind11;
 using json = nlohmann::json;
@@ -92,6 +93,7 @@ void SceneEditor::DrawInspector()
     const auto& resourceManager = editor->GetResourceManager();
     auto* renderPassEditor = dynamic_cast<RenderPassEditor*>(editor->GetEditorSystem(EditorType::RENDER_PASS));
     auto* scriptEditor = dynamic_cast<ScriptEditor*>(editor->GetEditorSystem(EditorType::SCRIPT));
+    auto* modelEditor = dynamic_cast<ModelEditor*>(editor->GetEditorSystem(EditorType::MODEL));
     auto& currentScene = sceneInfos_[currentIndex_];
 
 
@@ -242,6 +244,7 @@ bool SceneEditor::ExportScene() const
     const auto* pipelineEditor = dynamic_cast<PipelineEditor*>(editor->GetEditorSystem(EditorType::PIPELINE));
     const auto* shaderEditor = dynamic_cast<ShaderEditor*>(editor->GetEditorSystem(EditorType::SHADER));
     auto* meshEditor = dynamic_cast<MeshEditor*>(editor->GetEditorSystem(EditorType::MESH));
+    auto* modelEditor = dynamic_cast<ModelEditor*>(editor->GetEditorSystem(EditorType::MODEL));
     const auto* scriptEditor = dynamic_cast<ScriptEditor*>(editor->GetEditorSystem(EditorType::SCRIPT));
     auto* textureEditor = dynamic_cast<TextureEditor*>(editor->GetEditorSystem(EditorType::TEXTURE));
     //TODO reload all editors to get all correct resourceId
@@ -480,6 +483,19 @@ bool SceneEditor::ExportScene() const
         objPaths.push_back(exportScene.info.model_paths(i));
     }
     sceneJson["models"] = objPaths;
+
+    std::vector<std::string> others;
+    for(auto& objFile : objPaths)
+    {
+        const auto modelPath = fmt::format("{}/{}.model", GetFolder(objFile), GetFilename(objFile, false));
+        const auto modelId = resourceManager.FindResourceByPath(modelPath);
+        auto* model = modelEditor->GetModel(modelId);
+        for(int i = 0; i < model->info.mtl_paths_size(); i++)
+        {
+            others.push_back(model->info.mtl_paths(i));
+        }
+    }
+    sceneJson["others"] = others;
 
     //Call python function exporting the scene
     try

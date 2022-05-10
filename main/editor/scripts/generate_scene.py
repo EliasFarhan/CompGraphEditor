@@ -16,3 +16,5 @@ def export_scene(path, scene_json_txt):
 			scene_zip.write(script_file)
 		for model_file in scene_json["models"]:
 			scene_zip.write(model_file)
+		for other_file in scene_json["others"]:
+			scene_zip.write(other_file)
