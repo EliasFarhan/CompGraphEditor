@@ -390,13 +390,38 @@ bool SceneEditor::ExportScene() const
                 LogWarning("Could not export scene, missing mesh in command");
                 return false;
             }
-            const auto* mesh = meshEditor->GetMesh(command->meshId);
+            auto* mesh = meshEditor->GetMesh(command->meshId);
+            //add model if not done already
+
+            int meshModel = -1;
+            if (!mesh->info.model_path().empty())
+            {
+                for (int modelIndex = 0; modelIndex < exportScene.info.model_paths_size(); modelIndex++)
+                {
+                    auto& sceneModelPath = exportScene.info.model_paths(modelIndex);
+                    if (fs::equivalent(sceneModelPath, mesh->info.model_path()))
+                    {
+                        meshModel = modelIndex;
+                        break;
+                    }
+                }
+                if(meshModel == -1)
+                {
+                    meshModel = exportScene.info.model_paths_size();
+                    exportScene.info.add_model_paths(mesh->info.model_path());
+                }
+                else
+                {
+                    mesh->info.set_model_index(meshModel);
+                }
+            }
             auto meshIndexIt = resourceIndexMap.find(mesh->resourceId);
             if(meshIndexIt == resourceIndexMap.end())
             {
                 const auto meshIndex = exportScene.info.meshes_size();
                 auto* newMesh = exportScene.info.add_meshes();
                 *newMesh = mesh->info;
+                newMesh->set_model_index(meshModel);
                 resourceIndexMap[mesh->resourceId] = meshIndex;
                 exportCommand->set_mesh_index(meshIndex);
             }
@@ -447,6 +472,14 @@ bool SceneEditor::ExportScene() const
         texturePaths.push_back(exportScene.info.textures(i).path());
     }
     sceneJson["textures"] = texturePaths;
+
+    std::vector<std::string> objPaths;
+    objPaths.reserve(exportScene.info.model_paths_size());
+    for(int i = 0; i < exportScene.info.model_paths_size(); i++)
+    {
+        objPaths.push_back(exportScene.info.model_paths(i));
+    }
+    sceneJson["models"] = objPaths;
 
     //Call python function exporting the scene
     try

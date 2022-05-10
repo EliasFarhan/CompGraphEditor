@@ -204,6 +204,10 @@ void ModelEditor::Save()
 
 void ModelEditor::ReloadId()
 {
+    for(std::size_t i = 0; i < modelInfos_.size(); i++)
+    {
+        ReloadDrawCommands(i);
+    }
 }
 
 void ModelEditor::Delete()
@@ -290,8 +294,7 @@ void ModelEditor::ImportResource(std::string_view path)
         return -1;
     };
     auto& materials = reader.GetMaterials();
-    LogDebug(fmt::format("Newly imported model contains {} materials", materials.size()));
-
+    
     auto loadMaterialTextureFunc = [&]
     (std::string_view textureName, pb::TextureType textureType, pb::ModelMaterial* material)
     {
@@ -330,8 +333,7 @@ void ModelEditor::ImportResource(std::string_view path)
 
     for (auto& material : materials)
     {
-        LogDebug(fmt::format("Material: {}, diffuse: {} specular: {}", material.name, material.diffuse_texname, material.specular_texname));
-
+        
         auto* newMaterial = newModel.add_materials();
         newMaterial->set_material_name(material.name);
         
@@ -349,13 +351,12 @@ void ModelEditor::ImportResource(std::string_view path)
         loadMaterialTextureFunc(material.emissive_texname, pb::TextureType::EMISSIVE, newMaterial);
         loadMaterialTextureFunc(material.normal_texname, pb::TextureType::NORMAL, newMaterial);
     }
+    auto modelDstPath = fmt::format("{}{}", dstFolder, GetFilename(path));
 
     auto& shapes = reader.GetShapes();
-    LogDebug(fmt::format("Newly imported model containes {} meshes", shapes.size()));
     for (auto& shape : shapes)
     {
-        LogDebug(fmt::format("Mesh: {} contains {} vertices", shape.name, shape.mesh.indices.size()));
-
+        
         auto meshInfoDstPath = fmt::format("{}{}.mesh", dstFolder, shape.name);
         auto meshInfoId = resourceManager.FindResourceByPath(meshInfoDstPath);
         if (meshInfoId == INVALID_RESOURCE_ID)
@@ -366,7 +367,8 @@ void ModelEditor::ImportResource(std::string_view path)
         auto* meshEditor = dynamic_cast<MeshEditor*>(editor->GetEditorSystem(EditorType::MESH));
         auto* meshInfo = meshEditor->GetMesh(meshInfoId);
         meshInfo->info.set_primitve_type(pb::Mesh_PrimitveType_MODEL);
-
+        meshInfo->info.set_model_path(modelDstPath);
+        meshInfo->info.set_mesh_name(shape.name);
         auto* newMesh = newModel.add_meshes();
         newMesh->set_mesh_name(shape.name);
         newMesh->set_material_name(newModel.materials(shape.mesh.material_ids[0]).material_name());
@@ -381,7 +383,6 @@ void ModelEditor::ImportResource(std::string_view path)
         CopyFileFromTo(mtlSrcPath, mtlDstPath);
     }
 
-    auto modelDstPath = fmt::format("{}{}", dstFolder, GetFilename(path));
     CopyFileFromTo(path, modelDstPath);
     resourceManager.AddResource(modelDstPath);
     newModel.set_model_path(modelDstPath);
@@ -412,8 +413,7 @@ void ModelEditor::GenerateMaterialsAndCommands(int commandIndex)
     drawCommand.drawCommandIds.clear();
     for (int modelMaterialIndex = 0; modelMaterialIndex < currentModelInfo.info.materials_size(); modelMaterialIndex++)
     {
-        auto* modelMaterial = currentModelInfo.info.mutable_materials(modelMaterialIndex);
-        modelMaterial->mutable_texture_indices()->Clear();
+        auto& modelMaterial = currentModelInfo.info.materials(modelMaterialIndex);
         if (drawCommandInfo->material_paths_size() >= modelMaterialIndex)
         {
             drawCommandInfo->add_material_paths();
@@ -439,16 +439,16 @@ void ModelEditor::GenerateMaterialsAndCommands(int commandIndex)
             auto* materialTexture = material->info.mutable_textures(materialTextureIndex);
             if (materialTexture->texture_type() == pb::NONE)
                 continue;
-            for (int modelTextureIndex = 0; modelTextureIndex < currentModelInfo.info.textures_size(); modelTextureIndex++)
+            for (int modelMaterialTextureIndex = 0; modelMaterialTextureIndex < modelMaterial.texture_indices_size(); modelMaterialTextureIndex++)
             {
-                auto& modelTexture = currentModelInfo.info.textures(modelTextureIndex);
+                auto& modelTexture = currentModelInfo.info.textures(modelMaterial.texture_indices(modelMaterialTextureIndex));
                 if (modelTexture.type() != pb::NONE && modelTexture.type() == materialTexture->texture_type())
                 {
                     materialTexture->set_texture_name(modelTexture.texture_path());
-                    modelMaterial->add_texture_indices(modelTextureIndex);
                     break;
                 }
             }
+            
         }
     }
     drawCommandInfo->mutable_draw_command_paths()->Reserve(currentModelInfo.info.meshes_size());
@@ -528,6 +528,10 @@ void ModelEditor::ReloadDrawCommands(std::size_t modelIndex)
             {
                 drawCommand.drawCommandIds[j] = resourceManager.FindResourceByPath(drawCommandInfo.draw_command_paths(j));
             }
+        }
+        if(drawCommand.pipelineId == INVALID_RESOURCE_ID)
+        {
+            drawCommand.pipelineId = resourceManager.FindResourceByPath(drawCommandInfo.pipeline_path());
         }
     }
 }

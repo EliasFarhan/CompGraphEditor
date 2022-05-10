@@ -169,6 +169,9 @@ message Mesh
         NONE = 4;
     }
     PrimitveType primitve_type = 1;
+    string model_path = 2; //used by editor
+    string mesh_name = 3;
+    int32 model_index = 4;
 }
 
 message ModelMesh
@@ -205,6 +208,11 @@ message Model
 	repeated ModelTexture textures = 3;
 	string model_path = 4; //the actual obj path
     repeated ModelDrawCommand draw_commands = 5; // used by the editor
+}
+
+message SceneModel
+{
+    string path = 1;
 }
 
 message DrawCommand
@@ -255,7 +263,7 @@ message Scene
     repeated Texture textures = 6;
     repeated Material materials = 7;
     repeated PySystem py_systems = 8;
-    repeated Model models = 11;
+    repeated string model_paths = 11;
 
     //used by editor
     string render_pass_path = 9;

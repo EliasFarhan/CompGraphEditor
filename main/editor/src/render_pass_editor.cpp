@@ -12,6 +12,7 @@
 #include <fstream>
 
 #include "scene_editor.h"
+#include "model_editor.h"
 
 namespace gpr5300
 {
@@ -30,6 +31,7 @@ namespace gpr5300
         const auto* editor = Editor::GetInstance();
         const auto& resourceManager = editor->GetResourceManager();
         auto* commandEditor = dynamic_cast<CommandEditor*>(editor->GetEditorSystem(EditorType::COMMAND));
+        auto* modelEditor = dynamic_cast<ModelEditor*>(editor->GetEditorSystem(EditorType::MODEL));
         const auto& commands = commandEditor->GetCommands();
         auto& currentRenderPass = renderPassInfos_[currentIndex_];
         for (int i = 0; i < currentRenderPass.info.sub_passes_size(); i++)
@@ -110,7 +112,49 @@ namespace gpr5300
                     subpassInfo->add_command_paths();
                 }
                 ImGui::PopID();
+                const auto importId = fmt::format("{}_import_model_command", headerTitle);
+                const auto popupId = fmt::format("{}_popup", importId);
+                bool openPopup = false;
+                ImGui::PushID(importId.c_str());
+                if(ImGui::Button("Import From Model Command"))
+                {
+                    openPopup = true;
+                }
+                ImGui::PopID();
+                if(openPopup)
+                {
+                    ImGui::OpenPopup(popupId.c_str());
+                }
+                if(ImGui::BeginPopup(popupId.c_str()))
+                {
+                    const auto& models = modelEditor->GetModels();
+                    if(ImGui::BeginCombo("Model Command Selection", "Choose Command"))
+                    {
+                        for(auto& model : models)
+                        {
+                            for(auto& command : model.drawCommands)
+                            {
+                                if(command.pipelineId == INVALID_RESOURCE_ID)
+                                    continue;
+                                auto* pipelineResource = resourceManager.GetResource(command.pipelineId);
+                                const auto commandName = fmt::format("{}_{}", GetFilename(model.path, false), GetFilename(pipelineResource->path, false));
+                                if(ImGui::Selectable(commandName.c_str(), false))
+                                {
+                                    //TODO import commands
+                                    for(auto commandId : command.drawCommandIds)
+                                    {
+                                        *subpassInfo->add_command_paths() = resourceManager.GetResource(commandId)->path;
+                                    }
+                                    ImGui::CloseCurrentPopup();
+                                }
+                            }
+                        }
+                        ImGui::EndCombo();
+                    }
+                    ImGui::EndPopup();
+                }
             }
+            
             if (!headerVisible)
             {
                 currentRenderPass.info.mutable_sub_passes()->DeleteSubrange(i, 1);

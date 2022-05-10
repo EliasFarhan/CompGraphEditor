@@ -42,6 +42,7 @@ public:
     [[nodiscard]] std::span<const std::string_view> GetExtensions() const override;
     ModelInfo* GetModel(ResourceId resourceId);
     void ImportResource(std::string_view path) override;
+    const auto& GetModels() const { return modelInfos_; }
 private:
     void GenerateMaterialsAndCommands(int commandIndex);
     void ReloadDrawCommands(std::size_t modelIndex);
