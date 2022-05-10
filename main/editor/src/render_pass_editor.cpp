@@ -29,7 +29,7 @@ namespace gpr5300
         }
         const auto* editor = Editor::GetInstance();
         const auto& resourceManager = editor->GetResourceManager();
-        const auto* commandEditor = dynamic_cast<CommandEditor*>(editor->GetEditorSystem(EditorType::COMMAND));
+        auto* commandEditor = dynamic_cast<CommandEditor*>(editor->GetEditorSystem(EditorType::COMMAND));
         const auto& commands = commandEditor->GetCommands();
         auto& currentRenderPass = renderPassInfos_[currentIndex_];
         for (int i = 0; i < currentRenderPass.info.sub_passes_size(); i++)

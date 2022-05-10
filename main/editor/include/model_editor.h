@@ -43,6 +43,7 @@ public:
     ModelInfo* GetModel(ResourceId resourceId);
     void ImportResource(std::string_view path) override;
 private:
+    void GenerateMaterialsAndCommands(int commandIndex);
     void ReloadDrawCommands(std::size_t modelIndex);
     std::vector<ModelInfo> modelInfos_;
     std::size_t currentIndex_ = -1;

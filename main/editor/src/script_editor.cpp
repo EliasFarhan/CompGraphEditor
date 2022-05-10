@@ -33,7 +33,6 @@ void ScriptEditor::AddResource(const Resource& resource)
     try
     {
         std::string result = static_cast<py::str>(analyzeScriptFunc(resource.path));
-        LogDebug(fmt::format("Loading script: {} with content:\n{}", resource.path, result));
         json scriptJson = json::parse(result);
         for(auto& className : scriptJson["classes"])
         {

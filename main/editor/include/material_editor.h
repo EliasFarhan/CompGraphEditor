@@ -37,7 +37,7 @@ public:
     void RemoveResource(const Resource &resource) override;
 
     void UpdateExistingResource(const Resource &resource) override;
-    const MaterialInfo* GetMaterial(ResourceId resourceId) const;
+    MaterialInfo* GetMaterial(ResourceId resourceId);
     const auto& GetMaterials() const { return materialInfos_; }
     void ReloadId() override;
     void Delete() override;

@@ -16,6 +16,8 @@
 #include <pybind11/pybind11.h>
 #include <nlohmann/json.hpp>
 
+#include "command_editor.h"
+#include "material_editor.h"
 #include "pipeline_editor.h"
 
 using json = nlohmann::json;
@@ -80,10 +82,14 @@ void ModelEditor::DrawInspector()
     {
         return;
     }
-
+    auto& filesystem = FilesystemLocator::get();
     auto& currentModelInfo = modelInfos_[currentIndex_];
+    const auto baseDir = GetFolder(currentModelInfo.path);
     auto* editor = Editor::GetInstance();
-    auto* pipelineEditor = dynamic_cast<PipelineEditor*>(editor->GetEditorSystem(EditorType::PIPELINE));
+    auto& resourceManager = editor->GetResourceManager();
+    const auto* pipelineEditor = dynamic_cast<PipelineEditor*>(editor->GetEditorSystem(EditorType::PIPELINE));
+    auto* materialEditor = dynamic_cast<MaterialEditor*>(editor->GetEditorSystem(EditorType::MATERIAL));
+    auto* commandEditor = dynamic_cast<CommandEditor*>(editor->GetEditorSystem(EditorType::COMMAND));
     ImGui::Text("Path: %s", currentModelInfo.info.model_path().c_str());
 
     if (ImGui::BeginListBox("Meshes"))
@@ -114,11 +120,11 @@ void ModelEditor::DrawInspector()
     }
 
 
-    for(int i = 0; i < currentModelInfo.info.draw_commands_size(); i++)
+    for(int commandIndex = 0; commandIndex < currentModelInfo.info.draw_commands_size(); commandIndex++)
     {
-        auto* drawCommandInfo = currentModelInfo.info.mutable_draw_commands(i);
-        auto& drawCommand = currentModelInfo.drawCommands[i];
-        auto headerName = fmt::format("Draw Command {}", i);
+        auto* drawCommandInfo = currentModelInfo.info.mutable_draw_commands(commandIndex);
+        auto& drawCommand = currentModelInfo.drawCommands[commandIndex];
+        auto headerName = fmt::format("Draw Command {}", commandIndex);
         if (ImGui::CollapsingHeader(headerName.c_str()))
         {
             auto pipelineId = fmt::format("{} Set Pipeline", headerName);
@@ -144,7 +150,7 @@ void ModelEditor::DrawInspector()
                 ImGui::PushID(buttonId.c_str());
                 if (ImGui::Button("Generate Materials & Commands"))
                 {
-
+                    GenerateMaterialsAndCommands(commandIndex);
                 }
                 ImGui::PopID();
             }
@@ -185,6 +191,15 @@ EditorType ModelEditor::GetEditorType()
 
 void ModelEditor::Save()
 {
+    for (auto& modelInfo : modelInfos_)
+    {
+        std::ofstream fileOut(modelInfo.path, std::ios::binary);
+        if (!modelInfo.info.SerializeToOstream(&fileOut))
+        {
+            LogWarning(fmt::format("Could not save model at: {}", modelInfo.path));
+        }
+
+    }
 }
 
 void ModelEditor::ReloadId()
@@ -375,6 +390,107 @@ void ModelEditor::ImportResource(std::string_view path)
     filesystem.WriteString(modelInfoPath, newModel.SerializeAsString());
     resourceManager.AddResource(modelInfoPath);
 
+}
+
+void ModelEditor::GenerateMaterialsAndCommands(int commandIndex)
+{
+
+    auto& currentModelInfo = modelInfos_[currentIndex_];
+    auto* drawCommandInfo = currentModelInfo.info.mutable_draw_commands(commandIndex);
+    auto& drawCommand = currentModelInfo.drawCommands[commandIndex];
+    
+    const auto baseDir = GetFolder(currentModelInfo.path);
+    auto* editor = Editor::GetInstance();
+    auto& resourceManager = editor->GetResourceManager();
+    const auto* pipelineEditor = dynamic_cast<PipelineEditor*>(editor->GetEditorSystem(EditorType::PIPELINE));
+    auto* materialEditor = dynamic_cast<MaterialEditor*>(editor->GetEditorSystem(EditorType::MATERIAL));
+    auto* commandEditor = dynamic_cast<CommandEditor*>(editor->GetEditorSystem(EditorType::COMMAND));
+    const auto* pipeline = pipelineEditor->GetPipeline(drawCommand.pipelineId);
+    auto pipelineName = GetFilename(pipeline->path, false);
+    drawCommandInfo->mutable_material_paths()->Reserve(currentModelInfo.info.materials_size());
+    drawCommand.materialIds.clear();
+    drawCommand.drawCommandIds.clear();
+    for (int modelMaterialIndex = 0; modelMaterialIndex < currentModelInfo.info.materials_size(); modelMaterialIndex++)
+    {
+        auto* modelMaterial = currentModelInfo.info.mutable_materials(modelMaterialIndex);
+        modelMaterial->mutable_texture_indices()->Clear();
+        if (drawCommandInfo->material_paths_size() >= modelMaterialIndex)
+        {
+            drawCommandInfo->add_material_paths();
+        }
+        //create new material, or reset old one
+        auto materialId = resourceManager.FindResourceByPath(drawCommandInfo->material_paths(modelMaterialIndex));
+        if (materialId == INVALID_RESOURCE_ID)
+        {
+            auto materialPath = fmt::format("{}/{}_{}.mat", baseDir, currentModelInfo.info.materials(modelMaterialIndex).material_name(), pipelineName);
+            editor->CreateNewFile(materialPath, EditorType::MATERIAL);
+            drawCommandInfo->set_material_paths(modelMaterialIndex, materialPath);
+            materialId = resourceManager.FindResourceByPath(materialPath);
+        }
+        drawCommand.materialIds.push_back(materialId);
+        auto* material = materialEditor->GetMaterial(materialId);
+        material->info.set_pipeline_path(pipeline->path);
+        material->pipelineId = pipeline->resourceId;
+        materialEditor->UpdateExistingResource(*resourceManager.GetResource(pipeline->resourceId));
+
+        //Linking textures from model material
+        for (int materialTextureIndex = 0; materialTextureIndex < material->info.textures_size(); materialTextureIndex++)
+        {
+            auto* materialTexture = material->info.mutable_textures(materialTextureIndex);
+            if (materialTexture->texture_type() == pb::NONE)
+                continue;
+            for (int modelTextureIndex = 0; modelTextureIndex < currentModelInfo.info.textures_size(); modelTextureIndex++)
+            {
+                auto& modelTexture = currentModelInfo.info.textures(modelTextureIndex);
+                if (modelTexture.type() != pb::NONE && modelTexture.type() == materialTexture->texture_type())
+                {
+                    materialTexture->set_texture_name(modelTexture.texture_path());
+                    modelMaterial->add_texture_indices(modelTextureIndex);
+                    break;
+                }
+            }
+        }
+    }
+    drawCommandInfo->mutable_draw_command_paths()->Reserve(currentModelInfo.info.meshes_size());
+    for (int meshIndex = 0; meshIndex < currentModelInfo.info.meshes_size(); meshIndex++)
+    {
+        auto& modelMesh = currentModelInfo.info.meshes(meshIndex);
+
+        if (drawCommandInfo->draw_command_paths_size() <= meshIndex)
+        {
+            drawCommandInfo->add_draw_command_paths();
+        }
+        //create new command, or reset old one
+        auto commandId = resourceManager.FindResourceByPath(drawCommandInfo->draw_command_paths(meshIndex));
+        if (commandId == INVALID_RESOURCE_ID)
+        {
+            auto commandPath = fmt::format("{}/{}_{}.cmd", baseDir, currentModelInfo.info.meshes(meshIndex).mesh_name(), pipelineName);
+            editor->CreateNewFile(commandPath, EditorType::COMMAND);
+            drawCommandInfo->set_draw_command_paths(meshIndex, commandPath);
+            commandId = resourceManager.FindResourceByPath(commandPath);
+        }
+        drawCommand.drawCommandIds.push_back(commandId);
+        auto* command = commandEditor->GetCommand(commandId);
+
+        auto modelMaterialName = modelMesh.material_name();
+        auto materialPath = fmt::format("{}/{}_{}.mat", baseDir, modelMaterialName, pipelineName);
+        auto materialId = resourceManager.FindResourceByPath(materialPath);
+        auto meshId = resourceManager.FindResourceByPath(modelMesh.mesh_path());
+
+        command->info.set_mesh_path(modelMesh.mesh_path());
+        command->info.set_material_path(materialPath);
+        command->materialId = materialId;
+        command->meshId = meshId;
+        command->info.set_draw_elements(true);
+        for (auto& mesh : currentModelInfo.reader.GetShapes())
+        {
+            if (mesh.name == modelMesh.mesh_name())
+            {
+                command->info.set_count(mesh.mesh.indices.size());
+                break;
+            }
+        }
+    }
 }
 
 void ModelEditor::ReloadDrawCommands(std::size_t modelIndex)

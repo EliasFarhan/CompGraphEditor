@@ -32,7 +32,7 @@ public:
     void Save() override;
 
     const auto& GetCommands() const { return commandInfos_; }
-    const CommandInfo* GetCommand(ResourceId resourceId) const;
+    CommandInfo* GetCommand(ResourceId resourceId);
     void ReloadId() override;
     void Delete() override;
     void UpdateMeshInCommand(int index);

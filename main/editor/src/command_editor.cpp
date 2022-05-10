@@ -84,7 +84,7 @@ void CommandEditor::DrawInspector()
         return;
     }
     const auto* editor = Editor::GetInstance();
-    const auto* materialEditor = dynamic_cast<MaterialEditor*>(editor->GetEditorSystem(EditorType::MATERIAL));
+    auto* materialEditor = dynamic_cast<MaterialEditor*>(editor->GetEditorSystem(EditorType::MATERIAL));
     auto* meshEditor = dynamic_cast<MeshEditor*>(editor->GetEditorSystem(EditorType::MESH));
     auto& currentCommand = commandInfos_[currentIndex_];
 
@@ -188,7 +188,7 @@ void CommandEditor::Save()
     }
 }
 
-const CommandInfo* CommandEditor::GetCommand(ResourceId resourceId) const
+CommandInfo* CommandEditor::GetCommand(ResourceId resourceId)
 {
     const auto it = std::ranges::find_if(commandInfos_, [resourceId](const auto& command)
     {
