@@ -87,6 +87,7 @@ void PipelineEditor::DrawInspector()
             ImGui::EndCombo();
         }
 
+        ImGui::Separator();
         bool depthTesting = currentPipelineInfo.info.depth_test_enable();
         if(ImGui::Checkbox("Depth Testing", &depthTesting))
         {
@@ -123,6 +124,167 @@ void PipelineEditor::DrawInspector()
                 currentPipelineInfo.info.set_depth_mask(depthMask);
             }
         }
+        ImGui::Separator();
+        bool stencilEnable = currentPipelineInfo.info.enable_stencil_test();
+        if(ImGui::Checkbox("Enable Stencil Test", &stencilEnable))
+        {
+            currentPipelineInfo.info.set_enable_stencil_test(stencilEnable);
+        }
+        if(stencilEnable)
+        {
+            static constexpr std::array<std::string_view, 8> stencilFuncTxt = {
+                "NEVER",
+                "LESS",
+                "LEQUAL",
+                "GREATER",
+                "GEQUAL",
+                "EQUAL",
+                "NOTEQUAL",
+                "ALWAYS"
+            };
+            if(ImGui::BeginCombo("Stencil Func", stencilFuncTxt[currentPipelineInfo.info.stencil_func()].data()))
+            {
+                for(std::size_t i = 0; i < stencilFuncTxt.size(); ++i)
+                {
+                    if(ImGui::Selectable(stencilFuncTxt[i].data(), i == currentPipelineInfo.info.stencil_func()))
+                    {
+                        currentPipelineInfo.info.set_stencil_func(static_cast<pb::Pipeline_StencilFunc>(i));
+                    }
+                }
+                ImGui::EndCombo();
+            }
+            int stencilRef = currentPipelineInfo.info.stencil_ref();
+            if(ImGui::InputInt("Stencil Ref", &stencilRef))
+            {
+                currentPipelineInfo.info.set_stencil_ref(stencilRef);
+            }
+            unsigned stencilFuncMask = currentPipelineInfo.info.stencil_func_mask();
+            if(ImGui::InputScalar("Stencil Func Mask", ImGuiDataType_U32, &stencilFuncMask, nullptr, nullptr, "%08X", ImGuiInputTextFlags_CharsHexadecimal))
+            {
+                currentPipelineInfo.info.set_stencil_func_mask(stencilFuncMask);
+            }
+            const auto stencilFuncCommand = fmt::format("glStencilFunc(GL_{},{},0x{:X});", stencilFuncTxt[currentPipelineInfo.info.stencil_func()], stencilRef, stencilFuncMask);
+            ImGui::Text(stencilFuncCommand.data());
+            //Stencil op
+            static constexpr std::array<std::string_view, 8> stencilOpTxt =
+            {
+                "KEEP",
+                "ZERO",
+                "REPLACE",
+                "INCR",
+                "INCR_WRAP",
+                "DECR",
+                "DECR_WRAP",
+                "INVERT"
+            };
+
+            if(ImGui::BeginCombo("Source Fail", stencilOpTxt[currentPipelineInfo.info.stencil_source_fail()].data()))
+            {
+                for(std::size_t i = 0; i < stencilOpTxt.size(); i++)
+                {
+                    if(ImGui::Selectable(stencilOpTxt[i].data(), i == currentPipelineInfo.info.stencil_source_fail()))
+                    {
+                        currentPipelineInfo.info.set_stencil_source_fail(static_cast<gpr5300::pb::Pipeline_StencilOp>(i));
+                    }
+                }
+                ImGui::EndCombo();
+            }
+            if (ImGui::BeginCombo("Depth Fail", stencilOpTxt[currentPipelineInfo.info.stencil_depth_fail()].data()))
+            {
+                for (std::size_t i = 0; i < stencilOpTxt.size(); i++)
+                {
+                    if (ImGui::Selectable(stencilOpTxt[i].data(), i == currentPipelineInfo.info.stencil_depth_fail()))
+                    {
+                        currentPipelineInfo.info.set_stencil_depth_fail(static_cast<pb::Pipeline_StencilOp>(i));
+                    }
+                }
+                ImGui::EndCombo();
+            }
+            if (ImGui::BeginCombo("Depth Pass", stencilOpTxt[currentPipelineInfo.info.stencil_depth_pass()].data()))
+            {
+                for (std::size_t i = 0; i < stencilOpTxt.size(); i++)
+                {
+                    if (ImGui::Selectable(stencilOpTxt[i].data(), i == currentPipelineInfo.info.stencil_depth_pass()))
+                    {
+                        currentPipelineInfo.info.set_stencil_depth_pass(static_cast<pb::Pipeline_StencilOp>(i));
+                    }
+                }
+                ImGui::EndCombo();
+            }
+            const auto stencilOpCommand = fmt::format("glStencilOp(GL_{}, GL_{}, GL_{});",
+                stencilOpTxt[currentPipelineInfo.info.stencil_source_fail()],
+                stencilOpTxt[currentPipelineInfo.info.stencil_depth_fail()],
+                stencilOpTxt[currentPipelineInfo.info.stencil_depth_pass()]);
+            ImGui::Text(stencilOpCommand.data());
+
+            unsigned stencilMask = currentPipelineInfo.info.stencil_mask();
+            if (ImGui::InputScalar("Stencil Mask", ImGuiDataType_U32, &stencilMask, nullptr, nullptr, "%08X", ImGuiInputTextFlags_CharsHexadecimal))
+            {
+                currentPipelineInfo.info.set_stencil_mask(stencilMask);
+            }
+            const auto stencilMaskCommand = fmt::format("glStencilMask(0x{:X});", currentPipelineInfo.info.stencil_mask());
+            ImGui::Text(stencilMaskCommand.data());
+        }
+
+        ImGui::Separator();
+        bool enableBlend = currentPipelineInfo.info.blend_enable();
+        if(ImGui::Checkbox("Enable Blend", &enableBlend))
+        {
+            currentPipelineInfo.info.set_blend_enable(enableBlend);
+        }
+        if(enableBlend)
+        {
+            static constexpr std::array<std::string_view, 19> blendFuncTxt =
+            {
+                "ZERO",
+                "ONE",
+                "SRC_COLOR",
+                "ONE_MINUS_SRC_COLOR",
+                "DST_COLOR",
+                "ONE_MINUS_DST_COLOR",
+                "SRC_ALPHA",
+                "ONE_MINUS_SRC_ALPHA",
+                "DST_ALPHA",
+                "ONE_MINUS_DST_ALPHA",
+                "CONSTANT_COLOR",
+                "ONE_MINUS_CONSTANT_COLOR",
+                "CONSTANT_ALPHA",
+                "ONE_MINUS_CONSTANT_ALPHA",
+                "SRC_ALPHA_SATURATE",
+                "SRC1_COLOR",
+                "ONE_MINUS_SRC1_COLOR",
+                "SRC1_ALPHA",
+                "ONE_MINUS_SRC1_ALPHA"
+            };
+            if(ImGui::BeginCombo("Source Factor", blendFuncTxt[currentPipelineInfo.info.blending_source_factor()].data()))
+            {
+                for(std::size_t i = 0; i < blendFuncTxt.size(); ++i)
+                {
+                    if(ImGui::Selectable(blendFuncTxt[i].data(), i == currentPipelineInfo.info.blending_source_factor()))
+                    {
+                        currentPipelineInfo.info.set_blending_source_factor(static_cast<gpr5300::pb::Pipeline_BlendFunc>(i));
+                    }
+                }
+                ImGui::EndCombo();
+            }
+            if (ImGui::BeginCombo("Destination Factor", blendFuncTxt[currentPipelineInfo.info.blending_destination_factor()].data()))
+            {
+                for (std::size_t i = 0; i < blendFuncTxt.size(); ++i)
+                {
+                    if (ImGui::Selectable(blendFuncTxt[i].data(), i == currentPipelineInfo.info.blending_destination_factor()))
+                    {
+                        currentPipelineInfo.info.set_blending_destination_factor(static_cast<gpr5300::pb::Pipeline_BlendFunc>(i));
+                    }
+                }
+                ImGui::EndCombo();
+            }
+            const auto blendFuncCommand = fmt::format("glBlendFunc(GL_{}, GL_{});", 
+                blendFuncTxt[currentPipelineInfo.info.blending_source_factor()], 
+                blendFuncTxt[currentPipelineInfo.info.blending_destination_factor()]);
+            ImGui::Text(blendFuncCommand.c_str());
+        }
+
+        ImGui::Separator();
         static constexpr std::array<std::string_view, 15> textureTypesTxt =
         {
                 "NONE",
@@ -141,6 +303,7 @@ void PipelineEditor::DrawInspector()
                 "NORMAL",
                 "AO"
         };
+
         if(ImGui::BeginTable("Samplers Table", 2))
         {
             for(int i = 0; i < currentPipelineInfo.info.samplers_size(); i++)
@@ -173,6 +336,7 @@ void PipelineEditor::DrawInspector()
         }
 
 
+        ImGui::Separator();
         if (ImGui::BeginListBox("Uniforms"))
         {
             for (int i = 0; i < currentPipelineInfo.info.uniforms_size(); i++)

@@ -132,7 +132,7 @@ void Scene::Update(float dt)
                      subPass.clear_color().g(),
                      subPass.clear_color().b(),
                      subPass.clear_color().a());
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
         for (auto* pySystem : pySystems_)
         {
@@ -202,6 +202,87 @@ void Scene::Draw(const pb::DrawCommand& command)
     else
     {
         glDisable(GL_DEPTH_TEST);
+    }
+
+    if(pipelineInfo.blend_enable())
+    {
+        glEnable(GL_BLEND);
+        auto translateBlendFunc = [](pb::Pipeline_BlendFunc blendFunc)
+        {
+            switch(blendFunc)
+            {
+            case pb::Pipeline_BlendFunc_BLEND_ZERO: return GL_ZERO;
+            case pb::Pipeline_BlendFunc_ONE: return GL_ONE;
+            case pb::Pipeline_BlendFunc_SRC_COLOR: return GL_SRC_COLOR;
+            case pb::Pipeline_BlendFunc_ONE_MINUS_SRC_COLOR: return GL_ONE_MINUS_SRC_COLOR;
+            case pb::Pipeline_BlendFunc_DST_COLOR: return GL_DST_COLOR;
+            case pb::Pipeline_BlendFunc_ONE_MINUS_DST_COLOR: return GL_ONE_MINUS_DST_COLOR;
+            case pb::Pipeline_BlendFunc_SRC_ALPHA: return GL_SRC_ALPHA;
+            case pb::Pipeline_BlendFunc_ONE_MINUS_SRC_ALPHA: return GL_ONE_MINUS_SRC_ALPHA;
+            case pb::Pipeline_BlendFunc_DST_ALPHA: return GL_DST_ALPHA;
+            case pb::Pipeline_BlendFunc_ONE_MINUS_DST_ALPHA: return GL_ONE_MINUS_DST_ALPHA;
+            case pb::Pipeline_BlendFunc_CONSTANT_COLOR: return GL_CONSTANT_COLOR;
+            case pb::Pipeline_BlendFunc_ONE_MINUS_CONSTANT_COLOR: return GL_ONE_MINUS_CONSTANT_COLOR;
+            case pb::Pipeline_BlendFunc_CONSTANT_ALPHA: return GL_CONSTANT_ALPHA;
+            case pb::Pipeline_BlendFunc_ONE_MINUS_CONSTANT_ALPHA: return GL_ONE_MINUS_CONSTANT_ALPHA;
+            case pb::Pipeline_BlendFunc_SRC_ALPHA_SATURATE: return GL_SRC_ALPHA_SATURATE;
+            case pb::Pipeline_BlendFunc_SRC1_COLOR: return GL_SRC1_COLOR;
+            case pb::Pipeline_BlendFunc_ONE_MINUS_SRC1_COLOR: return GL_ONE_MINUS_SRC1_COLOR;
+            case pb::Pipeline_BlendFunc_SRC1_ALPHA: return GL_SRC1_ALPHA;
+            case pb::Pipeline_BlendFunc_ONE_MINUS_SRC1_ALPHA: return GL_ONE_MINUS_SRC1_ALPHA;
+            default: ;
+            }
+            return GL_ZERO;
+        };
+        glBlendFunc(translateBlendFunc(pipelineInfo.blending_source_factor()), translateBlendFunc(pipelineInfo.blending_destination_factor()));
+    }
+    else
+    {
+        glDisable(GL_BLEND);
+    }
+    if(pipelineInfo.enable_stencil_test())
+    {
+        glEnable(GL_STENCIL_TEST);
+        glStencilMask(pipelineInfo.stencil_mask());
+        auto translateStencilOp = [](pb::Pipeline_StencilOp stencilOp)
+        {
+            switch (stencilOp)
+            {
+            case pb::Pipeline_StencilOp_KEEP: return GL_KEEP;
+            case pb::Pipeline_StencilOp_STENCIL_ZERO: return GL_ZERO;
+            case pb::Pipeline_StencilOp_REPLACE: return GL_REPLACE;
+            case pb::Pipeline_StencilOp_INCR: return GL_INCR;
+            case pb::Pipeline_StencilOp_INCR_WRAP: return GL_INCR_WRAP;
+            case pb::Pipeline_StencilOp_DECR: return GL_DECR;
+            case pb::Pipeline_StencilOp_DECR_WRAP: return GL_DECR_WRAP;
+            case pb::Pipeline_StencilOp_INVERT: return GL_INVERT;
+            default:;
+            }
+            return GL_KEEP;
+        };
+        glStencilOp(
+            translateStencilOp(pipelineInfo.stencil_source_fail()),
+            translateStencilOp(pipelineInfo.stencil_depth_fail()),
+            translateStencilOp(pipelineInfo.stencil_depth_pass())
+        );
+        static constexpr std::array stencilFunc =
+        {
+            GL_NEVER,
+            GL_LESS,
+            GL_LEQUAL,
+            GL_GREATER,
+            GL_GEQUAL,
+            GL_EQUAL,
+            GL_NOTEQUAL,
+            GL_ALWAYS
+        };
+        glStencilFunc(stencilFunc[pipelineInfo.stencil_func()],
+            pipelineInfo.stencil_ref(), 
+            pipelineInfo.stencil_func_mask());
+    }
+    else
+    {
+        glDisable(GL_STENCIL_TEST);
     }
 
     pipeline.Bind();

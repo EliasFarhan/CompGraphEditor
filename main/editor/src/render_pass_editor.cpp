@@ -154,7 +154,7 @@ namespace gpr5300
                     ImGui::EndPopup();
                 }
             }
-            
+            ImGui::Separator();
             if (!headerVisible)
             {
                 currentRenderPass.info.mutable_sub_passes()->DeleteSubrange(i, 1);

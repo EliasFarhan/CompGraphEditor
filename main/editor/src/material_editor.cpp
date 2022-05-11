@@ -44,7 +44,8 @@ void MaterialEditor::DrawInspector()
         }
         ImGui::EndCombo();
     }
-
+    ImGui::Separator();
+    ImGui::Text("Samplers");
     for(int i = 0; i < currentMaterialInfo.info.textures_size(); i++)
     {
         auto* materialTexture = currentMaterialInfo.info.mutable_textures(i);
@@ -72,7 +73,7 @@ void MaterialEditor::DrawInspector()
             ImGui::EndCombo();
         }        
     }
-
+    ImGui::Separator();
     if(pipelineInfo != nullptr)
     {
         if (ImGui::BeginListBox("Uniforms"))

@@ -114,12 +114,23 @@ void ModelEditor::DrawInspector()
         ImGui::EndListBox();
     }
 
+    if (ImGui::BeginListBox("Textures"))
+    {
+        for (int i = 0; i < currentModelInfo.info.textures_size(); i++)
+        {
+            const auto& textureInfo = currentModelInfo.info.textures(i);
+            const auto& texturePath = textureInfo.texture_path();
+            ImGui::Selectable(texturePath.c_str(), false);
+        }
+        ImGui::EndListBox();
+    }
+
     if(currentModelInfo.drawCommands.size() != currentModelInfo.info.draw_commands_size())
     {
         ReloadDrawCommands(currentIndex_);
     }
 
-
+    ImGui::Separator();
     for(int commandIndex = 0; commandIndex < currentModelInfo.info.draw_commands_size(); commandIndex++)
     {
         auto* drawCommandInfo = currentModelInfo.info.mutable_draw_commands(commandIndex);
@@ -155,6 +166,7 @@ void ModelEditor::DrawInspector()
                 ImGui::PopID();
             }
         }
+        ImGui::Separator();
     }
     if(ImGui::Button("Add New Command"))
     {

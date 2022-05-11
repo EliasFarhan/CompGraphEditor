@@ -162,7 +162,18 @@ void Editor::CreateNewFile(std::string_view path, EditorType type)
     }
     case EditorType::PIPELINE:
     {
-        const pb::Pipeline emptyPipeline;
+        pb::Pipeline emptyPipeline;
+        emptyPipeline.set_depth_mask(true);
+        emptyPipeline.set_depth_compare_op(pb::Pipeline_DepthCompareOp_LESS);
+
+        emptyPipeline.set_stencil_depth_fail(pb::Pipeline_StencilOp_KEEP);
+        emptyPipeline.set_stencil_depth_pass(pb::Pipeline_StencilOp_KEEP);
+        emptyPipeline.set_stencil_source_fail(pb::Pipeline_StencilOp_KEEP);
+        emptyPipeline.set_stencil_mask(0xFF);
+
+        emptyPipeline.set_blending_source_factor(pb::Pipeline_BlendFunc_SRC_ALPHA);
+        emptyPipeline.set_blending_destination_factor(pb::Pipeline_BlendFunc_ONE_MINUS_SRC_ALPHA);
+
         filesystem.WriteString(path, emptyPipeline.SerializeAsString());
         resourceManager_.AddResource(path);
         break;

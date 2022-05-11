@@ -111,66 +111,66 @@ void SceneEditor::DrawInspector()
         }
         ImGui::EndCombo();
     }
-
-    if(ImGui::CollapsingHeader("Scripts"))
+    ImGui::Separator();
+    ImGui::Text("Scripts");
+    
+    std::vector<int> removedScripts;
+    for (int i = 0; i < currentScene.info.py_system_paths_size(); i++)
     {
-        std::vector<int> removedScripts;
-        for (int i = 0; i < currentScene.info.py_system_paths_size(); i++)
+        const auto& pySystemPath = currentScene.info.py_system_paths(i);
+        std::string name = fmt::format("Script: {}", i);
+        const ScriptInfo* pySystem = nullptr;
+        ResourceId pySystemId = INVALID_RESOURCE_ID;
+        if (!pySystemPath.empty())
         {
-            const auto& pySystemPath = currentScene.info.py_system_paths(i);
-            std::string name = fmt::format("Script: {}", i);
-            const ScriptInfo* pySystem = nullptr;
-            ResourceId pySystemId = INVALID_RESOURCE_ID;
-            if (!pySystemPath.empty())
+            pySystemId = resourceManager.FindResourceByPath(pySystemPath);
+            if (pySystemId == INVALID_RESOURCE_ID)
             {
-                pySystemId = resourceManager.FindResourceByPath(pySystemPath);
-                if (pySystemId == INVALID_RESOURCE_ID)
-                {
-                    currentScene.info.mutable_py_system_paths(i)->clear();
-                }
-                else
-                {
-                    pySystem = scriptEditor->GetScriptInfo(pySystemId);
-                    name = fmt::format("Script: {}.{}", pySystem->info.module(), pySystem->info.class_());
-                }
+                currentScene.info.mutable_py_system_paths(i)->clear();
             }
-            bool visible = true;
-            if (ImGui::CollapsingHeader(name.c_str(), &visible))
+            else
             {
-                const auto& pySystems = scriptEditor->GetScriptInfos();
-                const auto scriptsId = fmt::format("script {} combo", i);
-                ImGui::PushID(scriptsId.c_str());
-                if (ImGui::BeginCombo("Available Scripts", pySystem ? pySystem->info.class_().c_str() : "Missing script"))
+                pySystem = scriptEditor->GetScriptInfo(pySystemId);
+                name = fmt::format("Script: {}.{}", pySystem->info.module(), pySystem->info.class_());
+            }
+        }
+        bool visible = true;
+        if (ImGui::CollapsingHeader(name.c_str(), &visible))
+        {
+            const auto& pySystems = scriptEditor->GetScriptInfos();
+            const auto scriptsId = fmt::format("script {} combo", i);
+            ImGui::PushID(scriptsId.c_str());
+            if (ImGui::BeginCombo("Available Scripts", pySystem ? pySystem->info.class_().c_str() : "Missing script"))
+            {
+                for (auto& pySystemInfo : pySystems)
                 {
-                    for (auto& pySystemInfo : pySystems)
+                    const auto selectedName = fmt::format("{}.{}", pySystemInfo.info.module(), pySystemInfo.info.class_());
+                    if (ImGui::Selectable(selectedName.c_str(), pySystemId == pySystemInfo.resourceId))
                     {
-                        const auto selectedName = fmt::format("{}.{}", pySystemInfo.info.module(), pySystemInfo.info.class_());
-                        if (ImGui::Selectable(selectedName.c_str(), pySystemId == pySystemInfo.resourceId))
-                        {
-                            *currentScene.info.mutable_py_system_paths(i) = pySystemInfo.info.path();
-                        }
+                        *currentScene.info.mutable_py_system_paths(i) = pySystemInfo.info.path();
                     }
-                    ImGui::EndCombo();
                 }
-                ImGui::PopID();
-                
+                ImGui::EndCombo();
             }
-            if (!visible)
-            {
-                removedScripts.push_back(i);
-            }
+            ImGui::PopID();
             
         }
-        std::ranges::reverse(removedScripts);
-        for(const auto index : removedScripts)
+        if (!visible)
         {
-            currentScene.info.mutable_py_system_paths()->DeleteSubrange(index, 1);
+            removedScripts.push_back(i);
         }
-        if(ImGui::Button("Add Script"))
-        {
-            currentScene.info.add_py_system_paths();
-        }
+        
     }
+    std::ranges::reverse(removedScripts);
+    for(const auto index : removedScripts)
+    {
+        currentScene.info.mutable_py_system_paths()->DeleteSubrange(index, 1);
+    }
+    if(ImGui::Button("Add Script"))
+    {
+        currentScene.info.add_py_system_paths();
+    }
+    
 
 
 }
