@@ -313,6 +313,8 @@ void PipelineEditor::DrawInspector()
                 ImGui::TableSetColumnIndex(0);
                 ImGui::Text("Name: %s", sampler->name().c_str());
                 ImGui::TableSetColumnIndex(1);
+                const auto comboId = fmt::format("Sampler Texture Type {}", i);
+                ImGui::PushID(comboId.data());
                 if(ImGui::BeginCombo("Texture Type", textureTypesTxt[static_cast<int>(sampler->type())].data()))
                 {
                     for(std::size_t j = 0; j < textureTypesTxt.size(); j++)
@@ -331,6 +333,7 @@ void PipelineEditor::DrawInspector()
                     }
                     ImGui::EndCombo();
                 }
+                ImGui::PopID();
             }
             ImGui::EndTable();
         }
