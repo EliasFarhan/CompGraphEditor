@@ -164,7 +164,7 @@ void PipelineEditor::DrawInspector()
                 currentPipelineInfo.info.set_stencil_func_mask(stencilFuncMask);
             }
             const auto stencilFuncCommand = fmt::format("glStencilFunc(GL_{},{},0x{:X});", stencilFuncTxt[currentPipelineInfo.info.stencil_func()], stencilRef, stencilFuncMask);
-            ImGui::Text(stencilFuncCommand.data());
+            ImGui::Text("%s", stencilFuncCommand.data());
             //Stencil op
             static constexpr std::array<std::string_view, 8> stencilOpTxt =
             {
@@ -215,7 +215,7 @@ void PipelineEditor::DrawInspector()
                 stencilOpTxt[currentPipelineInfo.info.stencil_source_fail()],
                 stencilOpTxt[currentPipelineInfo.info.stencil_depth_fail()],
                 stencilOpTxt[currentPipelineInfo.info.stencil_depth_pass()]);
-            ImGui::Text(stencilOpCommand.data());
+            ImGui::Text("%s", stencilOpCommand.data());
 
             unsigned stencilMask = currentPipelineInfo.info.stencil_mask();
             if (ImGui::InputScalar("Stencil Mask", ImGuiDataType_U32, &stencilMask, nullptr, nullptr, "%08X", ImGuiInputTextFlags_CharsHexadecimal))
@@ -223,7 +223,7 @@ void PipelineEditor::DrawInspector()
                 currentPipelineInfo.info.set_stencil_mask(stencilMask);
             }
             const auto stencilMaskCommand = fmt::format("glStencilMask(0x{:X});", currentPipelineInfo.info.stencil_mask());
-            ImGui::Text(stencilMaskCommand.data());
+            ImGui::Text("%s", stencilMaskCommand.data());
         }
 
         ImGui::Separator();
@@ -281,7 +281,7 @@ void PipelineEditor::DrawInspector()
             const auto blendFuncCommand = fmt::format("glBlendFunc(GL_{}, GL_{});", 
                 blendFuncTxt[currentPipelineInfo.info.blending_source_factor()], 
                 blendFuncTxt[currentPipelineInfo.info.blending_destination_factor()]);
-            ImGui::Text(blendFuncCommand.c_str());
+            ImGui::Text("%s", blendFuncCommand.c_str());
         }
 
         ImGui::Separator();
