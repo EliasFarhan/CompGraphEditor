@@ -1,6 +1,7 @@
 syntax = "proto3";
 
 package gpr5300.pb;
+import "proto/vector.proto";
 
 message Color4
 {
@@ -10,9 +11,40 @@ message Color4
     float a = 4;
 }
 
+message RenderTarget
+{
+    enum Format
+    {
+        RED = 0;
+        RED_INT = 1;
+        RG = 2;
+        RG_INT = 3;
+        RGB = 4;
+        RGB_INT = 5;
+        RGBA = 6;
+        RGBA_INT = 7;
+        DEPTH_COMP = 8;
+        DEPTH_STENCIL = 9;
+        LUMINANCE_ALPHA =  10;
+        ALPHA = 11;
+    }
+
+    enum Size
+    {
+        WINDOW_SIZE = 0; //This will require to recreate the framebuffer when resizing window
+        FIXED_SIZE = 1;
+    }
+
+    Format format = 1;
+    bool rbo = 2;
+    Size size_type = 3;
+    Vec2i target_size = 4;
+}
+
 message FrameBuffer
 {
-
+    repeated RenderTarget color_attachments = 1;
+    RenderTarget depth_stencil_attachment = 2;
 }
 
 enum TextureType
@@ -296,6 +328,7 @@ message SubPass
     repeated DrawCommand commands = 2;
     //Used by editor
     repeated string command_paths = 3;
+    FrameBuffer framebuffer = 4;
 }
 
 message RenderPass
