@@ -16,17 +16,28 @@ message RenderTarget
     enum Format
     {
         RED = 0;
-        RED_INT = 1;
         RG = 2;
-        RG_INT = 3;
         RGB = 4;
-        RGB_INT = 5;
         RGBA = 6;
-        RGBA_INT = 7;
         DEPTH_COMP = 8;
         DEPTH_STENCIL = 9;
         LUMINANCE_ALPHA =  10;
         ALPHA = 11;
+    }
+
+    enum FormatSize
+    {
+        SIZE_8 = 0;
+        SIZE_16 = 1;
+        SIZE_24 = 2;
+        SIZE_32 = 3;
+    }
+
+    enum Type
+    {
+        UNSIGNED = 0;
+        INT = 1;
+        FLOAT = 2;
     }
 
     enum Size
@@ -39,6 +50,9 @@ message RenderTarget
     bool rbo = 2;
     Size size_type = 3;
     Vec2i target_size = 4;
+    FormatSize format_size = 5;
+    bool snorm = 6;
+    Type type = 7;
 }
 
 message FrameBuffer

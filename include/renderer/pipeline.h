@@ -4,12 +4,12 @@
 #include <GL/glew.h>
 #include "proto/renderer.pb.h"
 
-#include "glm/vec2.hpp"
-#include "glm/vec3.hpp"
-#include "glm/vec4.hpp"
+#include <glm/vec2.hpp>
+#include <glm/vec3.hpp>
+#include <glm/vec4.hpp>
 #include <glm/ext/matrix_float4x4.hpp>
 
-#include "texture.h"
+#include "renderer/texture.h"
 
 namespace gpr5300
 {

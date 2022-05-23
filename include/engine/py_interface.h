@@ -1,5 +1,8 @@
 #pragma once
 
+#include <SDL_keycode.h>
+#include <glm/vec2.hpp>
+
 #include "engine/system.h"
 #include "utils/log.h"
 #include <pybind11/pybind11.h>

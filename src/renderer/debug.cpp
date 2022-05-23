@@ -1,6 +1,7 @@
 #include "renderer/debug.h"
 #include "utils/log.h"
 #include <fmt/format.h>
+#include <GL/glew.h>
 
 namespace gpr5300
 {

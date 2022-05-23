@@ -1,7 +1,9 @@
 #define TINYOBJLOADER_IMPLEMENTATION // define this in only *one* .cc
 // Optional. define TINYOBJLOADER_USE_MAPBOX_EARCUT gives robust trinagulation. Requires C++11
 #define TINYOBJLOADER_USE_MAPBOX_EARCUT
-#include "tiny_obj_loader.h"
+#include <tiny_obj_loader.h>
+#undef TINYOBJLOADER_IMPLEMENTATION
+
 #include "engine/filesystem.h"
 #include "renderer/model.h"
 #include "utils/log.h"
