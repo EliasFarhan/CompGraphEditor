@@ -15,6 +15,7 @@
 #include <fmt/format.h>
 #include <array>
 #include <unordered_set>
+#include <algorithm>
 
 namespace gpr5300
 {

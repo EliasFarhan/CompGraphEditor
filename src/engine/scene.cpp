@@ -285,6 +285,41 @@ void Scene::Draw(const pb::DrawCommand& command)
         glDisable(GL_STENCIL_TEST);
     }
 
+    if(pipelineInfo.enable_culling())
+    {
+        glEnable(GL_CULL_FACE);
+        switch(pipelineInfo.cull_face())
+        {
+
+            case pb::Pipeline_CullFace_BACK:
+                glCullFace(GL_BACK);
+                break;
+            case pb::Pipeline_CullFace_FRONT:
+                glCullFace(GL_FRONT);
+                break;
+            case pb::Pipeline_CullFace_FRONT_AND_BACK:
+                glCullFace(GL_FRONT_AND_BACK);
+                break;
+            default:
+                break;
+        }
+        switch(pipelineInfo.front_face())
+        {
+            case pb::Pipeline_FrontFace_COUNTER_CLOCKWISE:
+                glFrontFace(GL_CCW);
+                break;
+            case pb::Pipeline_FrontFace_CLOCKWISE:
+                glFrontFace(GL_CW);
+                break;
+            default:
+                break;
+        }
+    }
+    else
+    {
+        glDisable(GL_CULL_FACE);
+    }
+
     pipeline.Bind();
     for(std::size_t textureIndex = 0; textureIndex < material.textures.size(); textureIndex++)
     {

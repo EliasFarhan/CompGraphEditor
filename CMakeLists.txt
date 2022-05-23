@@ -35,7 +35,8 @@ if(MSVC)
     target_compile_options(Common PUBLIC /arch:AVX2 /Oi /GL /fp:fast)
     target_link_options(Common PUBLIC /LTCG)
 else()
-
+    target_compile_options(Common PUBLIC -march=haswell -ffast-math -flto)
+    target_link_options(Common PUBLIC -flto)
 endif()
 
 file(GLOB MAIN_FOLDERS main/*)

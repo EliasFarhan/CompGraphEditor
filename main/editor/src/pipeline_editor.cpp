@@ -283,7 +283,48 @@ void PipelineEditor::DrawInspector()
                 blendFuncTxt[currentPipelineInfo.info.blending_destination_factor()]);
             ImGui::Text("%s", blendFuncCommand.c_str());
         }
-
+        ImGui::Separator();
+        bool enableCulling = currentPipelineInfo.info.enable_culling();
+        if(ImGui::Checkbox("Enable Culling", &enableCulling))
+        {
+            currentPipelineInfo.info.set_enable_culling(enableCulling);
+        }
+        if(enableCulling)
+        {
+            static constexpr std::array<std::string_view, 3> cullFaceTxt =
+            {
+                "BACK",
+                "FRONT",
+                "BACK_AND_FRONT"
+            };
+            if(ImGui::BeginCombo("Cull Face", cullFaceTxt[currentPipelineInfo.info.cull_face()].data()))
+            {
+                for(std::size_t i = 0; i < cullFaceTxt.size(); i++)
+                {
+                    if(ImGui::Selectable(cullFaceTxt[i].data(), i == currentPipelineInfo.info.cull_face()))
+                    {
+                        currentPipelineInfo.info.set_cull_face(static_cast<pb::Pipeline_CullFace>(i));
+                    }
+                }
+                ImGui::EndCombo();
+            }
+            static constexpr std::array<std::string_view, 2> frontFaceTxt =
+            {
+                "COUNTER CLOCKWISE",
+                "CLOCKWISE"
+            };
+            if(ImGui::BeginCombo("Front Face", frontFaceTxt[currentPipelineInfo.info.front_face()].data()))
+            {
+                for(std::size_t i = 0; i < frontFaceTxt.size(); i++)
+                {
+                    if(ImGui::Selectable(frontFaceTxt[i].data(), i == currentPipelineInfo.info.front_face()))
+                    {
+                        currentPipelineInfo.info.set_front_face(static_cast<pb::Pipeline_FrontFace>(i));
+                    }
+                }
+                ImGui::EndCombo();
+            }
+        }
         ImGui::Separator();
         static constexpr std::array<std::string_view, 15> textureTypesTxt =
         {

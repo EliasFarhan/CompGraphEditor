@@ -214,6 +214,21 @@ message Pipeline
     uint32 stencil_func_mask = 25;
     uint32 stencil_mask = 26;
 
+    bool enable_culling = 27;
+    enum CullFace
+    {
+        BACK = 0;
+        FRONT = 1;
+        FRONT_AND_BACK = 2;
+    }
+    CullFace cull_face = 28;
+    enum FrontFace
+    {
+        COUNTER_CLOCKWISE = 0;
+        CLOCKWISE = 1;
+    }
+    FrontFace front_face = 29;
+
     string vertex_shader_path = 8;// Used by the editor
     string fragment_shader_path = 9;// Used by the editor
     string compute_shader_path = 10;// Used by the editor
