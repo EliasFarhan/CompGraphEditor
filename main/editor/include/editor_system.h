@@ -19,6 +19,7 @@ enum class EditorType
     COMMAND,
     SCRIPT,
     MODEL,
+    FRAMEBUFFER,
     LENGTH
 };
 

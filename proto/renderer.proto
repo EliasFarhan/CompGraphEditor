@@ -53,6 +53,7 @@ message RenderTarget
     FormatSize format_size = 5;
     bool snorm = 6;
     Type type = 7;
+    string name = 8;
 }
 
 message FrameBuffer
@@ -355,9 +356,11 @@ message SubPass
 {
     Color4 clear_color = 1;
     repeated DrawCommand commands = 2;
+    int32 framebuffer_index = 4;
     //Used by editor
     repeated string command_paths = 3;
-    FrameBuffer framebuffer = 4;
+    string framebuffer_path = 5;
+
 }
 
 message RenderPass
@@ -383,7 +386,7 @@ message Scene
     repeated Material materials = 7;
     repeated PySystem py_systems = 8;
     repeated string model_paths = 11;
-
+    repeated FrameBuffer framebuffers = 12;
     //used by editor
     string render_pass_path = 9;
     repeated string py_system_paths = 10;

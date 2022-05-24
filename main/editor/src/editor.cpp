@@ -19,6 +19,7 @@
 #include "scene_editor.h"
 #include "script_editor.h"
 #include "texture_editor.h"
+#include "framebuffer_editor.h"
 
 namespace gpr5300
 {
@@ -38,6 +39,7 @@ void Editor::Begin()
     editorSystems_[static_cast<std::size_t>(EditorType::SCRIPT)] = std::make_unique<ScriptEditor>();
     editorSystems_[static_cast<std::size_t>(EditorType::TEXTURE)] = std::make_unique<TextureEditor>();
     editorSystems_[static_cast<std::size_t>(EditorType::MODEL)] = std::make_unique<ModelEditor>();
+    editorSystems_[static_cast<std::size_t>(EditorType::FRAMEBUFFER)] = std::make_unique<FramebufferEditor>();
     
     resourceManager_.RegisterResourceChange(this);
     py::initialize_interpreter();
@@ -77,13 +79,14 @@ void Editor::DrawImGui()
     ImGui::SetNextWindowSize(ImVec2(windowSize.x * 0.2f, windowSize.y), ImGuiCond_FirstUseEver);
     DrawEditorContent();
 
+    /*
     ImGui::SetNextWindowPos(ImVec2(windowSize.x * 0.2f, 0), ImGuiCond_FirstUseEver);
     ImGui::SetNextWindowSize(ImVec2(windowSize.x * 0.6f, windowSize.y), ImGuiCond_FirstUseEver);
     ImGui::Begin("Center View", nullptr, ImGuiWindowFlags_NoTitleBar);
     DrawMenuBar();
     DrawCenterView();
     ImGui::End();
-
+    */
     ImGui::SetNextWindowPos(ImVec2(windowSize.x * 0.8f, 0), ImGuiCond_FirstUseEver);
     ImGui::SetNextWindowSize(ImVec2(windowSize.x * 0.2f, windowSize.y), ImGuiCond_FirstUseEver);
     DrawInspector();
@@ -210,6 +213,13 @@ void Editor::CreateNewFile(std::string_view path, EditorType type)
     {
         pb::DrawCommand emptyDrawCommand;
         filesystem.WriteString(path, emptyDrawCommand.SerializeAsString());
+        resourceManager_.AddResource(path);
+        break;
+    }
+    case EditorType::FRAMEBUFFER:
+    {
+        pb::FrameBuffer emptyFramebuffer;
+        filesystem.WriteString(path, emptyFramebuffer.SerializeAsString());
         resourceManager_.AddResource(path);
         break;
     }
@@ -733,6 +743,34 @@ void Editor::DrawEditorContent()
         ImGui::TreePop();
     }
 
+    open = ImGui::TreeNode("Framebuffer");
+    if (ImGui::BeginPopupContextItem())
+    {
+        if (ImGui::Button("Create New Framebuffer"))
+        {
+            OpenMenuCreateNewFile(EditorType::FRAMEBUFFER);
+        }
+
+        if (UpdateCreateNewFile())
+        {
+            ImGui::CloseCurrentPopup();
+        }
+        if (ImGui::Button("Import Framebuffer"))
+        {
+            OpenFileBrowserDialog(editorSystems_[static_cast<int>(EditorType::FRAMEBUFFER)]->GetExtensions());
+        }
+        ImGui::EndPopup();
+    }
+    if (open)
+    {
+        if (editorSystems_[static_cast<int>(EditorType::FRAMEBUFFER)]
+            ->DrawContentList(currentFocusedSystem_ != EditorType::FRAMEBUFFER))
+        {
+            currentFocusedSystem_ = EditorType::FRAMEBUFFER;
+        }
+        ImGui::TreePop();
+    }
+
     ImGui::End();
 }
 
@@ -784,9 +822,9 @@ void Editor::OpenFileBrowserDialog(std::span<const std::string_view> extensions)
 {
     std::vector<std::string> args;
     args.reserve(extensions.size());
-    for(std::size_t i = 0; i < extensions.size(); i++)
+    for (auto extension : extensions)
     {
-        args.push_back(extensions[i].data());
+        args.emplace_back(extension.data());
     }
     fileDialog_ = ImGui::FileBrowser();
     fileDialog_.SetTypeFilters(args);

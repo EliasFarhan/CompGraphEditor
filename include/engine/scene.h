@@ -11,6 +11,7 @@
 
 #include <vector>
 
+#include "renderer/framebuffer.h"
 #include "renderer/model.h"
 
 namespace gpr5300
@@ -78,6 +79,7 @@ private:
     std::vector<Texture> textures_;
     std::vector<Material> materials_;
     std::vector<Script*> pySystems_;
+    std::vector<Framebuffer> framebuffers_;
     //std::vector<SubPass> subpasses_;
 
 };

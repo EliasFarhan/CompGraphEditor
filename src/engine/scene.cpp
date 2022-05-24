@@ -95,6 +95,13 @@ void Scene::LoadScene(PyManager &pyManager)
         }
     }
 
+    const auto framebufferSize = scene_.framebuffers_size();
+    framebuffers_.resize(framebufferSize);
+    for(int i = 0; i < framebufferSize; i++)
+    {
+        framebuffers_[i].Load(scene_.framebuffers(i));
+    }
+
     const auto pySystemSize = scene_.py_systems_size();
     for(int i = 0; i < pySystemSize; i++)
     {
