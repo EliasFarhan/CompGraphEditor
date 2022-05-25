@@ -104,7 +104,7 @@ Mesh GenerateCube()
 
     constexpr std::array indices =
     {
-        0,1,2,0,1,3,
+        0,1,2,0,3,1,
         4,5,6,6,7,4,
         8,9,10,9,8,11,
         12,13,14,14,15,12,
