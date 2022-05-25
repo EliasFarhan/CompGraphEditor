@@ -117,7 +117,7 @@ void Editor::OpenMenuCreateNewFile(EditorType editorType)
     newCreateFilename_.clear();
 }
 
-void Editor::SaveProject()
+void Editor::SaveProject() const
 {
     for(auto& editor : editorSystems_)
     {
@@ -307,85 +307,6 @@ bool Editor::UpdateCreateNewFile()
 
 void Editor::DrawCenterView()
 {
-    if (ImGui::BeginTabBar("Center View"))
-    {
-        ImGuiTabItemFlags_ flag = ImGuiTabItemFlags_None;
-        flag = currentFocusedSystem_ == EditorType::PIPELINE ? ImGuiTabItemFlags_SetSelected : ImGuiTabItemFlags_None;
-
-        if (ImGui::BeginTabItem("Pipeline", nullptr, flag))
-        {
-            editorSystems_[static_cast<int>(EditorType::PIPELINE)]->DrawMainView();
-            ImGui::EndTabItem();
-        }
-        flag = currentFocusedSystem_ == EditorType::SHADER ? ImGuiTabItemFlags_SetSelected : ImGuiTabItemFlags_None;
-        if (ImGui::BeginTabItem("Shader", nullptr, flag))
-        {
-            editorSystems_[static_cast<int>(EditorType::SHADER)]->DrawMainView();
-            ImGui::EndTabItem();
-        }
-
-        flag = currentFocusedSystem_ == EditorType::MATERIAL ? ImGuiTabItemFlags_SetSelected : ImGuiTabItemFlags_None;
-        if (ImGui::BeginTabItem("Material", nullptr, flag))
-        {
-            editorSystems_[static_cast<int>(EditorType::MATERIAL)]->DrawMainView();
-            ImGui::EndTabItem();
-        }
-        flag = currentFocusedSystem_ == EditorType::MESH ? ImGuiTabItemFlags_SetSelected : ImGuiTabItemFlags_None;
-
-        if (ImGui::BeginTabItem("Mesh", nullptr, flag))
-        {
-            editorSystems_[static_cast<int>(EditorType::MESH)]->DrawMainView();
-            ImGui::EndTabItem();
-        }
-        flag = currentFocusedSystem_ == EditorType::RENDER_PASS ? ImGuiTabItemFlags_SetSelected : ImGuiTabItemFlags_None;
-
-        if (ImGui::BeginTabItem("Render Pass", nullptr, flag))
-        {
-            editorSystems_[static_cast<int>(EditorType::RENDER_PASS)]->DrawMainView();
-            ImGui::EndTabItem();
-        }
-        flag = currentFocusedSystem_ == EditorType::COMMAND ? ImGuiTabItemFlags_SetSelected : ImGuiTabItemFlags_None;
-
-        if (ImGui::BeginTabItem("Command", nullptr, flag))
-        {
-            editorSystems_[static_cast<int>(EditorType::COMMAND)]->DrawMainView();
-            ImGui::EndTabItem();
-        }
-        flag = currentFocusedSystem_ == EditorType::SCENE ? ImGuiTabItemFlags_SetSelected : ImGuiTabItemFlags_None;
-
-        if (ImGui::BeginTabItem("Scene", nullptr, flag))
-        {
-            editorSystems_[static_cast<int>(EditorType::SCENE)]->DrawMainView();
-            ImGui::EndTabItem();
-        }
-
-        flag = currentFocusedSystem_ == EditorType::SCRIPT ? ImGuiTabItemFlags_SetSelected : ImGuiTabItemFlags_None;
-
-        if (ImGui::BeginTabItem("Script", nullptr, flag))
-        {
-            editorSystems_[static_cast<int>(EditorType::SCRIPT)]->DrawMainView();
-            ImGui::EndTabItem();
-        }
-
-        flag = currentFocusedSystem_ == EditorType::TEXTURE ? ImGuiTabItemFlags_SetSelected : ImGuiTabItemFlags_None;
-
-        if (ImGui::BeginTabItem("Texture", nullptr, flag))
-        {
-            editorSystems_[static_cast<int>(EditorType::TEXTURE)]->DrawMainView();
-            ImGui::EndTabItem();
-        }
-
-        flag = currentFocusedSystem_ == EditorType::MODEL ? ImGuiTabItemFlags_SetSelected : ImGuiTabItemFlags_None;
-
-        if (ImGui::BeginTabItem("Model", nullptr, flag))
-        {
-            editorSystems_[static_cast<int>(EditorType::MODEL)]->DrawMainView();
-            ImGui::EndTabItem();
-        }
-
-
-        ImGui::EndTabBar();
-    }
 }
 void Editor::DrawInspector()
 {

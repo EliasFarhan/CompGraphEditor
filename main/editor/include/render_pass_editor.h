@@ -22,8 +22,6 @@ class RenderPassEditor final : public EditorSystem
 {
 public:
 
-    void DrawMainView() override;
-
     void DrawInspector() override;
 
     bool DrawContentList(bool unfocus) override;

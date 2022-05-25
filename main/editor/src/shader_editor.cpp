@@ -68,10 +68,6 @@ void ShaderEditor::UpdateExistingResource(const Resource& resource)
         }
     }
 }
-void ShaderEditor::DrawMainView()
-{
-
-}
 void ShaderEditor::DrawInspector()
 {
     if (currentIndex_ >= shaderInfos_.size())

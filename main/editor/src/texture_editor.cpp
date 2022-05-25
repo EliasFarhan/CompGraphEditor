@@ -10,11 +10,6 @@
 namespace gpr5300
 {
 
-void TextureEditor::DrawMainView()
-{
-
-}
-
 void TextureEditor::DrawInspector()
 {
     if (currentIndex_ >= textureInfos_.size())

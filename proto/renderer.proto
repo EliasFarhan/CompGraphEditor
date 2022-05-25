@@ -16,13 +16,13 @@ message RenderTarget
     enum Format
     {
         RED = 0;
-        RG = 2;
-        RGB = 4;
-        RGBA = 6;
-        DEPTH_COMP = 8;
-        DEPTH_STENCIL = 9;
-        LUMINANCE_ALPHA =  10;
-        ALPHA = 11;
+        RG = 1;
+        RGB = 2;
+        RGBA = 3;
+        DEPTH_COMP = 6;
+        DEPTH_STENCIL = 7;
+        LUMINANCE_ALPHA =  4;
+        ALPHA = 5;
     }
 
     enum FormatSize

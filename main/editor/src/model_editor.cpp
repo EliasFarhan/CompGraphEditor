@@ -72,9 +72,6 @@ void ModelEditor::UpdateExistingResource(const Resource& resource)
 }
 
 
-void ModelEditor::DrawMainView()
-{
-}
 
 void ModelEditor::DrawInspector()
 {

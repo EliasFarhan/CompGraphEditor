@@ -17,8 +17,7 @@ struct TextureInfo
 class TextureEditor final : public EditorSystem
 {
 public:
-
-    void DrawMainView() override;
+    
 
     void DrawInspector() override;
 

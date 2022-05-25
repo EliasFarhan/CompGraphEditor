@@ -18,7 +18,6 @@ struct PipelineInfo
 class PipelineEditor final : public EditorSystem
 {
 public:
-    void DrawMainView() override;
     void DrawInspector() override;
     bool DrawContentList(bool unfocus = false) override;
     std::string_view GetSubFolder() override;

@@ -36,7 +36,6 @@ public:
                 return extension == ext;
             });
     }
-    virtual void DrawMainView() = 0;
     virtual void DrawInspector() = 0;
     // Return true if getting focused
     virtual bool DrawContentList(bool unfocus = false) = 0;

@@ -13,12 +13,6 @@
 namespace gpr5300
 {
 
-
-void MeshEditor::DrawMainView()
-{
-
-}
-
 void MeshEditor::DrawInspector()
 {
     if(currentIndex_ >= meshInfos_.size())

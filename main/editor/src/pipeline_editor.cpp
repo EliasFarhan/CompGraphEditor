@@ -9,11 +9,7 @@
 
 namespace gpr5300
 {
-
-void PipelineEditor::DrawMainView()
-{
-
-}
+    
 void PipelineEditor::DrawInspector()
 {
     if (currentIndex_ >= pipelineInfos_.size())

@@ -20,7 +20,6 @@ public:
     void AddResource(const Resource &resource) override;
     void RemoveResource(const Resource &resource) override;
     void UpdateExistingResource(const Resource &resource) override;
-    void DrawMainView() override;
     void DrawInspector() override;
     std::string_view GetSubFolder() override;
     EditorType GetEditorType() override;

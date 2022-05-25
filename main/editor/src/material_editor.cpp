@@ -12,11 +12,7 @@
 namespace gpr5300
 {
     
-
-void MaterialEditor::DrawMainView()
-{
-
-}
+    
 
 void MaterialEditor::DrawInspector()
 {

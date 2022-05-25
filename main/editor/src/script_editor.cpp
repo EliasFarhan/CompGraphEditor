@@ -95,10 +95,6 @@ void ScriptEditor::UpdateExistingResource(const Resource& resource)
 }
 
 
-void ScriptEditor::DrawMainView()
-{
-}
-
 void ScriptEditor::DrawInspector()
 {
     if (currentIndex_ >= scriptInfos_.size())

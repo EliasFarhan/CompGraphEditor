@@ -79,9 +79,6 @@ void SceneEditor::UpdateExistingResource(const Resource& resource)
 {
 }
 
-void SceneEditor::DrawMainView()
-{
-}
 
 void SceneEditor::DrawInspector()
 {

@@ -16,11 +16,8 @@
 
 namespace gpr5300
 {
-    
 
-    void RenderPassEditor::DrawMainView() {
 
-    }
 
     void RenderPassEditor::DrawInspector()
     {
@@ -65,7 +62,7 @@ namespace gpr5300
                 {
                     auto commandPath = subpassInfo->command_paths(j);
                     const auto commandId = resourceManager.FindResourceByPath(commandPath);
-                    if(!commandPath.empty() && commandId == INVALID_RESOURCE_ID)
+                    if (!commandPath.empty() && commandId == INVALID_RESOURCE_ID)
                     {
                         subpassInfo->mutable_command_paths(j)->clear();
                         commandPath = "";
@@ -116,32 +113,32 @@ namespace gpr5300
                 const auto popupId = fmt::format("{}_popup", importId);
                 bool openPopup = false;
                 ImGui::PushID(importId.c_str());
-                if(ImGui::Button("Import From Model Command"))
+                if (ImGui::Button("Import From Model Command"))
                 {
                     openPopup = true;
                 }
                 ImGui::PopID();
-                if(openPopup)
+                if (openPopup)
                 {
                     ImGui::OpenPopup(popupId.c_str());
                 }
-                if(ImGui::BeginPopup(popupId.c_str()))
+                if (ImGui::BeginPopup(popupId.c_str()))
                 {
                     const auto& models = modelEditor->GetModels();
-                    if(ImGui::BeginCombo("Model Command Selection", "Choose Command"))
+                    if (ImGui::BeginCombo("Model Command Selection", "Choose Command"))
                     {
-                        for(auto& model : models)
+                        for (auto& model : models)
                         {
-                            for(auto& command : model.drawCommands)
+                            for (auto& command : model.drawCommands)
                             {
-                                if(command.pipelineId == INVALID_RESOURCE_ID)
+                                if (command.pipelineId == INVALID_RESOURCE_ID)
                                     continue;
                                 auto* pipelineResource = resourceManager.GetResource(command.pipelineId);
                                 const auto commandName = fmt::format("{}_{}", GetFilename(model.path, false), GetFilename(pipelineResource->path, false));
-                                if(ImGui::Selectable(commandName.c_str(), false))
+                                if (ImGui::Selectable(commandName.c_str(), false))
                                 {
                                     //TODO import commands
-                                    for(auto commandId : command.drawCommandIds)
+                                    for (auto commandId : command.drawCommandIds)
                                     {
                                         *subpassInfo->add_command_paths() = resourceManager.GetResource(commandId)->path;
                                     }

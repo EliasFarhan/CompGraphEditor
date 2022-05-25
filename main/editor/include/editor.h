@@ -34,7 +34,7 @@ public:
     void CreateNewFile(std::string_view path, EditorType type);
 private:
     void OpenMenuCreateNewFile(EditorType editorType);
-    void SaveProject();
+    void SaveProject() const;
     void DrawMenuBar();
     bool UpdateCreateNewFile();
     void DrawEditorContent();

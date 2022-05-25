@@ -73,9 +73,6 @@ void CommandEditor::UpdateExistingResource(const Resource& resource)
 {
 }
 
-void CommandEditor::DrawMainView()
-{
-}
 
 void CommandEditor::DrawInspector()
 {
