@@ -263,7 +263,10 @@ bool SceneEditor::ExportScene() const
     for(int subPassIndex = 0; subPassIndex < exportRenderPass->sub_passes_size(); subPassIndex++)
     {
         auto* exportSubPass = exportRenderPass->mutable_sub_passes(subPassIndex);
-        
+
+        //TODO export framebuffer
+
+
         for(int commandIndex = 0; commandIndex < exportSubPass->command_paths_size(); commandIndex++)
         {
             auto* exportCommand = exportSubPass->add_commands();

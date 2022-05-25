@@ -135,6 +135,14 @@ void Scene::Update(float dt)
     for (int i = 0; i < subPassSize; i++)
     {
         const auto &subPass = scene_.render_pass().sub_passes(i);
+        if(subPass.framebuffer_index() != -1)
+        {
+            framebuffers_[subPass.framebuffer_index()].Bind();
+        }
+        else
+        {
+            Framebuffer::Unbind();
+        }
         glClearColor(subPass.clear_color().r(),
                      subPass.clear_color().g(),
                      subPass.clear_color().b(),
@@ -406,6 +414,11 @@ void Scene::OnEvent(SDL_Event& event)
     
 }
 
+Framebuffer& Scene::GetFramebuffer(int framebufferIndex)
+{
+    return framebuffers_[framebufferIndex];
+}
+
 SceneSubPass Scene::GetSubpass(int subPassIndex)
 {
     return SceneSubPass(*this, scene_.render_pass().sub_passes(subPassIndex));
@@ -509,12 +522,22 @@ int SceneSubPass::GetDrawCommandCount() const
 {
     return subPass_.commands_size();
 }
+
+Framebuffer* SceneSubPass::GetFramebuffer()
+{
+    if (subPass_.framebuffer_index() != -1)
+    {
+        return &scene_.GetFramebuffer(subPass_.framebuffer_index());
+    }
+    return nullptr;
+}
+
 SceneSubPass::SceneSubPass(Scene& scene, const pb::SubPass& subPass) : scene_(scene), subPass_(subPass)
 {
 
 }
 SceneDrawCommand SceneSubPass::GetDrawCommand(int drawCommandIndex) const
 {
-    return SceneDrawCommand(scene_, subPass_.commands(drawCommandIndex));
+    return { scene_, subPass_.commands(drawCommandIndex) };
 }
 }

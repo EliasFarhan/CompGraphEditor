@@ -17,12 +17,18 @@
 PYBIND11_EMBEDDED_MODULE(gpr5300, m)
 {
     py::class_<gpr5300::Pipeline>(m, "Pipeline")
-            .def("set_float", &gpr5300::Pipeline::SetFloat)
-            .def("set_int", &gpr5300::Pipeline::SetInt)
-            .def("set_vec2", &gpr5300::Pipeline::SetVec2)
-            .def("set_vec3", &gpr5300::Pipeline::SetVec3)
-            .def("set_vec4", &gpr5300::Pipeline::SetVec4)
-            .def("set_mat4", &gpr5300::Pipeline::SetMat4);
+        .def("set_float", &gpr5300::Pipeline::SetFloat)
+        .def("set_int", &gpr5300::Pipeline::SetInt)
+        .def("set_vec2", &gpr5300::Pipeline::SetVec2)
+        .def("set_vec3", &gpr5300::Pipeline::SetVec3)
+        .def("set_vec4", &gpr5300::Pipeline::SetVec4)
+        .def("set_mat4", &gpr5300::Pipeline::SetMat4)
+        .def("set_texture", [](gpr5300::Pipeline& pipeline, std::string_view uniformName, GLuint textureName, GLenum textureUnit = 0)
+            {
+                return pipeline.SetTexture(uniformName, textureName, textureUnit);
+            })
+        ;
+    
 
     py::class_<gpr5300::Script, gpr5300::PySystem>(m, "System")
             .def(py::init())
@@ -35,9 +41,14 @@ PYBIND11_EMBEDDED_MODULE(gpr5300, m)
             .def("on_mouse_motion", &gpr5300::Script::OnMouseMotion)
     ;
 
+    py::class_<gpr5300::Framebuffer>(m, "Framebuffer")
+        .def("get_texture_name", &gpr5300::Framebuffer::GetTextureName)
+    ;
+
     py::class_<gpr5300::SceneSubPass>(m, "SubPass")
         .def("get_draw_command", &gpr5300::SceneSubPass::GetDrawCommand)
         .def_property_readonly("draw_command_count", &gpr5300::SceneSubPass::GetDrawCommandCount)
+        .def("get_framebuffer", &gpr5300::SceneSubPass::GetFramebuffer, py::return_value_policy::reference)
         ;
 
     py::class_<gpr5300::Scene>(m, "Scene")

@@ -244,6 +244,9 @@ class Pipeline:
 
     def set_mat4(self, uniform_name: str, m: Mat4):
         pass
+
+    def set_texture(self, uniform_name: str, texture_name: int, texture_unit: int):
+        pass
         
 
 class Material:
@@ -293,6 +296,8 @@ class DrawCommand:
     def draw(self):
         pass
 
+class Framebuffer:
+    pass
 
 class SubPass:
     def __init__(self):
@@ -300,6 +305,9 @@ class SubPass:
 
     def get_draw_command(self, draw_command_index: int) -> DrawCommand:
         return DrawCommand()
+
+    def get_framebuffer(self):
+        return Framebuffer()
 
 
 class Scene:

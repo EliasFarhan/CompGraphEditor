@@ -27,6 +27,8 @@ public:
     void ReloadId() override;
     void Delete() override;
     [[nodiscard]] std::span<const std::string_view> GetExtensions() const override;
+
+    const auto& GetFramebuffers() const { return framebufferInfos_; }
 private:
     std::vector<FramebufferInfo> framebufferInfos_;
     std::size_t currentIndex_ = -1;

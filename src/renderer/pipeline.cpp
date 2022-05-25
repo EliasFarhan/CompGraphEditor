@@ -195,6 +195,14 @@ void Pipeline::SetTexture(std::string_view uniformName, const Texture& texture, 
     glCheckError();
 }
 
+void Pipeline::SetTexture(std::string_view uniformName, GLuint textureName, GLenum textureUnit)
+{
+    SetInt(uniformName, textureUnit);
+    glActiveTexture(GL_TEXTURE0 + textureUnit);
+    glBindTexture(GL_TEXTURE_2D, textureName);
+    glCheckError();
+}
+
 int Pipeline::GetUniformLocation(std::string_view uniformName)
 {
     const auto uniformIt = uniformMap_.find(uniformName.data());

@@ -1,13 +1,85 @@
 #include "renderer/framebuffer.h"
+#include "renderer/debug.h"
+#include "engine/engine.h"
+#include "utils/log.h"
 
 namespace gpr5300
 {
+void Framebuffer::Bind() const
+{
+    if (currentFramebuffer_ != name)
+    {
+        glBindFramebuffer(GL_FRAMEBUFFER, name);
+        currentFramebuffer_ = name;
+    }
+}
+
+void Framebuffer::Unbind()
+{
+    if (currentFramebuffer_ != 0)
+    {
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+        currentFramebuffer_ = 0;
+    }
+}
+
 void Framebuffer::Load(const pb::FrameBuffer& framebufferPb)
 {
-    for(const auto& colorAttachmentInfo : framebufferPb.color_attachments())
+    const auto windowSize = Engine::GetInstance()->GetWindowSize();
+    glCreateFramebuffers(1, &name);
+    Bind();
+    colorAttachments_.resize(framebufferPb.color_attachments_size());
+    for(int i = 0; i < framebufferPb.color_attachments_size(); i++)
     {
-        
+        auto& colorAttachment = colorAttachments_[i];
+        const auto& colorAttachmentInfo = framebufferPb.color_attachments(i);
+        const auto attachmentType = GetAttachmentType(colorAttachmentInfo);
+        if (colorAttachmentInfo.rbo())
+        {
+
+            glGenRenderbuffers(1, &colorAttachment);
+            glBindRenderbuffer(GL_RENDERBUFFER, colorAttachment);
+            glRenderbufferStorage(GL_RENDERBUFFER, attachmentType.internalFormat, 
+                colorAttachmentInfo.size_type() == pb::RenderTarget_Size_WINDOW_SIZE ? windowSize.x : colorAttachmentInfo.target_size().x(),
+                colorAttachmentInfo.size_type() == pb::RenderTarget_Size_WINDOW_SIZE ? windowSize.y : colorAttachmentInfo.target_size().y());
+
+            glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + i, GL_RENDERBUFFER, colorAttachment);
+        }
+        else
+        {
+            glCreateTextures(GL_TEXTURE_2D, 1, &colorAttachment);
+            glBindTexture(GL_TEXTURE_2D, colorAttachment);
+            glTexImage2D(GL_TEXTURE_2D, 0, attachmentType.internalFormat,
+                colorAttachmentInfo.size_type() == pb::RenderTarget_Size_WINDOW_SIZE ? windowSize.x : colorAttachmentInfo.target_size().x(),
+                colorAttachmentInfo.size_type() == pb::RenderTarget_Size_WINDOW_SIZE ? windowSize.y : colorAttachmentInfo.target_size().y(),
+                0,
+                attachmentType.format,
+                attachmentType.type,
+                nullptr
+            );
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+            glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0+i, GL_TEXTURE_2D, colorAttachment, 0);
+
+            const auto& name = colorAttachmentInfo.name();
+            if(!name.empty())
+            {
+                textureMap_[name] = colorAttachment;
+            }
+        }
     }
+    CheckFramebufferStatus();
+    glCheckError();
+}
+
+GLuint Framebuffer::GetTextureName(std::string_view textureName)
+{
+    const auto it = textureMap_.find(textureName.data());
+    if(it != textureMap_.end())
+    {
+        return it->second;
+    }
+    return 0;
 }
 
 AttachmentType GetAttachmentType(const pb::RenderTarget& renderTargetInfo)
@@ -303,5 +375,33 @@ AttachmentType GetAttachmentType(const pb::RenderTarget& renderTargetInfo)
         break;
     }
     return { internalFormat, format, type, error };
+}
+
+bool CheckFramebufferStatus()
+{
+    switch(glCheckFramebufferStatus(GL_FRAMEBUFFER))
+    {
+    case GL_FRAMEBUFFER_COMPLETE:
+        return true;
+    case GL_FRAMEBUFFER_UNDEFINED:
+        LogError("Check Framebuffer: Undefined");
+        break;
+    case GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT:
+        LogError("Check Framebuffer: Incomplete Attachment");
+        break;
+    case GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT:
+        LogError("Check Framebuffer: Incomplete Missing Attachment");
+        break;
+    case GL_FRAMEBUFFER_UNSUPPORTED:
+        LogError("Check Framebuffer: Unsupported");
+        break;
+    case GL_FRAMEBUFFER_INCOMPLETE_MULTISAMPLE:
+        LogError("Check Framebuffer: Incomplete Multisample");
+        break;
+    default:
+        LogError("Check Framebuffer: Unknown Error");
+        break;
+    }
+    return false;
 }
 } // namespace gpr5300

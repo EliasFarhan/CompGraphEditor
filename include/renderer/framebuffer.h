@@ -14,15 +14,22 @@ struct AttachmentType
     GLint error = 0;
 };
 
-struct Framebuffer
+class Framebuffer
 {
+public:
+    void Bind() const;
+    static void Unbind();
     void Load(const pb::FrameBuffer& framebufferPb);
+    GLuint GetTextureName(std::string_view textureName);
+private:
     GLuint name = 0;
-    std::vector<GLuint> colorAttachements;
-    GLuint depthStencilAttachment;
+    std::vector<GLuint> colorAttachments_{};
+    GLuint depthStencilAttachment = 0;
+    std::unordered_map<std::string, GLuint> textureMap_;
+    static inline GLuint currentFramebuffer_ = 0;
 };
 
 AttachmentType GetAttachmentType(const pb::RenderTarget& renderTargetInfo);
-
+bool CheckFramebufferStatus();
 
 } // namespace grp5300

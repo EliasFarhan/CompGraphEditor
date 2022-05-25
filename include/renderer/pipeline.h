@@ -44,6 +44,7 @@ public:
     void SetMat4(std::string_view uniformName, const glm::mat4& mat);
 
     void SetTexture(std::string_view uniformName, const Texture& texture, GLenum textureUnit) ;
+    void SetTexture(std::string_view uniformName, GLuint textureName, GLenum textureUnit) ;
 private:
     GLuint name = 0;
     inline static GLuint currentBindedPipeline = 0;

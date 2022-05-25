@@ -49,6 +49,7 @@ public:
     SceneSubPass(Scene& scene, const pb::SubPass& subPass);
     SceneDrawCommand GetDrawCommand(int drawCommandIndex) const;
     int GetDrawCommandCount() const;
+    Framebuffer* GetFramebuffer();
 private:
     Scene& scene_;
     const pb::SubPass& subPass_;
@@ -70,6 +71,7 @@ public:
     int GetPipelineCount() const;
     void Draw(const pb::DrawCommand& drawCommand);
     void OnEvent(SDL_Event& event) override;
+    Framebuffer& GetFramebuffer(int framebufferIndex);
 private:
     pb::Scene scene_;
     std::vector<Shader> shaders_;

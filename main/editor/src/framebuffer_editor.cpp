@@ -63,6 +63,7 @@ void FramebufferEditor::DrawInspector()
     auto* editor = Editor::GetInstance();
     auto& currentFramebufferInfo = framebufferInfos_[currentIndex_];
 
+    ImGui::Separator();
     int deletedColorAttachment = -1;
     for(int colorAttachmentIndex = 0; colorAttachmentIndex < currentFramebufferInfo.info.color_attachments_size(); colorAttachmentIndex++)
     {
@@ -159,7 +160,7 @@ void FramebufferEditor::DrawInspector()
             ImGui::TextColored({ 1,0,0,1 }, "Invalid attachment format");
         }
 
-        if(ImGui::Button("Remove Attachment"))
+        if(ImGui::Button("Remove Color Attachment"))
         {
             deletedColorAttachment = colorAttachmentIndex;
         }
@@ -175,7 +176,72 @@ void FramebufferEditor::DrawInspector()
     {
         currentFramebufferInfo.info.add_color_attachments();
     }
-    //TODO depth/stencil attachment
+    //depth/stencil attachment
+    if(currentFramebufferInfo.info.has_depth_stencil_attachment())
+    {
+        auto* depthStencilAttachment = currentFramebufferInfo.info.mutable_depth_stencil_attachment();
+        bool stencil = depthStencilAttachment->format() == pb::RenderTarget_Format_DEPTH_STENCIL;
+        if(ImGui::Checkbox("Stencil", &stencil))
+        {
+            depthStencilAttachment->set_format(stencil ? pb::RenderTarget_Format_DEPTH_STENCIL : pb::RenderTarget_Format_DEPTH_COMP);
+        }
+
+        static constexpr std::array<std::string_view, 3> sizeTxt =
+        {
+            "16",
+            "24",
+            "32"
+        };
+        if (ImGui::BeginCombo("Size", sizeTxt[depthStencilAttachment->format_size()-1].data()))
+        {
+            for (std::size_t sizeType = 0; sizeType < sizeTxt.size(); sizeType++)
+            {
+                if (ImGui::Selectable(sizeTxt[sizeType].data(), sizeType+1 == depthStencilAttachment->format_size()))
+                {
+                    depthStencilAttachment->set_format_size(static_cast<pb::RenderTarget_FormatSize>(sizeType+1));
+                    switch(depthStencilAttachment->format_size())
+                    {
+                    case pb::RenderTarget_FormatSize_SIZE_16:
+                    case pb::RenderTarget_FormatSize_SIZE_24:
+                        depthStencilAttachment->set_type(pb::RenderTarget_Type_UNSIGNED);
+                        break;
+                    case pb::RenderTarget_FormatSize_SIZE_32: 
+                        depthStencilAttachment->set_type(pb::RenderTarget_Type_FLOAT);
+                        break;
+                    default: 
+                        break;
+                    }
+                }
+            }
+            ImGui::EndCombo();
+        }
+        bool rbo = depthStencilAttachment->rbo();
+        if (ImGui::Checkbox("RBO", &rbo))
+        {
+            depthStencilAttachment->set_rbo(rbo);
+        }
+
+
+        const auto status = GetAttachmentType(*depthStencilAttachment);
+        if (status.error != 0)
+        {
+            ImGui::TextColored({ 1,0,0,1 }, "Invalid attachment format");
+        }
+        if(ImGui::Button("Remove Depth/Stencil Attachment"))
+        {
+            currentFramebufferInfo.info.clear_depth_stencil_attachment();
+        }
+    }
+    else
+    {
+        if(ImGui::Button("Add Depth/Stencil Attachment"))
+        {
+            auto* depthStencilAttachment = currentFramebufferInfo.info.mutable_depth_stencil_attachment();
+            depthStencilAttachment->set_format(pb::RenderTarget_Format_DEPTH_STENCIL);
+            depthStencilAttachment->set_format_size(pb::RenderTarget_FormatSize_SIZE_24);
+            depthStencilAttachment->set_type(pb::RenderTarget_Type_UNSIGNED);
+        }
+    }
 }
 
 bool FramebufferEditor::DrawContentList(bool unfocus)
