@@ -7,10 +7,10 @@ namespace gpr5300
 {
 void Framebuffer::Bind() const
 {
-    if (currentFramebuffer_ != name)
+    if (currentFramebuffer_ != name_)
     {
-        glBindFramebuffer(GL_FRAMEBUFFER, name);
-        currentFramebuffer_ = name;
+        glBindFramebuffer(GL_FRAMEBUFFER, name_);
+        currentFramebuffer_ = name_;
     }
 }
 
@@ -26,7 +26,7 @@ void Framebuffer::Unbind()
 void Framebuffer::Load(const pb::FrameBuffer& framebufferPb)
 {
     const auto windowSize = Engine::GetInstance()->GetWindowSize();
-    glCreateFramebuffers(1, &name);
+    glCreateFramebuffers(1, &name_);
     Bind();
     colorAttachments_.resize(framebufferPb.color_attachments_size());
     for(int i = 0; i < framebufferPb.color_attachments_size(); i++)

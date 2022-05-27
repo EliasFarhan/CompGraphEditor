@@ -297,7 +297,8 @@ class DrawCommand:
         pass
 
 class Framebuffer:
-    pass
+    def get_texture_name(texture_name: str):
+        return 0
 
 class SubPass:
     def __init__(self):

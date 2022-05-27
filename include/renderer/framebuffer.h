@@ -22,9 +22,9 @@ public:
     void Load(const pb::FrameBuffer& framebufferPb);
     GLuint GetTextureName(std::string_view textureName);
 private:
-    GLuint name = 0;
+    GLuint name_ = 0;
     std::vector<GLuint> colorAttachments_{};
-    GLuint depthStencilAttachment = 0;
+    GLuint depthStencilAttachment_ = 0;
     std::unordered_map<std::string, GLuint> textureMap_;
     static inline GLuint currentFramebuffer_ = 0;
 };

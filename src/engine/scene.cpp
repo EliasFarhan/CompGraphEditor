@@ -53,12 +53,15 @@ void Scene::LoadScene(PyManager &pyManager)
         material.pipelineIndex = materialInfo.pipeline_index();
         const auto materialTexturesCount = materialInfo.textures_size();
         material.textures.resize(materialTexturesCount);
-        for(int j = 0; j < materialTexturesCount; j++)
+        for (int j = 0; j < materialTexturesCount; j++)
         {
             const auto& materialTextureInfo = materialInfo.textures(j);
             auto& materialTexture = material.textures[j];
-            materialTexture.texture = textures_[materialTextureInfo.texture_index()];
             materialTexture.uniformSamplerName = materialTextureInfo.sampler_name();
+            if (materialTextureInfo.texture_index() != -1)
+            {
+                materialTexture.texture = textures_[materialTextureInfo.texture_index()];
+            }
         }
     }
     
@@ -135,9 +138,10 @@ void Scene::Update(float dt)
     for (int i = 0; i < subPassSize; i++)
     {
         const auto &subPass = scene_.render_pass().sub_passes(i);
-        if(subPass.framebuffer_index() != -1)
+        const auto framebufferIndex = subPass.framebuffer_index();
+        if(framebufferIndex != -1 && framebuffers_.size() > framebufferIndex)
         {
-            framebuffers_[subPass.framebuffer_index()].Bind();
+            framebuffers_[framebufferIndex].Bind();
         }
         else
         {
@@ -336,9 +340,12 @@ void Scene::Draw(const pb::DrawCommand& command)
     }
 
     pipeline.Bind();
-    for(std::size_t textureIndex = 0; textureIndex < material.textures.size(); textureIndex++)
+    for (std::size_t textureIndex = 0; textureIndex < material.textures.size(); textureIndex++)
     {
-        pipeline.SetTexture(material.textures[textureIndex].uniformSamplerName, material.textures[textureIndex].texture, textureIndex);
+        if (material.textures[textureIndex].texture.name != 0)
+        {
+            pipeline.SetTexture(material.textures[textureIndex].uniformSamplerName, material.textures[textureIndex].texture, textureIndex);
+        }
     }
     
 

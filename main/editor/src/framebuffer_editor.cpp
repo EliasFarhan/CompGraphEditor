@@ -306,4 +306,17 @@ std::span<const std::string_view> FramebufferEditor::GetExtensions() const
     };
     return extensions;
 }
+
+FramebufferInfo* FramebufferEditor::GetFramebuffer(ResourceId resourceId)
+{
+    const auto it = std::ranges::find_if(framebufferInfos_, [resourceId](const auto& framebufferInfo)
+    {
+        return framebufferInfo.resourceId == resourceId;
+    });
+    if(it != framebufferInfos_.end())
+    {
+        return &*it;
+    }
+    return nullptr;
+}
 }

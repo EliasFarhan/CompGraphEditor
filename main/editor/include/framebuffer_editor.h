@@ -29,6 +29,7 @@ public:
     [[nodiscard]] std::span<const std::string_view> GetExtensions() const override;
 
     const auto& GetFramebuffers() const { return framebufferInfos_; }
+    FramebufferInfo* GetFramebuffer(ResourceId resourceId);
 private:
     std::vector<FramebufferInfo> framebufferInfos_;
     std::size_t currentIndex_ = -1;

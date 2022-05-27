@@ -22,6 +22,7 @@
 #include "shader_editor.h"
 #include "texture_editor.h"
 #include "model_editor.h"
+#include "framebuffer_editor.h"
 
 namespace py = pybind11;
 using json = nlohmann::json;
@@ -244,6 +245,7 @@ bool SceneEditor::ExportScene() const
     auto* modelEditor = dynamic_cast<ModelEditor*>(editor->GetEditorSystem(EditorType::MODEL));
     const auto* scriptEditor = dynamic_cast<ScriptEditor*>(editor->GetEditorSystem(EditorType::SCRIPT));
     auto* textureEditor = dynamic_cast<TextureEditor*>(editor->GetEditorSystem(EditorType::TEXTURE));
+    auto* framebufferEditor = dynamic_cast<FramebufferEditor*>(editor->GetEditorSystem(EditorType::FRAMEBUFFER));
     //TODO reload all editors to get all correct resourceId
     commandEditor->ReloadId();
     const auto& currentScene = sceneInfos_[currentIndex_];
@@ -264,9 +266,36 @@ bool SceneEditor::ExportScene() const
     {
         auto* exportSubPass = exportRenderPass->mutable_sub_passes(subPassIndex);
 
-        //TODO export framebuffer
-
-
+        //export framebuffer
+        const auto& framebufferPath = exportSubPass->framebuffer_path();
+        if(!framebufferPath.empty())
+        {
+            const auto framebufferId = resourceManager.FindResourceByPath(framebufferPath);
+            if(framebufferId == INVALID_RESOURCE_ID)
+            {
+                LogWarning("Could not export scene, invalid resource id for framebuffer");
+                return false;
+            }
+            auto* framebufferInfo = framebufferEditor->GetFramebuffer(framebufferId);
+            auto framebufferIt = resourceIndexMap.find(framebufferInfo->resourceId);
+            if (framebufferIt == resourceIndexMap.end())
+            {
+                auto index = exportScene.info.framebuffers_size();
+                auto* newFramebuffer = exportScene.info.add_framebuffers();
+                *newFramebuffer = framebufferInfo->info;
+                exportSubPass->set_framebuffer_index(index);
+                resourceIndexMap[framebufferId] = index;
+            }
+            else
+            {
+                exportSubPass->set_framebuffer_index(framebufferIt->second);
+            }
+        }
+        else
+        {
+            exportSubPass->set_framebuffer_index(-1); // setting back to backbuffer
+        }
+        //Export commands
         for(int commandIndex = 0; commandIndex < exportSubPass->command_paths_size(); commandIndex++)
         {
             auto* exportCommand = exportSubPass->add_commands();
@@ -301,8 +330,10 @@ bool SceneEditor::ExportScene() const
                     auto textureId = resourceManager.FindResourceByPath(materialTexture->texture_name());
                     if(textureId == INVALID_RESOURCE_ID)
                     {
-                        LogWarning("Could not export scene, missing texture in material sampler");
-                        return false;
+                        LogWarning("Missing texture in material sampler");
+                        materialTexture->set_texture_index(-1);
+                        continue;
+                        //return false;
                     }
                     auto textureIt = resourceIndexMap.find(textureId);
                     if(textureIt == resourceIndexMap.end())
