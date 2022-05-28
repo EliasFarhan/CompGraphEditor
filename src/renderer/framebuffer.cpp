@@ -68,6 +68,47 @@ void Framebuffer::Load(const pb::FrameBuffer& framebufferPb)
             }
         }
     }
+
+    if(framebufferPb.has_depth_stencil_attachment())
+    {
+        const auto& depthStencilAttachmentInfo = framebufferPb.depth_stencil_attachment();
+        const auto attachmentType = GetAttachmentType(depthStencilAttachmentInfo);
+        bool stencil = attachmentType.format == GL_DEPTH_STENCIL;
+        if (depthStencilAttachmentInfo.rbo())
+        {
+
+            glGenRenderbuffers(1, &depthStencilAttachment_);
+            glBindRenderbuffer(GL_RENDERBUFFER, depthStencilAttachment_);
+            glRenderbufferStorage(GL_RENDERBUFFER, attachmentType.internalFormat,
+                depthStencilAttachmentInfo.size_type() == pb::RenderTarget_Size_WINDOW_SIZE ? windowSize.x : depthStencilAttachmentInfo.target_size().x(),
+                depthStencilAttachmentInfo.size_type() == pb::RenderTarget_Size_WINDOW_SIZE ? windowSize.y : depthStencilAttachmentInfo.target_size().y());
+
+            glFramebufferRenderbuffer(GL_FRAMEBUFFER, stencil?GL_DEPTH_STENCIL_ATTACHMENT: GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, depthStencilAttachment_);
+        }
+        else
+        {
+            glCreateTextures(GL_TEXTURE_2D, 1, &depthStencilAttachment_);
+            glBindTexture(GL_TEXTURE_2D, depthStencilAttachment_);
+            glTexImage2D(GL_TEXTURE_2D, 0, attachmentType.internalFormat,
+                depthStencilAttachmentInfo.size_type() == pb::RenderTarget_Size_WINDOW_SIZE ? windowSize.x : depthStencilAttachmentInfo.target_size().x(),
+                depthStencilAttachmentInfo.size_type() == pb::RenderTarget_Size_WINDOW_SIZE ? windowSize.y : depthStencilAttachmentInfo.target_size().y(),
+                0,
+                attachmentType.format,
+                attachmentType.type,
+                nullptr
+            );
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+            glFramebufferTexture2D(GL_FRAMEBUFFER, stencil ? GL_DEPTH_STENCIL_ATTACHMENT : GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depthStencilAttachment_, 0);
+
+            const auto& name = depthStencilAttachmentInfo.name();
+            if (!name.empty())
+            {
+                textureMap_[name] = depthStencilAttachment_;
+            }
+        }
+    }
+
     CheckFramebufferStatus();
     glCheckError();
 }
