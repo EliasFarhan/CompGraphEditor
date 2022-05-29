@@ -18,14 +18,18 @@ class Framebuffer
 {
 public:
     void Bind() const;
+    void Resize(glm::uvec2 windowSize);
     static void Unbind();
     void Load(const pb::FrameBuffer& framebufferPb);
     GLuint GetTextureName(std::string_view textureName);
+
 private:
     GLuint name_ = 0;
     std::vector<GLuint> colorAttachments_{};
     GLuint depthStencilAttachment_ = 0;
+    pb::FrameBuffer frameBufferPb_;
     std::unordered_map<std::string, GLuint> textureMap_;
+
     static inline GLuint currentFramebuffer_ = 0;
 };
 

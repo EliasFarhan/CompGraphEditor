@@ -415,6 +415,23 @@ void Scene::OnEvent(SDL_Event& event)
         }
         break;
     }
+    case SDL_WINDOWEVENT:
+    {
+        switch (event.window.event)
+        {
+        case SDL_WINDOWEVENT_RESIZED:
+        {
+            glm::uvec2 newWindowSize;
+            newWindowSize.x = event.window.data1;
+            newWindowSize.y = event.window.data2;
+            for (auto& framebuffer: framebuffers_)
+            {
+                framebuffer.Resize(newWindowSize);
+            }
+            break;
+        }
+        }
+    }
     default:
         break;
     }

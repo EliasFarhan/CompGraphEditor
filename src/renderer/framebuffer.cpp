@@ -14,6 +14,117 @@ void Framebuffer::Bind() const
     }
 }
 
+void Framebuffer::Resize(glm::uvec2 windowSize)
+{
+    Bind();
+    if(frameBufferPb_.has_depth_stencil_attachment())
+    {
+        const auto& depthStencilAttachmentInfo = frameBufferPb_.depth_stencil_attachment();
+        const auto attachmentType = GetAttachmentType(depthStencilAttachmentInfo);
+        bool stencil = attachmentType.format == GL_DEPTH_STENCIL;
+        if(depthStencilAttachmentInfo.size_type() == pb::RenderTarget_Size_WINDOW_SIZE)
+        {
+            if (depthStencilAttachmentInfo.rbo())
+            {
+                if(depthStencilAttachment_ != 0)
+                {
+                    glDeleteRenderbuffers(1, &depthStencilAttachment_);
+                    depthStencilAttachment_ = 0;
+                }
+                glGenRenderbuffers(1, &depthStencilAttachment_);
+                glBindRenderbuffer(GL_RENDERBUFFER, depthStencilAttachment_);
+                glRenderbufferStorage(GL_RENDERBUFFER, attachmentType.internalFormat,
+                    windowSize.x,
+                    windowSize.y);
+
+                glFramebufferRenderbuffer(GL_FRAMEBUFFER, stencil ? GL_DEPTH_STENCIL_ATTACHMENT : GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, depthStencilAttachment_);
+            }
+            else
+            {
+                if (depthStencilAttachment_ != 0)
+                {
+                    glDeleteTextures(1, &depthStencilAttachment_);
+                    depthStencilAttachment_ = 0;
+                }
+                glCreateTextures(GL_TEXTURE_2D, 1, &depthStencilAttachment_);
+                glBindTexture(GL_TEXTURE_2D, depthStencilAttachment_);
+                glTexImage2D(GL_TEXTURE_2D, 0, attachmentType.internalFormat,
+                    windowSize.x,
+                    windowSize.y,
+                    0,
+                    attachmentType.format,
+                    attachmentType.type,
+                    nullptr
+                );
+                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+                glFramebufferTexture2D(GL_FRAMEBUFFER, stencil ? GL_DEPTH_STENCIL_ATTACHMENT : GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depthStencilAttachment_, 0);
+
+                const auto& name = depthStencilAttachmentInfo.name();
+                if (!name.empty())
+                {
+                    textureMap_[name] = depthStencilAttachment_;
+                }
+            }
+        }
+    }
+    for(int i = 0 ; i < frameBufferPb_.color_attachments_size(); i++)
+    {
+
+        auto& colorAttachment = colorAttachments_[i];
+        const auto& colorAttachmentInfo = frameBufferPb_.color_attachments(i);
+        if (colorAttachmentInfo.size_type() == pb::RenderTarget_Size_FIXED_SIZE)
+            continue;
+        const auto attachmentType = GetAttachmentType(colorAttachmentInfo);
+        if (colorAttachmentInfo.rbo())
+        {
+            if(colorAttachment != 0)
+            {
+                glDeleteRenderbuffers(1, &colorAttachment);
+                colorAttachment = 0;
+            }
+            glGenRenderbuffers(1, &colorAttachment);
+            glBindRenderbuffer(GL_RENDERBUFFER, colorAttachment);
+            glRenderbufferStorage(GL_RENDERBUFFER, attachmentType.internalFormat,
+                windowSize.x,
+                windowSize.y);
+
+            glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + i, GL_RENDERBUFFER, colorAttachment);
+        }
+        else
+        {
+            if (colorAttachment != 0)
+            {
+                glDeleteTextures(1, &colorAttachment);
+                colorAttachment = 0;
+            }
+            glCreateTextures(GL_TEXTURE_2D, 1, &colorAttachment);
+            glBindTexture(GL_TEXTURE_2D, colorAttachment);
+            glTexImage2D(GL_TEXTURE_2D, 0, attachmentType.internalFormat,
+                windowSize.x,
+                windowSize.y,
+                0,
+                attachmentType.format,
+                attachmentType.type,
+                nullptr
+            );
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+            glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + i, GL_TEXTURE_2D, colorAttachment, 0);
+
+            const auto& name = colorAttachmentInfo.name();
+            if (!name.empty())
+            {
+                textureMap_[name] = colorAttachment;
+            }
+        }
+    }
+}
+
 void Framebuffer::Unbind()
 {
     if (currentFramebuffer_ != 0)
@@ -26,6 +137,7 @@ void Framebuffer::Unbind()
 void Framebuffer::Load(const pb::FrameBuffer& framebufferPb)
 {
     const auto windowSize = Engine::GetInstance()->GetWindowSize();
+    frameBufferPb_ = framebufferPb;
     glCreateFramebuffers(1, &name_);
     Bind();
     colorAttachments_.resize(framebufferPb.color_attachments_size());
@@ -59,6 +171,8 @@ void Framebuffer::Load(const pb::FrameBuffer& framebufferPb)
             );
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
             glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0+i, GL_TEXTURE_2D, colorAttachment, 0);
 
             const auto& name = colorAttachmentInfo.name();
@@ -99,6 +213,8 @@ void Framebuffer::Load(const pb::FrameBuffer& framebufferPb)
             );
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
             glFramebufferTexture2D(GL_FRAMEBUFFER, stencil ? GL_DEPTH_STENCIL_ATTACHMENT : GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depthStencilAttachment_, 0);
 
             const auto& name = depthStencilAttachmentInfo.name();
