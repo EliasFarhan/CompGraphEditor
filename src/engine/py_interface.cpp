@@ -27,6 +27,10 @@ PYBIND11_EMBEDDED_MODULE(gpr5300, m)
             {
                 return pipeline.SetTexture(uniformName, textureName, textureUnit);
             })
+        .def("set_cubemap", [](gpr5300::Pipeline& pipeline, std::string_view uniformName, GLuint textureName, GLenum textureUnit = 0)
+            {
+                return pipeline.SetCubemap(uniformName, textureName, textureUnit);
+            })
         ;
     
 

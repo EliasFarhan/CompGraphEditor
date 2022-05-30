@@ -7,6 +7,8 @@
 #include <array>
 #include <fstream>
 
+#include "engine/filesystem.h"
+
 namespace gpr5300
 {
 
@@ -18,6 +20,49 @@ void TextureEditor::DrawInspector()
     }
     auto& currentTextureInfo = textureInfos_[currentIndex_];
     ImGui::Text("Filename: %s", currentTextureInfo.filename.c_str());
+
+    if(GetFileExtension(currentTextureInfo.filename) == ".cube")
+    {
+        //choose cubemap textures
+        static constexpr std::array<std::string_view, pb::Cubemap::LENGTH> cubemapSides
+        {
+            "Right Side",
+            "Left Side",
+            "Top Side",
+            "Bottom Side",
+            "Front Side",
+            "Back Side",
+        };
+        ImGui::PushID("Cubemap textures");
+        for(std::size_t i = 0; i < cubemapSides.size(); i++)
+        {
+            ImGui::PushID(i);
+            if(currentTextureInfo.cubemap.texture_paths_size() <= i)
+            {
+                currentTextureInfo.cubemap.add_texture_paths();
+            }
+            auto* texturePath = currentTextureInfo.cubemap.mutable_texture_paths(i);
+            if(ImGui::BeginCombo(cubemapSides[i].data(), texturePath->empty()? "No texture": texturePath->data()))
+            {
+                for(std::size_t textureIndex = 0; textureIndex < textureInfos_.size(); textureIndex++)
+                {
+                    auto& otherTexturePath = textureInfos_[textureIndex].info.path();
+                    if(GetFileExtension(otherTexturePath) == ".cube")
+                    {
+                        continue;
+                    }
+                    const bool selected = !texturePath->empty() && fs::equivalent(*texturePath, otherTexturePath);
+                    if(ImGui::Selectable(textureInfos_[textureIndex].filename.data(), selected))
+                    {
+                        *texturePath = otherTexturePath;
+                    }
+                }
+                ImGui::EndCombo();
+            }
+            ImGui::PopID();
+        }
+        ImGui::PopID();
+    }
 
     static constexpr std::array<std::string_view, 4> wrappingModeNames
     {
@@ -92,6 +137,14 @@ void TextureEditor::Save()
 {
     for(auto& textureInfo : textureInfos_)
     {
+        if(GetFileExtension(textureInfo.info.path()) == ".cube")
+        {
+            std::ofstream cubeOut(textureInfo.info.path(), std::ios::binary);
+            if (!textureInfo.cubemap.SerializeToOstream(&cubeOut))
+            {
+                LogWarning(fmt::format("Could not save cubemap info at: {}", textureInfo.info.path()));
+            }
+        }
         std::ofstream fileOut(textureInfo.infoPath, std::ios::binary);
         if (!textureInfo.info.SerializeToOstream(&fileOut))
         {
@@ -102,12 +155,22 @@ void TextureEditor::Save()
 
 void TextureEditor::AddResource(const Resource &resource)
 {
+    auto& filesystem = FilesystemLocator::get();
     TextureInfo textureInfo{};
     textureInfo.resourceId = resource.resourceId;
     textureInfo.filename = GetFilename(resource.path);
     textureInfo.info.set_path(resource.path);
     textureInfo.infoPath = resource.path + ".meta";
-    //TODO load texture with wrapping and mipmapping
+    if(filesystem.FileExists(textureInfo.infoPath))
+    {
+        std::ifstream metaFile(textureInfo.infoPath,std::ios::binary);
+        textureInfo.info.ParseFromIstream(&metaFile);
+    }
+    if(GetFileExtension(resource.path) == ".cube")
+    {
+        std::ifstream cubemapFile(resource.path, std::ios::binary);
+        textureInfo.cubemap.ParseFromIstream(&cubemapFile);
+    }
     textureInfos_.push_back(textureInfo);
 }
 
@@ -162,7 +225,7 @@ void TextureEditor::Delete()
 
 std::span<const std::string_view> TextureEditor::GetExtensions() const
 {
-    static constexpr std::array<std::string_view, 7> extensions
+    static constexpr std::array<std::string_view, 8> extensions
     {
         ".jpg",
         ".jpeg",
@@ -170,7 +233,8 @@ std::span<const std::string_view> TextureEditor::GetExtensions() const
         ".bmp",
         ".tga",
         ".hdr",
-        ".gif"
+        ".gif",
+        ".cube"
     };
     return extensions;
 }

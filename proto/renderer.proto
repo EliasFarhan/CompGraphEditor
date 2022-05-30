@@ -236,6 +236,7 @@ message Pipeline
     string geometry_shader_path = 11;// Used by the editor
 }
 
+
 message Texture
 {
     enum WrappingMode
@@ -256,6 +257,22 @@ message Texture
     FilteringMode filter_mode = 3;
     bool generate_mipmaps = 4;
     TextureType type = 5;
+}
+
+message Cubemap
+{
+    enum Side
+    {
+        RIGHT = 0;
+        LEFT = 1;
+        TOP = 2;
+        BOTTOM = 3;
+        FRONT = 4;
+        BACK = 5;
+        LENGTH = 6;
+    }
+
+    repeated string texture_paths = 1;
 }
 
 message MaterialTexture
@@ -387,6 +404,7 @@ message Scene
     repeated PySystem py_systems = 8;
     repeated string model_paths = 11;
     repeated FrameBuffer framebuffers = 12;
+    repeated string cubemap_textures_side_paths = 13;
     //used by editor
     string render_pass_path = 9;
     repeated string py_system_paths = 10;

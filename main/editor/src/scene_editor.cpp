@@ -259,6 +259,7 @@ bool SceneEditor::ExportScene() const
         return false;
     }
     std::unordered_map<ResourceId, int> resourceIndexMap;
+    std::vector<std::string> cubemapTextures;
     auto* currentRenderPass = renderPassEditor->GetRenderPass(currentScene.renderPassId);
     auto* exportRenderPass = exportScene.info.mutable_render_pass();
     *exportRenderPass = currentRenderPass->info;
@@ -339,7 +340,18 @@ bool SceneEditor::ExportScene() const
                     if(textureIt == resourceIndexMap.end())
                     {
                         const auto index = exportScene.info.textures_size();
-                        *exportScene.info.add_textures() = textureEditor->GetTexture(textureId)->info;
+                        auto* textureInfo = textureEditor->GetTexture(textureId);
+                        *exportScene.info.add_textures() = textureInfo->info;
+                        if(GetFileExtension(textureInfo->info.path()) == ".cube")
+                        {
+                            for(auto& cubeTexture: textureInfo->cubemap.texture_paths())
+                            {
+                                if(!cubeTexture.empty())
+                                {
+                                    cubemapTextures.push_back(cubeTexture);
+                                }
+                            }
+                        }
                         resourceIndexMap[textureId] = index;
                         materialTexture->set_texture_index(index);
                     }
@@ -506,7 +518,7 @@ bool SceneEditor::ExportScene() const
         texturePaths.push_back(exportScene.info.textures(i).path());
     }
     sceneJson["textures"] = texturePaths;
-
+    sceneJson["cubemap_textures"] = cubemapTextures;
     std::vector<std::string> objPaths;
     objPaths.reserve(exportScene.info.model_paths_size());
     for(int i = 0; i < exportScene.info.model_paths_size(); i++)

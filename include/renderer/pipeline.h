@@ -45,6 +45,7 @@ public:
 
     void SetTexture(std::string_view uniformName, const Texture& texture, GLenum textureUnit) ;
     void SetTexture(std::string_view uniformName, GLuint textureName, GLenum textureUnit) ;
+    void SetCubemap(std::string_view uniformName, GLuint textureName, GLenum textureUnit) ;
 private:
     GLuint name = 0;
     inline static GLuint currentBindedPipeline = 0;

@@ -12,6 +12,8 @@ def export_scene(path, scene_json_txt):
 			scene_zip.write(shader_file)
 		for texture_file in scene_json["textures"]:
 			scene_zip.write(texture_file)
+		for cubemap_texture_file in scene_json["cubemap_textures"]:
+			scene_zip.write(cubemap_texture_file)
 		for script_file in scene_json["scripts"]:
 			scene_zip.write(script_file)
 		for model_file in scene_json["models"]:

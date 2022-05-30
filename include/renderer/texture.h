@@ -17,7 +17,9 @@ namespace gpr5300
         GLuint name = 0;
         int width = 0;
         int height = 0;
+        bool cubemap = false;
         bool LoadTexture(const pb::Texture& textureInfo);
+        bool LoadCubemap(const pb::Texture& textureInfo);
     };
 
     class TextureManager

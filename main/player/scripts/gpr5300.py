@@ -247,6 +247,9 @@ class Pipeline:
 
     def set_texture(self, uniform_name: str, texture_name: int, texture_unit: int):
         pass
+
+    def set_cubemap(self, uniform_name: str, texture_name: int, texture_unit: int):
+        pass
         
 
 class Material:

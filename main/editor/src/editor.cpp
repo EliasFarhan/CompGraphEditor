@@ -229,6 +229,16 @@ void Editor::CreateNewFile(std::string_view path, EditorType type)
         resourceManager_.AddResource(path);
         break;
     }
+    case EditorType::TEXTURE:
+    {
+        if(GetFileExtension(path) == ".cube")
+        {
+            pb::Cubemap emptyCubemap;
+            filesystem.WriteString(path, emptyCubemap.SerializeAsString());
+            resourceManager_.AddResource(path);
+        }
+        break;
+    }
     default: 
         break;
     }
@@ -629,6 +639,15 @@ void Editor::DrawEditorContent()
     open = ImGui::TreeNode("Textures");
     if (ImGui::BeginPopupContextItem())
     {
+        if (ImGui::Button("Create New Cubemap"))
+        {
+            OpenMenuCreateNewFile(EditorType::TEXTURE);
+        }
+
+        if (UpdateCreateNewFile())
+        {
+            ImGui::CloseCurrentPopup();
+        }
         if (ImGui::Button("Import Textures"))
         {
             OpenFileBrowserDialog(editorSystems_[static_cast<int>(EditorType::TEXTURE)]->GetExtensions());
