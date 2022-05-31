@@ -150,7 +150,7 @@ bool Texture::LoadTexture(const pb::Texture &textureInfo)
 bool Texture::LoadCubemap(const pb::Texture& textureInfo)
 {
     cubemap = true;
-    stbi_set_flip_vertically_on_load(true);
+    stbi_set_flip_vertically_on_load(false);
     const auto& filesystem = FilesystemLocator::get();
     std::string_view path = textureInfo.path();
 

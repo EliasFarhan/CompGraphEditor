@@ -36,6 +36,7 @@ void Model::LoadModel(std::string_view path)
 Mesh Model::GenerateMesh(std::string_view meshName) const
 {
     Mesh mesh{};
+    mesh.name = meshName;
     const auto& shapes = reader.GetShapes();
     auto it = std::ranges::find_if(shapes, [meshName](const auto& shape)
         {

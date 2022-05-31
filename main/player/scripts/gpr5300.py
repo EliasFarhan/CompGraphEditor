@@ -250,6 +250,9 @@ class Pipeline:
 
     def set_cubemap(self, uniform_name: str, texture_name: int, texture_unit: int):
         pass
+
+    def get_name(self) ->str:
+        return ""
         
 
 class Material:
@@ -262,6 +265,8 @@ class Material:
     def get_pipeline(self) -> Pipeline:
         return Pipeline()
 
+    def get_name(self) -> str:
+        return ""
 
 class System:
     def __init__(self):
@@ -295,6 +300,12 @@ class DrawCommand:
 
     def get_material(self) -> Material:
         return Material()
+
+    def get_name(self) -> str:
+        return ""
+
+    def get_mesh_name(self) -> str:
+        return ""
 
     def draw(self):
         pass

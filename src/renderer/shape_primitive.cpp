@@ -11,6 +11,7 @@ namespace gpr5300
 Mesh GenerateQuad()
 {
     Mesh mesh{};
+    mesh.name = "quad";
     GLuint ebo;
     std::array<GLuint, 4> vbo{};
     constexpr glm::vec2 vertices[4] = {
@@ -93,6 +94,7 @@ Mesh GenerateQuad()
 Mesh GenerateEmpty()
 {
     Mesh mesh{};
+    mesh.name = "empty";
     glCreateVertexArrays(1, &mesh.vao);
     
     return mesh;
@@ -101,7 +103,7 @@ Mesh GenerateEmpty()
 Mesh GenerateCube()
 {
     Mesh cube{};
-
+    cube.name = "cube";
     constexpr std::array indices =
     {
         0,1,2,0,3,1,

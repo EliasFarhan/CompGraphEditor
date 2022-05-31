@@ -441,6 +441,7 @@ void ModelEditor::GenerateMaterialsAndCommands(int commandIndex)
         auto* material = materialEditor->GetMaterial(materialId);
         material->info.set_pipeline_path(pipeline->path);
         material->pipelineId = pipeline->resourceId;
+        material->info.set_name(modelMaterial.material_name());
         materialEditor->UpdateExistingResource(*resourceManager.GetResource(pipeline->resourceId));
 
         //Linking textures from model material

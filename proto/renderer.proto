@@ -229,6 +229,7 @@ message Pipeline
         CLOCKWISE = 1;
     }
     FrontFace front_face = 29;
+    string name = 30;
 
     string vertex_shader_path = 8;// Used by the editor
     string fragment_shader_path = 9;// Used by the editor
@@ -291,6 +292,7 @@ message Material
     repeated Attribute in_vertex_attributes = 3;
     repeated Attribute uniforms = 4;
     string pipeline_path = 5; //used for the editor
+    string name = 6;
 }
 
 message Mesh
@@ -363,6 +365,7 @@ message DrawCommand
     int32 mesh_index = 5;
     bool draw_elements = 6;
     bool automatic_draw = 9;
+    string name = 10;
     //for the editor
     string material_path = 7;
     string mesh_path = 8;

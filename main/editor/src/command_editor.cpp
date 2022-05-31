@@ -35,6 +35,7 @@ void CommandEditor::AddResource(const Resource& resource)
             return;
         }
     }
+    commandInfo.info.set_name(GetFilename(resource.path, false));
     commandInfo.path = resource.path;
     commandInfos_.push_back(commandInfo);
 }

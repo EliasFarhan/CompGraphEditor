@@ -133,6 +133,10 @@ void RenderPassEditor::DrawInspector()
         {
             openPopup = true;
         }
+        if(ImGui::Button("Remove Subpass"))
+        {
+            deleteSubpassIndex = i;
+        }
         ImGui::PopID();
         if (openPopup)
         {

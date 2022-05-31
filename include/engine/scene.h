@@ -25,6 +25,7 @@ class SceneMaterial
         SceneMaterial(Pipeline* pipeline, Material* material);
         void Bind() const;
         [[nodiscard]] Pipeline* GetPipeline() const;
+        [[nodiscard]] std::string_view GetName() const;
     private:
         Pipeline* pipeline_ = nullptr;
         Material* material_ = nullptr;
@@ -37,6 +38,8 @@ public:
     SceneDrawCommand(Scene& scene, const pb::DrawCommand& drawCommand);
     [[nodiscard]] SceneMaterial GetMaterial() const;
     void Draw();
+    [[nodiscard]] std::string_view GetMeshName() const;
+    [[nodiscard]] std::string_view GetName() const;
 private:
     Scene& scene_;
     const pb::DrawCommand& drawCommand_;
@@ -55,6 +58,8 @@ private:
     const pb::SubPass& subPass_;
 };
 
+
+
 class Scene : public OnEventInterface
 {
 public:
@@ -69,9 +74,12 @@ public:
     int GetMaterialCount() const;
     Pipeline& GetPipeline(int index){ return pipelines_[index]; }
     int GetPipelineCount() const;
+    Mesh& GetMesh(int index) { return meshes_[index]; }
+    int GetMeshCount() const;
     void Draw(const pb::DrawCommand& drawCommand);
     void OnEvent(SDL_Event& event) override;
     Framebuffer& GetFramebuffer(int framebufferIndex);
+
 private:
     pb::Scene scene_;
     std::vector<Shader> shaders_;

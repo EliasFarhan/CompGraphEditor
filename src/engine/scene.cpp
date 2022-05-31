@@ -22,6 +22,7 @@ void Scene::LoadScene(PyManager &pyManager)
     for (int i = 0; i < pipelinesSize; i++)
     {
         auto& pipelinePb = scene_.pipelines(i);
+        pipelines_[i].SetPipelineName(pipelinePb.name());
         switch (pipelinePb.type())
         {
         case pb::Pipeline_Type_RASTERIZE:
@@ -50,6 +51,7 @@ void Scene::LoadScene(PyManager &pyManager)
     {
         const auto& materialInfo = scene_.materials(i);
         auto& material = materials_[i];
+        material.name = materialInfo.name();
         material.pipelineIndex = materialInfo.pipeline_index();
         const auto materialTexturesCount = materialInfo.textures_size();
         material.textures.resize(materialTexturesCount);
@@ -179,6 +181,12 @@ SceneMaterial Scene::GetMaterial(int materialIndex)
     const SceneMaterial material{&pipelines_[materials_[materialIndex].pipelineIndex], &materials_[materialIndex] };
     return material;
 }
+
+int Scene::GetMeshCount() const
+{
+    return scene_.meshes_size();
+}
+
 void Scene::Draw(const pb::DrawCommand& command)
 {
     const auto& material = materials_[command.material_index()];
@@ -525,6 +533,11 @@ Pipeline* SceneMaterial::GetPipeline() const
     return pipeline_;
 }
 
+std::string_view SceneMaterial::GetName() const
+{
+    return material_->name;
+}
+
 SceneManager::SceneManager()
 {
     sceneManager_ = this;
@@ -542,6 +555,17 @@ void SceneDrawCommand::Draw()
 {
     scene_.Draw(drawCommand_);
 }
+
+std::string_view SceneDrawCommand::GetMeshName() const
+{
+    return scene_.GetMesh(drawCommand_.mesh_index()).name;
+}
+
+std::string_view SceneDrawCommand::GetName() const
+{
+    return drawCommand_.name();
+}
+
 int SceneSubPass::GetDrawCommandCount() const
 {
     return subPass_.commands_size();

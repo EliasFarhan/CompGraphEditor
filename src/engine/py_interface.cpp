@@ -31,6 +31,7 @@ PYBIND11_EMBEDDED_MODULE(gpr5300, m)
             {
                 return pipeline.SetCubemap(uniformName, textureName, textureUnit);
             })
+        .def("get_name", &gpr5300::Pipeline::GetPipelineName)
         ;
     
 
@@ -200,11 +201,14 @@ PYBIND11_EMBEDDED_MODULE(gpr5300, m)
     py::class_<gpr5300::SceneMaterial>(m, "Material")
         .def("bind", &gpr5300::SceneMaterial::Bind)
         .def("get_pipeline", &gpr5300::SceneMaterial::GetPipeline, py::return_value_policy::reference)
+        .def("get_name", &gpr5300::SceneMaterial::GetName)
         ;
 
     py::class_<gpr5300::SceneDrawCommand>(m, "DrawCommand")
         .def("draw", &gpr5300::SceneDrawCommand::Draw)
         .def("get_material", &gpr5300::SceneDrawCommand::GetMaterial)
+        .def("get_name", &gpr5300::SceneDrawCommand::GetName)
+        .def("get_mesh_name", &gpr5300::SceneDrawCommand::GetMeshName)
         ;
     py::enum_<SDL_KeyCode>(m, "Key", py::arithmetic())
         .value("A", SDLK_a)

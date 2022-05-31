@@ -445,6 +445,7 @@ void PipelineEditor::AddResource(const Resource& resource)
         LogWarning(fmt::format("Could not open protobuf file: {}", resource.path));
         return;
     }
+    pipelineInfo.info.set_name(GetFilename(resource.path, false));
     pipelineInfos_.push_back(pipelineInfo);
 }
 void PipelineEditor::RemoveResource(const Resource& resource)

@@ -14,6 +14,7 @@ struct MaterialTexture
 
 struct Material
 {
+    std::string name;
     int pipelineIndex = -1;
     std::vector<MaterialTexture> textures;
 };

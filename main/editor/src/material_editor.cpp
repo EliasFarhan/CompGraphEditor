@@ -157,6 +157,10 @@ void MaterialEditor::AddResource(const Resource &resource)
         LogWarning(fmt::format("Could not open protobuf file: {}", resource.path));
         return;
     }
+    if(materialInfo.info.name().empty())
+    {
+        materialInfo.info.set_name(GetFilename(resource.path, false));
+    }
     materialInfos_.push_back(materialInfo);
 }
 

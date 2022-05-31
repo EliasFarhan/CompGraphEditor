@@ -24,6 +24,8 @@ struct Shader
 class Pipeline
 {
 public:
+
+
     void Bind() const;
     static void Unbind();
     void LoadRasterizePipeline(const Shader& vertex, const Shader& fragment);
@@ -46,8 +48,12 @@ public:
     void SetTexture(std::string_view uniformName, const Texture& texture, GLenum textureUnit) ;
     void SetTexture(std::string_view uniformName, GLuint textureName, GLenum textureUnit) ;
     void SetCubemap(std::string_view uniformName, GLuint textureName, GLenum textureUnit) ;
+
+    void SetPipelineName(std::string_view name);
+    std::string_view GetPipelineName() const;
 private:
     GLuint name = 0;
+    std::string pipelineName_;
     inline static GLuint currentBindedPipeline = 0;
 
     std::unordered_map<std::string, int> uniformMap_;
