@@ -4,8 +4,8 @@
 
 namespace gpr5300
 {
-Mesh GenerateQuad();
+Mesh GenerateQuad(glm::vec3 scale, glm::vec3 offset);
 Mesh GenerateEmpty();
-Mesh GenerateCube();
+Mesh GenerateCube(glm::vec3 scale, glm::vec3 offset);
 
 }

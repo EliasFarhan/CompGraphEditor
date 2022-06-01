@@ -4,6 +4,7 @@
 #include "texture_editor.h"
 #include "utils/log.h"
 #include "command_editor.h"
+#include "framebuffer_editor.h"
 
 #include "engine/filesystem.h"
 #include <fmt/format.h>
@@ -27,6 +28,7 @@ void MaterialEditor::DrawInspector()
     const auto& resourceManager = editor->GetResourceManager();
     const auto* textureEditor = dynamic_cast<TextureEditor*>(editor->GetEditorSystem(EditorType::TEXTURE));
     const auto* pipelineEditor = dynamic_cast<PipelineEditor*>(editor->GetEditorSystem(EditorType::PIPELINE));
+    auto* framebufferEditor = dynamic_cast<FramebufferEditor*>(editor->GetEditorSystem(EditorType::FRAMEBUFFER));
     const auto& pipelines = pipelineEditor->GetPipelines();
     const auto* pipelineInfo = pipelineEditor->GetPipeline(currentMaterialInfo.pipelineId);
     if(ImGui::BeginCombo("Pipeline", pipelineInfo?pipelineInfo->filename.c_str():"Empty pipeline"))
@@ -65,7 +67,20 @@ void MaterialEditor::DrawInspector()
                     materialTexture->set_texture_name(texture.info.path());
                 }
             }
-
+            ImGui::Text("Framebuffer Attachment");
+            //TODO attachment with same name
+            const auto& framebuffers = framebufferEditor->GetFramebuffers();
+            for(auto& framebuffer : framebuffers)
+            {
+                for(auto& colorAttachment : framebuffer.info.color_attachments())
+                {
+                    const auto& colorAttachmentName = colorAttachment.name();
+                    if(ImGui::Selectable(colorAttachmentName.data(), colorAttachmentName == materialTexture->sampler_name()))
+                    {
+                        materialTexture->set_texture_name(colorAttachmentName);
+                    }
+                }
+            }
             ImGui::EndCombo();
         }        
     }

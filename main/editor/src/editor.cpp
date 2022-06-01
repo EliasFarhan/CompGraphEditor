@@ -183,7 +183,11 @@ void Editor::CreateNewFile(std::string_view path, EditorType type)
     }
     case EditorType::MESH: 
     {
-        const pb::Mesh emptyMesh;
+        pb::Mesh emptyMesh;
+        auto* scale = emptyMesh.mutable_scale();
+        scale->set_x(1.0f);
+        scale->set_y(1.0f);
+        scale->set_z(1.0f);
         filesystem.WriteString(path, emptyMesh.SerializeAsString());
         resourceManager_.AddResource(path);
         break;

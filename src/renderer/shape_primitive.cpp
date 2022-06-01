@@ -8,17 +8,17 @@
 namespace gpr5300
 {
 
-Mesh GenerateQuad()
+Mesh GenerateQuad(glm::vec3 scale, glm::vec3 offset)
 {
     Mesh mesh{};
     mesh.name = "quad";
     GLuint ebo;
     std::array<GLuint, 4> vbo{};
-    constexpr glm::vec2 vertices[4] = {
-        glm::vec2(0.5f, 0.5f),  // top right
-        glm::vec2(0.5f, -0.5f),  // bottom right
-        glm::vec2(-0.5f, -0.5f),  // bottom left
-        glm::vec2(-0.5f, 0.5f)  // top left
+    const glm::vec2 vertices[4] = {
+        glm::vec2(0.5f, 0.5f)*glm::vec2(scale)+glm::vec2(offset),  // top right
+        glm::vec2(0.5f, -0.5f)* glm::vec2(scale) + glm::vec2(offset),  // bottom right
+        glm::vec2(-0.5f, -0.5f)* glm::vec2(scale) + glm::vec2(offset),  // bottom left
+        glm::vec2(-0.5f, 0.5f)* glm::vec2(scale) + glm::vec2(offset)  // top left
     };
 
     constexpr glm::vec2 texCoords[4] = {
@@ -38,8 +38,8 @@ Mesh GenerateQuad()
     std::array<glm::vec3, 4> tangent{};
 
     {
-        constexpr glm::vec3 edge1 = glm::vec3(vertices[1] - vertices[0], 0);
-        constexpr glm::vec3 edge2 = glm::vec3(vertices[2] - vertices[0], 0);
+        const glm::vec3 edge1 = glm::vec3(vertices[1] - vertices[0], 0);
+        const glm::vec3 edge2 = glm::vec3(vertices[2] - vertices[0], 0);
         constexpr glm::vec2 deltaUV1 = texCoords[1] - texCoords[0];
         constexpr glm::vec2 deltaUV2 = texCoords[2] - texCoords[0];
 
@@ -100,7 +100,7 @@ Mesh GenerateEmpty()
     return mesh;
 }
 
-Mesh GenerateCube()
+Mesh GenerateCube(glm::vec3 scale, glm::vec3 offset)
 {
     Mesh cube{};
     cube.name = "cube";
@@ -113,38 +113,38 @@ Mesh GenerateCube()
         16,17,18,18,19,16,
         20,21,22,21,20,23
     };
-    constexpr std::array position =
+    const std::array position =
     {
         //Right face
-        glm::vec3(0.5f, 0.5f, 0.5f) , //0
-        glm::vec3(0.5f, -0.5f, -0.5f) , //1
-        glm::vec3(0.5f, 0.5f, -0.5f) , //2
-        glm::vec3(0.5f, -0.5f, 0.5f) ,//3
+        glm::vec3(0.5f, 0.5f, 0.5f)*scale+offset , //0
+        glm::vec3(0.5f, -0.5f, -0.5f)* scale + offset , //1
+        glm::vec3(0.5f, 0.5f, -0.5f)* scale + offset , //2
+        glm::vec3(0.5f, -0.5f, 0.5f)* scale + offset ,//3
         //Left face                 
-        glm::vec3(-0.5f, 0.5f, 0.5f) , //4
-        glm::vec3(-0.5f, 0.5f, -0.5f) , //5
-        glm::vec3(-0.5f, -0.5f, -0.5f) , //6
-        glm::vec3(-0.5f, -0.5f, 0.5f) ,//7
+        glm::vec3(-0.5f, 0.5f, 0.5f)* scale + offset , //4
+        glm::vec3(-0.5f, 0.5f, -0.5f)* scale + offset , //5
+        glm::vec3(-0.5f, -0.5f, -0.5f)* scale + offset , //6
+        glm::vec3(-0.5f, -0.5f, 0.5f)* scale + offset ,//7
         //Top face 
-        glm::vec3(-0.5f, 0.5f, -0.5f) ,//8
-        glm::vec3(0.5f, 0.5f, 0.5f) ,//9
-        glm::vec3(0.5f, 0.5f, -0.5f) ,//10
-        glm::vec3(-0.5f, 0.5f, 0.5f) ,//11
+        glm::vec3(-0.5f, 0.5f, -0.5f)* scale + offset ,//8
+        glm::vec3(0.5f, 0.5f, 0.5f)* scale + offset ,//9
+        glm::vec3(0.5f, 0.5f, -0.5f)* scale + offset ,//10
+        glm::vec3(-0.5f, 0.5f, 0.5f)* scale + offset ,//11
         //Bottom face
-        glm::vec3(-0.5f, -0.5f, -0.5f) ,//12
-        glm::vec3(0.5f, -0.5f, -0.5f) ,//13
-        glm::vec3(0.5f, -0.5f, 0.5f) ,//14
-        glm::vec3(-0.5f, -0.5f, 0.5f) ,//15
+        glm::vec3(-0.5f, -0.5f, -0.5f)* scale + offset ,//12
+        glm::vec3(0.5f, -0.5f, -0.5f)* scale + offset ,//13
+        glm::vec3(0.5f, -0.5f, 0.5f)* scale + offset ,//14
+        glm::vec3(-0.5f, -0.5f, 0.5f)* scale + offset ,//15
         //Front face
-        glm::vec3(-0.5f, -0.5f, 0.5f) ,//16
-        glm::vec3(0.5f, -0.5f, 0.5f) ,//17
-        glm::vec3(0.5f, 0.5f, 0.5f) ,//18
-        glm::vec3(-0.5f, 0.5f, 0.5f) ,//19
+        glm::vec3(-0.5f, -0.5f, 0.5f)* scale + offset ,//16
+        glm::vec3(0.5f, -0.5f, 0.5f)* scale + offset ,//17
+        glm::vec3(0.5f, 0.5f, 0.5f)* scale + offset ,//18
+        glm::vec3(-0.5f, 0.5f, 0.5f)* scale + offset ,//19
         //Back face
-        glm::vec3(-0.5f, -0.5f, -0.5f) ,//20
-        glm::vec3(0.5f, 0.5f, -0.5f) ,//21
-        glm::vec3(0.5f, -0.5f, -0.5f) ,//22
-        glm::vec3(-0.5f, 0.5f, -0.5f) ,//23
+        glm::vec3(-0.5f, -0.5f, -0.5f)* scale + offset ,//20
+        glm::vec3(0.5f, 0.5f, -0.5f)* scale + offset ,//21
+        glm::vec3(0.5f, -0.5f, -0.5f)* scale + offset ,//22
+        glm::vec3(-0.5f, 0.5f, -0.5f)* scale + offset ,//23
     };
     constexpr std::array texCoords = {
             glm::vec2(1.0f, 0.0f),

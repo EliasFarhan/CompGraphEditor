@@ -68,6 +68,27 @@ void MeshEditor::DrawInspector()
             }
             ImGui::EndCombo();
         }
+        if(currentMesh.info.primitve_type() == pb::Mesh_PrimitveType_QUAD ||
+            currentMesh.info.primitve_type() == pb::Mesh_PrimitveType_CUBE)
+        {
+            auto* scale = currentMesh.info.mutable_scale();
+            std::array scaleInput{ scale->x(), scale->y(), scale->z() };
+            if(ImGui::InputFloat3("Scale", scaleInput.data()))
+            {
+                scale->set_x(scaleInput[0]);
+                scale->set_y(scaleInput[1]);
+                scale->set_z(scaleInput[2]);
+            }
+
+            auto* offset = currentMesh.info.mutable_offset();
+            std::array offsetInput{ offset->x(), offset->y(), offset->z() };
+            if(ImGui::InputFloat3("Offset", offsetInput.data()))
+            {
+                offset->set_x(offsetInput[0]);
+                offset->set_x(offsetInput[1]);
+                offset->set_x(offsetInput[2]);
+            }
+        }
     }
 }
 

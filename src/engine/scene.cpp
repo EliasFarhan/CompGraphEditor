@@ -82,11 +82,20 @@ void Scene::LoadScene(PyManager &pyManager)
         switch(mesh.primitve_type())
         {
         case pb::Mesh_PrimitveType_QUAD:
-            meshes_[i] = GenerateQuad();
+        {
+            const glm::vec3 scale = mesh.has_scale() ? glm::vec3{ mesh.scale().x(), mesh.scale().y(), mesh.scale().z() } : glm::vec3(1.0f);
+            const glm::vec3 offset{ mesh.offset().x(), mesh.offset().y(), mesh.offset().z() };
+            meshes_[i] = GenerateQuad(scale, offset);
             break;
+        }
         case pb::Mesh_PrimitveType_CUBE:
-            meshes_[i] = GenerateCube();
+        {
+            const glm::vec3 scale = mesh.has_scale() ? glm::vec3{ mesh.scale().x(), mesh.scale().y(), mesh.scale().z() } : glm::vec3(1.0f);
+            const glm::vec3 offset{ mesh.offset().x(), mesh.offset().y(), mesh.offset().z() };
+
+            meshes_[i] = GenerateCube(scale, offset);
             break;
+        }
         case pb::Mesh_PrimitveType_SPHERE:
             break;
         case pb::Mesh_PrimitveType_NONE:

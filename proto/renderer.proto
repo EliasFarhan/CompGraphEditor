@@ -309,6 +309,8 @@ message Mesh
     string model_path = 2; //used by editor
     string mesh_name = 3;
     int32 model_index = 4;
+    Vec3f scale = 5;
+    Vec3f offset = 6;
 }
 
 message ModelMesh
