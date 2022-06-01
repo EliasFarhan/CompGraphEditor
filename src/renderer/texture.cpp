@@ -228,4 +228,9 @@ bool Texture::LoadCubemap(const pb::Texture& textureInfo)
     LogError(fmt::format("File not found at path: {}", path));
     return false;
 }
+
+void Texture::Destroy()
+{
+    glDeleteTextures(1, &name);
+}
 } // namespace gpr5300

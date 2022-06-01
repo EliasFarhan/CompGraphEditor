@@ -125,6 +125,35 @@ void Framebuffer::Resize(glm::uvec2 windowSize)
     }
 }
 
+void Framebuffer::Destroy()
+{
+    glDeleteFramebuffers(1, &name_);
+    for(int i = 0; i < frameBufferPb_.color_attachments_size(); i++)
+    {
+        bool rbo = frameBufferPb_.color_attachments(i).rbo();
+        if(rbo)
+        {
+            glDeleteRenderbuffers(1, &colorAttachments_[i]);
+        }
+        else
+        {
+            glDeleteTextures(1, &colorAttachments_[i]);
+        }
+    }
+    if(depthStencilAttachment_ != 0)
+    {
+        bool rbo = frameBufferPb_.depth_stencil_attachment().rbo();
+        if(rbo)
+        {
+            glDeleteRenderbuffers(1, &depthStencilAttachment_);
+        }
+        else
+        {
+            glDeleteTextures(1, &depthStencilAttachment_);
+        }
+    }
+}
+
 void Framebuffer::Unbind()
 {
     if (currentFramebuffer_ != 0)

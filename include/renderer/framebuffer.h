@@ -19,6 +19,7 @@ class Framebuffer
 public:
     void Bind() const;
     void Resize(glm::uvec2 windowSize);
+    void Destroy();
     static void Unbind();
     void Load(const pb::FrameBuffer& framebufferPb);
     GLuint GetTextureName(std::string_view textureName);

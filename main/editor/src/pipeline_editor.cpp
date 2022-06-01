@@ -400,6 +400,10 @@ void PipelineEditor::DrawInspector()
             ImGui::EndListBox();
         }
     }
+    else if(currentPipelineInfo.info.type() == pb::Pipeline_Type_COMPUTE)
+    {
+        
+    }
 }
 bool PipelineEditor::DrawContentList(bool unfocus)
 {

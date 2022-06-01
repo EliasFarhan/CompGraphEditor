@@ -32,6 +32,7 @@ PYBIND11_EMBEDDED_MODULE(gpr5300, m)
                 return pipeline.SetCubemap(uniformName, textureName, textureUnit);
             })
         .def("get_name", &gpr5300::Pipeline::GetPipelineName)
+        .def_property_readonly("name", &gpr5300::Pipeline::GetPipelineName)
         ;
     
 
@@ -49,6 +50,7 @@ PYBIND11_EMBEDDED_MODULE(gpr5300, m)
     py::class_<gpr5300::Framebuffer>(m, "Framebuffer")
         .def("get_texture_name", &gpr5300::Framebuffer::GetTextureName)
         .def("get_name", &gpr5300::Framebuffer::GetName)
+        .def_property_readonly("name", &gpr5300::Framebuffer::GetName)
     ;
 
     py::class_<gpr5300::SceneSubPass>(m, "SubPass")
@@ -203,13 +205,16 @@ PYBIND11_EMBEDDED_MODULE(gpr5300, m)
         .def("bind", &gpr5300::SceneMaterial::Bind)
         .def("get_pipeline", &gpr5300::SceneMaterial::GetPipeline, py::return_value_policy::reference)
         .def("get_name", &gpr5300::SceneMaterial::GetName)
+        .def_property_readonly("name", &gpr5300::SceneMaterial::GetName)
         ;
 
     py::class_<gpr5300::SceneDrawCommand>(m, "DrawCommand")
         .def("draw", &gpr5300::SceneDrawCommand::Draw)
         .def("get_material", &gpr5300::SceneDrawCommand::GetMaterial)
         .def("get_name", &gpr5300::SceneDrawCommand::GetName)
+        .def_property_readonly("name", &gpr5300::SceneDrawCommand::GetName)
         .def("get_mesh_name", &gpr5300::SceneDrawCommand::GetMeshName)
+        .def_property_readonly("mesh_name", &gpr5300::SceneDrawCommand::GetName)
         ;
     py::enum_<SDL_KeyCode>(m, "Key", py::arithmetic())
         .value("A", SDLK_a)

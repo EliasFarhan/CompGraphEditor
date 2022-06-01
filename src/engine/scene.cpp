@@ -140,7 +140,18 @@ void Scene::UnloadScene()
     {
         pipeline.Destroy();
     }
-
+    for(auto& texture: textures_)
+    {
+        texture.Destroy();
+    }
+    for(auto& framebuffer: framebuffers_)
+    {
+        framebuffer.Destroy();
+    }
+    for(auto& mesh : meshes_)
+    {
+        glDeleteVertexArrays(1, &mesh.vao);
+    }
 }
 
 void Scene::SetScene(const pb::Scene &scene)

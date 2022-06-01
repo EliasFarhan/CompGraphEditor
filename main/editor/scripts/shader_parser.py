@@ -3,6 +3,7 @@ import subprocess
 import os
 import json
 import re
+import pathlib
 
 if platform.system() == 'Windows':
     vulkan_path = os.getenv("VULKAN_SDK")
@@ -42,51 +43,55 @@ def analyze_shader(shader_path):
     if status.returncode != 0:
         return json.dumps(meta_content)
 
+
     uniforms = []
     in_attributes = []
     out_attributes = []
     structs = []
+    compute = False
+    if pathlib.Path(shader_path).suffix is '.comp':
+        compute = True
+    if not compute:
+        with open(shader_path, 'r') as shader_file:
+            reading_struct = False
+            lines = shader_file.readlines()
+            for line in lines:
+                origin_line = line
+                line = line.replace('\n', '')
+                line = line.replace(';', '')
+                split_line = line.split(' ')
 
-    with open(shader_path, 'r') as shader_file:
-        reading_struct = False
-        lines = shader_file.readlines()
-        for line in lines:
-            origin_line = line
-            line = line.replace('\n', '')
-            line = line.replace(';', '')
-            split_line = line.split(' ')
+                if reading_struct:
+                    struct_txt += origin_line
+                    if "};" in origin_line:
+                        reading_struct = False
+                        structs.append(analyze_struct(struct_txt))
 
-            if reading_struct:
-                struct_txt += origin_line
-                if "};" in origin_line:
-                    reading_struct = False
-                    structs.append(analyze_struct(struct_txt))
-
-            if "uniform" in split_line:
-                uniform_obj = {"type": split_line[1], "name": split_line[2]}
-                uniforms.append(uniform_obj)
-            if "in" in split_line:
-                comment_index = len(split_line)
-                if '//' in split_line:
-                    comment_index = split_line.index('//')
-                index = split_line.index('in')
-                if index > comment_index:
-                    continue
-                in_variable = {"type": split_line[index + 1], "name": split_line[index + 2]}
-                in_attributes.append(in_variable)
-            if "out" in split_line:
-                comment_index = len(split_line)
-                if '//' in split_line:
-                    comment_index = split_line.index('//')
-                index = split_line.index('out')
-                if index > comment_index:
-                    continue
-                index = split_line.index('out')
-                out_variable = {"type": split_line[index + 1], "name": split_line[index + 2]}
-                out_attributes.append(out_variable)
-            if "struct" in origin_line:
-                reading_struct = True
-                struct_txt = origin_line
+                if "uniform" in split_line:
+                    uniform_obj = {"type": split_line[1], "name": split_line[2]}
+                    uniforms.append(uniform_obj)
+                if "in" in split_line and not compute:
+                    comment_index = len(split_line)
+                    if '//' in split_line:
+                        comment_index = split_line.index('//')
+                    index = split_line.index('in')
+                    if index > comment_index:
+                        continue
+                    in_variable = {"type": split_line[index + 1], "name": split_line[index + 2]}
+                    in_attributes.append(in_variable)
+                if "out" in split_line and not compute:
+                    comment_index = len(split_line)
+                    if '//' in split_line:
+                        comment_index = split_line.index('//')
+                    index = split_line.index('out')
+                    if index > comment_index:
+                        continue
+                    index = split_line.index('out')
+                    out_variable = {"type": split_line[index + 1], "name": split_line[index + 2]}
+                    out_attributes.append(out_variable)
+                if "struct" in origin_line:
+                    reading_struct = True
+                    struct_txt = origin_line
 
     new_uniforms = []
     for uniform in uniforms:

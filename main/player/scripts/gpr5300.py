@@ -228,7 +228,7 @@ class Mat4:
 
 class Pipeline:
     def __init__(self) -> None:
-        pass
+        self.name = ""
 
     def set_float(self, uniform_name: str, v: float):
         pass
@@ -257,7 +257,7 @@ class Pipeline:
 
 class Material:
     def __init__(self) -> None:
-        pass
+        self.name = ""
 
     def bind(self):
         pass
@@ -296,7 +296,8 @@ class System:
 
 class DrawCommand:
     def __init__(self) -> None:
-        pass
+        self.name = ""
+        self.mesh_name = ""
 
     def get_material(self) -> Material:
         return Material()
@@ -311,8 +312,12 @@ class DrawCommand:
         pass
 
 class Framebuffer:
+    def __init__(self) -> None:
+        self.name = ""
     def get_texture_name(texture_name: str):
         return 0
+    def get_name() -> str:
+        return ""
 
 class SubPass:
     def __init__(self):

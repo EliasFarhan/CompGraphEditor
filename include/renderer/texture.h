@@ -20,6 +20,7 @@ namespace gpr5300
         bool cubemap = false;
         bool LoadTexture(const pb::Texture& textureInfo);
         bool LoadCubemap(const pb::Texture& textureInfo);
+        void Destroy();
     };
 
     class TextureManager
