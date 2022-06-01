@@ -60,6 +60,7 @@ message FrameBuffer
 {
     repeated RenderTarget color_attachments = 1;
     RenderTarget depth_stencil_attachment = 2;
+    string name = 3;
 }
 
 enum TextureType
@@ -280,6 +281,8 @@ message MaterialTexture
 {
     string sampler_name = 1;
     int32 texture_index = 2;
+    string attachment_name = 5;
+    string framebuffer_name = 6;
     //Used only by editor
     string texture_name = 3;
     TextureType texture_type = 4;

@@ -22,9 +22,10 @@ public:
     static void Unbind();
     void Load(const pb::FrameBuffer& framebufferPb);
     GLuint GetTextureName(std::string_view textureName);
-
+    [[nodiscard]] std::string_view GetName() const { return framebufferName_; }
 private:
     GLuint name_ = 0;
+    std::string framebufferName_;
     std::vector<GLuint> colorAttachments_{};
     GLuint depthStencilAttachment_ = 0;
     pb::FrameBuffer frameBufferPb_;

@@ -3,6 +3,7 @@
 #include "renderer/shape_primitive.h"
 #include "renderer/debug.h"
 #include <SDL.h>
+#include <fmt/format.h>
 
 namespace gpr5300
 {
@@ -63,6 +64,11 @@ void Scene::LoadScene(PyManager &pyManager)
             if (materialTextureInfo.texture_index() != -1)
             {
                 materialTexture.texture = textures_[materialTextureInfo.texture_index()];
+            }
+            else
+            {
+                materialTexture.attachmentName = materialTextureInfo.attachment_name();
+                materialTexture.framebufferName = materialTextureInfo.framebuffer_name();
             }
         }
     }
@@ -359,10 +365,41 @@ void Scene::Draw(const pb::DrawCommand& command)
     pipeline.Bind();
     for (std::size_t textureIndex = 0; textureIndex < material.textures.size(); textureIndex++)
     {
-        if (material.textures[textureIndex].texture.name != 0)
+        const auto& materialTexture = material.textures[textureIndex];
+        if (materialTexture.texture.name != 0)
         {
-            pipeline.SetTexture(material.textures[textureIndex].uniformSamplerName, material.textures[textureIndex].texture, textureIndex);
+            pipeline.SetTexture(materialTexture.uniformSamplerName, material.textures[textureIndex].texture, textureIndex);
         }
+        else
+        {
+
+            const auto& framebufferName = materialTexture.framebufferName;
+            if (framebufferName.empty())
+            {
+                LogWarning("Empty Framebuffer Name for Material Attachment");
+                continue;
+            }
+            auto it = std::ranges::find_if(framebuffers_, [&framebufferName](const auto& framebuffer)
+                {
+                    return framebuffer.GetName() == framebufferName;
+                });
+            if (it == framebuffers_.end())
+            {
+                LogWarning(fmt::format("Could not find framebuffer: {}", framebufferName));
+                continue;
+            }
+            const auto textureName = it->GetTextureName(materialTexture.attachmentName);
+            if(textureName == 0)
+            {
+                LogWarning(fmt::format("Could not find attachment: {} in framebuffer: {}", materialTexture.attachmentName, framebufferName));
+
+                continue;
+            }
+            pipeline.SetTexture(materialTexture.uniformSamplerName, textureName, textureIndex);
+                
+            
+        }
+
     }
     
 

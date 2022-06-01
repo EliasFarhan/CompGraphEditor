@@ -10,6 +10,8 @@ struct MaterialTexture
 {
     Texture texture;
     std::string uniformSamplerName;
+    std::string attachmentName;
+    std::string framebufferName;
 };
 
 struct Material

@@ -138,6 +138,7 @@ void Framebuffer::Load(const pb::FrameBuffer& framebufferPb)
 {
     const auto windowSize = Engine::GetInstance()->GetWindowSize();
     frameBufferPb_ = framebufferPb;
+    framebufferName_ = framebufferPb.name();
     glCreateFramebuffers(1, &name_);
     Bind();
     colorAttachments_.resize(framebufferPb.color_attachments_size());

@@ -48,8 +48,10 @@ void MaterialEditor::DrawInspector()
     {
         auto* materialTexture = currentMaterialInfo.info.mutable_textures(i);
         auto texturePath = materialTexture->texture_name();
+        const auto& fbAttachment = materialTexture->attachment_name();
         if (!texturePath.empty())
         {
+
             const auto textureId = resourceManager.FindResourceByPath(texturePath);
             if(textureId == INVALID_RESOURCE_ID)
             {
@@ -58,28 +60,57 @@ void MaterialEditor::DrawInspector()
             }
         }
         if(ImGui::BeginCombo(materialTexture->sampler_name().c_str(), 
-            texturePath.empty()?"Empty texture":texturePath.c_str()))
+            texturePath.empty() && fbAttachment.empty() ? "Empty texture" : texturePath.empty()?fbAttachment.data():texturePath.data()))
         {
             for(const auto& texture : textureEditor->GetTextures())
             {
                 if(ImGui::Selectable(texture.filename.c_str(), texture.info.path() == materialTexture->sampler_name()))
                 {
+                    materialTexture->clear_attachment_name();
                     materialTexture->set_texture_name(texture.info.path());
                 }
             }
-            ImGui::Text("Framebuffer Attachment");
-            //TODO attachment with same name
             const auto& framebuffers = framebufferEditor->GetFramebuffers();
-            for(auto& framebuffer : framebuffers)
+            if (!framebuffers.empty())
             {
-                for(auto& colorAttachment : framebuffer.info.color_attachments())
+                ImGui::Separator();
+                ImGui::Text("Framebuffer Attachment");
+                ImGui::Separator();
+
+                for (auto& framebuffer : framebuffers)
                 {
-                    const auto& colorAttachmentName = colorAttachment.name();
-                    if(ImGui::Selectable(colorAttachmentName.data(), colorAttachmentName == materialTexture->sampler_name()))
+                    const auto& framebufferName = framebuffer.info.name();
+
+                    for (auto& colorAttachment : framebuffer.info.color_attachments())
                     {
-                        materialTexture->set_texture_name(colorAttachmentName);
+                        if (colorAttachment.rbo())
+                            continue;
+                        const auto& colorAttachmentName = colorAttachment.name();
+                        const auto attachmentUniqueName = fmt::format("{}_{}", framebufferName, colorAttachmentName);
+                        if (ImGui::Selectable(attachmentUniqueName.data(), 
+                            colorAttachmentName == materialTexture->sampler_name() &&
+                            framebufferName == materialTexture->framebuffer_name()))
+                        {
+                            materialTexture->clear_texture_name();
+                            materialTexture->set_attachment_name(colorAttachmentName);
+                            materialTexture->set_framebuffer_name(framebufferName);
+                        }
+                    }
+                    if(framebuffer.info.has_depth_stencil_attachment() && !framebuffer.info.depth_stencil_attachment().rbo())
+                    {
+                        const auto& depthAttachmentName = framebuffer.info.depth_stencil_attachment().name();
+                        const auto attachmentUniqueName = fmt::format("{}_{}", framebufferName, depthAttachmentName);
+                        if(ImGui::Selectable(attachmentUniqueName.data(), 
+                            materialTexture->attachment_name() == depthAttachmentName && 
+                            materialTexture->framebuffer_name() == framebufferName))
+                        {
+                            materialTexture->clear_texture_name();
+                            materialTexture->set_attachment_name(depthAttachmentName);
+                            materialTexture->set_framebuffer_name(framebufferName);
+                        }
                     }
                 }
+
             }
             ImGui::EndCombo();
         }        

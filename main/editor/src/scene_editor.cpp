@@ -11,7 +11,6 @@
 #include "editor.h"
 
 
-#include <pybind11/embed.h>
 #include <pybind11/pybind11.h>
 #include <nlohmann/json.hpp>
 
@@ -328,36 +327,75 @@ bool SceneEditor::ExportScene() const
                 for(int textureIndex = 0; textureIndex < newMaterial->textures_size(); textureIndex++)
                 {
                     auto* materialTexture = newMaterial->mutable_textures(textureIndex);
-                    auto textureId = resourceManager.FindResourceByPath(materialTexture->texture_name());
-                    if(textureId == INVALID_RESOURCE_ID)
+                    if(materialTexture->texture_name().empty() && materialTexture->attachment_name().empty())
                     {
-                        LogWarning("Missing texture in material sampler");
+                        LogWarning("Could not export, missing texture/attachment in material sampler");
                         materialTexture->set_texture_index(-1);
-                        continue;
-                        //return false;
+                        return false;
                     }
-                    auto textureIt = resourceIndexMap.find(textureId);
-                    if(textureIt == resourceIndexMap.end())
+                    else if (materialTexture->attachment_name().empty())
                     {
-                        const auto index = exportScene.info.textures_size();
-                        auto* textureInfo = textureEditor->GetTexture(textureId);
-                        *exportScene.info.add_textures() = textureInfo->info;
-                        if(GetFileExtension(textureInfo->info.path()) == ".cube")
+                        auto textureId = resourceManager.FindResourceByPath(materialTexture->texture_name());
+                        if (textureId == INVALID_RESOURCE_ID)
                         {
-                            for(auto& cubeTexture: textureInfo->cubemap.texture_paths())
+                            LogWarning("Missing texture in material sampler");
+                            materialTexture->set_texture_index(-1);
+                            continue;
+                            //return false;
+                        }
+                        auto textureIt = resourceIndexMap.find(textureId);
+                        if (textureIt == resourceIndexMap.end())
+                        {
+                            const auto index = exportScene.info.textures_size();
+                            auto* textureInfo = textureEditor->GetTexture(textureId);
+                            *exportScene.info.add_textures() = textureInfo->info;
+                            if (GetFileExtension(textureInfo->info.path()) == ".cube")
                             {
-                                if(!cubeTexture.empty())
+                                for (auto& cubeTexture : textureInfo->cubemap.texture_paths())
                                 {
-                                    cubemapTextures.push_back(cubeTexture);
+                                    if (!cubeTexture.empty())
+                                    {
+                                        cubemapTextures.push_back(cubeTexture);
+                                    }
                                 }
                             }
+                            resourceIndexMap[textureId] = index;
+                            materialTexture->set_texture_index(index);
                         }
-                        resourceIndexMap[textureId] = index;
-                        materialTexture->set_texture_index(index);
+                        else
+                        {
+                            materialTexture->set_texture_index(textureIt->second);
+                        }
                     }
                     else
                     {
-                        materialTexture->set_texture_index(textureIt->second);
+                        bool isValid = false;
+                        for(const auto& framebufferPb: exportScene.info.framebuffers())
+                        {
+                            if(framebufferPb.name() == materialTexture->framebuffer_name())
+                            {
+                                for(const auto& colorAttachment : framebufferPb.color_attachments())
+                                {
+                                    if(!colorAttachment.rbo() && colorAttachment.name() == materialTexture->attachment_name())
+                                    {
+                                        isValid = true;
+                                    }
+                                }
+                                if(framebufferPb.has_depth_stencil_attachment() && !framebufferPb.depth_stencil_attachment().rbo())
+                                {
+                                    if(framebufferPb.depth_stencil_attachment().name() == materialTexture->attachment_name())
+                                    {
+                                        isValid = true;
+                                    }
+                                }
+                            }
+                        }
+                        if(!isValid)
+                        {
+                            LogWarning("Could not export, invalid framebuffer attachment in material sampler");
+                            return false;
+                        }
+                        materialTexture->set_texture_index(-1);
                     }
                 }
 

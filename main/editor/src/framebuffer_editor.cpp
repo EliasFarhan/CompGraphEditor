@@ -30,6 +30,10 @@ void FramebufferEditor::AddResource(const Resource& resource)
         LogWarning(fmt::format("Could not open protobuf file: {}", resource.path));
         return;
     }
+    if(framebufferInfo.info.name().empty())
+    {
+        framebufferInfo.info.set_name(GetFilename(resource.path, false));
+    }
     framebufferInfos_.push_back(framebufferInfo);
 }
 
@@ -62,7 +66,8 @@ void FramebufferEditor::DrawInspector()
 
     auto* editor = Editor::GetInstance();
     auto& currentFramebufferInfo = framebufferInfos_[currentIndex_];
-
+    auto* framebufferName = currentFramebufferInfo.info.mutable_name();
+    ImGui::InputText("Framebuffer Name", framebufferName);
     ImGui::Separator();
     int deletedColorAttachment = -1;
     for(int colorAttachmentIndex = 0; colorAttachmentIndex < currentFramebufferInfo.info.color_attachments_size(); colorAttachmentIndex++)

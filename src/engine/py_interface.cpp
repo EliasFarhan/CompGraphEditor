@@ -48,6 +48,7 @@ PYBIND11_EMBEDDED_MODULE(gpr5300, m)
 
     py::class_<gpr5300::Framebuffer>(m, "Framebuffer")
         .def("get_texture_name", &gpr5300::Framebuffer::GetTextureName)
+        .def("get_name", &gpr5300::Framebuffer::GetName)
     ;
 
     py::class_<gpr5300::SceneSubPass>(m, "SubPass")
