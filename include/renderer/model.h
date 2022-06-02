@@ -10,7 +10,7 @@ struct Model
     tinyobj::ObjReader reader;
 
     void LoadModel(std::string_view path);
-    Mesh GenerateMesh(std::string_view meshName) const;
+    [[nodiscard]] Mesh GenerateMesh(std::string_view meshName) const;
 };
 
 }

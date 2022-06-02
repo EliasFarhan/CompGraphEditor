@@ -273,7 +273,7 @@ bool SceneEditor::ExportScene() const
             const auto framebufferId = resourceManager.FindResourceByPath(framebufferPath);
             if(framebufferId == INVALID_RESOURCE_ID)
             {
-                LogWarning("Could not export scene, invalid resource id for framebuffer");
+                LogWarning(fmt::format("Could not export scene, invalid resource id for framebuffer. Framebuffer path: {}", framebufferPath));
                 return false;
             }
             auto* framebufferInfo = framebufferEditor->GetFramebuffer(framebufferId);
@@ -303,14 +303,14 @@ bool SceneEditor::ExportScene() const
             const auto commandId = resourceManager.FindResourceByPath(commandPath);
             if(commandId == INVALID_RESOURCE_ID)
             {
-                LogWarning("Could not export scene, missing command in subpass");
+                LogWarning(fmt::format("Could not export scene, missing command in subpass. Command path: {}", commandPath));
                 return false;
             }
             const auto* command = commandEditor->GetCommand(commandId);
             *exportCommand = command->info;
             if (command->materialId == INVALID_RESOURCE_ID)
             {
-                LogWarning("Could not export scene, missing material in command");
+                LogWarning(fmt::format("Could not export scene, missing material in command. Command {}", exportCommand->name()));
                 return false;
             }
             //link material index
@@ -329,7 +329,8 @@ bool SceneEditor::ExportScene() const
                     auto* materialTexture = newMaterial->mutable_textures(textureIndex);
                     if(materialTexture->texture_name().empty() && materialTexture->attachment_name().empty())
                     {
-                        LogWarning("Could not export, missing texture/attachment in material sampler");
+                        LogWarning(fmt::format(
+                            "Could not export, missing texture/attachment in material sampler. Material: {} Sampler: {}", newMaterial->name(), materialTexture->sampler_name()));
                         materialTexture->set_texture_index(-1);
                         return false;
                     }
@@ -338,10 +339,9 @@ bool SceneEditor::ExportScene() const
                         auto textureId = resourceManager.FindResourceByPath(materialTexture->texture_name());
                         if (textureId == INVALID_RESOURCE_ID)
                         {
-                            LogWarning("Missing texture in material sampler");
+                            LogWarning(fmt::format("Could not export scene. Missing texture in material sampler, Material: {} Sampler: {}", newMaterial->name(), materialTexture->sampler_name()));
                             materialTexture->set_texture_index(-1);
-                            continue;
-                            //return false;
+                            return false;
                         }
                         auto textureIt = resourceIndexMap.find(textureId);
                         if (textureIt == resourceIndexMap.end())
@@ -367,7 +367,7 @@ bool SceneEditor::ExportScene() const
                             materialTexture->set_texture_index(textureIt->second);
                         }
                     }
-                    else
+                    else //framebuffer attachment for sampler
                     {
                         bool isValid = false;
                         for(const auto& framebufferPb: exportScene.info.framebuffers())
@@ -392,7 +392,7 @@ bool SceneEditor::ExportScene() const
                         }
                         if(!isValid)
                         {
-                            LogWarning("Could not export, invalid framebuffer attachment in material sampler");
+                            LogWarning(fmt::format("Could not export, invalid framebuffer attachment in material sampler. Material: {} Sampler: {}", newMaterial->name(), materialTexture->sampler_name()));
                             return false;
                         }
                         materialTexture->set_texture_index(-1);
@@ -402,7 +402,7 @@ bool SceneEditor::ExportScene() const
                 //check if pipeline exists
                 if(material->pipelineId == INVALID_RESOURCE_ID)
                 {
-                    LogWarning("Could not export scene, missing pipeline in material");
+                    LogWarning(fmt::format("Could not export scene, missing pipeline in material. Material: {}", material->path));
                     return false;
                 }
                 const auto* pipeline = pipelineEditor->GetPipeline(material->pipelineId);
@@ -416,7 +416,7 @@ bool SceneEditor::ExportScene() const
 
                     if(pipeline->vertexShaderId == INVALID_RESOURCE_ID)
                     {
-                        LogWarning("Could not export scene, missing vertex shader in pipeline");
+                        LogWarning(fmt::format("Could not export scene, missing vertex shader in pipeline. Pipeline: {}", pipeline->path));
                         return false;
                     }
                     const auto* vertexShader = shaderEditor->GetShader(pipeline->vertexShaderId);
@@ -436,7 +436,7 @@ bool SceneEditor::ExportScene() const
 
                     if (pipeline->fragmentShaderId == INVALID_RESOURCE_ID)
                     {
-                        LogWarning("Could not export scene, missing vertex shader in pipeline");
+                        LogWarning(fmt::format("Could not export scene, missing fragment shader in pipeline. Pipeline: {}", pipeline->path));
                         return false;
                     }
                     const auto* fragmentShader = shaderEditor->GetShader(pipeline->fragmentShaderId);
@@ -471,7 +471,7 @@ bool SceneEditor::ExportScene() const
             //link mesh index
             if(command->meshId == INVALID_RESOURCE_ID)
             {
-                LogWarning("Could not export scene, missing mesh in command");
+                LogWarning(fmt::format("Could not export scene, missing mesh in command. Command: {}", command->path));
                 return false;
             }
             auto* mesh = meshEditor->GetMesh(command->meshId);
