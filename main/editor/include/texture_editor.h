@@ -18,8 +18,6 @@ struct TextureInfo
 class TextureEditor final : public EditorSystem
 {
 public:
-    
-
     void DrawInspector() override;
 
     bool DrawContentList(bool unfocus) override;
@@ -44,6 +42,8 @@ public:
 
     void GeneratePreComputeBrdfLUT();
 private:
+    void GenerateIrradianceMap(std::string_view path);
+    void GeneratePreFilterEnvMap(std::string_view path);
     std::vector<TextureInfo> textureInfos_;
     std::size_t currentIndex_ = -1;
 };

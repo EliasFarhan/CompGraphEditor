@@ -10,6 +10,7 @@
 #include "engine/filesystem.h"
 #include "renderer/debug.h"
 
+#include <stb_image.h>
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #include <stb_image_write.h>
 
@@ -107,6 +108,18 @@ void TextureEditor::DrawInspector()
     if(ImGui::Checkbox("Generate Mip Map", &generateMipMaps))
     {
         currentTextureInfo.info.set_generate_mipmaps(generateMipMaps);
+    }
+
+    if(GetFileExtension(currentTextureInfo.info.path()) == ".hdr")
+    {
+        if(ImGui::Button("Generate Irradiance Map"))
+        {
+            GenerateIrradianceMap(currentTextureInfo.info.path());
+        }
+        if(ImGui::Button("Generate Pre-Filter Environment Map"))
+        {
+            GeneratePreFilterEnvMap(currentTextureInfo.info.path());
+        }
     }
 }
 
@@ -316,8 +329,66 @@ void TextureEditor::GeneratePreComputeBrdfLUT()
         LogError("Error while exporting BRDF LUT to hdr texture");
     }
     std::free(buffer);
+    glBindTexture(GL_TEXTURE_2D, 0);
     glDeleteTextures(1, &texOutput);
+    glUseProgram(0);
     glDeleteProgram(brdfProgram);
     glCheckError();
+}
+
+void TextureEditor::GenerateIrradianceMap(std::string_view path)
+{
+    const auto baseDir = gpr5300::GetFolder(path);
+    const auto filename = gpr5300::GetFilename(path, false);
+    const auto irradianceMapPath = fmt::format("{}/{}_irrmap.hdr", baseDir, filename);
+
+    auto& filesystem = FilesystemLocator::get();
+    auto envMapFile = filesystem.LoadFile(path);
+    int texW;
+    int texH;
+    int channel;
+    auto* envMapData = stbi_loadf_from_memory(envMapFile.data, envMapFile.length, &texW, &texH, &channel, 4);
+    unsigned int envMap;
+    if (envMapData)
+    {
+        glGenTextures(1, &envMap);
+        glBindTexture(GL_TEXTURE_2D, envMap);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, texW, texH, 0, GL_RGBA, GL_FLOAT, envMapData);
+
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glBindImageTexture(0, envMap, 0, GL_FALSE, 0, GL_READ_ONLY, GL_RGBA32F);
+        stbi_image_free(envMapData);
+    }
+    else
+    {
+        //Error loading hdr
+        return;
+    }
+    
+
+    //TODO from equirectangle to cubemap
+
+    //TODO generate irradiance cubemap
+
+    //TODO from cubemap to equirectangle
+
+    //TODO export as hdr
+
+    //TODO clean textures
+    glDeleteTextures(1, &envMap);
+}
+
+void TextureEditor::GeneratePreFilterEnvMap(std::string_view path)
+{
+    //TODO from equirectangle to cubemap
+
+    //TODO generate prefilter cubemap
+
+    //TODO from cubemap to equirectangle
+
+    //TODO export as hdr
 }
 }
