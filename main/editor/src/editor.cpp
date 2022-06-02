@@ -656,6 +656,12 @@ void Editor::DrawEditorContent()
         {
             OpenFileBrowserDialog(editorSystems_[static_cast<int>(EditorType::TEXTURE)]->GetExtensions());
         }
+
+        if(ImGui::Button("Generate BRDF LUT"))
+        {
+            auto* textureEditor = dynamic_cast<TextureEditor*>(GetEditorSystem(EditorType::TEXTURE));
+            textureEditor->GeneratePreComputeBrdfLUT();
+        }
         ImGui::EndPopup();
     }
     if (open)

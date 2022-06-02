@@ -49,7 +49,8 @@ def analyze_shader(shader_path):
     out_attributes = []
     structs = []
     compute = False
-    if pathlib.Path(shader_path).suffix is '.comp':
+    extension = pathlib.Path(shader_path).suffix
+    if extension == '.comp':
         compute = True
     if not compute:
         with open(shader_path, 'r') as shader_file:

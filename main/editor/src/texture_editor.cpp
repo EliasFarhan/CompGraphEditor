@@ -8,6 +8,10 @@
 #include <fstream>
 
 #include "engine/filesystem.h"
+#include "renderer/debug.h"
+
+#define STB_IMAGE_WRITE_IMPLEMENTATION
+#include <stb_image_write.h>
 
 namespace gpr5300
 {
@@ -237,5 +241,83 @@ std::span<const std::string_view> TextureEditor::GetExtensions() const
         ".cube"
     };
     return extensions;
+}
+
+void TextureEditor::GeneratePreComputeBrdfLUT()
+{
+    constexpr int texW = 512;
+    // dimensions of the image
+    constexpr int texH = 512;
+    GLuint texOutput;
+    glGenTextures(1, &texOutput);
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, texOutput);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, texW, texH, 0, GL_RGBA, GL_FLOAT,
+        nullptr);
+    glBindImageTexture(0, texOutput, 0, GL_FALSE, 0, GL_WRITE_ONLY, GL_RGBA32F);
+    glCheckError();
+
+    const auto& filesystem = FilesystemLocator::get();
+    const auto shaderPath = "data/shaders/pre_compute_brdf.comp";
+    auto computeShader = filesystem.LoadFile(shaderPath);
+    GLuint brdfShader = glCreateShader(GL_COMPUTE_SHADER);
+    glShaderSource(brdfShader, 1, reinterpret_cast<char**>(&computeShader.data), nullptr);
+    glCompileShader(brdfShader);
+    // check for compilation errors as per normal here
+    //Check success status of shader compilation
+    GLint success;
+    glGetShaderiv(brdfShader, GL_COMPILE_STATUS, &success);
+    if (!success)
+    {
+        constexpr GLsizei infoLogSize = 512;
+        char infoLog[infoLogSize];
+        glGetShaderInfoLog(brdfShader, infoLogSize, nullptr, infoLog);
+        LogError(fmt::format("Shader compilation failed with this log:\n{}\nShader Path:\n{}",
+            infoLog, shaderPath));
+        glDeleteShader(brdfShader);
+        return;
+    }
+    GLuint brdfProgram = glCreateProgram();
+    glAttachShader(brdfProgram, brdfShader);
+    glLinkProgram(brdfProgram);
+    // check for linking errors and validate program as per normal here
+    //Check if shader program was linked correctly
+    glGetProgramiv(brdfProgram, GL_LINK_STATUS, &success);
+    if (!success)
+    {
+        constexpr GLsizei infoLogSize = 512;
+        char infoLog[infoLogSize];
+        glGetProgramInfoLog(brdfProgram, infoLogSize, nullptr, infoLog);
+        LogError(fmt::format("Shader program: LINK_FAILED with infoLog:\n{}",
+            infoLog));
+        return;
+    }
+
+    glDeleteShader(brdfShader);
+    { // launch compute shaders!
+        glUseProgram(brdfProgram);
+        glDispatchCompute(static_cast<GLuint>(texW), static_cast<GLuint>(texH), 1);
+    }
+
+    // make sure writing to image has finished before read
+    glMemoryBarrier(GL_ALL_BARRIER_BITS);
+    glCheckError();
+    auto* buffer = static_cast<float*>(std::calloc(texH * texW, 4*sizeof(float)));
+    glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_FLOAT, buffer);
+    glCheckError();
+    stbi_flip_vertically_on_write(true);
+    if(!stbi_write_hdr("data/textures/brdf_lut.hdr", texW, texH, 4, buffer))
+    {
+        //Error
+        LogError("Error while exporting BRDF LUT to hdr texture");
+    }
+    std::free(buffer);
+    glDeleteTextures(1, &texOutput);
+    glDeleteProgram(brdfProgram);
+    glCheckError();
 }
 }
