@@ -118,6 +118,54 @@ void ModelEditor::DrawInspector()
             const auto& textureInfo = currentModelInfo.info.textures(i);
             const auto& texturePath = textureInfo.texture_path();
             ImGui::Selectable(texturePath.c_str(), false);
+            ImGui::SameLine();
+            switch(textureInfo.type())
+            {
+            case pb::NONE: break;
+            case pb::AMBIENT: 
+                ImGui::Text("Ambient");
+                break;
+            case pb::DIFFUSE:
+                ImGui::Text("Diffuse");
+                break;
+            case pb::SPECULAR: 
+                ImGui::Text("Specular");
+                break;
+            case pb::SPECULAR_HIGHLIGHT: 
+                ImGui::Text("Specular Highlight");
+                break;
+            case pb::BUMP: 
+                ImGui::Text("Bump");
+                break;
+            case pb::DISPLACEMENT: 
+                ImGui::Text("Displacement");
+                break;
+            case pb::ALPHA: 
+                ImGui::Text("Alpha");
+                break;
+            case pb::REFLECTION: 
+                ImGui::Text("Reflection");
+                break;
+            case pb::ROUGHNESS: 
+                ImGui::Text("Roughness");
+                break;
+            case pb::METALLIC: 
+                ImGui::Text("Metallic");
+                break;
+            case pb::SHEEN: 
+                ImGui::Text("Sheen");
+                break;
+            case pb::EMISSIVE: 
+                ImGui::Text("Emissive");
+                break;
+            case pb::NORMAL: 
+                ImGui::Text("Normal");
+                break;
+            case pb::AO: 
+                ImGui::Text("Ambient Occlusion");
+                break;
+            default: ;
+            }
         }
         ImGui::EndListBox();
     }

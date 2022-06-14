@@ -1,6 +1,10 @@
 
 file(GLOB_RECURSE SCRIPT_FILES
         "scripts/*.py"
+         "shaders/*.vert"
+         "shaders/*.frag"
+         "shaders/*.geom"
+         "shaders/*.comp"
         )
 
 foreach(SCRIPT ${SCRIPT_FILES})

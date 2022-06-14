@@ -70,7 +70,13 @@ void Framebuffer::Resize(glm::uvec2 windowSize)
             }
         }
     }
-    for(int i = 0 ; i < frameBufferPb_.color_attachments_size(); i++)
+    if (frameBufferPb_.color_attachments_size() == 0)
+    {
+        constexpr GLenum v = GL_NONE;
+        glDrawBuffers(1, &v);
+        glReadBuffer(GL_NONE);
+    }
+    for (int i = 0; i < frameBufferPb_.color_attachments_size(); i++)
     {
 
         auto& colorAttachment = colorAttachments_[i];
@@ -80,7 +86,7 @@ void Framebuffer::Resize(glm::uvec2 windowSize)
         const auto attachmentType = GetAttachmentType(colorAttachmentInfo);
         if (colorAttachmentInfo.rbo())
         {
-            if(colorAttachment != 0)
+            if (colorAttachment != 0)
             {
                 glDeleteRenderbuffers(1, &colorAttachment);
                 colorAttachment = 0;
@@ -123,6 +129,7 @@ void Framebuffer::Resize(glm::uvec2 windowSize)
             }
         }
     }
+    
 }
 
 void Framebuffer::Destroy()
@@ -130,8 +137,7 @@ void Framebuffer::Destroy()
     glDeleteFramebuffers(1, &name_);
     for(int i = 0; i < frameBufferPb_.color_attachments_size(); i++)
     {
-        bool rbo = frameBufferPb_.color_attachments(i).rbo();
-        if(rbo)
+        if(bool rbo = frameBufferPb_.color_attachments(i).rbo())
         {
             glDeleteRenderbuffers(1, &colorAttachments_[i]);
         }
@@ -142,8 +148,7 @@ void Framebuffer::Destroy()
     }
     if(depthStencilAttachment_ != 0)
     {
-        bool rbo = frameBufferPb_.depth_stencil_attachment().rbo();
-        if(rbo)
+        if(bool rbo = frameBufferPb_.depth_stencil_attachment().rbo())
         {
             glDeleteRenderbuffers(1, &depthStencilAttachment_);
         }
@@ -189,22 +194,41 @@ void Framebuffer::Load(const pb::FrameBuffer& framebufferPb)
         }
         else
         {
-            glCreateTextures(GL_TEXTURE_2D, 1, &colorAttachment);
-            glBindTexture(GL_TEXTURE_2D, colorAttachment);
-            glTexImage2D(GL_TEXTURE_2D, 0, attachmentType.internalFormat,
-                colorAttachmentInfo.size_type() == pb::RenderTarget_Size_WINDOW_SIZE ? windowSize.x : colorAttachmentInfo.target_size().x(),
-                colorAttachmentInfo.size_type() == pb::RenderTarget_Size_WINDOW_SIZE ? windowSize.y : colorAttachmentInfo.target_size().y(),
-                0,
-                attachmentType.format,
-                attachmentType.type,
-                nullptr
-            );
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-            glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0+i, GL_TEXTURE_2D, colorAttachment, 0);
+            const auto target = colorAttachmentInfo.cubemap() ? GL_TEXTURE_CUBE_MAP:GL_TEXTURE_2D;
+            glCreateTextures(target, 1, &colorAttachment);
+            glBindTexture(target, colorAttachment);
 
+            glTexParameteri(target, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+            glTexParameteri(target, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+            glTexParameteri(target, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+            glTexParameteri(target, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+            if(colorAttachmentInfo.cubemap())
+            {
+                for(int face = 0; face < 6; face++)
+                {
+                    glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X+face, 0, attachmentType.internalFormat,
+                        colorAttachmentInfo.size_type() == pb::RenderTarget_Size_WINDOW_SIZE ? windowSize.x : colorAttachmentInfo.target_size().x(),
+                        colorAttachmentInfo.size_type() == pb::RenderTarget_Size_WINDOW_SIZE ? windowSize.y : colorAttachmentInfo.target_size().y(),
+                        0,
+                        attachmentType.format,
+                        attachmentType.type,
+                        nullptr
+                    );
+                    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + i, GL_TEXTURE_CUBE_MAP_POSITIVE_X + face, colorAttachment, 0);
+                }
+            }
+            else
+            {
+                glTexImage2D(GL_TEXTURE_2D, 0, attachmentType.internalFormat,
+                    colorAttachmentInfo.size_type() == pb::RenderTarget_Size_WINDOW_SIZE ? windowSize.x : colorAttachmentInfo.target_size().x(),
+                    colorAttachmentInfo.size_type() == pb::RenderTarget_Size_WINDOW_SIZE ? windowSize.y : colorAttachmentInfo.target_size().y(),
+                    0,
+                    attachmentType.format,
+                    attachmentType.type,
+                    nullptr
+                );
+                glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + i, target, colorAttachment, 0);
+            }
             const auto& name = colorAttachmentInfo.name();
             if(!name.empty())
             {
@@ -212,12 +236,18 @@ void Framebuffer::Load(const pb::FrameBuffer& framebufferPb)
             }
         }
     }
-
+    if(framebufferPb.color_attachments_size() == 0)
+    {
+        constexpr GLenum v = GL_NONE;
+        glDrawBuffers(1, &v);
+        glReadBuffer(GL_NONE);
+    }
     if(framebufferPb.has_depth_stencil_attachment())
     {
         const auto& depthStencilAttachmentInfo = framebufferPb.depth_stencil_attachment();
         const auto attachmentType = GetAttachmentType(depthStencilAttachmentInfo);
         bool stencil = attachmentType.format == GL_DEPTH_STENCIL;
+        auto target = depthStencilAttachmentInfo.cubemap() ? GL_TEXTURE_CUBE_MAP : GL_TEXTURE_2D;
         if (depthStencilAttachmentInfo.rbo())
         {
 
@@ -231,22 +261,42 @@ void Framebuffer::Load(const pb::FrameBuffer& framebufferPb)
         }
         else
         {
-            glCreateTextures(GL_TEXTURE_2D, 1, &depthStencilAttachment_);
-            glBindTexture(GL_TEXTURE_2D, depthStencilAttachment_);
-            glTexImage2D(GL_TEXTURE_2D, 0, attachmentType.internalFormat,
-                depthStencilAttachmentInfo.size_type() == pb::RenderTarget_Size_WINDOW_SIZE ? windowSize.x : depthStencilAttachmentInfo.target_size().x(),
-                depthStencilAttachmentInfo.size_type() == pb::RenderTarget_Size_WINDOW_SIZE ? windowSize.y : depthStencilAttachmentInfo.target_size().y(),
-                0,
-                attachmentType.format,
-                attachmentType.type,
-                nullptr
-            );
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-            glFramebufferTexture2D(GL_FRAMEBUFFER, stencil ? GL_DEPTH_STENCIL_ATTACHMENT : GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depthStencilAttachment_, 0);
+            glCreateTextures(target, 1, &depthStencilAttachment_);
+            glBindTexture(target, depthStencilAttachment_);
+            glTexParameteri(target, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+            glTexParameteri(target, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+            glTexParameteri(target, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+            glTexParameteri(target, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+            if(depthStencilAttachmentInfo.cubemap())
+            {
+                for(int face = 0; face < 6; face++)
+                {
+                    glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X+face, 0, attachmentType.internalFormat,
+                        depthStencilAttachmentInfo.size_type() == pb::RenderTarget_Size_WINDOW_SIZE ? windowSize.x : depthStencilAttachmentInfo.target_size().x(),
+                        depthStencilAttachmentInfo.size_type() == pb::RenderTarget_Size_WINDOW_SIZE ? windowSize.y : depthStencilAttachmentInfo.target_size().y(),
+                        0,
+                        attachmentType.format,
+                        attachmentType.type,
+                        nullptr
+                    );
 
+                    glFramebufferTexture2D(GL_FRAMEBUFFER, stencil ? GL_DEPTH_STENCIL_ATTACHMENT : GL_DEPTH_ATTACHMENT, GL_TEXTURE_CUBE_MAP_POSITIVE_X + face, 
+                        depthStencilAttachment_, 0);
+                }
+            }
+            else
+            {
+                glTexImage2D(GL_TEXTURE_2D, 0, attachmentType.internalFormat,
+                    depthStencilAttachmentInfo.size_type() == pb::RenderTarget_Size_WINDOW_SIZE ? windowSize.x : depthStencilAttachmentInfo.target_size().x(),
+                    depthStencilAttachmentInfo.size_type() == pb::RenderTarget_Size_WINDOW_SIZE ? windowSize.y : depthStencilAttachmentInfo.target_size().y(),
+                    0,
+                    attachmentType.format,
+                    attachmentType.type,
+                    nullptr
+                );
+
+                glFramebufferTexture2D(GL_FRAMEBUFFER, stencil ? GL_DEPTH_STENCIL_ATTACHMENT : GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depthStencilAttachment_, 0);
+            }
             const auto& name = depthStencilAttachmentInfo.name();
             if (!name.empty())
             {

@@ -54,6 +54,7 @@ message RenderTarget
     bool snorm = 6;
     Type type = 7;
     string name = 8;
+    bool cubemap = 9;
 }
 
 message FrameBuffer
@@ -259,6 +260,7 @@ message Texture
     FilteringMode filter_mode = 3;
     bool generate_mipmaps = 4;
     TextureType type = 5;
+    bool gamma_correction = 6;
 }
 
 message Cubemap

@@ -1,6 +1,6 @@
 #define TINYOBJLOADER_IMPLEMENTATION // define this in only *one* .cc
 // Optional. define TINYOBJLOADER_USE_MAPBOX_EARCUT gives robust trinagulation. Requires C++11
-#define TINYOBJLOADER_USE_MAPBOX_EARCUT
+//#define TINYOBJLOADER_USE_MAPBOX_EARCUT
 #include <tiny_obj_loader.h>
 #undef TINYOBJLOADER_IMPLEMENTATION
 
@@ -15,7 +15,6 @@
 #include <fmt/format.h>
 #include <array>
 #include <unordered_set>
-#include <algorithm>
 
 namespace gpr5300
 {

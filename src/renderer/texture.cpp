@@ -120,20 +120,20 @@ bool Texture::LoadTexture(const pb::Texture &textureInfo)
                          imageData);
             break;
         case 3:
-            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB8, width, height,
+            glTexImage2D(GL_TEXTURE_2D, 0, textureInfo.gamma_correction()?GL_SRGB8:GL_RGB8, width, height,
                          0,
                          GL_RGB, GL_UNSIGNED_BYTE,
                          imageData);
             break;
         case 4:
-            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, width, height,
+            glTexImage2D(GL_TEXTURE_2D, 0, textureInfo.gamma_correction()?GL_SRGB8_ALPHA8:GL_RGBA8, width, height,
                          0,
                          GL_RGBA, GL_UNSIGNED_BYTE,
                          imageData);
             break;
         default:
-            LogWarning(fmt::format("Weird channel count on image. Count: {}", channelInFile));
-            break;
+            LogError(fmt::format("Invalid channel count on image. Count: {}, for texture at path: {}", channelInFile, path));
+            return false;
         }
         glCheckError();
         if(textureInfo.generate_mipmaps())
@@ -219,7 +219,7 @@ bool Texture::LoadCubemap(const pb::Texture& textureInfo)
         {
             const auto cubeTextureFile = filesystem.LoadFile(cubemap.texture_paths(i));
             data = stbi_load_from_memory(cubeTextureFile.data, cubeTextureFile.length, &width, &height, &nrChannels, 0);
-            glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+            glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, textureInfo.gamma_correction()?GL_SRGB:GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
             stbi_image_free(data);
         }
         return true;

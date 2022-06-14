@@ -13,6 +13,10 @@
 #include <stb_image.h>
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #include <stb_image_write.h>
+#include <glm/ext/matrix_clip_space.hpp>
+#include <glm/ext/matrix_transform.hpp>
+
+#include "renderer/shape_primitive.h"
 
 namespace gpr5300
 {
@@ -108,6 +112,11 @@ void TextureEditor::DrawInspector()
     if(ImGui::Checkbox("Generate Mip Map", &generateMipMaps))
     {
         currentTextureInfo.info.set_generate_mipmaps(generateMipMaps);
+    }
+    bool gammaCorrection = currentTextureInfo.info.gamma_correction();
+    if(ImGui::Checkbox("Gamma Correction", &gammaCorrection))
+    {
+        currentTextureInfo.info.set_gamma_correction(gammaCorrection);
     }
 
     if(GetFileExtension(currentTextureInfo.info.path()) == ".hdr")
@@ -275,44 +284,19 @@ void TextureEditor::GeneratePreComputeBrdfLUT()
     glCheckError();
 
     const auto& filesystem = FilesystemLocator::get();
-    const auto shaderPath = "data/shaders/pre_compute_brdf.comp";
-    auto computeShader = filesystem.LoadFile(shaderPath);
-    GLuint brdfShader = glCreateShader(GL_COMPUTE_SHADER);
-    glShaderSource(brdfShader, 1, reinterpret_cast<char**>(&computeShader.data), nullptr);
-    glCompileShader(brdfShader);
-    // check for compilation errors as per normal here
-    //Check success status of shader compilation
-    GLint success;
-    glGetShaderiv(brdfShader, GL_COMPILE_STATUS, &success);
-    if (!success)
-    {
-        constexpr GLsizei infoLogSize = 512;
-        char infoLog[infoLogSize];
-        glGetShaderInfoLog(brdfShader, infoLogSize, nullptr, infoLog);
-        LogError(fmt::format("Shader compilation failed with this log:\n{}\nShader Path:\n{}",
-            infoLog, shaderPath));
-        glDeleteShader(brdfShader);
-        return;
-    }
-    GLuint brdfProgram = glCreateProgram();
-    glAttachShader(brdfProgram, brdfShader);
-    glLinkProgram(brdfProgram);
-    // check for linking errors and validate program as per normal here
-    //Check if shader program was linked correctly
-    glGetProgramiv(brdfProgram, GL_LINK_STATUS, &success);
-    if (!success)
-    {
-        constexpr GLsizei infoLogSize = 512;
-        char infoLog[infoLogSize];
-        glGetProgramInfoLog(brdfProgram, infoLogSize, nullptr, infoLog);
-        LogError(fmt::format("Shader program: LINK_FAILED with infoLog:\n{}",
-            infoLog));
-        return;
-    }
 
-    glDeleteShader(brdfShader);
+    pb::Shader shaderInfo;
+    shaderInfo.set_path("shaders/pre_compute_brdf.comp");
+    shaderInfo.set_type(pb::Shader_Type_COMPUTE);
+
+    Shader shader;
+    shader.LoadShader(shaderInfo);
+    Pipeline pipeline;
+    pipeline.LoadComputePipeline(shader);
+
+    shader.Destroy();
     { // launch compute shaders!
-        glUseProgram(brdfProgram);
+        pipeline.Bind();
         glDispatchCompute(static_cast<GLuint>(texW), static_cast<GLuint>(texH), 1);
     }
 
@@ -331,8 +315,8 @@ void TextureEditor::GeneratePreComputeBrdfLUT()
     std::free(buffer);
     glBindTexture(GL_TEXTURE_2D, 0);
     glDeleteTextures(1, &texOutput);
-    glUseProgram(0);
-    glDeleteProgram(brdfProgram);
+    pipeline.Unbind();
+    pipeline.Destroy();
     glCheckError();
 }
 
@@ -368,9 +352,78 @@ void TextureEditor::GenerateIrradianceMap(std::string_view path)
         return;
     }
     
+    auto cube = GenerateCube(glm::vec3(2.0f), glm::vec3(0.0f));
 
-    //TODO from equirectangle to cubemap
+    pb::FrameBuffer captureFboInfo;
+    auto* captureCubemap = captureFboInfo.add_color_attachments();
+    captureCubemap->set_cubemap(true);
+    captureCubemap->set_format(pb::RenderTarget_Format_RGB);
+    captureCubemap->set_format_size(pb::RenderTarget_FormatSize_SIZE_32);
+    captureCubemap->set_size_type(pb::RenderTarget_Size_FIXED_SIZE);
+    pb::Vec2i captureSize;
+    captureSize.set_x(512);
+    captureSize.set_y(512);
+    captureCubemap->set_allocated_target_size(&captureSize);
+    captureCubemap->set_name("envCubemap");
 
+    auto* depthRbo = captureFboInfo.mutable_depth_stencil_attachment();
+    depthRbo->set_format(pb::RenderTarget_Format_DEPTH_COMP);
+    depthRbo->set_format_size(pb::RenderTarget_FormatSize_SIZE_24);
+    depthRbo->set_rbo(true);
+    depthRbo->set_size_type(pb::RenderTarget_Size_FIXED_SIZE);
+    captureCubemap->set_allocated_target_size(&captureSize);
+
+    Framebuffer captureFbo;
+    captureFbo.Load(captureFboInfo);
+    captureFbo.Bind();
+
+    //Generate environment cubemap
+    //from equirectangle to cubemap
+    pb::Shader cubemapShaderInfo;
+    cubemapShaderInfo.set_path("shaders/cubemap.vert");
+    cubemapShaderInfo.set_type(pb::Shader_Type_VERTEX);
+
+    Shader cubemapShader;
+    cubemapShader.LoadShader(cubemapShaderInfo);
+
+    pb::Shader equirectangleToCubemapShaderInfo;
+    equirectangleToCubemapShaderInfo.set_path("shaders/equirectangle_to_cubemap.frag");
+    equirectangleToCubemapShaderInfo.set_type(pb::Shader_Type_FRAGMENT);
+
+    Shader equirectangleToCubemapShader;
+    equirectangleToCubemapShader.LoadShader(equirectangleToCubemapShaderInfo);
+
+    Pipeline equirectangleToCubemap;
+    equirectangleToCubemap.LoadRasterizePipeline(cubemapShader, equirectangleToCubemapShader);
+
+    captureFbo.Bind();
+    equirectangleToCubemap.Bind();
+    equirectangleToCubemap.SetTexture("equirectangularMap", envMap, 0);
+    glBindVertexArray(cube.vao);
+    // pbr: set up projection and view matrices for capturing data onto the 6 cubemap face directions
+    // ----------------------------------------------------------------------------------------------
+    glm::mat4 captureProjection = glm::perspective(glm::radians(90.0f), 1.0f, 0.1f, 10.0f);
+    glm::mat4 captureViews[] =
+    {
+        glm::lookAt(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(1.0f,  0.0f,  0.0f), glm::vec3(0.0f, -1.0f,  0.0f)),
+        glm::lookAt(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(-1.0f,  0.0f,  0.0f), glm::vec3(0.0f, -1.0f,  0.0f)),
+        glm::lookAt(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f,  1.0f,  0.0f), glm::vec3(0.0f,  0.0f,  1.0f)),
+        glm::lookAt(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, -1.0f,  0.0f), glm::vec3(0.0f,  0.0f, -1.0f)),
+        glm::lookAt(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f,  0.0f,  1.0f), glm::vec3(0.0f, -1.0f,  0.0f)),
+        glm::lookAt(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f,  0.0f, -1.0f), glm::vec3(0.0f, -1.0f,  0.0f))
+    };
+
+    equirectangleToCubemap.SetMat4("projection", captureProjection);
+
+    glViewport(0, 0, 512, 512);
+    auto envCubemap = captureFbo.GetTextureName("envCubemap");
+    for (unsigned int i = 0; i < 6; ++i)
+    {
+        equirectangleToCubemap.SetMat4("view", captureViews[i]);
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, envCubemap, 0);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, nullptr);
+    }
     //TODO generate irradiance cubemap
 
     //TODO from cubemap to equirectangle
