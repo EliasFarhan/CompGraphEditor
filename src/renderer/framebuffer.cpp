@@ -3,6 +3,8 @@
 #include "engine/engine.h"
 #include "utils/log.h"
 
+#include <fmt/format.h>
+
 namespace gpr5300
 {
 void Framebuffer::Bind() const
@@ -11,6 +13,7 @@ void Framebuffer::Bind() const
     {
         glBindFramebuffer(GL_FRAMEBUFFER, name_);
         currentFramebuffer_ = name_;
+        glCheckError();
     }
 }
 
@@ -164,6 +167,7 @@ void Framebuffer::Unbind()
     if (currentFramebuffer_ != 0)
     {
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
+        glCheckError();
         currentFramebuffer_ = 0;
     }
 }
@@ -181,6 +185,10 @@ void Framebuffer::Load(const pb::FrameBuffer& framebufferPb)
         auto& colorAttachment = colorAttachments_[i];
         const auto& colorAttachmentInfo = framebufferPb.color_attachments(i);
         const auto attachmentType = GetAttachmentType(colorAttachmentInfo);
+        if (attachmentType.error != 0)
+        {
+            LogError(fmt::format("Could not get attachment type for color attachment {}", i));
+        }
         if (colorAttachmentInfo.rbo())
         {
 
@@ -194,7 +202,7 @@ void Framebuffer::Load(const pb::FrameBuffer& framebufferPb)
         }
         else
         {
-            const auto target = colorAttachmentInfo.cubemap() ? GL_TEXTURE_CUBE_MAP:GL_TEXTURE_2D;
+            const auto target = colorAttachmentInfo.cubemap() ? GL_TEXTURE_CUBE_MAP : GL_TEXTURE_2D;
             glCreateTextures(target, 1, &colorAttachment);
             glBindTexture(target, colorAttachment);
 
@@ -204,6 +212,7 @@ void Framebuffer::Load(const pb::FrameBuffer& framebufferPb)
             glTexParameteri(target, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
             if(colorAttachmentInfo.cubemap())
             {
+                glTexParameteri(target, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
                 for(int face = 0; face < 6; face++)
                 {
                     glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X+face, 0, attachmentType.internalFormat,
@@ -214,8 +223,9 @@ void Framebuffer::Load(const pb::FrameBuffer& framebufferPb)
                         attachmentType.type,
                         nullptr
                     );
-                    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + i, GL_TEXTURE_CUBE_MAP_POSITIVE_X + face, colorAttachment, 0);
                 }
+
+                glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + i, GL_TEXTURE_CUBE_MAP_POSITIVE_X, colorAttachment, 0);
             }
             else
             {
@@ -246,6 +256,10 @@ void Framebuffer::Load(const pb::FrameBuffer& framebufferPb)
     {
         const auto& depthStencilAttachmentInfo = framebufferPb.depth_stencil_attachment();
         const auto attachmentType = GetAttachmentType(depthStencilAttachmentInfo);
+        if(attachmentType.error != 0)
+        {
+            LogError("Could not get attachment type for depth stencil attachment");
+        }
         bool stencil = attachmentType.format == GL_DEPTH_STENCIL;
         auto target = depthStencilAttachmentInfo.cubemap() ? GL_TEXTURE_CUBE_MAP : GL_TEXTURE_2D;
         if (depthStencilAttachmentInfo.rbo())
@@ -269,6 +283,7 @@ void Framebuffer::Load(const pb::FrameBuffer& framebufferPb)
             glTexParameteri(target, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
             if(depthStencilAttachmentInfo.cubemap())
             {
+                glTexParameteri(target, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
                 for(int face = 0; face < 6; face++)
                 {
                     glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X+face, 0, attachmentType.internalFormat,
@@ -279,10 +294,9 @@ void Framebuffer::Load(const pb::FrameBuffer& framebufferPb)
                         attachmentType.type,
                         nullptr
                     );
-
-                    glFramebufferTexture2D(GL_FRAMEBUFFER, stencil ? GL_DEPTH_STENCIL_ATTACHMENT : GL_DEPTH_ATTACHMENT, GL_TEXTURE_CUBE_MAP_POSITIVE_X + face, 
-                        depthStencilAttachment_, 0);
+                    
                 }
+                glFramebufferTexture2D(GL_FRAMEBUFFER, stencil ? GL_DEPTH_STENCIL_ATTACHMENT : GL_DEPTH_ATTACHMENT, GL_TEXTURE_CUBE_MAP_POSITIVE_X, depthStencilAttachment_, 0);
             }
             else
             {
@@ -307,6 +321,7 @@ void Framebuffer::Load(const pb::FrameBuffer& framebufferPb)
 
     CheckFramebufferStatus();
     glCheckError();
+    Unbind();
 }
 
 GLuint Framebuffer::GetTextureName(std::string_view textureName)

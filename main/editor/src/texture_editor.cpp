@@ -332,6 +332,7 @@ void TextureEditor::GenerateIrradianceMap(std::string_view path)
     int texH;
     int channel;
     auto* envMapData = stbi_loadf_from_memory(envMapFile.data, envMapFile.length, &texW, &texH, &channel, 4);
+    
     unsigned int envMap;
     if (envMapData)
     {
@@ -345,6 +346,7 @@ void TextureEditor::GenerateIrradianceMap(std::string_view path)
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
         glBindImageTexture(0, envMap, 0, GL_FALSE, 0, GL_READ_ONLY, GL_RGBA32F);
         stbi_image_free(envMapData);
+        
     }
     else
     {
@@ -357,25 +359,25 @@ void TextureEditor::GenerateIrradianceMap(std::string_view path)
     pb::FrameBuffer captureFboInfo;
     auto* captureCubemap = captureFboInfo.add_color_attachments();
     captureCubemap->set_cubemap(true);
-    captureCubemap->set_format(pb::RenderTarget_Format_RGB);
+    captureCubemap->set_type(pb::RenderTarget_Type_FLOAT);
+    captureCubemap->set_format(pb::RenderTarget_Format_RGBA);
     captureCubemap->set_format_size(pb::RenderTarget_FormatSize_SIZE_32);
     captureCubemap->set_size_type(pb::RenderTarget_Size_FIXED_SIZE);
-    pb::Vec2i captureSize;
-    captureSize.set_x(512);
-    captureSize.set_y(512);
-    captureCubemap->set_allocated_target_size(&captureSize);
+    captureCubemap->mutable_target_size()->set_x(512);
+    captureCubemap->mutable_target_size()->set_y(512);
     captureCubemap->set_name("envCubemap");
 
     auto* depthRbo = captureFboInfo.mutable_depth_stencil_attachment();
-    depthRbo->set_format(pb::RenderTarget_Format_DEPTH_COMP);
+    depthRbo->set_format(pb::RenderTarget_Format_DEPTH_STENCIL);
+    depthRbo->set_type(pb::RenderTarget_Type_UNSIGNED);
     depthRbo->set_format_size(pb::RenderTarget_FormatSize_SIZE_24);
-    depthRbo->set_rbo(true);
     depthRbo->set_size_type(pb::RenderTarget_Size_FIXED_SIZE);
-    captureCubemap->set_allocated_target_size(&captureSize);
+    depthRbo->set_rbo(true);
+    captureCubemap->mutable_target_size()->set_x(512);
+    captureCubemap->mutable_target_size()->set_y(512);
 
     Framebuffer captureFbo;
     captureFbo.Load(captureFboInfo);
-    captureFbo.Bind();
 
     //Generate environment cubemap
     //from equirectangle to cubemap
@@ -396,7 +398,6 @@ void TextureEditor::GenerateIrradianceMap(std::string_view path)
     Pipeline equirectangleToCubemap;
     equirectangleToCubemap.LoadRasterizePipeline(cubemapShader, equirectangleToCubemapShader);
 
-    captureFbo.Bind();
     equirectangleToCubemap.Bind();
     equirectangleToCubemap.SetTexture("equirectangularMap", envMap, 0);
     glBindVertexArray(cube.vao);
@@ -416,6 +417,7 @@ void TextureEditor::GenerateIrradianceMap(std::string_view path)
     equirectangleToCubemap.SetMat4("projection", captureProjection);
 
     glViewport(0, 0, 512, 512);
+    captureFbo.Bind();
     auto envCubemap = captureFbo.GetTextureName("envCubemap");
     for (unsigned int i = 0; i < 6; ++i)
     {
@@ -424,14 +426,75 @@ void TextureEditor::GenerateIrradianceMap(std::string_view path)
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, nullptr);
     }
+    equirectangleToCubemap.Destroy();
+    equirectangleToCubemapShader.Destroy();
+    captureFbo.Unbind();
+
     //TODO generate irradiance cubemap
+    pb::FrameBuffer irradianceFboInfo;
+    auto* irradianceAttachmentInfo = irradianceFboInfo.add_color_attachments();
+    irradianceAttachmentInfo->set_type(pb::RenderTarget_Type_FLOAT);
+    irradianceAttachmentInfo->set_format(pb::RenderTarget_Format_RGB);
+    irradianceAttachmentInfo->set_format_size(pb::RenderTarget_FormatSize_SIZE_32);
+    irradianceAttachmentInfo->set_size_type(pb::RenderTarget_Size_FIXED_SIZE);
+    irradianceAttachmentInfo->set_cubemap(true);
+    irradianceAttachmentInfo->set_name("irradiance");
+    irradianceAttachmentInfo->mutable_target_size()->set_x(32);
+    irradianceAttachmentInfo->mutable_target_size()->set_y(32);
+
+    auto* depthIrradianceRbo = irradianceFboInfo.mutable_depth_stencil_attachment();
+    depthIrradianceRbo->set_type(pb::RenderTarget_Type_UNSIGNED);
+    depthIrradianceRbo->set_format(pb::RenderTarget_Format_DEPTH_COMP);
+    depthIrradianceRbo->set_format_size(pb::RenderTarget_FormatSize_SIZE_24);
+    depthIrradianceRbo->set_size_type(pb::RenderTarget_Size_FIXED_SIZE);
+    depthIrradianceRbo->mutable_target_size()->set_x(32);
+    depthIrradianceRbo->mutable_target_size()->set_y(32);
+    depthIrradianceRbo->set_rbo(true);
+
+    Framebuffer irradianceFbo;
+    irradianceFbo.Load(irradianceFboInfo);
+
+    pb::Shader irradianceConvolutionShaderInfo;
+    irradianceConvolutionShaderInfo.set_type(pb::Shader_Type_FRAGMENT);
+    irradianceConvolutionShaderInfo.set_path("shaders/irradiance_convolution.frag");
+
+    Shader irradianceConvlutionShader;
+    irradianceConvlutionShader.LoadShader(irradianceConvolutionShaderInfo);
+
+    Pipeline irradianceConvolution;
+    irradianceConvolution.LoadRasterizePipeline(cubemapShader, irradianceConvlutionShader);
+
+    irradianceConvolution.Bind();
+    irradianceConvolution.SetMat4("projection", captureProjection);
+    glBindVertexArray(cube.vao);
+    irradianceConvolution.SetInt("environmentMap", 0);
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_CUBE_MAP, captureFbo.GetTextureName("envCubemap"));
+    glViewport(0, 0, 32, 32);
+
+    irradianceFbo.Bind();
+    for(int face = 0; face < 6; face++)
+    {
+        irradianceConvolution.SetMat4("view", captureViews[face]);
+
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_CUBE_MAP_POSITIVE_X + face, irradianceFbo.GetTextureName("irradiance"), 0);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, nullptr);
+    }
+    irradianceConvolution.Unbind();
+    irradianceConvolution.Destroy();
+    irradianceConvlutionShader.Destroy();
+    cubemapShader.Destroy();
 
     //TODO from cubemap to equirectangle
 
     //TODO export as hdr
 
     //TODO clean textures
+    captureFbo.Destroy();
+    irradianceFbo.Destroy();
     glDeleteTextures(1, &envMap);
+    glCheckError();
 }
 
 void TextureEditor::GeneratePreFilterEnvMap(std::string_view path)
