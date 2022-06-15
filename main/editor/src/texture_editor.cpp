@@ -331,6 +331,8 @@ void TextureEditor::GenerateIrradianceMap(std::string_view path)
     int texW;
     int texH;
     int channel;
+
+    stbi_set_flip_vertically_on_load(true);
     auto* envMapData = stbi_loadf_from_memory(envMapFile.data, envMapFile.length, &texW, &texH, &channel, 4);
     
     unsigned int envMap;
@@ -344,7 +346,8 @@ void TextureEditor::GenerateIrradianceMap(std::string_view path)
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-        glBindImageTexture(0, envMap, 0, GL_FALSE, 0, GL_READ_ONLY, GL_RGBA32F);
+        //glBindImageTexture(0, envMap, 0, GL_FALSE, 0, GL_READ_ONLY, GL_RGBA32F);
+        glBindTexture(GL_TEXTURE_2D, 0);
         stbi_image_free(envMapData);
         
     }
@@ -353,10 +356,11 @@ void TextureEditor::GenerateIrradianceMap(std::string_view path)
         //Error loading hdr
         return;
     }
-    
+    glCheckError();
     auto cube = GenerateCube(glm::vec3(2.0f), glm::vec3(0.0f));
 
     pb::FrameBuffer captureFboInfo;
+    captureFboInfo.set_name("captureFBO");
     auto* captureCubemap = captureFboInfo.add_color_attachments();
     captureCubemap->set_cubemap(true);
     captureCubemap->set_type(pb::RenderTarget_Type_FLOAT);
@@ -365,16 +369,8 @@ void TextureEditor::GenerateIrradianceMap(std::string_view path)
     captureCubemap->set_size_type(pb::RenderTarget_Size_FIXED_SIZE);
     captureCubemap->mutable_target_size()->set_x(512);
     captureCubemap->mutable_target_size()->set_y(512);
-    captureCubemap->set_name("envCubemap");
-
-    auto* depthRbo = captureFboInfo.mutable_depth_stencil_attachment();
-    depthRbo->set_format(pb::RenderTarget_Format_DEPTH_STENCIL);
-    depthRbo->set_type(pb::RenderTarget_Type_UNSIGNED);
-    depthRbo->set_format_size(pb::RenderTarget_FormatSize_SIZE_24);
-    depthRbo->set_size_type(pb::RenderTarget_Size_FIXED_SIZE);
-    depthRbo->set_rbo(true);
-    captureCubemap->mutable_target_size()->set_x(512);
-    captureCubemap->mutable_target_size()->set_y(512);
+    static constexpr std::string_view envCubemapName = "envCubeName";
+    captureCubemap->set_name(envCubemapName.data());
 
     Framebuffer captureFbo;
     captureFbo.Load(captureFboInfo);
@@ -397,10 +393,12 @@ void TextureEditor::GenerateIrradianceMap(std::string_view path)
 
     Pipeline equirectangleToCubemap;
     equirectangleToCubemap.LoadRasterizePipeline(cubemapShader, equirectangleToCubemapShader);
+    equirectangleToCubemapShader.Destroy();
 
     equirectangleToCubemap.Bind();
     equirectangleToCubemap.SetTexture("equirectangularMap", envMap, 0);
     glBindVertexArray(cube.vao);
+    glCheckError();
     // pbr: set up projection and view matrices for capturing data onto the 6 cubemap face directions
     // ----------------------------------------------------------------------------------------------
     glm::mat4 captureProjection = glm::perspective(glm::radians(90.0f), 1.0f, 0.1f, 10.0f);
@@ -418,38 +416,34 @@ void TextureEditor::GenerateIrradianceMap(std::string_view path)
 
     glViewport(0, 0, 512, 512);
     captureFbo.Bind();
-    auto envCubemap = captureFbo.GetTextureName("envCubemap");
+    glCheckError();
+    auto envCubemap = captureFbo.GetTextureName(envCubemapName);
     for (unsigned int i = 0; i < 6; ++i)
     {
+        glCheckError();
         equirectangleToCubemap.SetMat4("view", captureViews[i]);
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, envCubemap, 0);
+        glCheckError();
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        glCheckError();
         glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, nullptr);
+        glCheckError();
     }
-    equirectangleToCubemap.Destroy();
-    equirectangleToCubemapShader.Destroy();
     captureFbo.Unbind();
 
-    //TODO generate irradiance cubemap
+    //generate irradiance cubemap
     pb::FrameBuffer irradianceFboInfo;
+    irradianceFboInfo.set_name("irradianceFbo");
     auto* irradianceAttachmentInfo = irradianceFboInfo.add_color_attachments();
     irradianceAttachmentInfo->set_type(pb::RenderTarget_Type_FLOAT);
-    irradianceAttachmentInfo->set_format(pb::RenderTarget_Format_RGB);
+    irradianceAttachmentInfo->set_format(pb::RenderTarget_Format_RGBA);
     irradianceAttachmentInfo->set_format_size(pb::RenderTarget_FormatSize_SIZE_32);
     irradianceAttachmentInfo->set_size_type(pb::RenderTarget_Size_FIXED_SIZE);
     irradianceAttachmentInfo->set_cubemap(true);
-    irradianceAttachmentInfo->set_name("irradiance");
+    static constexpr std::string_view irradianceMapName = "irradiance";
+    irradianceAttachmentInfo->set_name(irradianceMapName.data());
     irradianceAttachmentInfo->mutable_target_size()->set_x(32);
     irradianceAttachmentInfo->mutable_target_size()->set_y(32);
-
-    auto* depthIrradianceRbo = irradianceFboInfo.mutable_depth_stencil_attachment();
-    depthIrradianceRbo->set_type(pb::RenderTarget_Type_UNSIGNED);
-    depthIrradianceRbo->set_format(pb::RenderTarget_Format_DEPTH_COMP);
-    depthIrradianceRbo->set_format_size(pb::RenderTarget_FormatSize_SIZE_24);
-    depthIrradianceRbo->set_size_type(pb::RenderTarget_Size_FIXED_SIZE);
-    depthIrradianceRbo->mutable_target_size()->set_x(32);
-    depthIrradianceRbo->mutable_target_size()->set_y(32);
-    depthIrradianceRbo->set_rbo(true);
 
     Framebuffer irradianceFbo;
     irradianceFbo.Load(irradianceFboInfo);
@@ -464,36 +458,107 @@ void TextureEditor::GenerateIrradianceMap(std::string_view path)
     Pipeline irradianceConvolution;
     irradianceConvolution.LoadRasterizePipeline(cubemapShader, irradianceConvlutionShader);
 
+    irradianceFbo.Bind();
     irradianceConvolution.Bind();
     irradianceConvolution.SetMat4("projection", captureProjection);
     glBindVertexArray(cube.vao);
     irradianceConvolution.SetInt("environmentMap", 0);
     glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_CUBE_MAP, captureFbo.GetTextureName("envCubemap"));
+    glBindTexture(GL_TEXTURE_CUBE_MAP, captureFbo.GetTextureName(envCubemapName));
     glViewport(0, 0, 32, 32);
-
-    irradianceFbo.Bind();
+    glCheckError();
+    const auto irradianceMap = irradianceFbo.GetTextureName(irradianceMapName);
     for(int face = 0; face < 6; face++)
     {
         irradianceConvolution.SetMat4("view", captureViews[face]);
 
-        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_CUBE_MAP_POSITIVE_X + face, irradianceFbo.GetTextureName("irradiance"), 0);
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_CUBE_MAP_POSITIVE_X + face, irradianceMap, 0);
+        glCheckError();
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        glCheckError();
         glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, nullptr);
+        glCheckError();
     }
+    irradianceFbo.Unbind();
     irradianceConvolution.Unbind();
+
+
+    //from cubemap to equirectangle
+
+    pb::Shader equirectangleVertShaderInfo;
+    equirectangleVertShaderInfo.set_path("shaders/equirectangle.vert");
+    equirectangleVertShaderInfo.set_type(pb::Shader_Type_VERTEX);
+
+    pb::Shader equirectangleFragShaderInfo;
+    equirectangleFragShaderInfo.set_path("shaders/equirectangle.frag");
+    equirectangleFragShaderInfo.set_type(pb::Shader_Type_FRAGMENT);
+
+    Shader equirectangleVertShader;
+    equirectangleVertShader.LoadShader(equirectangleVertShaderInfo);
+
+    Shader equirectangleFragShader;
+    equirectangleFragShader.LoadShader(equirectangleFragShaderInfo);
+
+    Pipeline equirectangle;
+    equirectangle.LoadRasterizePipeline(equirectangleVertShader, equirectangleFragShader);
+
+    auto resultW = 32*4;
+    auto resultH = 32*2;
+
+    pb::FrameBuffer equirectangleFboInfo;
+    auto* equirectangleColorAttachment = equirectangleFboInfo.add_color_attachments();
+    equirectangleColorAttachment->set_name("irradiance");
+    equirectangleColorAttachment->set_type(pb::RenderTarget_Type_FLOAT);
+    equirectangleColorAttachment->set_format(pb::RenderTarget_Format_RGBA);
+    equirectangleColorAttachment->set_size_type(pb::RenderTarget_Size_FIXED_SIZE);
+    equirectangleColorAttachment->set_format_size(pb::RenderTarget_FormatSize_SIZE_32);
+    equirectangleColorAttachment->mutable_target_size()->set_x(resultW);
+    equirectangleColorAttachment->mutable_target_size()->set_y(resultH);
+
+    auto quad = GenerateQuad(glm::vec3(2.0f), glm::vec3(0.0f));
+
+    Framebuffer equirectangleFbo;
+    equirectangleFbo.Load(equirectangleFboInfo);
+
+    equirectangleFbo.Bind();
+    equirectangle.Bind();
+    glBindVertexArray(quad.vao);
+    glViewport(0, 0, resultW, resultH);
+
+    equirectangle.SetInt("irradiance", 0);
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_CUBE_MAP, irradianceFbo.GetTextureName(irradianceMapName));
+
+    glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr);
+    equirectangleFbo.Unbind();
+    equirectangle.Unbind();
+
+    //export as hdr
+    glBindTexture(GL_TEXTURE_2D, equirectangleFbo.GetTextureName("irradiance"));
+    auto* buffer = static_cast<float*>(std::calloc(resultW * resultH, 4 * sizeof(float)));
+    glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_FLOAT, buffer);
+    glCheckError();
+    stbi_flip_vertically_on_write(true);
+    //TODO give proper name
+    if (!stbi_write_hdr(irradianceMapPath.data(), resultW, resultH, 4, buffer))
+    {
+        //Error
+        LogError("Error while exporting Irradiance map to hdr texture");
+    }
+    std::free(buffer);
+
+    //TODO clean textures
+    equirectangle.Destroy();
+    equirectangleFbo.Destroy();
     irradianceConvolution.Destroy();
     irradianceConvlutionShader.Destroy();
     cubemapShader.Destroy();
-
-    //TODO from cubemap to equirectangle
-
-    //TODO export as hdr
-
-    //TODO clean textures
+    equirectangleToCubemap.Destroy();
     captureFbo.Destroy();
     irradianceFbo.Destroy();
     glDeleteTextures(1, &envMap);
+    glDeleteVertexArrays(1, &cube.vao);
+    glDeleteVertexArrays(1, &quad.vao);
     glCheckError();
 }
 

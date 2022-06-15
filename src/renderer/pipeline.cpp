@@ -56,6 +56,7 @@ void Shader::LoadShader(const pb::Shader &shader)
     {
         LogError(fmt::format("File not found: {}", path));
     }
+    glCheckError();
 }
 
 void Shader::Destroy()
@@ -106,6 +107,7 @@ void Pipeline::LoadRasterizePipeline(const Shader &vertex, const Shader &fragmen
         return;
     }
     name = program;
+    glCheckError();
     LogDebug(fmt::format("Successfully loaded program with vertex {} and fragment {}", vertex.name, fragment.name));
 }
 

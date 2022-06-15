@@ -41,6 +41,7 @@ void Framebuffer::Resize(glm::uvec2 windowSize)
                     windowSize.y);
 
                 glFramebufferRenderbuffer(GL_FRAMEBUFFER, stencil ? GL_DEPTH_STENCIL_ATTACHMENT : GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, depthStencilAttachment_);
+                glCheckError();
             }
             else
             {
@@ -70,6 +71,7 @@ void Framebuffer::Resize(glm::uvec2 windowSize)
                 {
                     textureMap_[name] = depthStencilAttachment_;
                 }
+                glCheckError();
             }
         }
     }
@@ -101,6 +103,7 @@ void Framebuffer::Resize(glm::uvec2 windowSize)
                 windowSize.y);
 
             glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + i, GL_RENDERBUFFER, colorAttachment);
+            glCheckError();
         }
         else
         {
@@ -130,6 +133,7 @@ void Framebuffer::Resize(glm::uvec2 windowSize)
             {
                 textureMap_[name] = colorAttachment;
             }
+            glCheckError();
         }
     }
     
@@ -140,7 +144,7 @@ void Framebuffer::Destroy()
     glDeleteFramebuffers(1, &name_);
     for(int i = 0; i < frameBufferPb_.color_attachments_size(); i++)
     {
-        if(bool rbo = frameBufferPb_.color_attachments(i).rbo())
+        if(frameBufferPb_.color_attachments(i).rbo())
         {
             glDeleteRenderbuffers(1, &colorAttachments_[i]);
         }
@@ -151,7 +155,7 @@ void Framebuffer::Destroy()
     }
     if(depthStencilAttachment_ != 0)
     {
-        if(bool rbo = frameBufferPb_.depth_stencil_attachment().rbo())
+        if(frameBufferPb_.depth_stencil_attachment().rbo())
         {
             glDeleteRenderbuffers(1, &depthStencilAttachment_);
         }
@@ -199,6 +203,7 @@ void Framebuffer::Load(const pb::FrameBuffer& framebufferPb)
                 colorAttachmentInfo.size_type() == pb::RenderTarget_Size_WINDOW_SIZE ? windowSize.y : colorAttachmentInfo.target_size().y());
 
             glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + i, GL_RENDERBUFFER, colorAttachment);
+            glCheckError();
         }
         else
         {
@@ -223,9 +228,15 @@ void Framebuffer::Load(const pb::FrameBuffer& framebufferPb)
                         attachmentType.type,
                         nullptr
                     );
-                }
 
-                glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + i, GL_TEXTURE_CUBE_MAP_POSITIVE_X, colorAttachment, 0);
+                }
+                glFramebufferTexture2D(GL_FRAMEBUFFER,
+                    GL_COLOR_ATTACHMENT0 + i,
+                    GL_TEXTURE_CUBE_MAP_POSITIVE_X,
+                    colorAttachment, 
+                    0);
+
+                glCheckError();
             }
             else
             {
@@ -238,6 +249,7 @@ void Framebuffer::Load(const pb::FrameBuffer& framebufferPb)
                     nullptr
                 );
                 glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + i, target, colorAttachment, 0);
+                glCheckError();
             }
             const auto& name = colorAttachmentInfo.name();
             if(!name.empty())
@@ -251,6 +263,7 @@ void Framebuffer::Load(const pb::FrameBuffer& framebufferPb)
         constexpr GLenum v = GL_NONE;
         glDrawBuffers(1, &v);
         glReadBuffer(GL_NONE);
+        glCheckError();
     }
     if(framebufferPb.has_depth_stencil_attachment())
     {
@@ -260,8 +273,8 @@ void Framebuffer::Load(const pb::FrameBuffer& framebufferPb)
         {
             LogError("Could not get attachment type for depth stencil attachment");
         }
-        bool stencil = attachmentType.format == GL_DEPTH_STENCIL;
-        auto target = depthStencilAttachmentInfo.cubemap() ? GL_TEXTURE_CUBE_MAP : GL_TEXTURE_2D;
+        const bool stencil = attachmentType.format == GL_DEPTH_STENCIL;
+        const auto target = depthStencilAttachmentInfo.cubemap() ? GL_TEXTURE_CUBE_MAP : GL_TEXTURE_2D;
         if (depthStencilAttachmentInfo.rbo())
         {
 
@@ -272,6 +285,7 @@ void Framebuffer::Load(const pb::FrameBuffer& framebufferPb)
                 depthStencilAttachmentInfo.size_type() == pb::RenderTarget_Size_WINDOW_SIZE ? windowSize.y : depthStencilAttachmentInfo.target_size().y());
 
             glFramebufferRenderbuffer(GL_FRAMEBUFFER, stencil?GL_DEPTH_STENCIL_ATTACHMENT: GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, depthStencilAttachment_);
+            glCheckError();
         }
         else
         {
@@ -294,9 +308,10 @@ void Framebuffer::Load(const pb::FrameBuffer& framebufferPb)
                         attachmentType.type,
                         nullptr
                     );
-                    
+                    glFramebufferTexture2D(GL_FRAMEBUFFER, stencil ? GL_DEPTH_STENCIL_ATTACHMENT : GL_DEPTH_ATTACHMENT, GL_TEXTURE_CUBE_MAP_POSITIVE_X+face, depthStencilAttachment_, 0);
+
                 }
-                glFramebufferTexture2D(GL_FRAMEBUFFER, stencil ? GL_DEPTH_STENCIL_ATTACHMENT : GL_DEPTH_ATTACHMENT, GL_TEXTURE_CUBE_MAP_POSITIVE_X, depthStencilAttachment_, 0);
+                glCheckError();
             }
             else
             {
@@ -310,6 +325,7 @@ void Framebuffer::Load(const pb::FrameBuffer& framebufferPb)
                 );
 
                 glFramebufferTexture2D(GL_FRAMEBUFFER, stencil ? GL_DEPTH_STENCIL_ATTACHMENT : GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depthStencilAttachment_, 0);
+                glCheckError();
             }
             const auto& name = depthStencilAttachmentInfo.name();
             if (!name.empty())
@@ -634,6 +650,7 @@ bool CheckFramebufferStatus()
     switch(glCheckFramebufferStatus(GL_FRAMEBUFFER))
     {
     case GL_FRAMEBUFFER_COMPLETE:
+        LogDebug("Check Framebuffer: Complete");
         return true;
     case GL_FRAMEBUFFER_UNDEFINED:
         LogError("Check Framebuffer: Undefined");
