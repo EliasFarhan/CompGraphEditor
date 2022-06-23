@@ -107,6 +107,29 @@ Mesh Model::GenerateMesh(std::string_view meshName) const
         
     }
 
+    std::vector<glm::vec3> tangents{};
+    tangents.resize(normals.size());
+    for (int i = 0; i < indices.size(); i += 3)
+    {
+        std::array triIndices =
+        {
+            indices[i],
+            indices[i + 1],
+            indices[i + 2],
+        };
+        const glm::vec3 edge1 = positions[triIndices[1]] - positions[triIndices[0]];
+        const glm::vec3 edge2 = positions[triIndices[2]] - positions[triIndices[0]];
+        const glm::vec2 deltaUV1 = texCoords[triIndices[1]] - texCoords[triIndices[0]];
+        const glm::vec2 deltaUV2 = texCoords[triIndices[2]] - texCoords[triIndices[0]];
+
+        const float f =
+            1.0f / (deltaUV1.x * deltaUV2.y - deltaUV2.x * deltaUV1.y);
+        tangents[triIndices[0]].x = f * (deltaUV2.y * edge1.x - deltaUV1.y * edge2.x);
+        tangents[triIndices[0]].y = f * (deltaUV2.y * edge1.y - deltaUV1.y * edge2.y);
+        tangents[triIndices[0]].z = f * (deltaUV2.y * edge1.z - deltaUV1.y * edge2.z);
+        tangents[triIndices[1]] = tangents[triIndices[0]];
+        tangents[triIndices[2]] = tangents[triIndices[0]];
+    }
     
     //ebo
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
@@ -128,6 +151,12 @@ Mesh Model::GenerateMesh(std::string_view meshName) const
     glBufferData(GL_ARRAY_BUFFER, normals.size() * sizeof(glm::vec3), normals.data(), GL_STATIC_DRAW);
     glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), nullptr);
     glEnableVertexAttribArray(2);
+
+    // tangent attribute
+    glBindBuffer(GL_ARRAY_BUFFER, vbo[3]);
+    glBufferData(GL_ARRAY_BUFFER, tangents.size() * sizeof(glm::vec3), tangents.data(), GL_STATIC_DRAW);
+    glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), nullptr);
+    glEnableVertexAttribArray(3);
     glCheckError();
 
     return mesh;
