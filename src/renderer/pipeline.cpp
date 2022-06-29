@@ -193,7 +193,7 @@ void Pipeline::SetTexture(std::string_view uniformName, const Texture& texture, 
 {
     SetInt(uniformName, textureUnit);
     glActiveTexture(GL_TEXTURE0 + textureUnit);
-    glBindTexture(texture.cubemap?GL_TEXTURE_CUBE_MAP:GL_TEXTURE_2D, texture.name);
+    glBindTexture(texture.target, texture.name);
     glCheckError();
 }
 

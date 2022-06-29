@@ -39,11 +39,8 @@ public:
     TextureInfo* GetTexture(ResourceId resourceId);
     void Delete() override;
     std::span<const std::string_view> GetExtensions() const override;
-
-    void GeneratePreComputeBrdfLUT();
+    
 private:
-    void GenerateIrradianceMap(std::string_view path);
-    void GeneratePreFilterEnvMap(std::string_view path);
     std::vector<TextureInfo> textureInfos_;
     std::size_t currentIndex_ = -1;
 };

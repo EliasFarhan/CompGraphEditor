@@ -7,6 +7,8 @@
 #include <fmt/format.h>
 #include "renderer/debug.h"
 
+#include <ktx.h>
+
 
 namespace gpr5300
 {
@@ -149,7 +151,7 @@ bool Texture::LoadTexture(const pb::Texture &textureInfo)
 
 bool Texture::LoadCubemap(const pb::Texture& textureInfo)
 {
-    cubemap = true;
+    target = GL_TEXTURE_CUBE_MAP;
     stbi_set_flip_vertically_on_load(false);
     const auto& filesystem = FilesystemLocator::get();
     std::string_view path = textureInfo.path();
@@ -227,6 +229,36 @@ bool Texture::LoadCubemap(const pb::Texture& textureInfo)
 
     LogError(fmt::format("File not found at path: {}", path));
     return false;
+}
+
+bool Texture::LoadKtxTexture(const pb::Texture& textureInfo)
+{
+    ktxTexture* kTexture;
+    ktx_size_t offset;
+    ktx_uint8_t* image;
+    ktx_uint32_t level, layer, faceSlice;
+    GLenum glerror;
+
+    KTX_error_code result = ktxTexture_CreateFromNamedFile("mytex3d.ktx",
+                                                           KTX_TEXTURE_CREATE_NO_FLAGS,
+                                                           &kTexture);
+    if(!CheckKtxError(result))
+    {
+        return false;
+    }
+    glGenTextures(1, &name); // Optional. GLUpload can generate a texture.
+    result = ktxTexture_GLUpload(kTexture, &name, &target, &glerror);
+    if (!CheckKtxError(result))
+    {
+        if(result == KTX_GL_ERROR)
+        {
+            LogError(GetGlError(glerror));
+        }
+        return false;
+    }
+    ktxTexture_Destroy(kTexture);
+
+    return true;
 }
 
 void Texture::Destroy()

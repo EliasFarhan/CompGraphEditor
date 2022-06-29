@@ -20,6 +20,7 @@
 #include "script_editor.h"
 #include "texture_editor.h"
 #include "framebuffer_editor.h"
+#include "pbr_utils.h"
 
 namespace gpr5300
 {
@@ -660,7 +661,7 @@ void Editor::DrawEditorContent()
         if(ImGui::Button("Generate BRDF LUT"))
         {
             auto* textureEditor = dynamic_cast<TextureEditor*>(GetEditorSystem(EditorType::TEXTURE));
-            textureEditor->GeneratePreComputeBrdfLUT();
+            GeneratePreComputeBrdfLUT();
         }
         ImGui::EndPopup();
     }

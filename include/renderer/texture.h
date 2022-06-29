@@ -17,9 +17,10 @@ namespace gpr5300
         GLuint name = 0;
         int width = 0;
         int height = 0;
-        bool cubemap = false;
+        GLenum target = GL_TEXTURE_2D;
         bool LoadTexture(const pb::Texture& textureInfo);
         bool LoadCubemap(const pb::Texture& textureInfo);
+        bool LoadKtxTexture(const pb::Texture& textureInfo);
         void Destroy();
     };
 

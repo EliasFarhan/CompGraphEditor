@@ -14,6 +14,7 @@ find_package(spdlog CONFIG REQUIRED)
 find_path(STB_INCLUDE_DIRS "stb_image.h")
 find_package(tinyobjloader CONFIG REQUIRED)
 find_package(protobuf CONFIG REQUIRED)
+find_package(Ktx CONFIG REQUIRED)
 
 add_subdirectory(external/pybind11)
 
@@ -28,7 +29,7 @@ file(GLOB_RECURSE COMMON_FILES src/*.cpp include/*.h)
 add_library(Common STATIC ${COMMON_FILES})
 target_include_directories(Common PUBLIC include/ ${STB_INCLUDE_DIRS} ${Python3_INCLUDE_DIRS})
 target_link_libraries(Common PUBLIC CommonProto GLEW::GLEW glm::glm SDL2::SDL2 SDL2::SDL2main imgui::imgui
-    tinyobjloader::tinyobjloader pybind11::embed ${Python3_LIBRARIES} spdlog::spdlog)
+    tinyobjloader::tinyobjloader pybind11::embed ${Python3_LIBRARIES} spdlog::spdlog KTX::ktx)
 set_target_properties(Common PROPERTIES UNITY_BUILD ON)
 if(MSVC)
     target_compile_definitions(Common PUBLIC "_USE_MATH_DEFINES" WIN32_LEAN_AND_MEAN)
