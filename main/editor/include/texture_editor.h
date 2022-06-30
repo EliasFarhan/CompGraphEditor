@@ -41,6 +41,8 @@ public:
     std::span<const std::string_view> GetExtensions() const override;
     
 private:
+    void CubeToKtx(const TextureInfo& textureInfo);
+    void HdrToKtx(const TextureInfo& textureInfo);
     std::vector<TextureInfo> textureInfos_;
     std::size_t currentIndex_ = -1;
 };

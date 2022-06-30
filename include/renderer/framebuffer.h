@@ -17,6 +17,7 @@ struct AttachmentType
 class Framebuffer
 {
 public:
+    ~Framebuffer();
     void Bind() const;
     void Resize(glm::uvec2 windowSize);
     void Destroy();

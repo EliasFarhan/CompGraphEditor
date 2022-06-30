@@ -40,6 +40,14 @@ Texture TextureManager::LoadTexture(const pb::Texture &textureInfo)
     return it->second;
 }
 
+Texture::~Texture()
+{
+    if(name != 0)
+    {
+        LogWarning("Forgot to clear texture");
+    }
+}
+
 bool Texture::LoadTexture(const pb::Texture &textureInfo)
 {
     stbi_set_flip_vertically_on_load(true);
@@ -234,12 +242,9 @@ bool Texture::LoadCubemap(const pb::Texture& textureInfo)
 bool Texture::LoadKtxTexture(const pb::Texture& textureInfo)
 {
     ktxTexture* kTexture;
-    ktx_size_t offset;
-    ktx_uint8_t* image;
-    ktx_uint32_t level, layer, faceSlice;
     GLenum glerror;
 
-    KTX_error_code result = ktxTexture_CreateFromNamedFile("mytex3d.ktx",
+    KTX_error_code result = ktxTexture_CreateFromNamedFile(textureInfo.path().data(),
                                                            KTX_TEXTURE_CREATE_NO_FLAGS,
                                                            &kTexture);
     if(!CheckKtxError(result))
@@ -256,7 +261,53 @@ bool Texture::LoadKtxTexture(const pb::Texture& textureInfo)
         }
         return false;
     }
+
     ktxTexture_Destroy(kTexture);
+
+    GLint wrappingMode = GL_REPEAT;
+    switch (textureInfo.wrapping_mode())
+    {
+    case pb::Texture_WrappingMode_REPEAT:
+        wrappingMode = GL_REPEAT;
+        break;
+    case pb::Texture_WrappingMode_MIRROR_REPEAT:
+        wrappingMode = GL_MIRRORED_REPEAT;
+        break;
+    case pb::Texture_WrappingMode_CLAMP_TO_EDGE:
+        wrappingMode = GL_CLAMP_TO_EDGE;
+        break;
+    case pb::Texture_WrappingMode_CLAMP_TO_BORDER:
+        wrappingMode = GL_CLAMP_TO_BORDER;
+        break;
+    default:
+        break;
+    }
+
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, wrappingMode);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, wrappingMode);
+
+    int minFilterMode = GL_NEAREST;
+    int magFilterMode = GL_NEAREST;
+    switch (textureInfo.filter_mode())
+    {
+    case pb::Texture_FilteringMode_LINEAR:
+    {
+        magFilterMode = GL_LINEAR;
+        minFilterMode = textureInfo.generate_mipmaps() ? GL_LINEAR_MIPMAP_LINEAR : GL_LINEAR;
+        break;
+    }
+    case pb::Texture_FilteringMode_NEAREST:
+    {
+        magFilterMode = GL_NEAREST;
+        minFilterMode = textureInfo.generate_mipmaps() ? GL_NEAREST_MIPMAP_LINEAR : GL_NEAREST;
+        break;
+    }
+    default:
+        break;
+    }
+
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, minFilterMode);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, magFilterMode);
 
     return true;
 }

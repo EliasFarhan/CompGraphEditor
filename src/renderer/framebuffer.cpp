@@ -7,6 +7,14 @@
 
 namespace gpr5300
 {
+Framebuffer::~Framebuffer()
+{
+    if (name_ != 0)
+    {
+        LogWarning("Forgot to clear Framebuffer");
+    }
+}
+
 void Framebuffer::Bind() const
 {
     if (currentFramebuffer_ != name_)

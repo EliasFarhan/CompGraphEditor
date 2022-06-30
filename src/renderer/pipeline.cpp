@@ -9,6 +9,13 @@
 
 namespace gpr5300
 {
+Shader::~Shader()
+{
+    if(name != 0)
+    {
+        LogWarning("Forgot to clear Shader");
+    }
+}
 
 void Shader::LoadShader(const pb::Shader &shader)
 {
@@ -67,6 +74,14 @@ void Shader::Destroy()
     }
     glDeleteShader(name);
     name = 0;
+}
+
+Pipeline::~Pipeline()
+{
+    if(name != 0)
+    {
+        LogWarning("Forgot to clear Pipeline");
+    }
 }
 
 void Pipeline::Bind() const

@@ -16,6 +16,7 @@ namespace gpr5300
 
 struct Shader
 {
+    ~Shader();
     void LoadShader(const pb::Shader& shader);
     GLuint name = 0;
     void Destroy();
@@ -25,7 +26,7 @@ class Pipeline
 {
 public:
 
-
+    ~Pipeline();
     void Bind() const;
     static void Unbind();
     void LoadRasterizePipeline(const Shader& vertex, const Shader& fragment);

@@ -14,6 +14,7 @@ namespace gpr5300
     //A loaded texture in GPU that can be used in OpenGL
     struct Texture
     {
+        ~Texture();
         GLuint name = 0;
         int width = 0;
         int height = 0;

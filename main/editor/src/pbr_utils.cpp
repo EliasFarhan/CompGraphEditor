@@ -33,10 +33,14 @@ void GeneratePreComputeBrdfLUT()
     glBindTexture(GL_TEXTURE_2D, texOutput);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, texW, texH, 0, GL_RGBA, GL_FLOAT,
         nullptr);
-    glBindImageTexture(0, texOutput, 0, GL_FALSE, 0, GL_WRITE_ONLY, GL_RGBA32F);
-    glCheckError();
 
-    const auto& filesystem = FilesystemLocator::get();
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+
+    glBindImageTexture(1, texOutput, 0, GL_FALSE, 0, GL_WRITE_ONLY, GL_RGBA32F);
+    glCheckError();
 
     pb::Shader shaderInfo;
     shaderInfo.set_path("shaders/pre_compute_brdf.comp");
@@ -48,10 +52,10 @@ void GeneratePreComputeBrdfLUT()
     pipeline.LoadComputePipeline(shader);
 
     shader.Destroy();
-    { // launch compute shaders!
-        pipeline.Bind();
-        glDispatchCompute(static_cast<GLuint>(texW), static_cast<GLuint>(texH), 1);
-    }
+    // launch compute shaders!
+    pipeline.Bind();
+    glCheckError();
+    glDispatchCompute(static_cast<GLuint>(texW), static_cast<GLuint>(texH), 1);
 
     // make sure writing to image has finished before read
     glMemoryBarrier(GL_ALL_BARRIER_BITS);
@@ -357,6 +361,123 @@ void GenerateIrradianceMap(std::string_view path)
 
 void GeneratePreFilterEnvMap(std::string_view path)
 {
-    //TODO
+    const auto baseDir = GetFolder(path);
+    const auto filename = GetFilename(path, false);
+    const auto preFilterEnvMapPath = fmt::format("{}/{}_prefilter.ktx", baseDir, filename);
+
+    auto& filesystem = FilesystemLocator::get();
+    auto envMapFile = filesystem.LoadFile(path);
+    int texW;
+    int texH;
+    int channel;
+
+    stbi_set_flip_vertically_on_load(true);
+    auto* envMapData = stbi_loadf_from_memory(envMapFile.data, envMapFile.length, &texW, &texH, &channel, 4);
+
+    unsigned int envMap;
+    if (envMapData)
+    {
+        glGenTextures(1, &envMap);
+        glBindTexture(GL_TEXTURE_2D, envMap);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, texW, texH, 0, GL_RGBA, GL_FLOAT, envMapData);
+
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        //glBindImageTexture(0, envMap, 0, GL_FALSE, 0, GL_READ_ONLY, GL_RGBA32F);
+        glBindTexture(GL_TEXTURE_2D, 0);
+        stbi_image_free(envMapData);
+
+    }
+    else
+    {
+        //Error loading hdr
+        return;
+    }
+    glCheckError();
+    auto cube = GenerateCube(glm::vec3(2.0f), glm::vec3(0.0f));
+
+    pb::FrameBuffer captureFboInfo;
+    captureFboInfo.set_name("captureFBO");
+    auto* captureCubemap = captureFboInfo.add_color_attachments();
+    captureCubemap->set_cubemap(true);
+    captureCubemap->set_type(pb::RenderTarget_Type_FLOAT);
+    captureCubemap->set_format(pb::RenderTarget_Format_RGBA);
+    captureCubemap->set_format_size(pb::RenderTarget_FormatSize_SIZE_32);
+    captureCubemap->set_size_type(pb::RenderTarget_Size_FIXED_SIZE);
+    captureCubemap->mutable_target_size()->set_x(512);
+    captureCubemap->mutable_target_size()->set_y(512);
+    static constexpr std::string_view envCubemapName = "envCubeName";
+    captureCubemap->set_name(envCubemapName.data());
+
+    Framebuffer captureFbo;
+    captureFbo.Load(captureFboInfo);
+
+    //Generate environment cubemap
+    //from equirectangle to cubemap
+    pb::Shader cubemapShaderInfo;
+    cubemapShaderInfo.set_path("shaders/cubemap.vert");
+    cubemapShaderInfo.set_type(pb::Shader_Type_VERTEX);
+
+    Shader cubemapShader;
+    cubemapShader.LoadShader(cubemapShaderInfo);
+
+    pb::Shader equirectangleToCubemapShaderInfo;
+    equirectangleToCubemapShaderInfo.set_path("shaders/equirectangle_to_cubemap.frag");
+    equirectangleToCubemapShaderInfo.set_type(pb::Shader_Type_FRAGMENT);
+
+    Shader equirectangleToCubemapShader;
+    equirectangleToCubemapShader.LoadShader(equirectangleToCubemapShaderInfo);
+
+    Pipeline equirectangleToCubemap;
+    equirectangleToCubemap.LoadRasterizePipeline(cubemapShader, equirectangleToCubemapShader);
+    equirectangleToCubemapShader.Destroy();
+
+    equirectangleToCubemap.Bind();
+    equirectangleToCubemap.SetTexture("equirectangularMap", envMap, 0);
+    glBindVertexArray(cube.vao);
+    glCheckError();
+    // pbr: set up projection and view matrices for capturing data onto the 6 cubemap face directions
+    // ----------------------------------------------------------------------------------------------
+    glm::mat4 captureProjection = glm::perspective(glm::radians(90.0f), 1.0f, 0.1f, 10.0f);
+    glm::mat4 captureViews[] =
+    {
+        glm::lookAt(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(1.0f,  0.0f,  0.0f), glm::vec3(0.0f, -1.0f,  0.0f)),
+        glm::lookAt(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(-1.0f,  0.0f,  0.0f), glm::vec3(0.0f, -1.0f,  0.0f)),
+        glm::lookAt(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f,  1.0f,  0.0f), glm::vec3(0.0f,  0.0f,  1.0f)),
+        glm::lookAt(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, -1.0f,  0.0f), glm::vec3(0.0f,  0.0f, -1.0f)),
+        glm::lookAt(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f,  0.0f,  1.0f), glm::vec3(0.0f, -1.0f,  0.0f)),
+        glm::lookAt(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f,  0.0f, -1.0f), glm::vec3(0.0f, -1.0f,  0.0f))
+    };
+
+    equirectangleToCubemap.SetMat4("projection", captureProjection);
+
+    glViewport(0, 0, 512, 512);
+    captureFbo.Bind();
+    glCheckError();
+    auto envCubemap = captureFbo.GetTextureName(envCubemapName);
+    for (unsigned int i = 0; i < 6; ++i)
+    {
+        glCheckError();
+        equirectangleToCubemap.SetMat4("view", captureViews[i]);
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, envCubemap, 0);
+        glCheckError();
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        glCheckError();
+        glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, nullptr);
+        glCheckError();
+    }
+    captureFbo.Unbind();
+
+    pb::Shader preFilterShaderInfo;
+    preFilterShaderInfo.set_type(pb::Shader_Type_FRAGMENT);
+    preFilterShaderInfo.set_path("shaders/prefilter.frag");
+
+    Shader irradianceConvlutionShader;
+    irradianceConvlutionShader.LoadShader(preFilterShaderInfo);
+
+    Pipeline irradianceConvolution;
+    irradianceConvolution.LoadRasterizePipeline(cubemapShader, irradianceConvlutionShader);
 }
 } // namespace gpr5300

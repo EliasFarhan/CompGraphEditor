@@ -19,6 +19,7 @@
 #include "pbr_utils.h"
 #include "renderer/shape_primitive.h"
 
+
 namespace gpr5300
 {
 
@@ -72,6 +73,12 @@ void TextureEditor::DrawInspector()
             ImGui::PopID();
         }
         ImGui::PopID();
+
+        if(ImGui::Button("Convert To KTX"))
+        {
+            CubeToKtx(currentTextureInfo);
+        }
+
     }
 
     static constexpr std::array<std::string_view, 4> wrappingModeNames
@@ -122,6 +129,10 @@ void TextureEditor::DrawInspector()
 
     if(GetFileExtension(currentTextureInfo.info.path()) == ".hdr")
     {
+        if(ImGui::Button("HDR to KTX"))
+        {
+            HdrToKtx(currentTextureInfo);
+        }
         if(ImGui::Button("Generate Irradiance Map"))
         {
             GenerateIrradianceMap(currentTextureInfo.info.path());
@@ -131,6 +142,7 @@ void TextureEditor::DrawInspector()
             GeneratePreFilterEnvMap(currentTextureInfo.info.path());
         }
     }
+    
 }
 
 bool TextureEditor::DrawContentList(bool unfocus)
@@ -267,5 +279,250 @@ std::span<const std::string_view> TextureEditor::GetExtensions() const
     return extensions;
 }
 
+void TextureEditor::CubeToKtx(const TextureInfo& textureInfo)
+{
 
+    const auto ktxPath = fmt::format("{}/{}.ktx", GetFolder(textureInfo.info.path()), GetFilename(textureInfo.info.path(), false));
+
+    Texture cubemap;
+    cubemap.LoadCubemap(textureInfo.info);
+
+
+    const auto& firstFacePath = textureInfo.cubemap.texture_paths(0);
+    int w, h, channelCount;
+    if(!stbi_info(firstFacePath.data(), &w, &h, &channelCount))
+    {
+        LogError(fmt::format("KTX conversion: Could not get info for face 0: {}", firstFacePath));
+        return;
+    }
+    ktxTexture1* texture;                   
+    ktxTextureCreateInfo createInfo;
+    KTX_error_code result;
+
+    createInfo.glInternalformat = GL_RGB8;
+    createInfo.baseWidth = w;
+    createInfo.baseHeight = h;
+    createInfo.baseDepth = 1;
+    createInfo.numDimensions = 2;
+    createInfo.numLevels = 1 ;
+    createInfo.numLayers = 1;
+    createInfo.numFaces = 6;
+    createInfo.isArray = KTX_FALSE;
+    createInfo.generateMipmaps = textureInfo.info.generate_mipmaps();
+    
+
+    // Call ktxTexture1_Create to create a KTX texture.
+    result = ktxTexture1_Create(&createInfo,
+        KTX_TEXTURE_CREATE_ALLOC_STORAGE,
+        &texture);
+    if(!CheckKtxError(result))
+    {
+        return;
+    }
+    const int size = w * h * channelCount;
+    void* buffer = std::malloc(size);
+    glBindTexture(GL_TEXTURE_CUBE_MAP, cubemap.name);
+    for (int faceIndex = 0; faceIndex < 6; faceIndex++)
+    {
+        glGetTexImage(GL_TEXTURE_CUBE_MAP_POSITIVE_X+faceIndex, 0, textureInfo.info.gamma_correction()?GL_SRGB:GL_RGB, GL_UNSIGNED_BYTE, buffer);
+        result = ktxTexture_SetImageFromMemory(ktxTexture(texture),
+            0, 0, faceIndex,
+            static_cast<const ktx_uint8_t*>(buffer), size);
+        CheckKtxError(result);
+    }
+    std::free(buffer);
+    
+
+    // Repeat for the other 15 slices of the base level and all other levels
+    // up to createInfo.numLevels.
+    
+    ktxTexture_WriteToNamedFile(ktxTexture(texture), ktxPath.data());
+    ktxTexture_Destroy(ktxTexture(texture));
+    cubemap.Destroy();
+
+    auto& resourceManager = Editor::GetInstance()->GetResourceManager();
+    resourceManager.AddResource(ktxPath);
+
+    const auto ktxId = resourceManager.FindResourceByPath(ktxPath);
+    auto* ktxTextureInfo = GetTexture(ktxId);
+    ktxTextureInfo->info.set_filter_mode(textureInfo.info.filter_mode());
+    ktxTextureInfo->info.set_wrapping_mode(textureInfo.info.wrapping_mode());
+    ktxTextureInfo->info.set_gamma_correction(textureInfo.info.gamma_correction());
+}
+
+void TextureEditor::HdrToKtx(const TextureInfo& textureInfo)
+{
+    const auto& path = textureInfo.info.path();
+    const auto baseDir = GetFolder(path);
+    const auto filename = GetFilename(path, false);
+    const auto ktxMapPath = fmt::format("{}/{}.ktx", baseDir, filename);
+
+    auto& filesystem = FilesystemLocator::get();
+    auto envMapFile = filesystem.LoadFile(path);
+    int texW;
+    int texH;
+    int channel;
+
+    stbi_set_flip_vertically_on_load(true);
+    auto* envMapData = stbi_loadf_from_memory(envMapFile.data, envMapFile.length, &texW, &texH, &channel, 4);
+
+    unsigned int envMap;
+    if (envMapData)
+    {
+        glGenTextures(1, &envMap);
+        glBindTexture(GL_TEXTURE_2D, envMap);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, texW, texH, 0, GL_RGBA, GL_FLOAT, envMapData);
+
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        //glBindImageTexture(0, envMap, 0, GL_FALSE, 0, GL_READ_ONLY, GL_RGBA32F);
+        glBindTexture(GL_TEXTURE_2D, 0);
+        stbi_image_free(envMapData);
+
+    }
+    else
+    {
+        //Error loading hdr
+        return;
+    }
+    glCheckError();
+
+    const auto targetSize = texH / 2;
+    auto cube = GenerateCube(glm::vec3(2.0f), glm::vec3(0.0f));
+
+    pb::FrameBuffer captureFboInfo;
+    captureFboInfo.set_name("captureFBO");
+    auto* captureCubemap = captureFboInfo.add_color_attachments();
+    captureCubemap->set_cubemap(true);
+    captureCubemap->set_type(pb::RenderTarget_Type_FLOAT);
+    captureCubemap->set_format(pb::RenderTarget_Format_RGBA);
+    captureCubemap->set_format_size(pb::RenderTarget_FormatSize_SIZE_32);
+    captureCubemap->set_size_type(pb::RenderTarget_Size_FIXED_SIZE);
+    captureCubemap->mutable_target_size()->set_x(targetSize);
+    captureCubemap->mutable_target_size()->set_y(targetSize);
+    static constexpr std::string_view envCubemapName = "envCubeName";
+    captureCubemap->set_name(envCubemapName.data());
+
+    Framebuffer captureFbo;
+    captureFbo.Load(captureFboInfo);
+
+    //Generate environment cubemap
+    //from equirectangle to cubemap
+    pb::Shader cubemapShaderInfo;
+    cubemapShaderInfo.set_path("shaders/cubemap.vert");
+    cubemapShaderInfo.set_type(pb::Shader_Type_VERTEX);
+
+    Shader cubemapShader;
+    cubemapShader.LoadShader(cubemapShaderInfo);
+
+    pb::Shader equirectangleToCubemapShaderInfo;
+    equirectangleToCubemapShaderInfo.set_path("shaders/equirectangle_to_cubemap.frag");
+    equirectangleToCubemapShaderInfo.set_type(pb::Shader_Type_FRAGMENT);
+
+    Shader equirectangleToCubemapShader;
+    equirectangleToCubemapShader.LoadShader(equirectangleToCubemapShaderInfo);
+
+    Pipeline equirectangleToCubemap;
+    equirectangleToCubemap.LoadRasterizePipeline(cubemapShader, equirectangleToCubemapShader);
+    equirectangleToCubemapShader.Destroy();
+
+    equirectangleToCubemap.Bind();
+    equirectangleToCubemap.SetTexture("equirectangularMap", envMap, 0);
+    glBindVertexArray(cube.vao);
+    glCheckError();
+    // pbr: set up projection and view matrices for capturing data onto the 6 cubemap face directions
+    // ----------------------------------------------------------------------------------------------
+    glm::mat4 captureProjection = glm::perspective(glm::radians(90.0f), 1.0f, 0.1f, 10.0f);
+    glm::mat4 captureViews[] =
+    {
+        glm::lookAt(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(1.0f,  0.0f,  0.0f), glm::vec3(0.0f, -1.0f,  0.0f)),
+        glm::lookAt(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(-1.0f,  0.0f,  0.0f), glm::vec3(0.0f, -1.0f,  0.0f)),
+        glm::lookAt(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f,  1.0f,  0.0f), glm::vec3(0.0f,  0.0f,  1.0f)),
+        glm::lookAt(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, -1.0f,  0.0f), glm::vec3(0.0f,  0.0f, -1.0f)),
+        glm::lookAt(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f,  0.0f,  1.0f), glm::vec3(0.0f, -1.0f,  0.0f)),
+        glm::lookAt(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f,  0.0f, -1.0f), glm::vec3(0.0f, -1.0f,  0.0f))
+    };
+
+    equirectangleToCubemap.SetMat4("projection", captureProjection);
+
+    glViewport(0, 0, targetSize, targetSize);
+    captureFbo.Bind();
+    glCheckError();
+    auto envCubemap = captureFbo.GetTextureName(envCubemapName);
+    for (unsigned int i = 0; i < 6; ++i)
+    {
+        glCheckError();
+        equirectangleToCubemap.SetMat4("view", captureViews[i]);
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, envCubemap, 0);
+        glCheckError();
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        glCheckError();
+        glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, nullptr);
+        glCheckError();
+    }
+    equirectangleToCubemap.Unbind();
+    captureFbo.Unbind();
+    glCheckError();
+
+    //Write to KTX
+    ktxTexture1* texture;
+    ktxTextureCreateInfo createInfo;
+    KTX_error_code result;
+
+    createInfo.glInternalformat = GL_RGBA32F;
+    createInfo.baseWidth = targetSize;
+    createInfo.baseHeight = targetSize;
+    createInfo.baseDepth = 1;
+    createInfo.numDimensions = 2;
+    createInfo.numLevels = 1;
+    createInfo.numLayers = 1;
+    createInfo.numFaces = 6;
+    createInfo.isArray = KTX_FALSE;
+    createInfo.generateMipmaps = textureInfo.info.generate_mipmaps();
+
+    
+    result = ktxTexture1_Create(&createInfo,
+        KTX_TEXTURE_CREATE_ALLOC_STORAGE,
+        &texture);
+    if (!CheckKtxError(result))
+    {
+        return;
+    }
+    const int size = targetSize * targetSize * 4 * 4;
+    void* buffer = std::malloc(size);
+    glBindTexture(GL_TEXTURE_CUBE_MAP, envCubemap);
+    for (int faceIndex = 0; faceIndex < 6; faceIndex++)
+    {
+        glGetTexImage(GL_TEXTURE_CUBE_MAP_POSITIVE_X + faceIndex, 0, GL_RGBA, GL_FLOAT, buffer);
+        result = ktxTexture_SetImageFromMemory(ktxTexture(texture),
+            0, 0, faceIndex,
+            static_cast<const ktx_uint8_t*>(buffer), size);
+        CheckKtxError(result);
+        glCheckError();
+    }
+    
+    std::free(buffer);
+
+
+    // Repeat for the other 15 slices of the base level and all other levels
+    // up to createInfo.numLevels.
+
+    ktxTexture_WriteToNamedFile(ktxTexture(texture), ktxMapPath.data());
+    ktxTexture_Destroy(ktxTexture(texture));
+
+    auto& resourceManager = Editor::GetInstance()->GetResourceManager();
+    resourceManager.AddResource(ktxMapPath);
+
+    const auto ktxId = resourceManager.FindResourceByPath(ktxMapPath);
+    auto* ktxTextureInfo = GetTexture(ktxId);
+    ktxTextureInfo->info.set_filter_mode(textureInfo.info.filter_mode());
+    ktxTextureInfo->info.set_wrapping_mode(textureInfo.info.wrapping_mode());
+    ktxTextureInfo->info.set_gamma_correction(textureInfo.info.gamma_correction());
+    glCheckError();
+
+    captureFbo.Destroy();
+    equirectangleToCubemap.Destroy();
+}
 }
