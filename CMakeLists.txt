@@ -14,6 +14,7 @@ find_package(spdlog CONFIG REQUIRED)
 find_path(STB_INCLUDE_DIRS "stb_image.h")
 find_package(tinyobjloader CONFIG REQUIRED)
 find_package(protobuf CONFIG REQUIRED)
+find_package(zstd CONFIG REQUIRED)
 find_package(Ktx CONFIG REQUIRED)
 
 add_subdirectory(external/pybind11)

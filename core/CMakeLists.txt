@@ -1,6 +1,3 @@
-
-
-
 file(GLOB_RECURSE CORE_FILES src/*.cpp include/*.h)
 add_library(Core STATIC ${CORE_FILES})
 target_include_directories(Core PUBLIC include/ ${STB_INCLUDE_DIRS} ${Python3_INCLUDE_DIRS})
