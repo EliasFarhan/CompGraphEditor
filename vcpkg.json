@@ -2,11 +2,14 @@
     "name": "gpr5300-920",
     "version-string": "1.0",
     "dependencies": [
-        "sdl2", "glm", "glew", "tinyobjloader", "stb", "fmt", "ktx",
+        {
+            "name": "sdl2",
+            "features": ["vulkan"]
+        }, "glm", "glew", "tinyobjloader", "stb", "fmt", "ktx",
         {
             "name": "imgui",
-            "features": ["sdl2-binding", "opengl3-binding", "docking-experimental"]
+            "features": ["sdl2-binding", "opengl3-binding", "docking-experimental", "vulkan-binding"]
         },
-        "physfs", "protobuf", "spdlog", "nlohmann-json"
+        "physfs", "protobuf", "spdlog", "nlohmann-json", "vulkan-memory-allocator", "assimp"
     ]
 }

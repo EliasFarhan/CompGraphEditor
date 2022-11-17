@@ -11,7 +11,6 @@
 
 namespace gpr5300
 {
-
     class OnEventInterface
     {
     public:
@@ -36,23 +35,27 @@ namespace gpr5300
         void RegisterImGuiDrawInterface(ImguiDrawInterface* imguiDrawInterface);
         void RegisterSystem(System* system);
 
+
         void SetWindowName(std::string_view windowName);
         glm::uvec2 GetWindowSize() const;
-        static Engine* GetInstance() { return engine_; }
-    private:
-        void Begin();
-        void End();
+    protected:
+        virtual void Begin();
+        virtual void End();
+        virtual void ResizeWindow(glm::uvec2) = 0;
+        virtual void PreUpdate() = 0;
+        virtual void PreImGuiDraw() = 0;
+        virtual void PostImGuiDraw() = 0;
+        virtual void SwapWindow() = 0;
 
-        inline static Engine* engine_ = nullptr;
-
-        pb::Config config_;
         SDL_Window* window_ = nullptr;
-
+        pb::Config config_;
+    private:
         std::vector<System*> systems_;
         std::vector<OnEventInterface*> onEventInterfaces;
         std::vector<ImguiDrawInterface*> imguiDrawInterfaces;
-        SDL_GLContext glRenderContext_{};
         inline static constexpr std::string_view configFilename = "config.bin";
     }; 
+
+    glm::uvec2 GetWindowSize();
 } // namespace gpr5300
 

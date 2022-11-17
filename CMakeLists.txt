@@ -1,12 +1,12 @@
 cmake_minimum_required (VERSION 3.18)
-project(GPR5300_Editor)
+project(CompGraphEditor)
 
 set (CMAKE_CXX_STANDARD 20)
 set (CMAKE_CXX_STANDARD_REQUIRED ON)
 
 include(cmake/data.cmake)
+include(cmake/proto.cmake)
 
-find_package(GLEW REQUIRED)
 find_package(glm CONFIG REQUIRED)
 find_package(SDL2 CONFIG REQUIRED)
 find_package(imgui CONFIG REQUIRED)
@@ -18,29 +18,8 @@ find_package(Ktx CONFIG REQUIRED)
 
 add_subdirectory(external/pybind11)
 
-file(GLOB_RECURSE PROTO_FILES proto/*.proto)
-add_library(CommonProto STATIC ${PROTO_FILES})
-protobuf_generate(TARGET CommonProto LANGUAGE cpp)
-protobuf_generate(TARGET CommonProto LANGUAGE python)
-target_include_directories(CommonProto PUBLIC ${CMAKE_CURRENT_BINARY_DIR})
-target_link_libraries(CommonProto PUBLIC protobuf::libprotobuf-lite protobuf::libprotoc protobuf::libprotobuf)
+add_subdirectory(core/)
+add_subdirectory(common/)
 
-file(GLOB_RECURSE COMMON_FILES src/*.cpp include/*.h)
-add_library(Common STATIC ${COMMON_FILES})
-target_include_directories(Common PUBLIC include/ ${STB_INCLUDE_DIRS} ${Python3_INCLUDE_DIRS})
-target_link_libraries(Common PUBLIC CommonProto GLEW::GLEW glm::glm SDL2::SDL2 SDL2::SDL2main imgui::imgui
-    tinyobjloader::tinyobjloader pybind11::embed ${Python3_LIBRARIES} spdlog::spdlog KTX::ktx)
-set_target_properties(Common PROPERTIES UNITY_BUILD ON)
-if(MSVC)
-    target_compile_definitions(Common PUBLIC "_USE_MATH_DEFINES" WIN32_LEAN_AND_MEAN)
-    target_compile_options(Common PUBLIC /arch:AVX2 /Oi /GL /fp:fast)
-    target_link_options(Common PUBLIC /LTCG)
-else()
-    target_compile_options(Common PUBLIC -march=haswell -ffast-math -flto)
-    target_link_options(Common PUBLIC -flto)
-endif()
 
-file(GLOB MAIN_FOLDERS main/*)
-foreach(MAIN_FOLDER ${MAIN_FOLDERS})
-    add_subdirectory(${MAIN_FOLDER})
-endforeach()
+add_subdirectory(main/)

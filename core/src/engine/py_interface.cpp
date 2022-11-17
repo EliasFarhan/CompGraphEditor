@@ -192,12 +192,12 @@ PYBIND11_EMBEDDED_MODULE(gpr5300, m)
 
     m.def("get_window_size", []
         {
-            return glm::vec2(gpr5300::Engine::GetInstance()->GetWindowSize());
+            return glm::vec2{ gpr5300::GetWindowSize() };
         });
 
     m.def("get_aspect", []
         {
-            const auto windowSize = gpr5300::Engine::GetInstance()->GetWindowSize();
+            const auto windowSize = gpr5300::GetWindowSize();
             return static_cast<float>(windowSize.x)/static_cast<float>(windowSize.y);
         });
 

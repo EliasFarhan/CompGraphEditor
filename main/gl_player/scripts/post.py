@@ -25,7 +25,7 @@ class PostProcess(gpr5300.System):
             for i in range(0, self.subpass0.draw_command_count):
                 command = self.subpass0.get_draw_command(i)
                 pipeline = command.get_material().get_pipeline()
-                pipeline.set_mat4("projection", gpr5300.Mat4.perspective(math.radians(45.0),gpr5300.get_aspect(), 0.1, 100))
+                pipeline.set_mat4("projection", gpr5300.Mat4.perspective(math.radians(45.0), gpr5300.get_aspect(), 0.1, 100))
                 if i == 0:
                     #cube
                     model = gpr5300.Mat4.translate(gpr5300.Mat4(1.0), self.cube_pos)
