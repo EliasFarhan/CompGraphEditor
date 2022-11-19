@@ -2,9 +2,8 @@
 
 namespace gpr5300
 {
-    
-class TextureManager
-{
+    class Pipeline
+    {
 
-};
+    };
 } // namespace gpr5300
