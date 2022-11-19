@@ -10,7 +10,7 @@
 
 PYBIND11_EMBEDDED_MODULE(gl, m)
 {
-    py::class_<gpr5300::Pipeline>(m, "Pipeline")
+    py::class_<gpr5300::gl::Pipeline>(m, "Pipeline")
             .def("set_float", &gpr5300::Pipeline::SetFloat)
             .def("set_int", &gpr5300::Pipeline::SetInt)
             .def("set_vec2", &gpr5300::Pipeline::SetVec2)

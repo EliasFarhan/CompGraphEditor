@@ -1,6 +1,5 @@
 #pragma once
 
-#include <string_view>
 #include <GL/glew.h>
 #include "proto/renderer.pb.h"
 
@@ -9,10 +8,10 @@
 #include <glm/vec4.hpp>
 #include <glm/ext/matrix_float4x4.hpp>
 
-#include "renderer/texture.h"
 
 namespace gpr5300::gl
 {
+struct Texture;
 
 struct Shader
 {

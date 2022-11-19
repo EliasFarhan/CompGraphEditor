@@ -1,9 +1,9 @@
-#include "renderer/debug.h"
+#include "gl/debug.h"
 #include "utils/log.h"
 #include <fmt/format.h>
 #include <GL/glew.h>
 
-namespace gpr5300
+namespace gpr5300::gl
 {
 bool CheckKtxError(ktx_error_code_e error_code)
 {

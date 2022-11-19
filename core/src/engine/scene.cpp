@@ -13,6 +13,8 @@
 namespace gpr5300
 {
 
+static SceneManager* sceneManagerInstance = nullptr;
+
 void Scene::LoadScene(PyManager &pyManager)
 {
 
@@ -78,11 +80,6 @@ void Scene::Update(float dt)
     
 }
 
-SceneMaterial Scene::GetMaterial(int materialIndex)
-{
-
-}
-
 int Scene::GetMeshCount() const
 {
     return scene_.meshes_size();
@@ -139,7 +136,7 @@ void Scene::OnEvent(SDL_Event& event)
 
 SceneSubPass Scene::GetSubpass(int subPassIndex)
 {
-    return SceneSubPass(*this, scene_.render_pass().sub_passes(subPassIndex));
+    return { *this, scene_.render_pass().sub_passes(subPassIndex) };
 }
 int Scene::GetSubpassCount() const
 {
@@ -188,6 +185,16 @@ void SceneManager::OnEvent(SDL_Event& event)
     currentScene_->OnEvent(event);
 }
 
+Scene* GetCurrentScene()
+{
+    return sceneManagerInstance->GetCurrentScene();
+}
+
+TextureManager& GetTextureManager()
+{
+    return sceneManagerInstance->GetTextureManager();
+}
+
 void SceneManager::Update(float dt)
 {
     if (currentScene_ == nullptr)
@@ -204,14 +211,7 @@ SceneMaterial::SceneMaterial(Pipeline* pipeline, Material* material) :
 
 void SceneMaterial::Bind() const
 {
-    pipeline_->Bind();
-    for (std::size_t textureIndex = 0; textureIndex < material_->textures.size(); textureIndex++)
-    {
-        pipeline_->SetTexture(
-            material_->textures[textureIndex].uniformSamplerName,
-            material_->textures[textureIndex].texture,
-            textureIndex);
-    }
+   
 }
 
 Pipeline* SceneMaterial::GetPipeline() const
@@ -221,19 +221,19 @@ Pipeline* SceneMaterial::GetPipeline() const
 
 std::string_view SceneMaterial::GetName() const
 {
-    return material_->name;
+    return material_->GetName();
 }
 
 SceneManager::SceneManager()
 {
-    sceneManager_ = this;
+    sceneManagerInstance = this;
 }
 SceneDrawCommand::SceneDrawCommand(Scene& scene, const pb::DrawCommand& drawCommand) :
     scene_(scene), drawCommand_(drawCommand)
 {
 
 }
-SceneMaterial SceneDrawCommand::GetMaterial() const
+std::unique_ptr<SceneMaterial> SceneDrawCommand::GetMaterial() const
 {
     return scene_.GetMaterial(drawCommand_.material_index());
 }
@@ -244,7 +244,7 @@ void SceneDrawCommand::Draw()
 
 std::string_view SceneDrawCommand::GetMeshName() const
 {
-    return scene_.GetMesh(drawCommand_.mesh_index()).name;
+    return scene_.GetMesh(drawCommand_.mesh_index()).GetName();
 }
 
 std::string_view SceneDrawCommand::GetName() const

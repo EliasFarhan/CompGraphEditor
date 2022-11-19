@@ -2,6 +2,7 @@
 
 #include "proto/renderer.pb.h"
 #include <GL/glew.h>
+#include <glm/vec2.hpp>
 
 namespace gpr5300::gl
 {

@@ -1,7 +1,7 @@
 #pragma once
 
 #include <tiny_obj_loader.h>
-#include "renderer/mesh.h"
+#include "gl/mesh.h"
 
 namespace gpr5300::gl
 {

@@ -5,9 +5,9 @@
 #undef TINYOBJLOADER_IMPLEMENTATION
 
 #include "engine/filesystem.h"
-#include "renderer/model.h"
+#include "gl/model.h"
 #include "utils/log.h"
-#include "renderer/debug.h"
+#include "gl/debug.h"
 
 #include <glm/vec3.hpp>
 #include <glm/vec2.hpp>
@@ -16,7 +16,7 @@
 #include <array>
 #include <unordered_set>
 
-namespace gpr5300
+namespace gpr5300::gl
 {
 void Model::LoadModel(std::string_view path)
 {

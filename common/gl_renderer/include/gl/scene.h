@@ -14,7 +14,12 @@
 
 namespace gpr5300::gl
 {
-    
+
+class SceneMaterial : public gpr5300::SceneMaterial
+{
+    void Bind() const override;
+};
+
 class Scene : public gpr5300::Scene
 {
 public:
@@ -22,7 +27,7 @@ public:
     void Update(float dt) override;
     void Draw(const pb::DrawCommand& drawCommand) override;
 
-    SceneMaterial GetMaterial(int materialIndex) override;
+    std::unique_ptr<gpr5300::SceneMaterial> GetMaterial(int materialIndex) override;
 
     void OnEvent(SDL_Event& event) override;
 

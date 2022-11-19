@@ -1,11 +1,11 @@
-#include "renderer/shape_primitive.h"
-#include "renderer/debug.h"
+#include "gl/shape_primitive.h"
+#include "gl/debug.h"
 
 #include <array>
 #include <glm/vec2.hpp>
 #include <glm/vec3.hpp>
 
-namespace gpr5300
+namespace gpr5300::gl
 {
 
 Mesh GenerateQuad(glm::vec3 scale, glm::vec3 offset)

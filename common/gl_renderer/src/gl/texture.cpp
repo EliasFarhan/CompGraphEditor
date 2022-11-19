@@ -1,16 +1,17 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb_image.h>
-#include "renderer/texture.h"
+
+#include "gl/texture.h"
 #include "engine/filesystem.h"
 #include "utils/log.h"
 
-#include <fmt/format.h>
-#include "renderer/debug.h"
+#include "gl/debug.h"
 
+#include <fmt/format.h>
 #include <ktx.h>
 
 
-namespace gpr5300
+namespace gpr5300::gl
 {
 
 Texture TextureManager::LoadTexture(const pb::Texture &textureInfo)

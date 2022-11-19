@@ -4,6 +4,9 @@
 #include "proto/renderer.pb.h"
 #include "gl/shape_primitive.h"
 
+#include "renderer/pipeline.h"
+#include "renderer/material.h"
+
 namespace grp5300::gl
 {
 
@@ -84,6 +87,18 @@ gpr5300::Scene::ImportStatus gpr5300::gl::Scene::LoadMaterials(const PbRepeatFie
 }
 }
 
+
+void gpr5300::gl::SceneMaterial::Bind() const
+{
+    pipeline_->Bind();
+    for (std::size_t textureIndex = 0; textureIndex < material_->textures.size(); textureIndex++)
+    {
+        pipeline_->SetTexture(
+            material_->textures[textureIndex].uniformSamplerName,
+            material_->textures[textureIndex].texture,
+            textureIndex);
+    }
+}
 
 void gpr5300::gl::Scene::UnloadScene()
 {

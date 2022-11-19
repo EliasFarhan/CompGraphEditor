@@ -1,13 +1,14 @@
+#include "engine/filesystem.h"
+#include "gl/pipeline.h"
+#include "gl/debug.h"
+#include "gl/texture.h"
+#include "utils/log.h"
+
 
 #include <fmt/format.h>
 
-#include "renderer/pipeline.h"
-#include "engine/filesystem.h"
-#include "utils/log.h"
 
-#include "renderer/debug.h"
-
-namespace gpr5300
+namespace gpr5300::gl
 {
 Shader::~Shader()
 {

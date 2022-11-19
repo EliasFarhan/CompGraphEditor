@@ -163,7 +163,7 @@ PYBIND11_EMBEDDED_MODULE(gpr5300, m)
     ;
 
     m.def("get_scene", [](){
-       return gpr5300::SceneManager::GetInstance()->GetCurrentScene();
+       return gpr5300::GetCurrentScene();
     }, py::return_value_policy::reference);
 
     m.def("get_window_size", []

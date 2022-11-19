@@ -27,10 +27,13 @@ class SceneMaterial
 {
     public:
         SceneMaterial(Pipeline* pipeline, Material* material);
-        void Bind() const;
+        /**
+         * \brief Bind is a method that bind the underlying pipeline and material to the draw command
+         */
+        virtual void Bind() const = 0;
         [[nodiscard]] Pipeline* GetPipeline() const;
         [[nodiscard]] std::string_view GetName() const;
-    private:
+    protected:
         Pipeline* pipeline_ = nullptr;
         Material* material_ = nullptr;
 };
@@ -40,7 +43,7 @@ class SceneDrawCommand
 {
 public:
     SceneDrawCommand(Scene& scene, const pb::DrawCommand& drawCommand);
-    [[nodiscard]] SceneMaterial GetMaterial() const;
+    [[nodiscard]] std::unique_ptr<SceneMaterial> GetMaterial() const;
     void Draw();
     [[nodiscard]] std::string_view GetMeshName() const;
     [[nodiscard]] std::string_view GetName() const;
@@ -77,7 +80,7 @@ public:
 
     SceneSubPass GetSubpass(int subPassIndex);
     int GetSubpassCount() const;
-    virtual SceneMaterial GetMaterial(int materialIndex) = 0;
+    virtual std::unique_ptr<SceneMaterial> GetMaterial(int materialIndex) = 0;
     int GetMaterialCount() const;
     virtual Pipeline& GetPipeline(int index) = 0;
     int GetPipelineCount() const;
@@ -116,15 +119,17 @@ public:
     void Begin() override;
     void Update(float dt) override;
     void End() override;
-    Scene* GetCurrentScene() { return currentScene_; }
-    static SceneManager* GetInstance(){ return sceneManager_; }
+    Scene* GetCurrentScene() const { return currentScene_; }
     TextureManager& GetTextureManager(){ return textureManager_; }
     void OnEvent(SDL_Event& event) override;
 private:
-    inline static SceneManager* sceneManager_ = nullptr;
+    //inline static SceneManager* sceneManager_ = nullptr;
     Scene* currentScene_ = nullptr;
     PyManager pyManager_;
     TextureManager textureManager_;
 };
+
+Scene* GetCurrentScene();
+TextureManager& GetTextureManager();
 
 } // namespace gpr5300

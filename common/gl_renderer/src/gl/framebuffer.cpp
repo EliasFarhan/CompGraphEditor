@@ -1,11 +1,11 @@
-#include "renderer/framebuffer.h"
-#include "renderer/debug.h"
+#include "gl/framebuffer.h"
+#include "gl/debug.h"
 #include "engine/engine.h"
 #include "utils/log.h"
 
 #include <fmt/format.h>
 
-namespace gpr5300
+namespace gpr5300::gl
 {
 Framebuffer::~Framebuffer()
 {
@@ -186,7 +186,7 @@ void Framebuffer::Unbind()
 
 void Framebuffer::Load(const pb::FrameBuffer& framebufferPb)
 {
-    const auto windowSize = Engine::GetInstance()->GetWindowSize();
+    const auto windowSize = GetWindowSize();
     frameBufferPb_ = framebufferPb;
     framebufferName_ = framebufferPb.name();
     glCreateFramebuffers(1, &name_);
