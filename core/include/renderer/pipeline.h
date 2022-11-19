@@ -2,8 +2,14 @@
 
 namespace gpr5300
 {
-    class Pipeline
-    {
 
-    };
+class Shader
+{
+
+};
+
+class Pipeline
+{
+
+};
 } // namespace gpr5300

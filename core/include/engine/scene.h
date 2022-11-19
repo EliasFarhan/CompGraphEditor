@@ -1,24 +1,28 @@
 #pragma once
 
-#include "renderer/pipeline.h"
+#include <span>
+
 #include "engine/system.h"
-#include "renderer/mesh.h"
 #include "renderer/texture.h"
 #include "py_interface.h"
-#include "renderer/material.h"
 #include "proto/renderer.pb.h"
 #include "engine/engine.h"
 
-#include <vector>
 
-#include "renderer/framebuffer.h"
-#include "renderer/model.h"
+#include <vector>
 
 namespace gpr5300
 {
+
 class Scene;
+class Framebuffer;
+class Pipeline;
+class Material;
+class Mesh;
 
-
+/**
+ * \brief SceneMaterial is a class used by the python interface for scripting
+ */
 class SceneMaterial
 {
     public:
@@ -63,35 +67,45 @@ private:
 class Scene : public OnEventInterface
 {
 public:
+
     void LoadScene(PyManager& pyManager);
-    void UnloadScene();
+    virtual void UnloadScene() = 0;
     void SetScene(const pb::Scene &scene);
-    void Update(float dt);
+    virtual void Update(float dt) = 0;
+    virtual void Draw(const pb::DrawCommand& drawCommand) = 0;
+    virtual Framebuffer& GetFramebuffer(int framebufferIndex) = 0;
 
     SceneSubPass GetSubpass(int subPassIndex);
     int GetSubpassCount() const;
-    SceneMaterial GetMaterial(int materialIndex);
+    virtual SceneMaterial GetMaterial(int materialIndex) = 0;
     int GetMaterialCount() const;
-    Pipeline& GetPipeline(int index){ return pipelines_[index]; }
+    virtual Pipeline& GetPipeline(int index) = 0;
     int GetPipelineCount() const;
-    Mesh& GetMesh(int index) { return meshes_[index]; }
+    virtual Mesh& GetMesh(int index) = 0;
     int GetMeshCount() const;
-    void Draw(const pb::DrawCommand& drawCommand);
+
     void OnEvent(SDL_Event& event) override;
-    Framebuffer& GetFramebuffer(int framebufferIndex);
+protected:
+    enum class ImportStatus
+    {
+        SUCCESS,
+        FAILURE
+    };
 
-private:
+    template<typename T>
+    using PbRepeatField = google::protobuf::RepeatedPtrField<T>;
+
+    virtual ImportStatus LoadShaders(const PbRepeatField<pb::Shader> & shadersPb) = 0;
+    virtual ImportStatus LoadPipelines(const PbRepeatField<pb::Pipeline>& pipelines) = 0;
+    virtual ImportStatus LoadTextures(const PbRepeatField<pb::Texture>& textures) = 0;
+    virtual ImportStatus LoadMaterials(const PbRepeatField<pb::Material>& materials) = 0;
+    virtual ImportStatus LoadModels(const PbRepeatField<std::string>& models) = 0;
+    virtual ImportStatus LoadMeshes(const PbRepeatField<pb::Mesh>& meshes) = 0;
+    virtual ImportStatus LoadFramebuffers(const PbRepeatField<pb::FrameBuffer>& framebuffers) = 0;
+
+
     pb::Scene scene_;
-    std::vector<Shader> shaders_;
-    std::vector<Pipeline> pipelines_;
-    std::vector<Mesh> meshes_;
-    std::vector<Model> models_;
-    std::vector<Texture> textures_;
-    std::vector<Material> materials_;
     std::vector<Script*> pySystems_;
-    std::vector<Framebuffer> framebuffers_;
-    //std::vector<SubPass> subpasses_;
-
 };
 
 class SceneManager : public System, public OnEventInterface

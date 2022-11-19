@@ -3,7 +3,7 @@
 #include "renderer/texture.h"
 
 
-namespace gpr5300
+namespace gpr5300::gl
 {
 
 struct MaterialTexture

@@ -3,7 +3,7 @@
 #include "proto/renderer.pb.h"
 #include <GL/glew.h>
 
-namespace gpr5300
+namespace gpr5300::gl
 {
 
 struct AttachmentType

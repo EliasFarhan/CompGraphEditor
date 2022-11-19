@@ -3,7 +3,7 @@
 #include <GL/glew.h>
 #include "proto/renderer.pb.h"
 
-namespace gpr5300
+namespace gpr5300::gl
 {
     //A loaded image in memory
     class Image

@@ -2,7 +2,7 @@
 
 #include "renderer/mesh.h"
 
-namespace gpr5300
+namespace gpr5300::gl
 {
 Mesh GenerateQuad(glm::vec3 scale, glm::vec3 offset);
 Mesh GenerateEmpty();
