@@ -17,6 +17,8 @@ namespace gpr5300::gl
 
 class SceneMaterial : public gpr5300::SceneMaterial
 {
+public:
+    using gpr5300::SceneMaterial::SceneMaterial;
     void Bind() const override;
 };
 

@@ -1,5 +1,7 @@
 #pragma once
 
+#include "renderer/pipeline.h"
+
 #include <GL/glew.h>
 #include "proto/renderer.pb.h"
 
@@ -21,7 +23,7 @@ struct Shader
     void Destroy();
 };
 
-class Pipeline
+class Pipeline : public gpr5300::Pipeline
 {
 public:
 

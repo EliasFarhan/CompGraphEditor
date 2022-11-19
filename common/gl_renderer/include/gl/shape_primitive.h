@@ -1,6 +1,7 @@
 #pragma once
 
-#include "renderer/mesh.h"
+#include "gl/mesh.h"
+#include <glm/vec3.hpp>
 
 namespace gpr5300::gl
 {

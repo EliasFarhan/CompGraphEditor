@@ -1,5 +1,7 @@
 #pragma once
 
+#include "renderer/texture.h"
+
 #include <GL/glew.h>
 #include "proto/renderer.pb.h"
 
@@ -25,11 +27,11 @@ namespace gpr5300::gl
         void Destroy();
     };
 
-    class TextureManager
-    {
-    public:
-        Texture LoadTexture(const pb::Texture& textureInfo);
-    private:
-        std::unordered_map<std::string, Texture> texturesMap_;
-    };
+class TextureManager : public gpr5300::TextureManager
+{
+public:
+    Texture LoadTexture(const pb::Texture& textureInfo) override;
+private:
+    std::unordered_map<std::string, Texture> texturesMap_;
+};
 } // namespace gpr5300

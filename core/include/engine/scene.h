@@ -27,6 +27,7 @@ class SceneMaterial
 {
     public:
         SceneMaterial(Pipeline* pipeline, Material* material);
+        virtual ~SceneMaterial() = default;
         /**
          * \brief Bind is a method that bind the underlying pipeline and material to the draw command
          */

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "renderer/texture.h"
+#include "renderer/material.h"
 
 
 namespace gpr5300::gl
@@ -14,7 +15,7 @@ struct MaterialTexture
     std::string framebufferName;
 };
 
-struct Material
+struct Material : public gpr5300::Material
 {
     std::string name;
     int pipelineIndex = -1;
