@@ -22,6 +22,12 @@ public:
     void Bind() const override;
 };
 
+
+struct SceneTexture
+{
+    TextureId textureId = INVALID_TEXTURE_ID;
+};
+
 class Scene : public gpr5300::Scene
 {
 public:
@@ -46,7 +52,7 @@ private:
     std::vector<Pipeline> pipelines_;
     std::vector<Mesh> meshes_;
     std::vector<Model> models_;
-    std::vector<Texture> textures_;
+    std::vector<SceneTexture> textures_;
     std::vector<Material> materials_;
     std::vector<Framebuffer> framebuffers_;
 };

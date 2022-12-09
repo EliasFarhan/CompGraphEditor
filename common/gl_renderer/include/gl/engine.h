@@ -1,5 +1,6 @@
 #pragma once
 
+#include "gl/texture.h"
 #include "engine/engine.h"
 
 namespace gpr5300::gl
@@ -7,6 +8,8 @@ namespace gpr5300::gl
 
 class Engine: public gpr5300::Engine
 {
+public:
+    gl::TextureManager& GetTextureManager() override;
 protected:
     void Begin() override;
     void End() override;
@@ -17,5 +20,6 @@ protected:
     void SwapWindow() override;
 private:
     SDL_GLContext glRenderContext_{};
+    TextureManager textureManager_;
 };
 }

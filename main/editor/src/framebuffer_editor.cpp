@@ -7,6 +7,8 @@
 #include <array>
 #include <fstream>
 
+#include "gl/framebuffer.h"
+
 
 namespace gpr5300
 {
@@ -159,7 +161,7 @@ void FramebufferEditor::DrawInspector()
         {
             colorAttachment->set_snorm(snorm);
         }
-        const auto status = GetAttachmentType(*colorAttachment);
+        const auto status = gl::GetAttachmentType(*colorAttachment);
         if(status.error != 0)
         {
             ImGui::TextColored({ 1,0,0,1 }, "Invalid attachment format");
@@ -227,7 +229,7 @@ void FramebufferEditor::DrawInspector()
         }
 
 
-        const auto status = GetAttachmentType(*depthStencilAttachment);
+        const auto status = gl::GetAttachmentType(*depthStencilAttachment);
         if (status.error != 0)
         {
             ImGui::TextColored({ 1,0,0,1 }, "Invalid attachment format");

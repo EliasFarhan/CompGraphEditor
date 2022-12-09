@@ -68,6 +68,7 @@ private:
 
 
 
+
 class Scene : public OnEventInterface
 {
 public:
@@ -121,16 +122,12 @@ public:
     void Update(float dt) override;
     void End() override;
     Scene* GetCurrentScene() const { return currentScene_; }
-    TextureManager& GetTextureManager(){ return textureManager_; }
     void OnEvent(SDL_Event& event) override;
 private:
-    //inline static SceneManager* sceneManager_ = nullptr;
     Scene* currentScene_ = nullptr;
     PyManager pyManager_;
-    TextureManager textureManager_;
 };
 
 Scene* GetCurrentScene();
-TextureManager& GetTextureManager();
 
 } // namespace gpr5300

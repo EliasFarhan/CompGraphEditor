@@ -28,7 +28,7 @@ class Pipeline : public gpr5300::Pipeline
 public:
 
     ~Pipeline();
-    void Bind() const;
+    void Bind() override;
     static void Unbind();
     void LoadRasterizePipeline(const Shader& vertex, const Shader& fragment);
     void LoadComputePipeline(const Shader& compute);
@@ -60,6 +60,7 @@ private:
 
     std::unordered_map<std::string, int> uniformMap_;
     int GetUniformLocation(std::string_view uniformName) ;
+    
 };
 
 }

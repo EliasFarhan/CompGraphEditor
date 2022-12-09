@@ -12,6 +12,11 @@
 
 namespace gpr5300::gl
 {
+gl::TextureManager& Engine::GetTextureManager()
+{
+    return textureManager_;
+}
+
 void Engine::Begin()
 {
 

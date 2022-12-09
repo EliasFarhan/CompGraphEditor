@@ -7,8 +7,18 @@
 #include "renderer/pipeline.h"
 #include "renderer/material.h"
 
+#include <fmt/format.h>
+#include <string_view>
+#include <string>
+
 namespace gpr5300::gl
 {
+
+const Texture& GetTexture(TextureId textureId)
+{
+    auto& textureManager = static_cast<TextureManager&>(GetTextureManager());
+    return textureManager.GetTexture(textureId);
+}
 
 Scene::ImportStatus Scene::LoadShaders(
     const google::protobuf::RepeatedPtrField<gpr5300::pb::Shader>& shadersPb)
@@ -53,7 +63,7 @@ Scene::ImportStatus Scene::LoadTextures(const PbRepeatField<pb::Texture>& textur
     auto& textureManager = GetTextureManager();
     for (int i = 0; i < texturesSize; i++)
     {
-        textures_[i] = textureManager.LoadTexture(scene_.textures(i));
+        textures_[i] = { textureManager.LoadTexture(scene_.textures(i)) };
     }
 }
 Scene::ImportStatus Scene::LoadMaterials(const PbRepeatField<gpr5300::pb::Material>& materials)
@@ -75,7 +85,7 @@ Scene::ImportStatus Scene::LoadMaterials(const PbRepeatField<gpr5300::pb::Materi
             materialTexture.uniformSamplerName = materialTextureInfo.sampler_name();
             if (materialTextureInfo.texture_index() != -1)
             {
-                materialTexture.texture = textures_[materialTextureInfo.texture_index()];
+                materialTexture.textureId = textures_[materialTextureInfo.texture_index()].textureId;
             }
             else
             {
@@ -92,7 +102,7 @@ Scene::ImportStatus Scene::LoadMaterials(const PbRepeatField<gpr5300::pb::Materi
         models_.resize(modelsSize);
         for (int i = 0; i < modelsSize; i++)
         {
-            models_[i].LoadModel(models(i));
+            models_[i].LoadModel(models.Get(i));
         }
     }
 
@@ -102,7 +112,7 @@ Scene::ImportStatus Scene::LoadMaterials(const PbRepeatField<gpr5300::pb::Materi
         meshes_.resize(meshesSize);
         for (int i = 0; i < meshesSize; i++)
         {
-            const auto& mesh = meshes(i);
+            const auto& mesh = meshes.Get(i);
             switch (mesh.primitve_type())
             {
                 case pb::Mesh_PrimitveType_QUAD:
@@ -140,7 +150,7 @@ Scene::ImportStatus Scene::LoadMaterials(const PbRepeatField<gpr5300::pb::Materi
         framebuffers_.resize(framebufferSize);
         for (int i = 0; i < framebufferSize; i++)
         {
-            framebuffers_[i].Load(framebuffers(i));
+            framebuffers_[i].Load(framebuffers.Get(i));
         }
     }
 
@@ -148,11 +158,13 @@ Scene::ImportStatus Scene::LoadMaterials(const PbRepeatField<gpr5300::pb::Materi
     void SceneMaterial::Bind() const
     {
         pipeline_->Bind();
-        for (std::size_t textureIndex = 0; textureIndex < material_->textures.size(); textureIndex++)
+        auto* glMaterial = static_cast<gl::Material*>(material_);
+        auto* glPipeline = static_cast<gl::Pipeline*>(pipeline_);
+        for (std::size_t textureIndex = 0; textureIndex < glMaterial->textures.size(); textureIndex++)
         {
-            pipeline_->SetTexture(
-                    material_->textures[textureIndex].uniformSamplerName,
-                    material_->textures[textureIndex].texture,
+            glPipeline->SetTexture(
+                glMaterial->textures[textureIndex].uniformSamplerName,
+                GetTexture(glMaterial->textures[textureIndex].textureId),
                     textureIndex);
         }
     }
@@ -167,10 +179,7 @@ Scene::ImportStatus Scene::LoadMaterials(const PbRepeatField<gpr5300::pb::Materi
         {
             pipeline.Destroy();
         }
-        for (auto& texture : textures_)
-        {
-            texture.Destroy();
-        }
+    //TODO delete Texture
         for (auto& framebuffer : framebuffers_)
         {
             framebuffer.Destroy();
@@ -388,9 +397,9 @@ Scene::ImportStatus Scene::LoadMaterials(const PbRepeatField<gpr5300::pb::Materi
         for (std::size_t textureIndex = 0; textureIndex < material.textures.size(); textureIndex++)
         {
             const auto& materialTexture = material.textures[textureIndex];
-            if (materialTexture.texture.name != 0)
+            if (materialTexture.textureId != INVALID_TEXTURE_ID)
             {
-                pipeline.SetTexture(materialTexture.uniformSamplerName, material.textures[textureIndex].texture, textureIndex);
+                pipeline.SetTexture(materialTexture.uniformSamplerName, GetTexture(material.textures[textureIndex].textureId), textureIndex);
             }
             else
             {

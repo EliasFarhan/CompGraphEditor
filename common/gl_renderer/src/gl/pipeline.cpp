@@ -85,7 +85,7 @@ Pipeline::~Pipeline()
     }
 }
 
-void Pipeline::Bind() const
+void Pipeline::Bind()
 {
     if (currentBindedPipeline != name)
     {

@@ -8,7 +8,7 @@
 #include <fstream>
 
 #include "engine/filesystem.h"
-#include "renderer/debug.h"
+#include "gl/debug.h"
 
 #include <stb_image.h>
 #define STB_IMAGE_WRITE_IMPLEMENTATION
@@ -17,7 +17,10 @@
 #include <glm/ext/matrix_transform.hpp>
 
 #include "pbr_utils.h"
-#include "renderer/shape_primitive.h"
+#include "gl/framebuffer.h"
+#include "gl/pipeline.h"
+#include "gl/shape_primitive.h"
+#include "gl/texture.h"
 
 
 namespace gpr5300
@@ -284,7 +287,7 @@ void TextureEditor::CubeToKtx(const TextureInfo& textureInfo)
 
     const auto ktxPath = fmt::format("{}/{}.ktx", GetFolder(textureInfo.info.path()), GetFilename(textureInfo.info.path(), false));
 
-    Texture cubemap;
+    gl::Texture cubemap;
     cubemap.LoadCubemap(textureInfo.info);
 
 
@@ -315,7 +318,7 @@ void TextureEditor::CubeToKtx(const TextureInfo& textureInfo)
     result = ktxTexture1_Create(&createInfo,
         KTX_TEXTURE_CREATE_ALLOC_STORAGE,
         &texture);
-    if(!CheckKtxError(result))
+    if(!gl::CheckKtxError(result))
     {
         return;
     }
@@ -328,7 +331,7 @@ void TextureEditor::CubeToKtx(const TextureInfo& textureInfo)
         result = ktxTexture_SetImageFromMemory(ktxTexture(texture),
             0, 0, faceIndex,
             static_cast<const ktx_uint8_t*>(buffer), size);
-        CheckKtxError(result);
+        gl::CheckKtxError(result);
     }
     std::free(buffer);
     
@@ -390,7 +393,7 @@ void TextureEditor::HdrToKtx(const TextureInfo& textureInfo)
     glCheckError();
 
     const auto targetSize = texH / 2;
-    auto cube = GenerateCube(glm::vec3(2.0f), glm::vec3(0.0f));
+    auto cube = gl::GenerateCube(glm::vec3(2.0f), glm::vec3(0.0f));
 
     pb::FrameBuffer captureFboInfo;
     captureFboInfo.set_name("captureFBO");
@@ -405,7 +408,7 @@ void TextureEditor::HdrToKtx(const TextureInfo& textureInfo)
     static constexpr std::string_view envCubemapName = "envCubeName";
     captureCubemap->set_name(envCubemapName.data());
 
-    Framebuffer captureFbo;
+    gl::Framebuffer captureFbo;
     captureFbo.Load(captureFboInfo);
 
     //Generate environment cubemap
@@ -414,17 +417,17 @@ void TextureEditor::HdrToKtx(const TextureInfo& textureInfo)
     cubemapShaderInfo.set_path("shaders/cubemap.vert");
     cubemapShaderInfo.set_type(pb::Shader_Type_VERTEX);
 
-    Shader cubemapShader;
+    gl::Shader cubemapShader;
     cubemapShader.LoadShader(cubemapShaderInfo);
 
     pb::Shader equirectangleToCubemapShaderInfo;
     equirectangleToCubemapShaderInfo.set_path("shaders/equirectangle_to_cubemap.frag");
     equirectangleToCubemapShaderInfo.set_type(pb::Shader_Type_FRAGMENT);
 
-    Shader equirectangleToCubemapShader;
+    gl::Shader equirectangleToCubemapShader;
     equirectangleToCubemapShader.LoadShader(equirectangleToCubemapShaderInfo);
 
-    Pipeline equirectangleToCubemap;
+    gl::Pipeline equirectangleToCubemap;
     equirectangleToCubemap.LoadRasterizePipeline(cubemapShader, equirectangleToCubemapShader);
     equirectangleToCubemapShader.Destroy();
 
@@ -486,7 +489,7 @@ void TextureEditor::HdrToKtx(const TextureInfo& textureInfo)
     result = ktxTexture1_Create(&createInfo,
         KTX_TEXTURE_CREATE_ALLOC_STORAGE,
         &texture);
-    if (!CheckKtxError(result))
+    if (!gl::CheckKtxError(result))
     {
         return;
     }
@@ -499,7 +502,7 @@ void TextureEditor::HdrToKtx(const TextureInfo& textureInfo)
         result = ktxTexture_SetImageFromMemory(ktxTexture(texture),
             0, 0, faceIndex,
             static_cast<const ktx_uint8_t*>(buffer), size);
-        CheckKtxError(result);
+        gl::CheckKtxError(result);
         glCheckError();
     }
     

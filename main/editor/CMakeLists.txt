@@ -35,9 +35,10 @@ file(GLOB_RECURSE EDITOR_SRC src/*.cpp include/*.h)
 add_executable(editor ${EDITOR_SRC} ${SCRIPT_FILES})
 
 generate_proto(editor)
+target_link_directories(editorProto PRIVATE Core)
 
 target_include_directories(editor PRIVATE include/)
-target_link_libraries(editor PRIVATE Common nlohmann_json::nlohmann_json)
+target_link_libraries(editor PRIVATE CommonGL nlohmann_json::nlohmann_json)
 
 add_dependencies(editor editor_scripts)
 set_target_properties(editor PROPERTIES UNITY_BUILD ON)

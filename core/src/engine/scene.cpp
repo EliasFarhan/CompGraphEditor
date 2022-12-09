@@ -190,10 +190,6 @@ Scene* GetCurrentScene()
     return sceneManagerInstance->GetCurrentScene();
 }
 
-TextureManager& GetTextureManager()
-{
-    return sceneManagerInstance->GetTextureManager();
-}
 
 void SceneManager::Update(float dt)
 {
@@ -207,11 +203,6 @@ SceneMaterial::SceneMaterial(Pipeline* pipeline, Material* material) :
     pipeline_(pipeline),
     material_(material)
 {
-}
-
-void SceneMaterial::Bind() const
-{
-   
 }
 
 Pipeline* SceneMaterial::GetPipeline() const

@@ -4,7 +4,7 @@
 #include <stb_image_write.h>
 
 #include "GL/glew.h"
-#include "renderer/debug.h"
+#include "gl/debug.h"
 
 #include "proto/renderer.pb.h"
 #include "editor_filesystem.h"
@@ -16,8 +16,11 @@
 #include <glm/ext/matrix_clip_space.hpp>
 #include <glm/ext/matrix_transform.hpp>
 
-#include "renderer/shape_primitive.h"
+#include "gl/shape_primitive.h"
 #include <renderer/framebuffer.h>
+
+#include "gl/framebuffer.h"
+#include "gl/pipeline.h"
 
 namespace gpr5300
 {
@@ -46,9 +49,9 @@ void GeneratePreComputeBrdfLUT()
     shaderInfo.set_path("shaders/pre_compute_brdf.comp");
     shaderInfo.set_type(pb::Shader_Type_COMPUTE);
 
-    Shader shader;
+    gl::Shader shader;
     shader.LoadShader(shaderInfo);
-    Pipeline pipeline;
+    gl::Pipeline pipeline;
     pipeline.LoadComputePipeline(shader);
 
     shader.Destroy();
@@ -116,7 +119,7 @@ void GenerateIrradianceMap(std::string_view path)
         return;
     }
     glCheckError();
-    auto cube = GenerateCube(glm::vec3(2.0f), glm::vec3(0.0f));
+    auto cube = gl::GenerateCube(glm::vec3(2.0f), glm::vec3(0.0f));
 
     pb::FrameBuffer captureFboInfo;
     captureFboInfo.set_name("captureFBO");
@@ -131,7 +134,7 @@ void GenerateIrradianceMap(std::string_view path)
     static constexpr std::string_view envCubemapName = "envCubeName";
     captureCubemap->set_name(envCubemapName.data());
 
-    Framebuffer captureFbo;
+    gl::Framebuffer captureFbo;
     captureFbo.Load(captureFboInfo);
 
     //Generate environment cubemap
@@ -140,17 +143,17 @@ void GenerateIrradianceMap(std::string_view path)
     cubemapShaderInfo.set_path("shaders/cubemap.vert");
     cubemapShaderInfo.set_type(pb::Shader_Type_VERTEX);
 
-    Shader cubemapShader;
+    gl::Shader cubemapShader;
     cubemapShader.LoadShader(cubemapShaderInfo);
 
     pb::Shader equirectangleToCubemapShaderInfo;
     equirectangleToCubemapShaderInfo.set_path("shaders/equirectangle_to_cubemap.frag");
     equirectangleToCubemapShaderInfo.set_type(pb::Shader_Type_FRAGMENT);
 
-    Shader equirectangleToCubemapShader;
+    gl::Shader equirectangleToCubemapShader;
     equirectangleToCubemapShader.LoadShader(equirectangleToCubemapShaderInfo);
 
-    Pipeline equirectangleToCubemap;
+    gl::Pipeline equirectangleToCubemap;
     equirectangleToCubemap.LoadRasterizePipeline(cubemapShader, equirectangleToCubemapShader);
     equirectangleToCubemapShader.Destroy();
 
@@ -205,17 +208,17 @@ void GenerateIrradianceMap(std::string_view path)
     irradianceAttachmentInfo->mutable_target_size()->set_x(irradianceMapSize);
     irradianceAttachmentInfo->mutable_target_size()->set_y(irradianceMapSize);
 
-    Framebuffer irradianceFbo;
+    gl::Framebuffer irradianceFbo;
     irradianceFbo.Load(irradianceFboInfo);
 
     pb::Shader irradianceConvolutionShaderInfo;
     irradianceConvolutionShaderInfo.set_type(pb::Shader_Type_FRAGMENT);
     irradianceConvolutionShaderInfo.set_path("shaders/irradiance_convolution.frag");
 
-    Shader irradianceConvlutionShader;
+    gl::Shader irradianceConvlutionShader;
     irradianceConvlutionShader.LoadShader(irradianceConvolutionShaderInfo);
 
-    Pipeline irradianceConvolution;
+    gl::Pipeline irradianceConvolution;
     irradianceConvolution.LoadRasterizePipeline(cubemapShader, irradianceConvlutionShader);
 
     irradianceFbo.Bind();
@@ -262,7 +265,7 @@ void GenerateIrradianceMap(std::string_view path)
     result = ktxTexture1_Create(&createInfo,
         KTX_TEXTURE_CREATE_ALLOC_STORAGE,
         &texture);
-    CheckKtxError(result);
+    gl::CheckKtxError(result);
 
     std::size_t faceSize = irradianceMapSize * irradianceMapSize * 4 * 4;
     void* faceBuffer = std::malloc(faceSize);
@@ -275,7 +278,7 @@ void GenerateIrradianceMap(std::string_view path)
         result = ktxTexture_SetImageFromMemory(ktxTexture(texture),
             0, 0, face,
             static_cast<const ktx_uint8_t*>(faceBuffer), faceSize);
-        CheckKtxError(result);
+        gl::CheckKtxError(result);
     }
     std::free(faceBuffer);
     ktxTexture_WriteToNamedFile(ktxTexture(texture), irradianceKtxMapPath.data());
@@ -290,13 +293,13 @@ void GenerateIrradianceMap(std::string_view path)
     equirectangleFragShaderInfo.set_path("shaders/equirectangle.frag");
     equirectangleFragShaderInfo.set_type(pb::Shader_Type_FRAGMENT);
 
-    Shader equirectangleVertShader;
+    gl::Shader equirectangleVertShader;
     equirectangleVertShader.LoadShader(equirectangleVertShaderInfo);
 
-    Shader equirectangleFragShader;
+    gl::Shader equirectangleFragShader;
     equirectangleFragShader.LoadShader(equirectangleFragShaderInfo);
 
-    Pipeline equirectangle;
+    gl::Pipeline equirectangle;
     equirectangle.LoadRasterizePipeline(equirectangleVertShader, equirectangleFragShader);
 
     auto resultW = irradianceMapSize * 4;
@@ -312,9 +315,9 @@ void GenerateIrradianceMap(std::string_view path)
     equirectangleColorAttachment->mutable_target_size()->set_x(resultW);
     equirectangleColorAttachment->mutable_target_size()->set_y(resultH);
 
-    auto quad = GenerateQuad(glm::vec3(2.0f), glm::vec3(0.0f));
+    auto quad = gl::GenerateQuad(glm::vec3(2.0f), glm::vec3(0.0f));
 
-    Framebuffer equirectangleFbo;
+    gl::Framebuffer equirectangleFbo;
     equirectangleFbo.Load(equirectangleFboInfo);
 
     equirectangleFbo.Bind();
@@ -396,7 +399,7 @@ void GeneratePreFilterEnvMap(std::string_view path)
         return;
     }
     glCheckError();
-    auto cube = GenerateCube(glm::vec3(2.0f), glm::vec3(0.0f));
+    auto cube = gl::GenerateCube(glm::vec3(2.0f), glm::vec3(0.0f));
 
     pb::FrameBuffer captureFboInfo;
     captureFboInfo.set_name("captureFBO");
@@ -411,7 +414,7 @@ void GeneratePreFilterEnvMap(std::string_view path)
     static constexpr std::string_view envCubemapName = "envCubeName";
     captureCubemap->set_name(envCubemapName.data());
 
-    Framebuffer captureFbo;
+    gl::Framebuffer captureFbo;
     captureFbo.Load(captureFboInfo);
 
     //Generate environment cubemap
@@ -420,17 +423,17 @@ void GeneratePreFilterEnvMap(std::string_view path)
     cubemapShaderInfo.set_path("shaders/cubemap.vert");
     cubemapShaderInfo.set_type(pb::Shader_Type_VERTEX);
 
-    Shader cubemapShader;
+    gl::Shader cubemapShader;
     cubemapShader.LoadShader(cubemapShaderInfo);
 
     pb::Shader equirectangleToCubemapShaderInfo;
     equirectangleToCubemapShaderInfo.set_path("shaders/equirectangle_to_cubemap.frag");
     equirectangleToCubemapShaderInfo.set_type(pb::Shader_Type_FRAGMENT);
 
-    Shader equirectangleToCubemapShader;
+    gl::Shader equirectangleToCubemapShader;
     equirectangleToCubemapShader.LoadShader(equirectangleToCubemapShaderInfo);
 
-    Pipeline equirectangleToCubemap;
+    gl::Pipeline equirectangleToCubemap;
     equirectangleToCubemap.LoadRasterizePipeline(cubemapShader, equirectangleToCubemapShader);
     equirectangleToCubemapShader.Destroy();
 
@@ -474,10 +477,10 @@ void GeneratePreFilterEnvMap(std::string_view path)
     preFilterShaderInfo.set_type(pb::Shader_Type_FRAGMENT);
     preFilterShaderInfo.set_path("shaders/prefilter.frag");
 
-    Shader irradianceConvlutionShader;
+    gl::Shader irradianceConvlutionShader;
     irradianceConvlutionShader.LoadShader(preFilterShaderInfo);
 
-    Pipeline irradianceConvolution;
+    gl::Pipeline irradianceConvolution;
     irradianceConvolution.LoadRasterizePipeline(cubemapShader, irradianceConvlutionShader);
 }
 } // namespace gpr5300

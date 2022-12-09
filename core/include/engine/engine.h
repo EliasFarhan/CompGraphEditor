@@ -11,7 +11,12 @@
 
 namespace gpr5300
 {
-    class OnEventInterface
+namespace gl
+{
+class TextureManager;
+}
+
+class OnEventInterface
     {
     public:
         virtual ~OnEventInterface() = default;
@@ -38,6 +43,7 @@ namespace gpr5300
 
         void SetWindowName(std::string_view windowName);
         glm::uvec2 GetWindowSize() const;
+        virtual gl::TextureManager& GetTextureManager() = 0;
     protected:
         virtual void Begin();
         virtual void End();
@@ -57,5 +63,7 @@ namespace gpr5300
     }; 
 
     glm::uvec2 GetWindowSize();
+
+    gl::TextureManager& GetTextureManager();
 } // namespace gpr5300
 

@@ -14,11 +14,11 @@
 namespace gpr5300::gl
 {
 
-Texture TextureManager::LoadTexture(const pb::Texture &textureInfo)
+TextureId TextureManager::LoadTexture(const pb::Texture &textureInfo)
 {
     const auto& path = textureInfo.path();
-    const auto it = texturesMap_.find(path);
-    if(it == texturesMap_.end())
+    const auto it = textureNamesMap_.find(path);
+    if(it == textureNamesMap_.end())
     {
         Texture newTexture;
         if(path.find(".cube") != std::string::npos)
@@ -35,10 +35,17 @@ Texture TextureManager::LoadTexture(const pb::Texture &textureInfo)
                 return {};
             }
         }
-        texturesMap_[path] = newTexture;
-        return newTexture;
+        const auto textureId = TextureId{ static_cast<int>(textures_.size()) };
+        textureNamesMap_[path] = textureId;
+        textures_.push_back(std::move(newTexture));
+        return textureId;
     }
     return it->second;
+}
+
+const Texture& TextureManager::GetTexture(TextureId textureId)
+{
+    return textures_[static_cast<int>(textureId)];
 }
 
 Texture::~Texture()

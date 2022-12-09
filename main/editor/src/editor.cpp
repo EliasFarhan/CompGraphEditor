@@ -73,8 +73,7 @@ Editor::Editor()
 
 void Editor::DrawImGui()
 {
-    auto* engine = Engine::GetInstance();
-    const auto windowSize = engine->GetWindowSize();
+    const auto windowSize = GetWindowSize();
 
     ImGui::SetNextWindowPos(ImVec2(0, 0), ImGuiCond_FirstUseEver);
     ImGui::SetNextWindowSize(ImVec2(windowSize.x * 0.2f, windowSize.y), ImGuiCond_FirstUseEver);
