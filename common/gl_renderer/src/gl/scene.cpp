@@ -30,6 +30,8 @@ Scene::ImportStatus Scene::LoadShaders(
         auto& shaderPb = shadersPb.at(i);
         shaders_[i].LoadShader(shaderPb);
     }
+
+    return ImportStatus::SUCCESS;
 }
 
 Scene::ImportStatus Scene::LoadPipelines(
@@ -51,9 +53,11 @@ Scene::ImportStatus Scene::LoadPipelines(
             pipelines_[i].LoadComputePipeline(shaders_[pipelinePb.compute_shader_index()]);
             break;
         default:
-            break;
+            return ImportStatus::FAILURE;
         }
     }
+
+    return ImportStatus::SUCCESS;
 }
 
 Scene::ImportStatus Scene::LoadTextures(const PbRepeatField<pb::Texture>& textures)
@@ -65,6 +69,7 @@ Scene::ImportStatus Scene::LoadTextures(const PbRepeatField<pb::Texture>& textur
     {
         textures_[i] = { textureManager.LoadTexture(scene_.textures(i)) };
     }
+    return ImportStatus::SUCCESS;
 }
 Scene::ImportStatus Scene::LoadMaterials(const PbRepeatField<gpr5300::pb::Material>& materials)
 {
@@ -94,6 +99,8 @@ Scene::ImportStatus Scene::LoadMaterials(const PbRepeatField<gpr5300::pb::Materi
             }
         }
     }
+
+    return ImportStatus::SUCCESS;
 }
 
     Scene::ImportStatus Scene::LoadModels(const PbRepeatField<std::string>& models)
@@ -104,6 +111,8 @@ Scene::ImportStatus Scene::LoadMaterials(const PbRepeatField<gpr5300::pb::Materi
         {
             models_[i].LoadModel(models.Get(i));
         }
+
+        return ImportStatus::SUCCESS;
     }
 
     Scene::ImportStatus Scene::LoadMeshes(const PbRepeatField<pb::Mesh>& meshes)
@@ -142,6 +151,8 @@ Scene::ImportStatus Scene::LoadMaterials(const PbRepeatField<gpr5300::pb::Materi
                     break;
             }
         }
+
+        return ImportStatus::SUCCESS;
     }
 
     Scene::ImportStatus Scene::LoadFramebuffers(const PbRepeatField<pb::FrameBuffer>& framebuffers)
@@ -152,6 +163,8 @@ Scene::ImportStatus Scene::LoadMaterials(const PbRepeatField<gpr5300::pb::Materi
         {
             framebuffers_[i].Load(framebuffers.Get(i));
         }
+
+        return ImportStatus::SUCCESS;
     }
 
 

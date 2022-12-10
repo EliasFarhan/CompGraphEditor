@@ -4,6 +4,8 @@
 #include <GL/glew.h>
 #include <glm/vec2.hpp>
 
+#include "renderer/framebuffer.h"
+
 namespace gpr5300::gl
 {
 
@@ -15,7 +17,7 @@ struct AttachmentType
     GLint error = 0;
 };
 
-class Framebuffer
+class Framebuffer : public gpr5300::Framebuffer
 {
 public:
     ~Framebuffer();

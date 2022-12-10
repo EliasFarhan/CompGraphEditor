@@ -1,6 +1,7 @@
 #pragma once
 #include "engine/engine.h"
 #include "engine/scene.h"
+#include "gl/scene.h"
 
 namespace gpr5300
 {
@@ -18,7 +19,7 @@ private:
     SceneManager sceneManager_;
     std::vector<std::string> scenePaths_;
     bool sceneLoaded_ = false;
-    Scene playerScene_;
+    gl::Scene playerScene_;
 };
 
 } // namespace gpr5300

@@ -38,7 +38,9 @@ public:
     std::unique_ptr<gpr5300::SceneMaterial> GetMaterial(int materialIndex) override;
 
     void OnEvent(SDL_Event& event) override;
-
+    gpr5300::Framebuffer& GetFramebuffer(int framebufferIndex) override { return framebuffers_[framebufferIndex]; }
+    gpr5300::Pipeline& GetPipeline(int index) override { return pipelines_[index]; }
+    gpr5300::Mesh& GetMesh(int index) override { return meshes_[index]; }
 protected:
     ImportStatus LoadShaders(const PbRepeatField<pb::Shader>& shadersPb) override;
     ImportStatus LoadPipelines(const PbRepeatField<pb::Pipeline>& pipelines) override;
@@ -47,6 +49,10 @@ protected:
     ImportStatus LoadModels(const PbRepeatField<std::string>& models) override;
     ImportStatus LoadMeshes(const PbRepeatField<pb::Mesh>& meshes) override;
     ImportStatus LoadFramebuffers(const PbRepeatField<pb::FrameBuffer>& framebuffers) override;
+
+public:
+    
+
 private:
     std::vector<Shader> shaders_;
     std::vector<Pipeline> pipelines_;
