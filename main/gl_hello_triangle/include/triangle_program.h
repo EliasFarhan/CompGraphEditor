@@ -3,7 +3,7 @@
 
 #include "engine/system.h"
 #include "renderer/pipeline.h"
-#include "engine/scene.h"
+#include "gl/scene.h"
 #include "engine/engine.h"
 
 namespace gpr5300
@@ -17,7 +17,7 @@ namespace gpr5300
         void DrawImGui() override;
 
     private:
-        Scene scene_;
+        gl::Scene scene_;
         SceneManager sceneManager_;
     };   
 } // namespace gpr5300
