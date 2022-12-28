@@ -1,4 +1,5 @@
 add_subdirectory(editor)
 add_subdirectory(gl_player)
 add_subdirectory(gl_hello_triangle)
+add_subdirectory(vk_hello_triangle)
 add_subdirectory(vk_player)

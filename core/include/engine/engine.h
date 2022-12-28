@@ -6,15 +6,12 @@
 
 #include "engine/system.h"
 #include "proto/config.pb.h"
+#include "renderer/texture.h"
 
 #include <glm/ext/vector_uint2.hpp>
 
 namespace gpr5300
 {
-namespace gl
-{
-class TextureManager;
-}
 
 class OnEventInterface
     {
@@ -43,7 +40,7 @@ class OnEventInterface
 
         void SetWindowName(std::string_view windowName);
         glm::uvec2 GetWindowSize() const;
-        virtual gl::TextureManager& GetTextureManager() = 0;
+        virtual TextureManager& GetTextureManager() = 0;
     protected:
         virtual void Begin();
         virtual void End();
@@ -64,6 +61,6 @@ class OnEventInterface
 
     glm::uvec2 GetWindowSize();
 
-    gl::TextureManager& GetTextureManager();
+    TextureManager& GetTextureManager();
 } // namespace gpr5300
 

@@ -168,7 +168,7 @@ glm::uvec2 GetWindowSize()
 {
     return instance->GetWindowSize();
 }
-gl::TextureManager& GetTextureManager()
+TextureManager& GetTextureManager()
 {
     return instance->GetTextureManager();
 }

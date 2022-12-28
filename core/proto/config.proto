@@ -11,4 +11,5 @@ message Config
     int32 framerate_limit = 3;
     bool fullscreen = 4;
     bool vertical_sync = 5;
+    bool enable_debug = 6;
 }
