@@ -1,11 +1,12 @@
 #pragma once
 #include "engine/engine.h"
 #include "engine/scene.h"
+#include "vk/scene.h"
 
 namespace gpr5300
 {
 
-class HelloTriangleProgram : public System, public ImguiDrawInterface
+class HelloVulkanProgram : public System, public ImguiDrawInterface
 {
 public:
     void Begin() override;
@@ -14,6 +15,6 @@ public:
     void DrawImGui() override;
 private:
     SceneManager sceneManager_;
-    Scene scene_;
+    vk::Scene scene_;
 };
 }

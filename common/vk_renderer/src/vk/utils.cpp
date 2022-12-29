@@ -375,7 +375,7 @@ VkImageView CreateImageView(VkDevice device, VkImage image, VkFormat format, VkI
     return imageView;
 }
 
-VkShaderModule CreateShaderModule(const BufferFile& bufferFile, VkDevice device)
+std::optional<VkShaderModule> CreateShaderModule(const BufferFile& bufferFile, VkDevice device)
 {
 #ifdef TRACY_ENABLE
     ZoneScoped
@@ -388,7 +388,7 @@ VkShaderModule CreateShaderModule(const BufferFile& bufferFile, VkDevice device)
     if (vkCreateShaderModule(device, &createInfo, nullptr, &shaderModule) != VK_SUCCESS)
     {
         LogError("Failed to create shader module!");
-        std::terminate();
+        return std::nullopt;
     }
     return shaderModule;
 }

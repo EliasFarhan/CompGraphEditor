@@ -75,14 +75,14 @@ void Engine::Begin()
     CreateCommandPool();
     CreateCommandBuffers();
     CreateSyncObjects();
-    imGuiManager_.Begin();
     gpr5300::Engine::Begin();
+    imGuiManager_.Begin();
 }
 
 void Engine::End()
 {
-    gpr5300::Engine::End();
     imGuiManager_.End();
+    gpr5300::Engine::End();
     window_.End();
 }
 
@@ -117,7 +117,7 @@ void Engine::PreUpdate()
         &renderer_.inFlightFences[renderer_.currentFrame]);
 
 
-    // TODO Generate commands
+    // Generate commands
     VkCommandBufferBeginInfo beginInfo{};
     beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
 

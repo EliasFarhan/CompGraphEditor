@@ -34,11 +34,6 @@ struct AccelerationStructure
     Buffer buffer;
 };
 
-struct Pipeline
-{
-    VkPipeline pipeline{};
-    VkPipelineLayout pipelineLayout{};
-};
 /**
  * \brief Simplifed structure used to combine sampler and image view to load directly in the descriptor sets
  */

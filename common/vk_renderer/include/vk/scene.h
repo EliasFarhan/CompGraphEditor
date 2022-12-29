@@ -1,5 +1,9 @@
 #pragma once
 #include "engine/scene.h"
+#include "vk/pipeline.h"
+#include "vk/framebuffer.h"
+#include "vk/mesh.h"
+#include "vk/common.h"
 
 #include <vulkan/vulkan.h>
 
@@ -15,7 +19,7 @@ public:
     std::unique_ptr<SceneMaterial> GetMaterial(int materialIndex) override;
     Pipeline& GetPipeline(int index) override;
     Mesh& GetMesh(int index) override;
-    VkRenderPass GetCurrentRenderPass();
+    VkRenderPass GetCurrentRenderPass() const;
 protected:
     ImportStatus LoadShaders(const PbRepeatField<pb::Shader>& shadersPb) override;
     ImportStatus LoadPipelines(const PbRepeatField<pb::Pipeline>& pipelines) override;
@@ -24,6 +28,12 @@ protected:
     ImportStatus LoadModels(const PbRepeatField<std::string>& models) override;
     ImportStatus LoadMeshes(const PbRepeatField<pb::Mesh>& meshes) override;
     ImportStatus LoadFramebuffers(const PbRepeatField<pb::FrameBuffer>& framebuffers) override;
+private:
+    std::vector<Pipeline> pipelines_;
+    std::vector<Framebuffer> framebuffers_;
+    std::vector<Mesh> meshes_;
+    std::vector<Shader> shaders_;
+    VkRenderPass renderPass_{};
 };
 
 VkRenderPass GetCurrentRenderPass();

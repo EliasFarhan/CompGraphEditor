@@ -343,4 +343,9 @@ VkExtent2D Window::ChooseSwapExtent(const VkSurfaceCapabilitiesKHR &capabilities
 
     return actualExtent;
 }
+
+Driver& GetDriver()
+{
+    return instance->GetDriver();
+}
 }

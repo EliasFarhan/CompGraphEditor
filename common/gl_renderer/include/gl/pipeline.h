@@ -27,7 +27,7 @@ class Pipeline : public gpr5300::Pipeline
 {
 public:
 
-    ~Pipeline();
+    ~Pipeline() override;
     void Bind() override;
     static void Unbind();
     void LoadRasterizePipeline(const Shader& vertex, const Shader& fragment);

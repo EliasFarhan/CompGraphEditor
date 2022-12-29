@@ -57,7 +57,7 @@ VkSurfaceFormatKHR ChooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>
 
 VkFormat FindDepthFormat(VkPhysicalDevice physicalDevice);
 VkImageView CreateImageView(VkDevice device, VkImage image, VkFormat format, VkImageAspectFlags aspectFlags);
-VkShaderModule CreateShaderModule(const gpr5300::BufferFile& bufferFile, VkDevice device);
+std::optional<VkShaderModule> CreateShaderModule(const gpr5300::BufferFile& bufferFile, VkDevice device);
 
 
 template<typename T>
