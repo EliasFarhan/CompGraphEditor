@@ -30,6 +30,7 @@ class OnEventInterface
     class Engine
     {
     public:
+        virtual ~Engine() = default;
         Engine();
         void Run();
         

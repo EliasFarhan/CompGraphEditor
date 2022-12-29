@@ -8,6 +8,7 @@
 #include <vk_mem_alloc.h>
 
 #include "common.h"
+#include "imgui_manager.h"
 
 namespace gpr5300::vk
 {
@@ -34,7 +35,7 @@ struct Renderer
     VkImageView depthImageView;
 };
 
-class Engine: public gpr5300::Engine
+class Engine final : public gpr5300::Engine
 {
 public:
     Engine();
@@ -42,6 +43,7 @@ public:
     Window& GetWindow() { return window_; }
     VkCommandBuffer BeginSingleTimeCommands();
     void EndSingleTimeCommands(VkCommandBuffer commandBuffer);
+    Renderer& GetRenderer() { return renderer_; }
 
 protected:
     void Begin() override;
@@ -56,10 +58,15 @@ protected:
 
     void SwapWindow() override;
 
+    void CreateCommandPool();
+    void CreateCommandBuffers();
+    void CreateSyncObjects();
+
 private:
     Window window_;
     TextureManager textureManager_;
     Renderer renderer_;
+    ImGuiManager imGuiManager_;
 
 
     static constexpr int MAX_FRAMES_IN_FLIGHT = 2;

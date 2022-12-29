@@ -49,8 +49,6 @@ protected:
     ImportStatus LoadModels(const PbRepeatField<std::string>& models) override;
     ImportStatus LoadMeshes(const PbRepeatField<pb::Mesh>& meshes) override;
     ImportStatus LoadFramebuffers(const PbRepeatField<pb::FrameBuffer>& framebuffers) override;
-
-public:
     
 
 private:

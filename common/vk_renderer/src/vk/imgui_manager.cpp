@@ -19,7 +19,7 @@ void ImGuiManager::Begin()
     ImGuiIO& io = ImGui::GetIO(); (void)io;
     io.KeysDown[ImGuiKey_Delete] = SDL_GetScancodeFromKey(SDLK_DELETE);
     auto& window = GetWindow();
-    ImGui_ImplSDL2_InitForVulkan(window.GetWindow());
+    ImGui_ImplSDL2_InitForVulkan(window.GetSdlWindow());
 
 
     InitDescriptorPool();
@@ -37,11 +37,11 @@ void ImGuiManager::Begin()
     initInfo.ImageCount = swapchain.imageCount;
 
     auto& renderer = GetRenderer();
-    const auto& renderPass = renderer.GetCurrentDrawingProgram().renderPass;
+    //const auto& renderPass = renderer.GetCurrentDrawingProgram().renderPass;
 
-    ImGui_ImplVulkan_Init(&initInfo, renderPass);
+    //ImGui_ImplVulkan_Init(&initInfo, renderPass);
 
-    UploadFontAtlas();
+    //UploadFontAtlas();
 }
 
 void ImGuiManager::PreImGuiDraw()
@@ -55,7 +55,7 @@ void ImGuiManager::PostImGuiDraw()
 {
     auto& renderer = GetRenderer();
     ImGui::Render();
-    ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), renderer.commandBuffers[renderer.currentFrame]);
+    ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), renderer.commandBuffers[renderer.imageIndex]);
 }
 
 void ImGuiManager::End()

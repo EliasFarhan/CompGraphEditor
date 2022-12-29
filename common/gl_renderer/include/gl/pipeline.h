@@ -52,7 +52,7 @@ public:
     void SetCubemap(std::string_view uniformName, GLuint textureName, GLenum textureUnit) ;
 
     void SetPipelineName(std::string_view name);
-    std::string_view GetPipelineName() const;
+    [[nodiscard]] std::string_view GetPipelineName() const;
 private:
     GLuint name = 0;
     std::string pipelineName_;

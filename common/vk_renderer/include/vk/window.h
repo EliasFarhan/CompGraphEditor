@@ -46,6 +46,7 @@ public:
 
     Driver& GetDriver() { return driver_; }
     Swapchain& GetSwapChain() { return swapchain_; }
+    SDL_Window* GetSdlWindow() const { return window_; }
 private:
 
     void CreateWindow();

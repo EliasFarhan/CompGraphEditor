@@ -9,7 +9,7 @@ namespace gpr5300::gl
 class Engine: public gpr5300::Engine
 {
 public:
-    gl::TextureManager& GetTextureManager() override;
+    TextureManager& GetTextureManager() override;
 protected:
     void Begin() override;
     void End() override;

@@ -3,6 +3,7 @@
 #include <imgui.h>
 
 #include "utils/log.h"
+#include "vk/utils.h"
 
 namespace gpr5300::vk
 {
@@ -71,14 +72,17 @@ void Engine::EndSingleTimeCommands(VkCommandBuffer commandBuffer)
 void Engine::Begin()
 {
     window_.Begin();
-
+    CreateCommandPool();
+    CreateCommandBuffers();
+    CreateSyncObjects();
+    imGuiManager_.Begin();
     gpr5300::Engine::Begin();
 }
 
 void Engine::End()
 {
     gpr5300::Engine::End();
-
+    imGuiManager_.End();
     window_.End();
 }
 
@@ -127,11 +131,12 @@ void Engine::PreUpdate()
 
 void Engine::PreImGuiDraw()
 {
-
+    imGuiManager_.PreImGuiDraw();
 }
 
 void Engine::PostImGuiDraw()
 {
+    imGuiManager_.PostImGuiDraw();
 }
 
 void Engine::SwapWindow()
@@ -187,6 +192,88 @@ void Engine::SwapWindow()
 
     renderer_.currentFrame =
         (renderer_.currentFrame + 1) % MAX_FRAMES_IN_FLIGHT;
+}
+
+void Engine::CreateCommandPool()
+{
+    auto& driver = window_.GetDriver();
+    LogDebug("Create Command Pool");
+    QueueFamilyIndices queueFamilyIndices = FindQueueFamilies(
+        driver.physicalDevice,
+        driver.surface);
+
+    VkCommandPoolCreateInfo poolInfo{};
+    poolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
+    poolInfo.queueFamilyIndex = queueFamilyIndices.graphicsFamily.value();
+    poolInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT; // Optional
+    if (vkCreateCommandPool(driver.device, &poolInfo, nullptr,
+        &renderer_.commandPool) !=
+        VK_SUCCESS)
+    {
+        LogError("Failed to create command pool!");
+        std::terminate();
+    }
+}
+
+void Engine::CreateCommandBuffers()
+{
+    auto& driver = window_.GetDriver();
+    auto& swapChain = window_.GetSwapChain();
+    LogDebug("Create Command Buffers");
+    renderer_.commandBuffers.resize(swapChain.imageCount);
+
+    VkCommandBufferAllocateInfo allocInfo{};
+    allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+    allocInfo.commandPool = renderer_.commandPool;
+    allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+    allocInfo.commandBufferCount = static_cast<uint32_t>(renderer_.commandBuffers.size());
+
+    if (vkAllocateCommandBuffers(driver.device, &allocInfo,
+        renderer_.commandBuffers.data()) !=
+        VK_SUCCESS)
+    {
+        LogError("Failed to allocate command buffers!\n");
+        std::terminate();
+    }
+}
+
+void Engine::CreateSyncObjects()
+{
+    const auto& driver = window_.GetDriver();
+    const auto& swapchain = window_.GetSwapChain();
+    LogDebug("Create Sync Objects");
+    renderer_.imageAvailableSemaphores.resize(MAX_FRAMES_IN_FLIGHT);
+    renderer_.renderFinishedSemaphores.resize(MAX_FRAMES_IN_FLIGHT);
+    renderer_.inFlightFences.resize(MAX_FRAMES_IN_FLIGHT);
+    renderer_.imagesInFlight.resize(swapchain.images.size(), VK_NULL_HANDLE);
+
+    VkSemaphoreCreateInfo semaphoreInfo{};
+    semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
+
+    VkFenceCreateInfo fenceInfo{};
+    fenceInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
+    fenceInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT;
+
+    for (std::size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
+    {
+        if (vkCreateSemaphore(driver.device, &semaphoreInfo, nullptr,
+            &renderer_.imageAvailableSemaphores[i]) !=
+            VK_SUCCESS ||
+            vkCreateSemaphore(driver.device, &semaphoreInfo, nullptr,
+                &renderer_.renderFinishedSemaphores[i]) !=
+            VK_SUCCESS ||
+            vkCreateFence(driver.device, &fenceInfo, nullptr,
+                &renderer_.inFlightFences[i]) != VK_SUCCESS)
+        {
+            LogError("Failed to create sync objects!");
+            std::terminate();
+        }
+    }
+}
+
+Renderer& GetRenderer()
+{
+    return instance->GetRenderer();
 }
 
 Window& GetWindow()

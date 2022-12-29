@@ -5,7 +5,7 @@
 
 namespace gpr5300::vk
 {
-class ImGuiManager : public System
+class ImGuiManager
 {
 public:
     void Begin();

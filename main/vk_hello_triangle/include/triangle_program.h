@@ -1,8 +1,19 @@
-//
-// Created by efarhan on 12/28/22.
-//
+#pragma once
+#include "engine/engine.h"
+#include "engine/scene.h"
 
-#ifndef COMPGRAPHEDITOR_TRIANGLE_PROGRAM_H
-#define COMPGRAPHEDITOR_TRIANGLE_PROGRAM_H
+namespace gpr5300
+{
 
-#endif //COMPGRAPHEDITOR_TRIANGLE_PROGRAM_H
+class HelloTriangleProgram : public System, public ImguiDrawInterface
+{
+public:
+    void Begin() override;
+    void Update(float dt) override;
+    void End() override;
+    void DrawImGui() override;
+private:
+    SceneManager sceneManager_;
+    Scene scene_;
+};
+}
