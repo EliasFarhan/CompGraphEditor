@@ -59,7 +59,11 @@ void Scene::LoadScene(PyManager &pyManager)
         LogError("Could not import framebuffers");
     }
     
-
+    const auto& renderPass = scene_.render_pass();
+    if(LoadRenderPass(renderPass) != ImportStatus::SUCCESS)
+    {
+        LogError("Count not import render pass");
+    }
 
 
     const auto pySystemSize = scene_.py_systems_size();

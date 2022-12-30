@@ -5,6 +5,7 @@
 
 #include "utils/log.h"
 #include "vk/engine.h"
+#include "vk/scene.h"
 
 namespace gpr5300::vk
 {
@@ -35,13 +36,12 @@ void ImGuiManager::Begin()
     initInfo.DescriptorPool = descriptorPool_;
     initInfo.MinImageCount = swapchain.minImageCount;
     initInfo.ImageCount = swapchain.imageCount;
+    
+    const auto& renderPass = GetCurrentRenderPass();
 
-    auto& renderer = GetRenderer();
-    //const auto& renderPass = renderer.GetCurrentDrawingProgram().renderPass;
+    ImGui_ImplVulkan_Init(&initInfo, renderPass);
 
-    //ImGui_ImplVulkan_Init(&initInfo, renderPass);
-
-    //UploadFontAtlas();
+    UploadFontAtlas();
 }
 
 void ImGuiManager::PreImGuiDraw()

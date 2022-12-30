@@ -28,6 +28,7 @@ protected:
     ImportStatus LoadModels(const PbRepeatField<std::string>& models) override;
     ImportStatus LoadMeshes(const PbRepeatField<pb::Mesh>& meshes) override;
     ImportStatus LoadFramebuffers(const PbRepeatField<pb::FrameBuffer>& framebuffers) override;
+    ImportStatus LoadRenderPass(const pb::RenderPass& renderPass) override;
 private:
     std::vector<Pipeline> pipelines_;
     std::vector<Framebuffer> framebuffers_;

@@ -321,8 +321,10 @@ void Window::CleanupSwapChain() {
 
 }
 
-void Window::CreateSwapChainObjects() {
-
+void Window::CreateSwapChainObjects()
+{
+    CreateSwapChain();
+    CreateImageViews();
 }
 
 VkExtent2D Window::ChooseSwapExtent(const VkSurfaceCapabilitiesKHR &capabilities) const {
@@ -347,5 +349,10 @@ VkExtent2D Window::ChooseSwapExtent(const VkSurfaceCapabilitiesKHR &capabilities
 Driver& GetDriver()
 {
     return instance->GetDriver();
+}
+
+Swapchain& GetSwapchain()
+{
+    return instance->GetSwapChain();
 }
 }

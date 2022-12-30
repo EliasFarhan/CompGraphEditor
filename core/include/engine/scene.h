@@ -72,7 +72,6 @@ private:
 class Scene : public OnEventInterface
 {
 public:
-
     void LoadScene(PyManager& pyManager);
     virtual void UnloadScene() = 0;
     void SetScene(const pb::Scene &scene);
@@ -108,6 +107,7 @@ protected:
     virtual ImportStatus LoadMeshes(const PbRepeatField<pb::Mesh>& meshes) = 0;
     virtual ImportStatus LoadFramebuffers(const PbRepeatField<pb::FrameBuffer>& framebuffers) = 0;
 
+    virtual ImportStatus LoadRenderPass(const pb::RenderPass& renderPass) { return ImportStatus::SUCCESS; }
 
     pb::Scene scene_;
     std::vector<Script*> pySystems_;
