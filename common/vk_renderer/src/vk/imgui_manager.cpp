@@ -58,17 +58,23 @@ void ImGuiManager::PostImGuiDraw()
     ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), renderer.commandBuffers[renderer.imageIndex]);
 }
 
-void ImGuiManager::End()
+void ImGuiManager::End() const
 {
+    const auto& driver = GetDriver();
+    ImGui_ImplVulkan_Shutdown();
+    ImGui_ImplSDL2_Shutdown();
+
+    vkDestroyDescriptorPool(driver.device, descriptorPool_, nullptr);
+
+    ImGui::DestroyContext();
 }
 
 void ImGuiManager::InitDescriptorPool()
 {
-    auto& window = GetWindow();
-    auto& driver = window.GetDriver();
+    const auto& driver = GetDriver();
     // Create Descriptor Pool
 
-    VkDescriptorPoolSize pool_sizes[] =
+    const VkDescriptorPoolSize poolSizes[] =
     {
         { VK_DESCRIPTOR_TYPE_SAMPLER, 1000 },
         { VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1000 },
@@ -82,13 +88,13 @@ void ImGuiManager::InitDescriptorPool()
         { VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC, 1000 },
         { VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT, 1000 }
     };
-    VkDescriptorPoolCreateInfo pool_info = {};
-    pool_info.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
-    pool_info.flags = VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT;
-    pool_info.maxSets = 1000 * IM_ARRAYSIZE(pool_sizes);
-    pool_info.poolSizeCount = static_cast<uint32_t>(IM_ARRAYSIZE(pool_sizes));
-    pool_info.pPoolSizes = pool_sizes;
-    if (vkCreateDescriptorPool(driver.device, &pool_info, nullptr, &descriptorPool_) != VK_SUCCESS)
+    VkDescriptorPoolCreateInfo poolInfo = {};
+    poolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
+    poolInfo.flags = VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT;
+    poolInfo.maxSets = 1000 * IM_ARRAYSIZE(poolSizes);
+    poolInfo.poolSizeCount = static_cast<uint32_t>(IM_ARRAYSIZE(poolSizes));
+    poolInfo.pPoolSizes = poolSizes;
+    if (vkCreateDescriptorPool(driver.device, &poolInfo, nullptr, &descriptorPool_) != VK_SUCCESS)
     {
         LogError("Could create descriptor pool for ImGui");
         std::terminate();
@@ -98,9 +104,8 @@ void ImGuiManager::InitDescriptorPool()
 void ImGuiManager::UploadFontAtlas()
 {
     LogDebug("Upload ImGui Font Atlas");
-    auto& window = GetWindow();
-    auto& driver = window.GetDriver();
-    auto& renderer = GetRenderer();
+    const auto& driver = GetDriver();
+    const auto& renderer = GetRenderer();
     auto& engine = GetEngine();
 
     // Use any command queue

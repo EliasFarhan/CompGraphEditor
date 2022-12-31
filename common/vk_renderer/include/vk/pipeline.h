@@ -20,6 +20,8 @@ public:
     bool LoadRaterizePipeline(const pb::Pipeline& pipelinePb, Shader& vertexShader, Shader& fragmentShader);
     bool LoadComputePipeline(const pb::Pipeline& pipelinePb, Shader& computeShader);
     void Bind() override;
+    void Destroy() const;
+
 private:
     VkPipeline pipeline{};
     VkPipelineLayout pipelineLayout{};

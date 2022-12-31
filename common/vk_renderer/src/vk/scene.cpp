@@ -9,10 +9,46 @@ namespace gpr5300::vk
 {
 void Scene::UnloadScene()
 {
+    auto& driver = GetDriver();
+    for(const auto& shader : shaders_)
+    {
+        vkDestroyShaderModule(driver.device, shader.module, nullptr);
+    }
+    shaders_.clear();
+    for (const auto& framebuffer : vkFramebuffers_)
+    {
+        vkDestroyFramebuffer(driver.device, framebuffer, nullptr);
+    }
+    vkFramebuffers_.clear();
+    for(auto& pipeline : pipelines_)
+    {
+        pipeline.Destroy();
+    }
+    pipelines_.clear();
+    vkDestroyRenderPass(driver.device, renderPass_, nullptr);
+    renderPass_ = VK_NULL_HANDLE;
 }
 
 void Scene::Update(float dt)
 {
+    auto& renderer = GetRenderer();
+    auto& swapchain = GetSwapchain();
+    VkRenderPassBeginInfo renderPassInfo{};
+    renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
+    renderPassInfo.renderPass = renderPass_;
+    renderPassInfo.framebuffer = vkFramebuffers_[renderer.imageIndex];
+    renderPassInfo.renderArea.offset = { 0, 0 };
+    renderPassInfo.renderArea.extent = swapchain.extent;
+
+    //Fill with subpass clear values
+    std::array<VkClearValue, 2> clearValues{};
+    clearValues[0].color = { 0.0f, 0.0f, 0.0f, 1.0f };
+    clearValues[1].depthStencil = { 1.0f, 0 };
+    renderPassInfo.clearValueCount = clearValues.size();
+    renderPassInfo.pClearValues = clearValues.data();
+
+    vkCmdBeginRenderPass(renderer.commandBuffers[renderer.imageIndex], &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
+
     for(const auto& subpassPb : scene_.render_pass().sub_passes())
     {
         for(const auto& drawCommandPb : subpassPb.commands())
@@ -20,6 +56,8 @@ void Scene::Update(float dt)
             Draw(drawCommandPb);
         }
     }
+
+    vkCmdEndRenderPass(renderer.commandBuffers[renderer.imageIndex]);
 }
 
 void Scene::Draw(const pb::DrawCommand& drawCommand)
@@ -160,6 +198,7 @@ Scene::ImportStatus Scene::LoadRenderPass(const pb::RenderPass& renderPassPb)
     };
     std::vector<VkSubpassDescription> subpasses(renderPassPb.sub_passes_size());
     std::vector<SubpassData> subpassDatas(renderPassPb.sub_passes_size());
+    bool hasRenderPassDepth = false;
     for (int i = 0; i < renderPassPb.sub_passes_size(); i++)
     {
         const auto& subpassPb = renderPassPb.sub_passes(i);
@@ -197,6 +236,7 @@ Scene::ImportStatus Scene::LoadRenderPass(const pb::RenderPass& renderPassPb)
 
             if (framebufferPb.has_depth_stencil_attachment())
             {
+                hasRenderPassDepth = true;
                 auto& depthAttachmentRef = subpassDatas[i].depthAttachmentRef;
                 depthAttachmentRef.attachment = colorAttachmentRefs.size(); //FIXME global attachment index with color and depth combined
                 depthAttachmentRef.layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
@@ -236,6 +276,34 @@ Scene::ImportStatus Scene::LoadRenderPass(const pb::RenderPass& renderPassPb)
         return ImportStatus::FAILURE;
     }
     renderPass_ = renderPass;
+    //TODO Generate the vkframebuffer
+    auto& renderer = GetRenderer();
+    vkFramebuffers_.resize(swapchain.imageViews.size());
+    for (size_t i = 0; i < swapchain.imageViews.size(); i++)
+    {
+        //TODO add the other color attachments
+        std::array<VkImageView, 2> attachments = {
+            swapchain.imageViews[i],
+            renderer.depthImageView
+        };
+
+        VkFramebufferCreateInfo framebufferInfo{};
+        framebufferInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
+        framebufferInfo.renderPass = renderPass;
+        framebufferInfo.attachmentCount = hasRenderPassDepth ?
+            static_cast<uint32_t>(attachments.size()) :
+            1;
+        framebufferInfo.pAttachments = attachments.data();
+        framebufferInfo.width = swapchain.extent.width;
+        framebufferInfo.height = swapchain.extent.height;
+        framebufferInfo.layers = 1;
+        if (vkCreateFramebuffer(driver.device, &framebufferInfo, nullptr,
+            &vkFramebuffers_[i]) != VK_SUCCESS)
+        {
+            LogError("Failed to create framebuffer!");
+            return ImportStatus::FAILURE;
+        }
+    }
     return ImportStatus::SUCCESS;
 }
 

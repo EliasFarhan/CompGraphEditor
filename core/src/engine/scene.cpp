@@ -17,7 +17,16 @@ static SceneManager* sceneManagerInstance = nullptr;
 
 void Scene::LoadScene(PyManager &pyManager)
 {
-
+    const auto framebuffers = scene_.framebuffers();
+    if (LoadFramebuffers(framebuffers) != ImportStatus::SUCCESS)
+    {
+        LogError("Could not import framebuffers");
+    }
+    const auto& renderPass = scene_.render_pass();
+    if (LoadRenderPass(renderPass) != ImportStatus::SUCCESS)
+    {
+        LogError("Count not import render pass");
+    }
     const auto shadersSize = scene_.shaders_size();
     const auto shaders = scene_.shaders();
     if (LoadShaders(shaders) != ImportStatus::SUCCESS)
@@ -53,17 +62,9 @@ void Scene::LoadScene(PyManager &pyManager)
         LogError("Could not import meshes");
     }
 
-    const auto framebuffers = scene_.framebuffers();
-    if(LoadFramebuffers(framebuffers) != ImportStatus::SUCCESS)
-    {
-        LogError("Could not import framebuffers");
-    }
+
     
-    const auto& renderPass = scene_.render_pass();
-    if(LoadRenderPass(renderPass) != ImportStatus::SUCCESS)
-    {
-        LogError("Count not import render pass");
-    }
+
 
 
     const auto pySystemSize = scene_.py_systems_size();

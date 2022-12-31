@@ -28,8 +28,18 @@ void Window::Begin()
     CreateSwapChainObjects();
 }
 
-void Window::End() {
+void Window::End()
+{
+    LogDebug("Destroy Window");
+    CleanupSwapChain();
+    vkDestroyDevice(driver_.device, nullptr);
+    if (config_.enable_debug())
+    {
+        DestroyDebugUtilsMessengerEXT(driver_.instance, debugMessenger_, nullptr);
+    }
+    vkDestroySurfaceKHR(driver_.instance, driver_.surface, nullptr);
 
+    vkDestroyInstance(driver_.instance, nullptr);
 }
 
 void Window::CreateWindow() {
@@ -317,8 +327,14 @@ void Window::CreateImageViews()
     }
 }
 
-void Window::CleanupSwapChain() {
+void Window::CleanupSwapChain()
+{
+    for (const auto& imageView : swapchain_.imageViews)
+    {
+        vkDestroyImageView(driver_.device, imageView, nullptr);
+    }
 
+    vkDestroySwapchainKHR(driver_.device, swapchain_.swapChain, nullptr);
 }
 
 void Window::CreateSwapChainObjects()

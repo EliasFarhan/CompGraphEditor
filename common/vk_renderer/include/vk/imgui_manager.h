@@ -11,7 +11,7 @@ public:
     void Begin();
     void PreImGuiDraw();
     void PostImGuiDraw();
-    void End();
+    void End() const;
 private:
     void InitDescriptorPool();
     void UploadFontAtlas();

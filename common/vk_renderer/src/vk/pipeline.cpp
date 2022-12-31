@@ -185,4 +185,11 @@ void Pipeline::Bind()
     const auto& renderer = GetRenderer();
     vkCmdBindPipeline(renderer.commandBuffers[renderer.imageIndex], VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline);
 }
+
+void Pipeline::Destroy() const
+{
+    const auto& driver = GetDriver();
+    vkDestroyPipeline(driver.device, pipeline, nullptr);
+    vkDestroyPipelineLayout(driver.device, pipelineLayout, nullptr);
+}
 }

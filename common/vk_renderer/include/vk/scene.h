@@ -35,6 +35,7 @@ private:
     std::vector<Mesh> meshes_;
     std::vector<Shader> shaders_;
     VkRenderPass renderPass_{};
+    std::vector<VkFramebuffer> vkFramebuffers_;
 };
 
 VkRenderPass GetCurrentRenderPass();

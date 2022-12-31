@@ -81,8 +81,23 @@ void Engine::Begin()
 
 void Engine::End()
 {
+    const auto& driver = GetDriver();
+    vkDeviceWaitIdle(driver.device);
     imGuiManager_.End();
+    vkFreeCommandBuffers(driver.device, renderer_.commandPool,
+        static_cast<uint32_t>(renderer_.commandBuffers.size()),
+        renderer_.commandBuffers.data());
+    vkDestroyCommandPool(driver.device, renderer_.commandPool, nullptr);
+    for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
+    {
+        vkDestroySemaphore(driver.device,
+            renderer_.renderFinishedSemaphores[i], nullptr);
+        vkDestroySemaphore(driver.device,
+            renderer_.imageAvailableSemaphores[i], nullptr);
+        vkDestroyFence(driver.device, renderer_.inFlightFences[i], nullptr);
+    }
     gpr5300::Engine::End();
+    //vmaDestroyAllocator();
     window_.End();
 }
 
@@ -146,8 +161,8 @@ void Engine::SwapWindow()
         LogError("Failed to record command buffer!");
         std::terminate();
     }
-    auto& driver = window_.GetDriver();
-    auto& swapchain = window_.GetSwapChain();
+    const auto& driver = window_.GetDriver();
+    const auto& swapchain = window_.GetSwapChain();
     {
         VkSubmitInfo submitInfo{};
         submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
@@ -173,7 +188,7 @@ void Engine::SwapWindow()
         }
     }
     {
-        VkSemaphore signalSemaphores[] = {
+        const VkSemaphore signalSemaphores[] = {
                     renderer_.renderFinishedSemaphores[renderer_.currentFrame]
         };
         VkPresentInfoKHR presentInfo{};

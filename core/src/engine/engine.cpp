@@ -91,7 +91,6 @@ void Engine::Run()
         }
 
         //Generate new ImGui frame
-        
         PreImGuiDraw();
 
         for(auto* imguiDrawInterface : imguiDrawInterfaces)
@@ -153,6 +152,7 @@ Engine::Engine()
         windowSize->set_y(720);
         config_.set_window_name("GPR5300");
         config_.set_fullscreen(false);
+        config_.set_enable_debug(true);
     }
 }
 void Engine::SetWindowName(std::string_view windowName)

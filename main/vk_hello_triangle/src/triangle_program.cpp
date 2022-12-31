@@ -23,6 +23,7 @@ pb::Scene Scene1()
     pipeline->set_vertex_shader_index(0);
     pipeline->set_fragment_shader_index(1);
     pipeline->set_type(pb::Pipeline_Type_RASTERIZE);
+    pipeline->set_cull_face(pb::Pipeline_CullFace_FRONT);
 
     auto* material = scene.add_materials();
     material->set_pipeline_index(0);
