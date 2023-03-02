@@ -1,4 +1,4 @@
-#include "triangle_program.h"
+#include "sample_program.h"
 #include <imgui.h>
 
 namespace gpr5300
@@ -239,9 +239,19 @@ core::pb::Scene Scene5()
 
 void SampleBrowserProgram::Begin()
 {
-    scene_.SetScene(Scene5());
+    samples_ = {
+        {"scene1", Scene1()},
+        {"scene2", Scene2()},
+        {"scene3", Scene3()},
+        {"scene4", Scene4()},
+        {"scene5", Scene5()}
+    };
+    for(auto& sample : samples_)
+    {
+        sample.scene.SetScene(sample.sceneInfo);
+    }
 
-    sceneManager_.LoadScene(&scene_);
+    sceneManager_.LoadScene(&samples_[0].scene);
 }
 
 void SampleBrowserProgram::Update(float dt)
@@ -256,6 +266,18 @@ void SampleBrowserProgram::End()
 void SampleBrowserProgram::DrawImGui()
 {
     ImGui::Begin("Sample Browser");
+    if(ImGui::BeginCombo("Samples", samples_[currentIndex_].sceneName.data()))
+    {
+        for(std::size_t i = 0; i < samples_.size(); i++)
+        {
+            if(ImGui::Selectable(samples_[i].sceneName.data(), i == currentIndex_))
+            {
+                sceneManager_.LoadScene(&samples_[i].scene);
+                currentIndex_ = i;
+            }
+        }
+        ImGui::EndCombo();
+    }
     ImGui::End();
 }
 } // namespace gpr5300

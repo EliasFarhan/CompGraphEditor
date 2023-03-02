@@ -461,6 +461,7 @@ Scene::ImportStatus Scene::LoadMaterials(const PbRepeatField<core::pb::Material>
         if (meshIndex >= 0)
         {
             glBindVertexArray(meshes_[meshIndex].vao);
+            glCheckError();
         }
 
         if (command.draw_elements())

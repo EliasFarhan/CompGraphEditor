@@ -1,5 +1,5 @@
 #include "gl/engine.h"
-#include "triangle_program.h"
+#include "sample_program.h"
 
 #include "engine/filesystem.h"
 #include <SDL_main.h>
