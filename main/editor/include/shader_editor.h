@@ -9,7 +9,7 @@ namespace gpr5300
 struct ShaderInfo
 {
     std::string filename;
-    pb::Shader info;
+    core::pb::Shader info;
     ResourceId resourceId = INVALID_RESOURCE_ID;
     bool compiledCorrectly = true;
 };
@@ -31,8 +31,8 @@ public:
     void Delete() override; std::span<const std::string_view> GetExtensions() const override;
 
 private:
-    bool AnalyzeShader(std::string_view path, pb::Shader& shaderInfo) const;
-    static pb::Attribute::Type GetType(std::string_view attributeTypeString);
+    bool AnalyzeShader(std::string_view path, core::pb::Shader& shaderInfo) const;
+    static core::pb::Attribute::Type GetType(std::string_view attributeTypeString);
     std::vector<ShaderInfo> shaderInfos_;
     std::size_t currentIndex_ = -1;
 };

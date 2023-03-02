@@ -2,7 +2,7 @@
 #include <fmt/format.h>
 #include <spdlog/spdlog.h>
 
-namespace gpr5300
+namespace core
 {
 
 static bool isRecordingLog = false;

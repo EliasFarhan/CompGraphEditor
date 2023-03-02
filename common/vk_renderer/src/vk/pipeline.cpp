@@ -3,9 +3,9 @@
 #include "vk/engine.h"
 #include "vk/scene.h"
 
-namespace gpr5300::vk
+namespace vk
 {
-bool Pipeline::LoadRaterizePipeline(const pb::Pipeline& pipelinePb, Shader& vertexShader, Shader& fragmentShader)
+bool Pipeline::LoadRaterizePipeline(const core::pb::Pipeline& pipelinePb, Shader& vertexShader, Shader& fragmentShader)
 {
     auto& swapchain = GetSwapchain();
     auto& driver = GetDriver();
@@ -58,15 +58,15 @@ bool Pipeline::LoadRaterizePipeline(const pb::Pipeline& pipelinePb, Shader& vert
     rasterizer.lineWidth = 1.0f;
     switch (pipelinePb.cull_face())
     {
-    case pb::Pipeline_CullFace_BACK:
+    case core::pb::Pipeline_CullFace_BACK:
 
         rasterizer.cullMode = VK_CULL_MODE_BACK_BIT;
         break;
-    case pb::Pipeline_CullFace_FRONT:
+    case core::pb::Pipeline_CullFace_FRONT:
 
         rasterizer.cullMode = VK_CULL_MODE_FRONT_BIT;
         break;
-    case pb::Pipeline_CullFace_FRONT_AND_BACK:
+    case core::pb::Pipeline_CullFace_FRONT_AND_BACK:
 
         rasterizer.cullMode = VK_CULL_MODE_FRONT_AND_BACK;
         break;
@@ -75,10 +75,10 @@ bool Pipeline::LoadRaterizePipeline(const pb::Pipeline& pipelinePb, Shader& vert
 
     switch (pipelinePb.front_face())
     {
-    case pb::Pipeline_FrontFace_CLOCKWISE:
+    case core::pb::Pipeline_FrontFace_CLOCKWISE:
         rasterizer.frontFace = VK_FRONT_FACE_CLOCKWISE;
         break;
-    case pb::Pipeline_FrontFace_COUNTER_CLOCKWISE:
+    case core::pb::Pipeline_FrontFace_COUNTER_CLOCKWISE:
         rasterizer.frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
         break;
     default:;
@@ -175,7 +175,7 @@ bool Pipeline::LoadRaterizePipeline(const pb::Pipeline& pipelinePb, Shader& vert
     return true;
 }
 
-bool Pipeline::LoadComputePipeline(const pb::Pipeline& pipelinePb, Shader& computeShader)
+bool Pipeline::LoadComputePipeline(const core::pb::Pipeline& pipelinePb, Shader& computeShader)
 {
     return false;
 }

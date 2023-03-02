@@ -11,19 +11,19 @@
 #include <glm/ext/matrix_float4x4.hpp>
 
 
-namespace gpr5300::gl
+namespace gl
 {
 struct Texture;
 
 struct Shader
 {
     ~Shader();
-    void LoadShader(const pb::Shader& shader);
+    void LoadShader(const core::pb::Shader& shader);
     GLuint name = 0;
     void Destroy();
 };
 
-class Pipeline : public gpr5300::Pipeline
+class Pipeline : public core::Pipeline
 {
 public:
 

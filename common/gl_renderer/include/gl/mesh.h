@@ -5,11 +5,11 @@
 
 #include "renderer/mesh.h"
 
-namespace gpr5300::gl
+namespace gl
 {
-struct Mesh : gpr5300::Mesh
+struct Mesh : core::Mesh
 {
-    std::string_view GetName() const override
+    [[nodiscard]] std::string_view GetName() const override
     {
         return name;
     }

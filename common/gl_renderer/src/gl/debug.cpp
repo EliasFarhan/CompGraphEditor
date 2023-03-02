@@ -3,7 +3,7 @@
 #include <fmt/format.h>
 #include <GL/glew.h>
 
-namespace gpr5300::gl
+namespace gl
 {
 bool CheckKtxError(ktx_error_code_e error_code)
 {

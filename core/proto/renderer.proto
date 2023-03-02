@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-package gpr5300.pb;
+package core.pb;
 import "proto/vector.proto";
 
 message Color4

@@ -20,10 +20,10 @@ void PipelineEditor::DrawInspector()
     auto& currentPipelineInfo = pipelineInfos_[currentIndex_];
 
     //Pipeline type
-    if(currentPipelineInfo.info.type() != pb::Pipeline_Type_RASTERIZE &&
-        currentPipelineInfo.info.type() != pb::Pipeline_Type_COMPUTE)
+    if(currentPipelineInfo.info.type() != core::pb::Pipeline_Type_RASTERIZE &&
+        currentPipelineInfo.info.type() != core::pb::Pipeline_Type_COMPUTE)
     {
-        currentPipelineInfo.info.set_type(pb::Pipeline_Type_RASTERIZE);
+        currentPipelineInfo.info.set_type(core::pb::Pipeline_Type_RASTERIZE);
     }
     int index = currentPipelineInfo.info.type();
     const char* pipelineTypeText[] = {
@@ -32,11 +32,11 @@ void PipelineEditor::DrawInspector()
     };
     if(ImGui::Combo("Combo", &index, pipelineTypeText, IM_ARRAYSIZE(pipelineTypeText)))
     {
-        currentPipelineInfo.info.set_type(static_cast<pb::Pipeline_Type>(index));
+        currentPipelineInfo.info.set_type(static_cast<core::pb::Pipeline_Type>(index));
     }
 
     //Rasterizer pipeline
-    if (currentPipelineInfo.info.type() == pb::Pipeline_Type_RASTERIZE)
+    if (currentPipelineInfo.info.type() == core::pb::Pipeline_Type_RASTERIZE)
     {
         if(currentPipelineInfo.vertexShaderId == INVALID_RESOURCE_ID || 
             currentPipelineInfo.fragmentShaderId == INVALID_RESOURCE_ID)
@@ -50,7 +50,7 @@ void PipelineEditor::DrawInspector()
         {
             for (auto& shader : shaders)
             {
-                if (shader.info.type() != pb::Shader_Type_VERTEX)
+                if (shader.info.type() != core::pb::Shader_Type_VERTEX)
                 {
                     continue;
                 }
@@ -69,7 +69,7 @@ void PipelineEditor::DrawInspector()
         {
             for (auto& shader : shaders)
             {
-                if (shader.info.type() != pb::Shader_Type_FRAGMENT)
+                if (shader.info.type() != core::pb::Shader_Type_FRAGMENT)
                 {
                     continue;
                 }
@@ -109,7 +109,7 @@ void PipelineEditor::DrawInspector()
                 {
                     if (ImGui::Selectable(depthCompareOpNames[i].data(), i == index))
                     {
-                        currentPipelineInfo.info.set_depth_compare_op(static_cast<gpr5300::pb::Pipeline_DepthCompareOp>(i));
+                        currentPipelineInfo.info.set_depth_compare_op(static_cast<core::pb::Pipeline_DepthCompareOp>(i));
                     }
                 }
                 ImGui::EndCombo();
@@ -144,7 +144,7 @@ void PipelineEditor::DrawInspector()
                 {
                     if(ImGui::Selectable(stencilFuncTxt[i].data(), i == currentPipelineInfo.info.stencil_func()))
                     {
-                        currentPipelineInfo.info.set_stencil_func(static_cast<pb::Pipeline_StencilFunc>(i));
+                        currentPipelineInfo.info.set_stencil_func(static_cast<core::pb::Pipeline_StencilFunc>(i));
                     }
                 }
                 ImGui::EndCombo();
@@ -180,7 +180,7 @@ void PipelineEditor::DrawInspector()
                 {
                     if(ImGui::Selectable(stencilOpTxt[i].data(), i == currentPipelineInfo.info.stencil_source_fail()))
                     {
-                        currentPipelineInfo.info.set_stencil_source_fail(static_cast<gpr5300::pb::Pipeline_StencilOp>(i));
+                        currentPipelineInfo.info.set_stencil_source_fail(static_cast<core::pb::Pipeline_StencilOp>(i));
                     }
                 }
                 ImGui::EndCombo();
@@ -191,7 +191,7 @@ void PipelineEditor::DrawInspector()
                 {
                     if (ImGui::Selectable(stencilOpTxt[i].data(), i == currentPipelineInfo.info.stencil_depth_fail()))
                     {
-                        currentPipelineInfo.info.set_stencil_depth_fail(static_cast<pb::Pipeline_StencilOp>(i));
+                        currentPipelineInfo.info.set_stencil_depth_fail(static_cast<core::pb::Pipeline_StencilOp>(i));
                     }
                 }
                 ImGui::EndCombo();
@@ -202,7 +202,7 @@ void PipelineEditor::DrawInspector()
                 {
                     if (ImGui::Selectable(stencilOpTxt[i].data(), i == currentPipelineInfo.info.stencil_depth_pass()))
                     {
-                        currentPipelineInfo.info.set_stencil_depth_pass(static_cast<pb::Pipeline_StencilOp>(i));
+                        currentPipelineInfo.info.set_stencil_depth_pass(static_cast<core::pb::Pipeline_StencilOp>(i));
                     }
                 }
                 ImGui::EndCombo();
@@ -258,7 +258,7 @@ void PipelineEditor::DrawInspector()
                 {
                     if(ImGui::Selectable(blendFuncTxt[i].data(), i == currentPipelineInfo.info.blending_source_factor()))
                     {
-                        currentPipelineInfo.info.set_blending_source_factor(static_cast<gpr5300::pb::Pipeline_BlendFunc>(i));
+                        currentPipelineInfo.info.set_blending_source_factor(static_cast<core::pb::Pipeline_BlendFunc>(i));
                     }
                 }
                 ImGui::EndCombo();
@@ -269,7 +269,7 @@ void PipelineEditor::DrawInspector()
                 {
                     if (ImGui::Selectable(blendFuncTxt[i].data(), i == currentPipelineInfo.info.blending_destination_factor()))
                     {
-                        currentPipelineInfo.info.set_blending_destination_factor(static_cast<gpr5300::pb::Pipeline_BlendFunc>(i));
+                        currentPipelineInfo.info.set_blending_destination_factor(static_cast<core::pb::Pipeline_BlendFunc>(i));
                     }
                 }
                 ImGui::EndCombo();
@@ -299,7 +299,7 @@ void PipelineEditor::DrawInspector()
                 {
                     if(ImGui::Selectable(cullFaceTxt[i].data(), i == currentPipelineInfo.info.cull_face()))
                     {
-                        currentPipelineInfo.info.set_cull_face(static_cast<pb::Pipeline_CullFace>(i));
+                        currentPipelineInfo.info.set_cull_face(static_cast<core::pb::Pipeline_CullFace>(i));
                     }
                 }
                 ImGui::EndCombo();
@@ -315,7 +315,7 @@ void PipelineEditor::DrawInspector()
                 {
                     if(ImGui::Selectable(frontFaceTxt[i].data(), i == currentPipelineInfo.info.front_face()))
                     {
-                        currentPipelineInfo.info.set_front_face(static_cast<pb::Pipeline_FrontFace>(i));
+                        currentPipelineInfo.info.set_front_face(static_cast<core::pb::Pipeline_FrontFace>(i));
                     }
                 }
                 ImGui::EndCombo();
@@ -358,7 +358,7 @@ void PipelineEditor::DrawInspector()
                     {
                         if(ImGui::Selectable(textureTypesTxt[j].data(), j == sampler->type()))
                         {
-                            sampler->set_type(static_cast<pb::TextureType>(j));
+                            sampler->set_type(static_cast<core::pb::TextureType>(j));
                             auto* materialEditor = editor->GetEditorSystem(EditorType::MATERIAL);
                             auto& resourceManager = editor->GetResourceManager();
                             const auto* pipelineResource = resourceManager.GetResource(currentPipelineInfo.resourceId);
@@ -400,7 +400,7 @@ void PipelineEditor::DrawInspector()
             ImGui::EndListBox();
         }
     }
-    else if(currentPipelineInfo.info.type() == pb::Pipeline_Type_COMPUTE)
+    else if(currentPipelineInfo.info.type() == core::pb::Pipeline_Type_COMPUTE)
     {
         
     }
@@ -436,7 +436,7 @@ void PipelineEditor::AddResource(const Resource& resource)
     pipelineInfo.resourceId = resource.resourceId;
     pipelineInfo.path = resource.path;
 
-    const auto& fileSystem = FilesystemLocator::get();
+    const auto& fileSystem = core::FilesystemLocator::get();
 
     if (!fileSystem.IsRegularFile(resource.path))
     {
@@ -582,7 +582,7 @@ void PipelineEditor::ReloadPipeline(int index)
     const auto* shaderEditor = dynamic_cast<ShaderEditor*>(editor->GetEditorSystem(EditorType::SHADER));
 
     auto& pipelineInfo = pipelineInfos_[index];
-    if (pipelineInfo.info.type() == pb::Pipeline_Type_RASTERIZE)
+    if (pipelineInfo.info.type() == core::pb::Pipeline_Type_RASTERIZE)
     {
         if (pipelineInfo.vertexShaderId == INVALID_RESOURCE_ID && !pipelineInfo.info.vertex_shader_path().empty())
         {
@@ -594,7 +594,7 @@ void PipelineEditor::ReloadPipeline(int index)
             pipelineInfo.fragmentShaderId = resourceManager.FindResourceByPath(pipelineInfo.info.fragment_shader_path());
         }
     }
-    std::vector<pb::Sampler> samplers;
+    std::vector<core::pb::Sampler> samplers;
     samplers.reserve(pipelineInfo.info.samplers_size());
     for(int i = 0; i < pipelineInfo.info.samplers_size(); i++)
     {
@@ -628,11 +628,11 @@ void PipelineEditor::ReloadPipeline(int index)
     {
         const auto& uniform = pipelineInfo.info.uniforms(i);
         const auto uniformType = uniform.type();
-        if(uniformType != pb::Attribute_Type_SAMPLER2D && uniformType != pb::Attribute_Type_SAMPLERCUBE)
+        if(uniformType != core::pb::Attribute_Type_SAMPLER2D && uniformType != core::pb::Attribute_Type_SAMPLERCUBE)
         {
             continue;
         }
-        const pb::Sampler* previousSampler = nullptr;
+        const core::pb::Sampler* previousSampler = nullptr;
         for(auto& sampler : samplers)
         {
             if(sampler.name() == uniform.name())
@@ -649,7 +649,7 @@ void PipelineEditor::ReloadPipeline(int index)
         else
         {
             newSampler->set_name(uniform.name());
-            newSampler->set_type(pb::NONE);
+            newSampler->set_type(core::pb::NONE);
         }
     }
 }

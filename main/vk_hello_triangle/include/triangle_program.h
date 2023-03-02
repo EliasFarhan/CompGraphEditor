@@ -6,7 +6,7 @@
 namespace gpr5300
 {
 
-class HelloVulkanProgram : public System, public ImguiDrawInterface
+class HelloVulkanProgram : public core::System, public core::ImguiDrawInterface
 {
 public:
     void Begin() override;
@@ -14,7 +14,7 @@ public:
     void End() override;
     void DrawImGui() override;
 private:
-    SceneManager sceneManager_;
+    core::SceneManager sceneManager_;
     vk::Scene scene_;
 };
 }

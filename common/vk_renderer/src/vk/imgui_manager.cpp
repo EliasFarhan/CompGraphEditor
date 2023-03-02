@@ -1,13 +1,13 @@
 #include "vk/imgui_manager.h"
 
-#include <imgui_impl_sdl.h>
+#include <imgui_impl_sdl2.h>
 #include <imgui_impl_vulkan.h>
 
 #include "utils/log.h"
 #include "vk/engine.h"
 #include "vk/scene.h"
 
-namespace gpr5300::vk
+namespace vk
 {
 
 
@@ -74,7 +74,7 @@ void ImGuiManager::InitDescriptorPool()
     const auto& driver = GetDriver();
     // Create Descriptor Pool
 
-    const VkDescriptorPoolSize poolSizes[] =
+    constexpr VkDescriptorPoolSize poolSizes[] =
     {
         { VK_DESCRIPTOR_TYPE_SAMPLER, 1000 },
         { VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1000 },

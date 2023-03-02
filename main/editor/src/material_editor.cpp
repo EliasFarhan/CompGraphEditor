@@ -190,7 +190,7 @@ void MaterialEditor::AddResource(const Resource &resource)
     materialInfo.filename = GetFilename(resource.path);
     materialInfo.resourceId = resource.resourceId;
     materialInfo.path = resource.path;
-    const auto& fileSystem = FilesystemLocator::get();
+    const auto& fileSystem = core::FilesystemLocator::get();
 
     if (!fileSystem.IsRegularFile(resource.path))
     {
@@ -321,7 +321,7 @@ void MaterialEditor::ReloadMaterialPipeline(const PipelineInfo& pipelineInfo, in
         samplerNames.emplace(samplerInfo.name());
         
     }
-    std::vector<pb::MaterialTexture> materialTextures;
+    std::vector<core::pb::MaterialTexture> materialTextures;
     for(int i = 0; i < currentMaterialInfo.info.textures_size(); i++)
     {
         const auto& materialTexture = currentMaterialInfo.info.textures(i);
@@ -342,7 +342,7 @@ void MaterialEditor::ReloadMaterialPipeline(const PipelineInfo& pipelineInfo, in
         if (it != materialTextures.end())
         {
             *newMaterialTexture = *it;
-            if (newMaterialTexture->texture_type() == pb::NONE && sampler.type() != pb::NONE)
+            if (newMaterialTexture->texture_type() == core::pb::NONE && sampler.type() != core::pb::NONE)
             {
                 newMaterialTexture->set_texture_type(sampler.type());
             }

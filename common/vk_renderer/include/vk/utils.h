@@ -7,7 +7,7 @@
 #include <optional>
 #include <vector>
 #include <string_view>
-namespace gpr5300::vk
+namespace vk
 {
 struct QueueFamilyIndices
 {
@@ -57,7 +57,7 @@ VkSurfaceFormatKHR ChooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>
 
 VkFormat FindDepthFormat(VkPhysicalDevice physicalDevice);
 VkImageView CreateImageView(VkDevice device, VkImage image, VkFormat format, VkImageAspectFlags aspectFlags);
-std::optional<VkShaderModule> CreateShaderModule(const gpr5300::BufferFile& bufferFile, VkDevice device);
+std::optional<VkShaderModule> CreateShaderModule(const core::BufferFile& bufferFile, VkDevice device);
 
 
 template<typename T>

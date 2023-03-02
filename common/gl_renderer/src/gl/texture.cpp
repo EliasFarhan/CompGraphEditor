@@ -11,10 +11,10 @@
 #include <ktx.h>
 
 
-namespace gpr5300::gl
+namespace gl
 {
 
-TextureId TextureManager::LoadTexture(const pb::Texture &textureInfo)
+core::TextureId TextureManager::LoadTexture(const core::pb::Texture &textureInfo)
 {
     const auto& path = textureInfo.path();
     const auto it = textureNamesMap_.find(path);
@@ -35,7 +35,7 @@ TextureId TextureManager::LoadTexture(const pb::Texture &textureInfo)
                 return {};
             }
         }
-        const auto textureId = TextureId{ static_cast<int>(textures_.size()) };
+        const auto textureId = core::TextureId{ static_cast<int>(textures_.size()) };
         textureNamesMap_[path] = textureId;
         textures_.push_back(std::move(newTexture));
         return textureId;
@@ -43,7 +43,7 @@ TextureId TextureManager::LoadTexture(const pb::Texture &textureInfo)
     return it->second;
 }
 
-const Texture& TextureManager::GetTexture(TextureId textureId)
+const Texture& TextureManager::GetTexture(core::TextureId textureId)
 {
     return textures_[static_cast<int>(textureId)];
 }
@@ -56,10 +56,10 @@ Texture::~Texture()
     }
 }
 
-bool Texture::LoadTexture(const pb::Texture &textureInfo)
+bool Texture::LoadTexture(const core::pb::Texture &textureInfo)
 {
     stbi_set_flip_vertically_on_load(true);
-    const auto &filesystem = FilesystemLocator::get();
+    const auto &filesystem = core::FilesystemLocator::get();
     std::string_view path = textureInfo.path();
     if (filesystem.FileExists(path))
     {
@@ -79,16 +79,16 @@ bool Texture::LoadTexture(const pb::Texture &textureInfo)
         GLint wrappingMode = GL_REPEAT;
         switch(textureInfo.wrapping_mode())
         {
-        case pb::Texture_WrappingMode_REPEAT: 
+        case core::pb::Texture_WrappingMode_REPEAT: 
             wrappingMode = GL_REPEAT;
             break;
-        case pb::Texture_WrappingMode_MIRROR_REPEAT: 
+        case core::pb::Texture_WrappingMode_MIRROR_REPEAT: 
             wrappingMode = GL_MIRRORED_REPEAT;
             break;
-        case pb::Texture_WrappingMode_CLAMP_TO_EDGE: 
+        case core::pb::Texture_WrappingMode_CLAMP_TO_EDGE: 
             wrappingMode = GL_CLAMP_TO_EDGE;
             break;
-        case pb::Texture_WrappingMode_CLAMP_TO_BORDER: 
+        case core::pb::Texture_WrappingMode_CLAMP_TO_BORDER: 
             wrappingMode = GL_CLAMP_TO_BORDER;
             break;
         default: 
@@ -102,13 +102,13 @@ bool Texture::LoadTexture(const pb::Texture &textureInfo)
         int magFilterMode = GL_NEAREST;
         switch(textureInfo.filter_mode())
         {
-        case pb::Texture_FilteringMode_LINEAR:
+        case core::pb::Texture_FilteringMode_LINEAR:
         {
             magFilterMode = GL_LINEAR;
             minFilterMode = textureInfo.generate_mipmaps() ? GL_LINEAR_MIPMAP_LINEAR : GL_LINEAR;
             break;
         }
-        case pb::Texture_FilteringMode_NEAREST:
+        case core::pb::Texture_FilteringMode_NEAREST:
         {
             magFilterMode = GL_NEAREST;
             minFilterMode = textureInfo.generate_mipmaps() ? GL_NEAREST_MIPMAP_LINEAR : GL_NEAREST;
@@ -165,16 +165,16 @@ bool Texture::LoadTexture(const pb::Texture &textureInfo)
     return false;
 }
 
-bool Texture::LoadCubemap(const pb::Texture& textureInfo)
+bool Texture::LoadCubemap(const core::pb::Texture& textureInfo)
 {
     target = GL_TEXTURE_CUBE_MAP;
     stbi_set_flip_vertically_on_load(false);
-    const auto& filesystem = FilesystemLocator::get();
+    const auto& filesystem = core::FilesystemLocator::get();
     std::string_view path = textureInfo.path();
 
     if (filesystem.FileExists(path))
     {
-        pb::Cubemap cubemap;
+        core::pb::Cubemap cubemap;
         const auto file = filesystem.LoadFile(path);
         if(!cubemap.ParseFromArray(file.data, file.length))
         {
@@ -188,16 +188,16 @@ bool Texture::LoadCubemap(const pb::Texture& textureInfo)
         GLint wrappingMode = GL_REPEAT;
         switch (textureInfo.wrapping_mode())
         {
-        case pb::Texture_WrappingMode_REPEAT:
+        case core::pb::Texture_WrappingMode_REPEAT:
             wrappingMode = GL_REPEAT;
             break;
-        case pb::Texture_WrappingMode_MIRROR_REPEAT:
+        case core::pb::Texture_WrappingMode_MIRROR_REPEAT:
             wrappingMode = GL_MIRRORED_REPEAT;
             break;
-        case pb::Texture_WrappingMode_CLAMP_TO_EDGE:
+        case core::pb::Texture_WrappingMode_CLAMP_TO_EDGE:
             wrappingMode = GL_CLAMP_TO_EDGE;
             break;
-        case pb::Texture_WrappingMode_CLAMP_TO_BORDER:
+        case core::pb::Texture_WrappingMode_CLAMP_TO_BORDER:
             wrappingMode = GL_CLAMP_TO_BORDER;
             break;
         default:
@@ -212,13 +212,13 @@ bool Texture::LoadCubemap(const pb::Texture& textureInfo)
         int magFilterMode = GL_NEAREST;
         switch (textureInfo.filter_mode())
         {
-        case pb::Texture_FilteringMode_LINEAR:
+        case core::pb::Texture_FilteringMode_LINEAR:
         {
             magFilterMode = GL_LINEAR;
             minFilterMode = textureInfo.generate_mipmaps() ? GL_LINEAR_MIPMAP_LINEAR : GL_LINEAR;
             break;
         }
-        case pb::Texture_FilteringMode_NEAREST:
+        case core::pb::Texture_FilteringMode_NEAREST:
         {
             magFilterMode = GL_NEAREST;
             minFilterMode = textureInfo.generate_mipmaps() ? GL_NEAREST_MIPMAP_LINEAR : GL_NEAREST;
@@ -247,7 +247,7 @@ bool Texture::LoadCubemap(const pb::Texture& textureInfo)
     return false;
 }
 
-bool Texture::LoadKtxTexture(const pb::Texture& textureInfo)
+bool Texture::LoadKtxTexture(const core::pb::Texture& textureInfo)
 {
     ktxTexture* kTexture;
     GLenum glerror;
@@ -275,16 +275,16 @@ bool Texture::LoadKtxTexture(const pb::Texture& textureInfo)
     GLint wrappingMode = GL_REPEAT;
     switch (textureInfo.wrapping_mode())
     {
-    case pb::Texture_WrappingMode_REPEAT:
+    case core::pb::Texture_WrappingMode_REPEAT:
         wrappingMode = GL_REPEAT;
         break;
-    case pb::Texture_WrappingMode_MIRROR_REPEAT:
+    case core::pb::Texture_WrappingMode_MIRROR_REPEAT:
         wrappingMode = GL_MIRRORED_REPEAT;
         break;
-    case pb::Texture_WrappingMode_CLAMP_TO_EDGE:
+    case core::pb::Texture_WrappingMode_CLAMP_TO_EDGE:
         wrappingMode = GL_CLAMP_TO_EDGE;
         break;
-    case pb::Texture_WrappingMode_CLAMP_TO_BORDER:
+    case core::pb::Texture_WrappingMode_CLAMP_TO_BORDER:
         wrappingMode = GL_CLAMP_TO_BORDER;
         break;
     default:
@@ -298,13 +298,13 @@ bool Texture::LoadKtxTexture(const pb::Texture& textureInfo)
     int magFilterMode = GL_NEAREST;
     switch (textureInfo.filter_mode())
     {
-    case pb::Texture_FilteringMode_LINEAR:
+    case core::pb::Texture_FilteringMode_LINEAR:
     {
         magFilterMode = GL_LINEAR;
         minFilterMode = textureInfo.generate_mipmaps() ? GL_LINEAR_MIPMAP_LINEAR : GL_LINEAR;
         break;
     }
-    case pb::Texture_FilteringMode_NEAREST:
+    case core::pb::Texture_FilteringMode_NEAREST:
     {
         magFilterMode = GL_NEAREST;
         minFilterMode = textureInfo.generate_mipmaps() ? GL_NEAREST_MIPMAP_LINEAR : GL_NEAREST;

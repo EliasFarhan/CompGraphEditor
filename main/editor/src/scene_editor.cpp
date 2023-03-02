@@ -37,7 +37,7 @@ void SceneEditor::AddResource(const Resource& resource)
     const auto extension = GetFileExtension(resource.path);
     if (extension == ".scene")
     {
-        const auto& fileSystem = FilesystemLocator::get();
+        const auto& fileSystem = core::FilesystemLocator::get();
         if (!fileSystem.IsRegularFile(resource.path))
         {
             LogWarning(fmt::format("Could not find scene file: {}", resource.path));

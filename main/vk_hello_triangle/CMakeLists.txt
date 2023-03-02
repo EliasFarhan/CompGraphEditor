@@ -1,9 +1,9 @@
 
 file(GLOB_RECURSE TRIANGLE_SRC src/*.cpp include/*.h data/*.py data/*.vert data/*.frag)
-add_executable(vk_triangle ${TRIANGLE_SRC})
-copydata(${CMAKE_CURRENT_SOURCE_DIR} vk_triangle)
-checkvkshaders(${CMAKE_CURRENT_SOURCE_DIR} vk_triangle)
+add_executable(vk_samples ${TRIANGLE_SRC})
+copydata(${CMAKE_CURRENT_SOURCE_DIR} vk_samples)
+checkvkshaders(${CMAKE_CURRENT_SOURCE_DIR} vk_samples)
 
-target_include_directories(vk_triangle PRIVATE include/)
-target_link_libraries(vk_triangle PRIVATE Core CommonVK)
-set_target_properties(vk_triangle PROPERTIES UNITY_BUILD ON)
+target_include_directories(vk_samples PRIVATE include/)
+target_link_libraries(vk_samples PRIVATE Core CommonVK)
+set_target_properties(vk_samples PROPERTIES UNITY_BUILD ON)

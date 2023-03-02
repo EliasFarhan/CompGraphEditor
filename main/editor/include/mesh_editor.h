@@ -11,7 +11,7 @@ struct MeshInfo
 {
     std::string path;
     std::string filename;
-    pb::Mesh info;
+    core::pb::Mesh info;
     ResourceId resourceId = INVALID_RESOURCE_ID;
 };
 

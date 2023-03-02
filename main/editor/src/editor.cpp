@@ -44,7 +44,7 @@ void Editor::Begin()
     
     resourceManager_.RegisterResourceChange(this);
     py::initialize_interpreter();
-    const auto& filesystem = FilesystemLocator::get();
+    const auto& filesystem = core::FilesystemLocator::get();
     if (!filesystem.IsDirectory(ResourceManager::dataFolder))
     {
         CreateNewDirectory(ResourceManager::dataFolder);
@@ -73,7 +73,7 @@ Editor::Editor()
 
 void Editor::DrawImGui()
 {
-    const auto windowSize = GetWindowSize();
+    const auto windowSize = core::GetWindowSize();
 
     ImGui::SetNextWindowPos(ImVec2(0, 0), ImGuiCond_FirstUseEver);
     ImGui::SetNextWindowSize(ImVec2(windowSize.x * 0.2f, windowSize.y), ImGuiCond_FirstUseEver);
@@ -154,7 +154,7 @@ void Editor::DrawMenuBar()
 
 void Editor::CreateNewFile(std::string_view path, EditorType type)
 {
-    const auto& filesystem = FilesystemLocator::get();
+    const auto& filesystem = core::FilesystemLocator::get();
     switch (type)
     {
     case EditorType::SHADER:
@@ -165,17 +165,17 @@ void Editor::CreateNewFile(std::string_view path, EditorType type)
     }
     case EditorType::PIPELINE:
     {
-        pb::Pipeline emptyPipeline;
+        core::pb::Pipeline emptyPipeline;
         emptyPipeline.set_depth_mask(true);
-        emptyPipeline.set_depth_compare_op(pb::Pipeline_DepthCompareOp_LESS);
+        emptyPipeline.set_depth_compare_op(core::pb::Pipeline_DepthCompareOp_LESS);
 
-        emptyPipeline.set_stencil_depth_fail(pb::Pipeline_StencilOp_KEEP);
-        emptyPipeline.set_stencil_depth_pass(pb::Pipeline_StencilOp_KEEP);
-        emptyPipeline.set_stencil_source_fail(pb::Pipeline_StencilOp_KEEP);
+        emptyPipeline.set_stencil_depth_fail(core::pb::Pipeline_StencilOp_KEEP);
+        emptyPipeline.set_stencil_depth_pass(core::pb::Pipeline_StencilOp_KEEP);
+        emptyPipeline.set_stencil_source_fail(core::pb::Pipeline_StencilOp_KEEP);
         emptyPipeline.set_stencil_mask(0xFF);
 
-        emptyPipeline.set_blending_source_factor(pb::Pipeline_BlendFunc_SRC_ALPHA);
-        emptyPipeline.set_blending_destination_factor(pb::Pipeline_BlendFunc_ONE_MINUS_SRC_ALPHA);
+        emptyPipeline.set_blending_source_factor(core::pb::Pipeline_BlendFunc_SRC_ALPHA);
+        emptyPipeline.set_blending_destination_factor(core::pb::Pipeline_BlendFunc_ONE_MINUS_SRC_ALPHA);
 
         filesystem.WriteString(path, emptyPipeline.SerializeAsString());
         resourceManager_.AddResource(path);
@@ -183,7 +183,7 @@ void Editor::CreateNewFile(std::string_view path, EditorType type)
     }
     case EditorType::MESH: 
     {
-        pb::Mesh emptyMesh;
+        core::pb::Mesh emptyMesh;
         auto* scale = emptyMesh.mutable_scale();
         scale->set_x(1.0f);
         scale->set_y(1.0f);
@@ -194,35 +194,35 @@ void Editor::CreateNewFile(std::string_view path, EditorType type)
     }
     case EditorType::MATERIAL: 
     {
-        const pb::Material emptyMaterial;
+        const core::pb::Material emptyMaterial;
         filesystem.WriteString(path, emptyMaterial.SerializeAsString());
         resourceManager_.AddResource(path);
         break;
     }
     case EditorType::SCENE:
     {
-        pb::Scene emptyScene;
+        core::pb::Scene emptyScene;
         filesystem.WriteString(path, emptyScene.SerializeAsString());
         resourceManager_.AddResource(path);
         break;
     }
     case EditorType::RENDER_PASS:
     {
-        const pb::RenderPass emptyRenderPass;
+        const core::pb::RenderPass emptyRenderPass;
         filesystem.WriteString(path, emptyRenderPass.SerializeAsString());
         resourceManager_.AddResource(path);
         break;
     }
     case EditorType::COMMAND:
     {
-        pb::DrawCommand emptyDrawCommand;
+        core::pb::DrawCommand emptyDrawCommand;
         filesystem.WriteString(path, emptyDrawCommand.SerializeAsString());
         resourceManager_.AddResource(path);
         break;
     }
     case EditorType::FRAMEBUFFER:
     {
-        pb::FrameBuffer emptyFramebuffer;
+        core::pb::FrameBuffer emptyFramebuffer;
         filesystem.WriteString(path, emptyFramebuffer.SerializeAsString());
         resourceManager_.AddResource(path);
         break;
@@ -237,7 +237,7 @@ void Editor::CreateNewFile(std::string_view path, EditorType type)
     {
         if(GetFileExtension(path) == ".cube")
         {
-            pb::Cubemap emptyCubemap;
+            core::pb::Cubemap emptyCubemap;
             filesystem.WriteString(path, emptyCubemap.SerializeAsString());
             resourceManager_.AddResource(path);
         }
@@ -252,7 +252,7 @@ bool Editor::UpdateCreateNewFile()
 {
     if (ImGui::BeginPopupModal("Create New File"))
     {
-        const auto& filesystem = FilesystemLocator::get();
+        const auto& filesystem = core::FilesystemLocator::get();
         auto* editorSystem = editorSystems_[static_cast<int>(currentCreateFileSystem_)].get();
         const auto extensions = editorSystem->GetExtensions();
 
@@ -351,19 +351,19 @@ void Editor::UpdateFileDialog()
 }
 void Editor::DrawLogWindow()
 {
-    const auto& logs = GetLogs();
+    const auto& logs = core::GetLogs();
     ImGui::Begin("Log");
     for (const auto& log : logs)
     {
         switch (log.type)
         {
-        case Log::Type::Error:
+        case core::Log::Type::Error:
             ImGui::TextColored(ImColor(255, 0, 0, 255), "%s", log.msg.c_str());
             break;
-        case Log::Type::Warning:
+        case core::Log::Type::Warning:
             ImGui::TextColored(ImColor(255, 255, 0, 255), "%s", log.msg.c_str());
             break;
-        case Log::Type::Debug:
+        case core::Log::Type::Debug:
             ImGui::TextColored(ImColor(150, 150, 150, 255), "%s", log.msg.c_str());
             break;
         default:

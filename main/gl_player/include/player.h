@@ -6,7 +6,7 @@
 namespace gpr5300
 {
 
-class Player : public ImguiDrawInterface, public System, public OnEventInterface
+class Player : public core::ImguiDrawInterface, public core::System, public core::OnEventInterface
 {
 public:
     void Begin() override;
@@ -16,7 +16,7 @@ public:
     void OnEvent(SDL_Event& event) override;
 
 private:
-    SceneManager sceneManager_;
+    core::SceneManager sceneManager_;
     std::vector<std::string> scenePaths_;
     bool sceneLoaded_ = false;
     gl::Scene playerScene_;

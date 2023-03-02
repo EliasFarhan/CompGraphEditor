@@ -7,28 +7,28 @@
 
 #include <vulkan/vulkan.h>
 
-namespace gpr5300::vk
+namespace vk
 {
-class Scene : public gpr5300::Scene
+class Scene : public core::Scene
 {
 public:
     void UnloadScene() override;
     void Update(float dt) override;
-    void Draw(const pb::DrawCommand& drawCommand) override;
+    void Draw(const core::pb::DrawCommand& drawCommand) override;
     Framebuffer& GetFramebuffer(int framebufferIndex) override;
-    std::unique_ptr<SceneMaterial> GetMaterial(int materialIndex) override;
+    std::unique_ptr<core::SceneMaterial> GetMaterial(int materialIndex) override;
     Pipeline& GetPipeline(int index) override;
     Mesh& GetMesh(int index) override;
     VkRenderPass GetCurrentRenderPass() const;
 protected:
-    ImportStatus LoadShaders(const PbRepeatField<pb::Shader>& shadersPb) override;
-    ImportStatus LoadPipelines(const PbRepeatField<pb::Pipeline>& pipelines) override;
-    ImportStatus LoadTextures(const PbRepeatField<pb::Texture>& textures) override;
-    ImportStatus LoadMaterials(const PbRepeatField<pb::Material>& materials) override;
+    ImportStatus LoadShaders(const PbRepeatField<core::pb::Shader>& shadersPb) override;
+    ImportStatus LoadPipelines(const PbRepeatField<core::pb::Pipeline>& pipelines) override;
+    ImportStatus LoadTextures(const PbRepeatField<core::pb::Texture>& textures) override;
+    ImportStatus LoadMaterials(const PbRepeatField<core::pb::Material>& materials) override;
     ImportStatus LoadModels(const PbRepeatField<std::string>& models) override;
-    ImportStatus LoadMeshes(const PbRepeatField<pb::Mesh>& meshes) override;
-    ImportStatus LoadFramebuffers(const PbRepeatField<pb::FrameBuffer>& framebuffers) override;
-    ImportStatus LoadRenderPass(const pb::RenderPass& renderPass) override;
+    ImportStatus LoadMeshes(const PbRepeatField<core::pb::Mesh>& meshes) override;
+    ImportStatus LoadFramebuffers(const PbRepeatField<core::pb::FrameBuffer>& framebuffers) override;
+    ImportStatus LoadRenderPass(const core::pb::RenderPass& renderPass) override;
 private:
     std::vector<Pipeline> pipelines_;
     std::vector<Framebuffer> framebuffers_;

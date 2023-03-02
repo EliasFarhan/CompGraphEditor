@@ -6,7 +6,7 @@
 #include <set>
 #include <cstring>
 
-namespace gpr5300::vk
+namespace vk
 {
 
 VKAPI_ATTR VkBool32 VKAPI_CALL DebugCallback(
@@ -375,7 +375,7 @@ VkImageView CreateImageView(VkDevice device, VkImage image, VkFormat format, VkI
     return imageView;
 }
 
-std::optional<VkShaderModule> CreateShaderModule(const BufferFile& bufferFile, VkDevice device)
+std::optional<VkShaderModule> CreateShaderModule(const core::BufferFile& bufferFile, VkDevice device)
 {
 #ifdef TRACY_ENABLE
     ZoneScoped

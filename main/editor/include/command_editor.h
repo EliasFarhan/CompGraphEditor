@@ -12,7 +12,7 @@ struct CommandInfo
 {
     std::string filename;
     std::string path;
-    pb::DrawCommand info;
+    core::pb::DrawCommand info;
     ResourceId resourceId = INVALID_RESOURCE_ID;
     ResourceId materialId = INVALID_RESOURCE_ID;
     ResourceId meshId = INVALID_RESOURCE_ID;

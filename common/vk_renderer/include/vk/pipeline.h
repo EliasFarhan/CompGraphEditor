@@ -5,7 +5,7 @@
 
 #include <vulkan/vulkan.h>
 
-namespace gpr5300::vk
+namespace vk
 {
 
 struct Shader
@@ -14,11 +14,11 @@ struct Shader
     VkShaderStageFlagBits stage;
 };
 
-class Pipeline final : public gpr5300::Pipeline
+class Pipeline final : public core::Pipeline
 {
 public:
-    bool LoadRaterizePipeline(const pb::Pipeline& pipelinePb, Shader& vertexShader, Shader& fragmentShader);
-    bool LoadComputePipeline(const pb::Pipeline& pipelinePb, Shader& computeShader);
+    bool LoadRaterizePipeline(const core::pb::Pipeline& pipelinePb, Shader& vertexShader, Shader& fragmentShader);
+    bool LoadComputePipeline(const core::pb::Pipeline& pipelinePb, Shader& computeShader);
     void Bind() override;
     void Destroy() const;
 

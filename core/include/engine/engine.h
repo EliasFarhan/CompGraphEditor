@@ -10,7 +10,7 @@
 
 #include <glm/ext/vector_uint2.hpp>
 
-namespace gpr5300
+namespace core
 {
 
 class OnEventInterface
@@ -63,5 +63,5 @@ class OnEventInterface
     glm::uvec2 GetWindowSize();
 
     TextureManager& GetTextureManager();
-} // namespace gpr5300
+} // namespace core
 

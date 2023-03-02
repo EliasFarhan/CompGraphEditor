@@ -19,7 +19,7 @@ struct ModelInfo
 {
     std::string path;
     std::string filename;
-    pb::Model info;
+    core::pb::Model info;
     tinyobj::ObjReader reader;
     ResourceId resourceId = INVALID_RESOURCE_ID;
     std::vector<ModelDrawCommand> drawCommands;

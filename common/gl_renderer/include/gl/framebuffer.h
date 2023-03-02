@@ -6,7 +6,7 @@
 
 #include "renderer/framebuffer.h"
 
-namespace gpr5300::gl
+namespace gl
 {
 
 struct AttachmentType
@@ -17,7 +17,7 @@ struct AttachmentType
     GLint error = 0;
 };
 
-class Framebuffer : public gpr5300::Framebuffer
+class Framebuffer : public core::Framebuffer
 {
 public:
     ~Framebuffer();
@@ -25,7 +25,7 @@ public:
     void Resize(glm::uvec2 windowSize);
     void Destroy();
     static void Unbind();
-    void Load(const pb::FrameBuffer& framebufferPb);
+    void Load(const core::pb::FrameBuffer& framebufferPb);
     GLuint GetTextureName(std::string_view textureName);
     [[nodiscard]] std::string_view GetName() const { return framebufferName_; }
 private:
@@ -33,13 +33,13 @@ private:
     std::string framebufferName_;
     std::vector<GLuint> colorAttachments_{};
     GLuint depthStencilAttachment_ = 0;
-    pb::FrameBuffer frameBufferPb_;
+    core::pb::FrameBuffer frameBufferPb_;
     std::unordered_map<std::string, GLuint> textureMap_;
 
     static inline GLuint currentFramebuffer_ = 0;
 };
 
-AttachmentType GetAttachmentType(const pb::RenderTarget& renderTargetInfo);
+AttachmentType GetAttachmentType(const core::pb::RenderTarget& renderTargetInfo);
 bool CheckFramebufferStatus();
 
 } // namespace grp5300

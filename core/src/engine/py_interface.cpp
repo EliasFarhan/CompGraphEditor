@@ -13,36 +13,36 @@
 #include "engine/engine.h"
 #include "utils/log.h"
 
-PYBIND11_EMBEDDED_MODULE(gpr5300, m)
+PYBIND11_EMBEDDED_MODULE(core, m)
 {
     
 
-    py::class_<gpr5300::Script, gpr5300::PySystem>(m, "System")
+    py::class_<core::Script, core::PySystem>(m, "System")
             .def(py::init())
-            .def("begin", &gpr5300::Script::Begin)
-            .def("update", &gpr5300::Script::Update)
-            .def("end", &gpr5300::Script::End)
-            .def("draw", &gpr5300::Script::Draw)
-            .def("on_key_up", &gpr5300::Script::OnKeyUp)
-            .def("on_key_down", &gpr5300::Script::OnKeyDown)
-            .def("on_mouse_motion", &gpr5300::Script::OnMouseMotion)
+            .def("begin", &core::Script::Begin)
+            .def("update", &core::Script::Update)
+            .def("end", &core::Script::End)
+            .def("draw", &core::Script::Draw)
+            .def("on_key_up", &core::Script::OnKeyUp)
+            .def("on_key_down", &core::Script::OnKeyDown)
+            .def("on_mouse_motion", &core::Script::OnMouseMotion)
     ;
 
 
-    py::class_<gpr5300::SceneSubPass>(m, "SubPass")
-        .def("get_draw_command", &gpr5300::SceneSubPass::GetDrawCommand)
-        .def_property_readonly("draw_command_count", &gpr5300::SceneSubPass::GetDrawCommandCount)
-        .def("get_framebuffer", &gpr5300::SceneSubPass::GetFramebuffer, py::return_value_policy::reference)
+    py::class_<core::SceneSubPass>(m, "SubPass")
+        .def("get_draw_command", &core::SceneSubPass::GetDrawCommand)
+        .def_property_readonly("draw_command_count", &core::SceneSubPass::GetDrawCommandCount)
+        .def("get_framebuffer", &core::SceneSubPass::GetFramebuffer, py::return_value_policy::reference)
         ;
 
-    py::class_<gpr5300::Scene>(m, "Scene")
-            .def("get_pipeline", &gpr5300::Scene::GetPipeline,
+    py::class_<core::Scene>(m, "Scene")
+            .def("get_pipeline", &core::Scene::GetPipeline,
                  py::return_value_policy::reference)
-            .def("get_material", &gpr5300::Scene::GetMaterial)
-            .def("get_subpass", &gpr5300::Scene::GetSubpass)
-            .def_property_readonly("subpass_count", &gpr5300::Scene::GetSubpassCount)
-            .def_property_readonly("pipeline_count", &gpr5300::Scene::GetPipelineCount)
-            .def_property_readonly("material_count", &gpr5300::Scene::GetMaterialCount)
+            .def("get_material", &core::Scene::GetMaterial)
+            .def("get_subpass", &core::Scene::GetSubpass)
+            .def_property_readonly("subpass_count", &core::Scene::GetSubpassCount)
+            .def_property_readonly("pipeline_count", &core::Scene::GetPipelineCount)
+            .def_property_readonly("material_count", &core::Scene::GetMaterialCount)
             ;
             
 
@@ -163,34 +163,34 @@ PYBIND11_EMBEDDED_MODULE(gpr5300, m)
     ;
 
     m.def("get_scene", [](){
-       return gpr5300::GetCurrentScene();
+       return core::GetCurrentScene();
     }, py::return_value_policy::reference);
 
     m.def("get_window_size", []
         {
-            return glm::vec2{ gpr5300::GetWindowSize() };
+            return glm::vec2{ core::GetWindowSize() };
         });
 
     m.def("get_aspect", []
         {
-            const auto windowSize = gpr5300::GetWindowSize();
+            const auto windowSize = core::GetWindowSize();
             return static_cast<float>(windowSize.x)/static_cast<float>(windowSize.y);
         });
 
-    py::class_<gpr5300::SceneMaterial>(m, "Material")
-        .def("bind", &gpr5300::SceneMaterial::Bind)
-        .def("get_pipeline", &gpr5300::SceneMaterial::GetPipeline, py::return_value_policy::reference)
-        .def("get_name", &gpr5300::SceneMaterial::GetName)
-        .def_property_readonly("name", &gpr5300::SceneMaterial::GetName)
+    py::class_<core::SceneMaterial>(m, "Material")
+        .def("bind", &core::SceneMaterial::Bind)
+        .def("get_pipeline", &core::SceneMaterial::GetPipeline, py::return_value_policy::reference)
+        .def("get_name", &core::SceneMaterial::GetName)
+        .def_property_readonly("name", &core::SceneMaterial::GetName)
         ;
 
-    py::class_<gpr5300::SceneDrawCommand>(m, "DrawCommand")
-        .def("draw", &gpr5300::SceneDrawCommand::Draw)
-        .def("get_material", &gpr5300::SceneDrawCommand::GetMaterial)
-        .def("get_name", &gpr5300::SceneDrawCommand::GetName)
-        .def_property_readonly("name", &gpr5300::SceneDrawCommand::GetName)
-        .def("get_mesh_name", &gpr5300::SceneDrawCommand::GetMeshName)
-        .def_property_readonly("mesh_name", &gpr5300::SceneDrawCommand::GetName)
+    py::class_<core::SceneDrawCommand>(m, "DrawCommand")
+        .def("draw", &core::SceneDrawCommand::Draw)
+        .def("get_material", &core::SceneDrawCommand::GetMaterial)
+        .def("get_name", &core::SceneDrawCommand::GetName)
+        .def_property_readonly("name", &core::SceneDrawCommand::GetName)
+        .def("get_mesh_name", &core::SceneDrawCommand::GetMeshName)
+        .def_property_readonly("mesh_name", &core::SceneDrawCommand::GetName)
         ;
     py::enum_<SDL_KeyCode>(m, "Key", py::arithmetic())
         .value("A", SDLK_a)
@@ -238,7 +238,7 @@ PYBIND11_EMBEDDED_MODULE(gpr5300, m)
         ;
 }
 
-namespace gpr5300
+namespace core
 {
 
 

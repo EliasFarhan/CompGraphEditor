@@ -9,7 +9,7 @@ struct FramebufferInfo
 {
     std::string filename;
     std::string path;
-    pb::FrameBuffer info;
+    core::pb::FrameBuffer info;
     ResourceId resourceId;
 };
 

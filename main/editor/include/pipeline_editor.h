@@ -9,7 +9,7 @@ struct PipelineInfo
 {
     std::string path;
     std::string filename;
-    pb::Pipeline info;
+    core::pb::Pipeline info;
     ResourceId resourceId = INVALID_RESOURCE_ID;
     ResourceId vertexShaderId = INVALID_RESOURCE_ID;
     ResourceId fragmentShaderId = INVALID_RESOURCE_ID;

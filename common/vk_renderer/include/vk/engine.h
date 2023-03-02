@@ -10,7 +10,7 @@
 #include "common.h"
 #include "imgui_manager.h"
 
-namespace gpr5300::vk
+namespace vk
 {
 
 struct Renderer
@@ -35,11 +35,11 @@ struct Renderer
     VkImageView depthImageView;
 };
 
-class Engine final : public gpr5300::Engine
+class Engine final : public core::Engine
 {
 public:
     Engine();
-    TextureManager &GetTextureManager() override { return textureManager_; }
+    core::TextureManager &GetTextureManager() override { return textureManager_; }
     Window& GetWindow() { return window_; }
     VkCommandBuffer BeginSingleTimeCommands();
     void EndSingleTimeCommands(VkCommandBuffer commandBuffer);

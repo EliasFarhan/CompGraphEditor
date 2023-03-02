@@ -1,6 +1,6 @@
 #pragma once
 
-namespace gpr5300
+namespace core
 {
     class System
     {
@@ -11,4 +11,4 @@ namespace gpr5300
         virtual void Update(float dt) = 0;
         virtual void End() = 0;
     };
-} // namespace gpr5300
+} // namespace core

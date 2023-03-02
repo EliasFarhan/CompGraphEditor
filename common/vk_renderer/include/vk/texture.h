@@ -2,12 +2,12 @@
 
 #include "renderer/texture.h"
 
-namespace gpr5300::vk
+namespace vk
 {
-class TextureManager : public gpr5300::TextureManager
+class TextureManager : public core::TextureManager
 {
 public:
-    TextureId LoadTexture(const pb::Texture &textureInfo) override;
+    core::TextureId LoadTexture(const core::pb::Texture &textureInfo) override;
 
 };
 }

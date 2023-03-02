@@ -32,11 +32,11 @@ void ShaderEditor::AddResource(const Resource& resource)
     shaderInfo.info.set_path(resource.path);
     if (resource.extension == ".vert")
     {
-        shaderInfo.info.set_type(pb::Shader_Type_VERTEX);
+        shaderInfo.info.set_type(core::pb::Shader_Type_VERTEX);
     }
     else if (resource.extension == ".frag")
     {
-        shaderInfo.info.set_type(pb::Shader_Type_FRAGMENT);
+        shaderInfo.info.set_type(core::pb::Shader_Type_FRAGMENT);
     }
     shaderInfos_.push_back(shaderInfo);
 }
@@ -88,12 +88,12 @@ void ShaderEditor::DrawInspector()
     }
     switch (currentShaderInfo.info.type())
     {
-    case pb::Shader_Type_VERTEX:
+    case core::pb::Shader_Type_VERTEX:
     {
         ImGui::Text("Type: Vertex Shader");
         break;
     }
-    case pb::Shader_Type_FRAGMENT:
+    case core::pb::Shader_Type_FRAGMENT:
     {
         ImGui::Text("Type: Fragment Shader");
         break;
@@ -200,7 +200,7 @@ std::span<const std::string_view> ShaderEditor::GetExtensions() const
     return extensions;
 }
 
-bool ShaderEditor::AnalyzeShader(std::string_view path, pb::Shader& shaderInfo) const
+bool ShaderEditor::AnalyzeShader(std::string_view path, core::pb::Shader& shaderInfo) const
 {
     py::function analyzeShaderFunc = py::module_::import("scripts.shader_parser").attr("analyze_shader");
     try
@@ -262,7 +262,7 @@ bool ShaderEditor::AnalyzeShader(std::string_view path, pb::Shader& shaderInfo) 
     }
     return false;
 }
-pb::Attribute::Type ShaderEditor::GetType(std::string_view attibuteTypeString)
+core::pb::Attribute::Type ShaderEditor::GetType(std::string_view attibuteTypeString)
 {
     static constexpr std::array<std::string_view, 15> typeString =
         {
@@ -285,8 +285,8 @@ pb::Attribute::Type ShaderEditor::GetType(std::string_view attibuteTypeString)
     const auto it = std::ranges::find(typeString, attibuteTypeString);
     if(it != typeString.end())
     {
-        return static_cast<pb::Attribute::Type>(std::distance(typeString.begin(), it));
+        return static_cast<core::pb::Attribute::Type>(std::distance(typeString.begin(), it));
     }
-    return pb::Attribute_Type_CUSTOM;
+    return core::pb::Attribute_Type_CUSTOM;
 }
 }

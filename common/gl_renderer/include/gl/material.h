@@ -4,18 +4,18 @@
 #include "renderer/material.h"
 
 
-namespace gpr5300::gl
+namespace gl
 {
 
 struct MaterialTexture
 {
-    TextureId textureId;
+    core::TextureId textureId;
     std::string uniformSamplerName;
     std::string attachmentName;
     std::string framebufferName;
 };
 
-struct Material : gpr5300::Material
+struct Material : core::Material
 {
     std::string name;
     int pipelineIndex = -1;

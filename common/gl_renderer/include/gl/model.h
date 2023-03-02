@@ -3,7 +3,7 @@
 #include <tiny_obj_loader.h>
 #include "gl/mesh.h"
 
-namespace gpr5300::gl
+namespace gl
 {
 struct Model
 {

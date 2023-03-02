@@ -5,7 +5,7 @@
 #include "utils/log.h"
 #include "vk/utils.h"
 
-namespace gpr5300::vk
+namespace vk
 {
 
 static Engine* instance = nullptr;
@@ -75,7 +75,7 @@ void Engine::Begin()
     CreateCommandPool();
     CreateCommandBuffers();
     CreateSyncObjects();
-    gpr5300::Engine::Begin();
+    core::Engine::Begin();
     imGuiManager_.Begin();
 }
 
@@ -96,7 +96,7 @@ void Engine::End()
             renderer_.imageAvailableSemaphores[i], nullptr);
         vkDestroyFence(driver.device, renderer_.inFlightFences[i], nullptr);
     }
-    gpr5300::Engine::End();
+    core::Engine::End();
     //vmaDestroyAllocator();
     window_.End();
 }

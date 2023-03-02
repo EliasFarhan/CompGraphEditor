@@ -16,6 +16,7 @@ find_package(tinyobjloader CONFIG REQUIRED)
 find_package(protobuf CONFIG REQUIRED)
 find_package(zstd CONFIG REQUIRED)
 find_package(Ktx CONFIG REQUIRED)
+find_package(assimp CONFIG REQUIRED)
 
 add_subdirectory(external/pybind11)
 

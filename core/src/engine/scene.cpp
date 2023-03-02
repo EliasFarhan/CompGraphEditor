@@ -10,7 +10,7 @@
 #include "renderer/model.h"
 
 
-namespace gpr5300
+namespace core
 {
 
 static SceneManager* sceneManagerInstance = nullptr;

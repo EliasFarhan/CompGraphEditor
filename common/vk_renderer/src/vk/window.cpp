@@ -5,11 +5,11 @@
 #include <fmt/core.h>
 #include <SDL_vulkan.h>
 
-namespace gpr5300::vk
+namespace vk
 {
 static Window* instance = nullptr;
 
-Window::Window(const pb::Config& config) : config_(config)
+Window::Window(const core::pb::Config& config) : config_(config)
 {
     instance = this;
 }

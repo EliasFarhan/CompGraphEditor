@@ -8,7 +8,7 @@
 
 namespace gpr5300
 {
-    class HelloTriangleProgram : public System, public ImguiDrawInterface
+    class SampleBrowserProgram : public core::System, public core::ImguiDrawInterface
     {
     public:
         void Begin() override;
@@ -18,6 +18,6 @@ namespace gpr5300
 
     private:
         gl::Scene scene_;
-        SceneManager sceneManager_;
+        core::SceneManager sceneManager_;
     };   
 } // namespace gpr5300

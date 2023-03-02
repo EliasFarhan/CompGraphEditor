@@ -3,7 +3,7 @@
 #include <vk_mem_alloc.h>
 #include <glm/ext/matrix_float4x4.hpp>
 
-namespace gpr5300::vk
+namespace vk
 {
 
 struct Buffer

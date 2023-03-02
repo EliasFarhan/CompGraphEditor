@@ -5,7 +5,7 @@
 #include "vk/window.h"
 #include "vk/pipeline.h"
 
-namespace gpr5300::vk
+namespace vk
 {
 void Scene::UnloadScene()
 {
@@ -60,7 +60,7 @@ void Scene::Update(float dt)
     vkCmdEndRenderPass(renderer.commandBuffers[renderer.imageIndex]);
 }
 
-void Scene::Draw(const pb::DrawCommand& drawCommand)
+void Scene::Draw(const core::pb::DrawCommand& drawCommand)
 {
     const auto& renderer = GetRenderer();
     const auto pipelineIndex = scene_.materials(drawCommand.material_index()).pipeline_index();
@@ -75,7 +75,7 @@ Framebuffer& Scene::GetFramebuffer(int framebufferIndex)
     return framebuffers_[framebufferIndex];
 }
 
-std::unique_ptr<SceneMaterial> Scene::GetMaterial(int materialIndex)
+std::unique_ptr<core::SceneMaterial> Scene::GetMaterial(int materialIndex)
 {
     return nullptr;
 }
@@ -95,10 +95,10 @@ VkRenderPass Scene::GetCurrentRenderPass() const
     return renderPass_;
 }
 
-Scene::ImportStatus Scene::LoadShaders(const PbRepeatField<pb::Shader>& shadersPb)
+Scene::ImportStatus Scene::LoadShaders(const PbRepeatField<core::pb::Shader>& shadersPb)
 {
     const auto& driver = GetDriver();
-    const auto& filesystem = FilesystemLocator::get();
+    const auto& filesystem = core::FilesystemLocator::get();
     for (auto& shaderPb : shadersPb)
     {
         const auto shaderFile = filesystem.LoadFile(shaderPb.path());
@@ -108,13 +108,13 @@ Scene::ImportStatus Scene::LoadShaders(const PbRepeatField<pb::Shader>& shadersP
         Shader shader{.module = shaderModule.value()};
         switch (shaderPb.type())
         {
-        case pb::Shader_Type_VERTEX:
+        case core::pb::Shader_Type_VERTEX:
             shader.stage = VK_SHADER_STAGE_VERTEX_BIT;
             break;
-        case pb::Shader_Type_FRAGMENT:
+        case core::pb::Shader_Type_FRAGMENT:
             shader.stage = VK_SHADER_STAGE_FRAGMENT_BIT;
             break;
-        case pb::Shader_Type_COMPUTE:
+        case core::pb::Shader_Type_COMPUTE:
             shader.stage = VK_SHADER_STAGE_COMPUTE_BIT;
             break;
         default:
@@ -126,7 +126,7 @@ Scene::ImportStatus Scene::LoadShaders(const PbRepeatField<pb::Shader>& shadersP
     return ImportStatus::SUCCESS;
 }
 
-Scene::ImportStatus Scene::LoadPipelines(const PbRepeatField<pb::Pipeline>& pipelines)
+Scene::ImportStatus Scene::LoadPipelines(const PbRepeatField<core::pb::Pipeline>& pipelines)
 {
     pipelines_.resize(pipelines.size());
     for(int i = 0; i < pipelines.size(); i++)
@@ -141,12 +141,12 @@ Scene::ImportStatus Scene::LoadPipelines(const PbRepeatField<pb::Pipeline>& pipe
     return ImportStatus::SUCCESS;
 }
 
-Scene::ImportStatus Scene::LoadTextures(const PbRepeatField<pb::Texture>& textures)
+Scene::ImportStatus Scene::LoadTextures(const PbRepeatField<core::pb::Texture>& textures)
 {
     return ImportStatus::FAILURE;
 }
 
-Scene::ImportStatus Scene::LoadMaterials(const PbRepeatField<pb::Material>& materials)
+Scene::ImportStatus Scene::LoadMaterials(const PbRepeatField<core::pb::Material>& materials)
 {
     return ImportStatus::FAILURE;
 }
@@ -156,19 +156,19 @@ Scene::ImportStatus Scene::LoadModels(const PbRepeatField<std::string>& models)
     return ImportStatus::FAILURE;
 }
 
-Scene::ImportStatus Scene::LoadMeshes(const PbRepeatField<pb::Mesh>& meshes)
+Scene::ImportStatus Scene::LoadMeshes(const PbRepeatField<core::pb::Mesh>& meshes)
 {
     return ImportStatus::FAILURE;
 }
 
-Scene::ImportStatus Scene::LoadFramebuffers(const PbRepeatField<pb::FrameBuffer>& framebuffers)
+Scene::ImportStatus Scene::LoadFramebuffers(const PbRepeatField<core::pb::FrameBuffer>& framebuffers)
 {
     //TODO needs to gather all additional attachments for the render pass generation and the vkframebuffer 
 
     return ImportStatus::FAILURE;
 }
 
-Scene::ImportStatus Scene::LoadRenderPass(const pb::RenderPass& renderPassPb)
+Scene::ImportStatus Scene::LoadRenderPass(const core::pb::RenderPass& renderPassPb)
 {
     LogDebug("Creating Render Pass");
     auto& driver = GetDriver();
@@ -309,7 +309,7 @@ Scene::ImportStatus Scene::LoadRenderPass(const pb::RenderPass& renderPassPb)
 
 VkRenderPass GetCurrentRenderPass()
 {
-    const auto* scene = static_cast<vk::Scene*>(GetCurrentScene());
+    const auto* scene = static_cast<Scene*>(core::GetCurrentScene());
     return scene->GetCurrentRenderPass();
 }
 }

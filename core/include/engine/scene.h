@@ -11,7 +11,7 @@
 
 #include <vector>
 
-namespace gpr5300
+namespace core
 {
 
 class Scene;
@@ -130,4 +130,4 @@ private:
 
 Scene* GetCurrentScene();
 
-} // namespace gpr5300
+} // namespace core

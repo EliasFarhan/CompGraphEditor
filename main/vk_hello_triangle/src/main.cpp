@@ -10,9 +10,9 @@
 
 int main(int argc, char** argv)
 {
-    gpr5300::DefaultFilesystem filesystem;
-    gpr5300::FilesystemLocator::provide(&filesystem);
-    gpr5300::vk::Engine engine;
+    core::DefaultFilesystem filesystem;
+    core::FilesystemLocator::provide(&filesystem);
+    vk::Engine engine;
 
     gpr5300::HelloVulkanProgram triangleProgram;
     engine.RegisterSystem(&triangleProgram);

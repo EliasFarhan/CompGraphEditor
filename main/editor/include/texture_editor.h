@@ -10,9 +10,9 @@ struct TextureInfo
 {
     std::string filename;
     std::string infoPath;
-    pb::Texture info;
+    core::pb::Texture info;
     ResourceId resourceId = INVALID_RESOURCE_ID;
-    pb::Cubemap cubemap;
+    core::pb::Cubemap cubemap;
 };
 
 class TextureEditor final : public EditorSystem

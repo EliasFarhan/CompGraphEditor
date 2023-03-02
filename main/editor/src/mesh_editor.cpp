@@ -3,8 +3,10 @@
 #include "utils/log.h"
 #include "editor.h"
 #include "command_editor.h"
+
 #include <imgui.h>
 #include <fmt/format.h>
+
 #include <string_view>
 #include <algorithm>
 #include <array>
@@ -21,25 +23,25 @@ void MeshEditor::DrawInspector()
     }
     auto& currentMesh = meshInfos_[currentIndex_];
 
-    bool none = currentMesh.info.primitve_type() == pb::Mesh_PrimitveType_NONE;
+    bool none = currentMesh.info.primitve_type() == core::pb::Mesh_PrimitveType_NONE;
     if(ImGui::Checkbox("No Mesh", &none))
     {
         if(none)
         {
-            currentMesh.info.set_primitve_type(pb::Mesh_PrimitveType_NONE);
+            currentMesh.info.set_primitve_type(core::pb::Mesh_PrimitveType_NONE);
         }
     }
-    bool primitive = !none && currentMesh.info.primitve_type() != pb::Mesh_PrimitveType_MODEL;
+    bool primitive = !none && currentMesh.info.primitve_type() != core::pb::Mesh_PrimitveType_MODEL;
     if(ImGui::Checkbox("Primitive", &primitive))
     {
         if((primitive && none) ||
-            (primitive && currentMesh.info.primitve_type() == pb::Mesh_PrimitveType_MODEL))
+            (primitive && currentMesh.info.primitve_type() == core::pb::Mesh_PrimitveType_MODEL))
         {
-            currentMesh.info.set_primitve_type(pb::Mesh_PrimitveType_QUAD);
+            currentMesh.info.set_primitve_type(core::pb::Mesh_PrimitveType_QUAD);
         }
         if(!primitive)
         {
-            currentMesh.info.set_primitve_type(pb::Mesh_PrimitveType_NONE);
+            currentMesh.info.set_primitve_type(core::pb::Mesh_PrimitveType_NONE);
         }
     }
     if(primitive)
@@ -54,7 +56,7 @@ void MeshEditor::DrawInspector()
         if(index < 0 || index >= primitiveTypes.size())
         {
             index = 0;
-            currentMesh.info.set_primitve_type(pb::Mesh_PrimitveType_QUAD);
+            currentMesh.info.set_primitve_type(core::pb::Mesh_PrimitveType_QUAD);
         }
         if(ImGui::BeginCombo("Primitive Type", primitiveTypes[index].data()))
         {
@@ -63,13 +65,13 @@ void MeshEditor::DrawInspector()
                 if(ImGui::Selectable(primitiveTypes[i].data(), i == index))
                 {
                     currentMesh.info.set_primitve_type(
-                            static_cast<pb::Mesh_PrimitveType>(pb::Mesh_PrimitveType_QUAD + i));
+                            static_cast<core::pb::Mesh_PrimitveType>(core::pb::Mesh_PrimitveType_QUAD + i));
                 }
             }
             ImGui::EndCombo();
         }
-        if(currentMesh.info.primitve_type() == pb::Mesh_PrimitveType_QUAD ||
-            currentMesh.info.primitve_type() == pb::Mesh_PrimitveType_CUBE)
+        if(currentMesh.info.primitve_type() == core::pb::Mesh_PrimitveType_QUAD ||
+            currentMesh.info.primitve_type() == core::pb::Mesh_PrimitveType_CUBE)
         {
             auto* scale = currentMesh.info.mutable_scale();
             std::array scaleInput{ scale->x(), scale->y(), scale->z() };
@@ -138,7 +140,7 @@ void MeshEditor::AddResource(const Resource &resource)
 
     const auto extension = GetFileExtension(resource.path);
 
-    const auto& fileSystem = FilesystemLocator::get();
+    const auto& fileSystem = core::FilesystemLocator::get();
     if (!fileSystem.IsRegularFile(resource.path))
     {
         LogWarning(fmt::format("Could not find mesh file: {}", resource.path));

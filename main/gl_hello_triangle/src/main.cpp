@@ -4,13 +4,13 @@
 #include "engine/filesystem.h"
 #include <SDL_main.h>
 
-int main(int argc, char** argv)
+int main([[maybe_unused]]int argc, [[maybe_unused]] char** argv)
 {
-    gpr5300::DefaultFilesystem filesystem;
-    gpr5300::FilesystemLocator::provide(&filesystem);
-    gpr5300::gl::Engine engine;
+    core::DefaultFilesystem filesystem;
+    core::FilesystemLocator::provide(&filesystem);
+    gl::Engine engine;
 
-    gpr5300::HelloTriangleProgram triangleProgram;
+    gpr5300::SampleBrowserProgram triangleProgram;
     engine.RegisterSystem(&triangleProgram);
     engine.RegisterImGuiDrawInterface(&triangleProgram);
 

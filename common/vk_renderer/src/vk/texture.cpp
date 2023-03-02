@@ -4,10 +4,10 @@
 
 #include "vk/texture.h"
 
-namespace gpr5300::vk
+namespace vk
 {
-TextureId TextureManager::LoadTexture(const pb::Texture &textureInfo)
+core::TextureId TextureManager::LoadTexture(const core::pb::Texture &textureInfo)
 {
-    return INVALID_TEXTURE_ID;
+    return core::INVALID_TEXTURE_ID;
 }
 }

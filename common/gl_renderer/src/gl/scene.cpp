@@ -11,17 +11,17 @@
 #include <string_view>
 #include <string>
 
-namespace gpr5300::gl
+namespace gl
 {
 
-const Texture& GetTexture(TextureId textureId)
+const Texture& GetTexture(core::TextureId textureId)
 {
-    auto& textureManager = static_cast<TextureManager&>(GetTextureManager());
+    auto& textureManager = static_cast<TextureManager&>(core::GetTextureManager());
     return textureManager.GetTexture(textureId);
 }
 
 Scene::ImportStatus Scene::LoadShaders(
-    const google::protobuf::RepeatedPtrField<gpr5300::pb::Shader>& shadersPb)
+    const google::protobuf::RepeatedPtrField<core::pb::Shader>& shadersPb)
 {
     const auto shadersSize = shadersPb.size();
     shaders_.resize(shadersSize);
@@ -35,7 +35,7 @@ Scene::ImportStatus Scene::LoadShaders(
 }
 
 Scene::ImportStatus Scene::LoadPipelines(
-    const google::protobuf::RepeatedPtrField<pb::Pipeline>& pipelines)
+    const google::protobuf::RepeatedPtrField<core::pb::Pipeline>& pipelines)
 {
     const auto pipelinesSize = pipelines.size();
     pipelines_.resize(pipelinesSize);
@@ -45,11 +45,11 @@ Scene::ImportStatus Scene::LoadPipelines(
         pipelines_[i].SetPipelineName(pipelinePb.name());
         switch (pipelinePb.type())
         {
-        case pb::Pipeline_Type_RASTERIZE:
+        case core::pb::Pipeline_Type_RASTERIZE:
             pipelines_[i].LoadRasterizePipeline(shaders_[pipelinePb.vertex_shader_index()],
                 shaders_[pipelinePb.fragment_shader_index()]);
             break;
-        case pb::Pipeline_Type_COMPUTE:
+        case core::pb::Pipeline_Type_COMPUTE:
             pipelines_[i].LoadComputePipeline(shaders_[pipelinePb.compute_shader_index()]);
             break;
         default:
@@ -60,18 +60,18 @@ Scene::ImportStatus Scene::LoadPipelines(
     return ImportStatus::SUCCESS;
 }
 
-Scene::ImportStatus Scene::LoadTextures(const PbRepeatField<pb::Texture>& textures)
+Scene::ImportStatus Scene::LoadTextures(const PbRepeatField<core::pb::Texture>& textures)
 {
     const auto texturesSize = textures.size();
     textures_.resize(texturesSize);
-    auto& textureManager = GetTextureManager();
+    auto& textureManager = core::GetTextureManager();
     for (int i = 0; i < texturesSize; i++)
     {
         textures_[i] = { textureManager.LoadTexture(scene_.textures(i)) };
     }
     return ImportStatus::SUCCESS;
 }
-Scene::ImportStatus Scene::LoadMaterials(const PbRepeatField<gpr5300::pb::Material>& materials)
+Scene::ImportStatus Scene::LoadMaterials(const PbRepeatField<core::pb::Material>& materials)
 {
     const auto materialsSize = scene_.materials_size();
     materials_.resize(materialsSize);
@@ -115,7 +115,7 @@ Scene::ImportStatus Scene::LoadMaterials(const PbRepeatField<gpr5300::pb::Materi
         return ImportStatus::SUCCESS;
     }
 
-    Scene::ImportStatus Scene::LoadMeshes(const PbRepeatField<pb::Mesh>& meshes)
+    Scene::ImportStatus Scene::LoadMeshes(const PbRepeatField<core::pb::Mesh>& meshes)
     {
         const auto meshesSize = meshes.size();
         meshes_.resize(meshesSize);
@@ -124,14 +124,14 @@ Scene::ImportStatus Scene::LoadMaterials(const PbRepeatField<gpr5300::pb::Materi
             const auto& mesh = meshes.Get(i);
             switch (mesh.primitve_type())
             {
-                case pb::Mesh_PrimitveType_QUAD:
+                case core::pb::Mesh_PrimitveType_QUAD:
                 {
                     const glm::vec3 scale = mesh.has_scale() ? glm::vec3{ mesh.scale().x(), mesh.scale().y(), mesh.scale().z() } : glm::vec3(1.0f);
                     const glm::vec3 offset{ mesh.offset().x(), mesh.offset().y(), mesh.offset().z() };
                     meshes_[i] = GenerateQuad(scale, offset);
                     break;
                 }
-                case pb::Mesh_PrimitveType_CUBE:
+                case core::pb::Mesh_PrimitveType_CUBE:
                 {
                     const glm::vec3 scale = mesh.has_scale() ? glm::vec3{ mesh.scale().x(), mesh.scale().y(), mesh.scale().z() } : glm::vec3(1.0f);
                     const glm::vec3 offset{ mesh.offset().x(), mesh.offset().y(), mesh.offset().z() };
@@ -139,12 +139,12 @@ Scene::ImportStatus Scene::LoadMaterials(const PbRepeatField<gpr5300::pb::Materi
                     meshes_[i] = GenerateCube(scale, offset);
                     break;
                 }
-                case pb::Mesh_PrimitveType_SPHERE:
+                case core::pb::Mesh_PrimitveType_SPHERE:
                     break;
-                case pb::Mesh_PrimitveType_NONE:
+                case core::pb::Mesh_PrimitveType_NONE:
                     meshes_[i] = GenerateEmpty();
                     break;
-                case pb::Mesh_PrimitveType_MODEL:
+                case core::pb::Mesh_PrimitveType_MODEL:
                     meshes_[i] = models_[mesh.model_index()].GenerateMesh(mesh.mesh_name());
                     break;
                 default:
@@ -155,7 +155,7 @@ Scene::ImportStatus Scene::LoadMaterials(const PbRepeatField<gpr5300::pb::Materi
         return ImportStatus::SUCCESS;
     }
 
-    Scene::ImportStatus Scene::LoadFramebuffers(const PbRepeatField<pb::FrameBuffer>& framebuffers)
+    Scene::ImportStatus Scene::LoadFramebuffers(const PbRepeatField<core::pb::FrameBuffer>& framebuffers)
     {
         const auto framebufferSize = framebuffers.size();
         framebuffers_.resize(framebufferSize);
@@ -246,7 +246,7 @@ Scene::ImportStatus Scene::LoadMaterials(const PbRepeatField<gpr5300::pb::Materi
         glCheckError();
     }
 
-    void Scene::Draw(const pb::DrawCommand& command)
+    void Scene::Draw(const core::pb::DrawCommand& command)
     {
         const auto& material = materials_[command.material_index()];
         auto& pipeline = pipelines_[material.pipelineIndex];
@@ -257,28 +257,28 @@ Scene::ImportStatus Scene::LoadMaterials(const PbRepeatField<gpr5300::pb::Materi
             glEnable(GL_DEPTH_TEST);
             switch (pipelineInfo.depth_compare_op())
             {
-                case pb::Pipeline_DepthCompareOp_LESS:
+                case core::pb::Pipeline_DepthCompareOp_LESS:
                     glDepthFunc(GL_LESS);
                     break;
-                case pb::Pipeline_DepthCompareOp_LESS_OR_EQUAL:
+                case core::pb::Pipeline_DepthCompareOp_LESS_OR_EQUAL:
                     glDepthFunc(GL_LEQUAL);
                     break;
-                case pb::Pipeline_DepthCompareOp_EQUAL:
+                case core::pb::Pipeline_DepthCompareOp_EQUAL:
                     glDepthFunc(GL_EQUAL);
                     break;
-                case pb::Pipeline_DepthCompareOp_GREATER:
+                case core::pb::Pipeline_DepthCompareOp_GREATER:
                     glDepthFunc(GL_GREATER);
                     break;
-                case pb::Pipeline_DepthCompareOp_NOT_EQUAL:
+                case core::pb::Pipeline_DepthCompareOp_NOT_EQUAL:
                     glDepthFunc(GL_NOTEQUAL);
                     break;
-                case pb::Pipeline_DepthCompareOp_GREATER_OR_EQUAL:
+                case core::pb::Pipeline_DepthCompareOp_GREATER_OR_EQUAL:
                     glDepthFunc(GL_GEQUAL);
                     break;
-                case pb::Pipeline_DepthCompareOp_ALWAYS:
+                case core::pb::Pipeline_DepthCompareOp_ALWAYS:
                     glDepthFunc(GL_ALWAYS);
                     break;
-                case pb::Pipeline_DepthCompareOp_NEVER:
+                case core::pb::Pipeline_DepthCompareOp_NEVER:
                     glDepthFunc(GL_NEVER);
                     break;
                 default:;
@@ -293,29 +293,29 @@ Scene::ImportStatus Scene::LoadMaterials(const PbRepeatField<gpr5300::pb::Materi
         if (pipelineInfo.blend_enable())
         {
             glEnable(GL_BLEND);
-            auto translateBlendFunc = [](pb::Pipeline_BlendFunc blendFunc)
+            auto translateBlendFunc = [](core::pb::Pipeline_BlendFunc blendFunc)
             {
                 switch (blendFunc)
                 {
-                    case pb::Pipeline_BlendFunc_BLEND_ZERO: return GL_ZERO;
-                    case pb::Pipeline_BlendFunc_ONE: return GL_ONE;
-                    case pb::Pipeline_BlendFunc_SRC_COLOR: return GL_SRC_COLOR;
-                    case pb::Pipeline_BlendFunc_ONE_MINUS_SRC_COLOR: return GL_ONE_MINUS_SRC_COLOR;
-                    case pb::Pipeline_BlendFunc_DST_COLOR: return GL_DST_COLOR;
-                    case pb::Pipeline_BlendFunc_ONE_MINUS_DST_COLOR: return GL_ONE_MINUS_DST_COLOR;
-                    case pb::Pipeline_BlendFunc_SRC_ALPHA: return GL_SRC_ALPHA;
-                    case pb::Pipeline_BlendFunc_ONE_MINUS_SRC_ALPHA: return GL_ONE_MINUS_SRC_ALPHA;
-                    case pb::Pipeline_BlendFunc_DST_ALPHA: return GL_DST_ALPHA;
-                    case pb::Pipeline_BlendFunc_ONE_MINUS_DST_ALPHA: return GL_ONE_MINUS_DST_ALPHA;
-                    case pb::Pipeline_BlendFunc_CONSTANT_COLOR: return GL_CONSTANT_COLOR;
-                    case pb::Pipeline_BlendFunc_ONE_MINUS_CONSTANT_COLOR: return GL_ONE_MINUS_CONSTANT_COLOR;
-                    case pb::Pipeline_BlendFunc_CONSTANT_ALPHA: return GL_CONSTANT_ALPHA;
-                    case pb::Pipeline_BlendFunc_ONE_MINUS_CONSTANT_ALPHA: return GL_ONE_MINUS_CONSTANT_ALPHA;
-                    case pb::Pipeline_BlendFunc_SRC_ALPHA_SATURATE: return GL_SRC_ALPHA_SATURATE;
-                    case pb::Pipeline_BlendFunc_SRC1_COLOR: return GL_SRC1_COLOR;
-                    case pb::Pipeline_BlendFunc_ONE_MINUS_SRC1_COLOR: return GL_ONE_MINUS_SRC1_COLOR;
-                    case pb::Pipeline_BlendFunc_SRC1_ALPHA: return GL_SRC1_ALPHA;
-                    case pb::Pipeline_BlendFunc_ONE_MINUS_SRC1_ALPHA: return GL_ONE_MINUS_SRC1_ALPHA;
+                    case core::pb::Pipeline_BlendFunc_BLEND_ZERO: return GL_ZERO;
+                    case core::pb::Pipeline_BlendFunc_ONE: return GL_ONE;
+                    case core::pb::Pipeline_BlendFunc_SRC_COLOR: return GL_SRC_COLOR;
+                    case core::pb::Pipeline_BlendFunc_ONE_MINUS_SRC_COLOR: return GL_ONE_MINUS_SRC_COLOR;
+                    case core::pb::Pipeline_BlendFunc_DST_COLOR: return GL_DST_COLOR;
+                    case core::pb::Pipeline_BlendFunc_ONE_MINUS_DST_COLOR: return GL_ONE_MINUS_DST_COLOR;
+                    case core::pb::Pipeline_BlendFunc_SRC_ALPHA: return GL_SRC_ALPHA;
+                    case core::pb::Pipeline_BlendFunc_ONE_MINUS_SRC_ALPHA: return GL_ONE_MINUS_SRC_ALPHA;
+                    case core::pb::Pipeline_BlendFunc_DST_ALPHA: return GL_DST_ALPHA;
+                    case core::pb::Pipeline_BlendFunc_ONE_MINUS_DST_ALPHA: return GL_ONE_MINUS_DST_ALPHA;
+                    case core::pb::Pipeline_BlendFunc_CONSTANT_COLOR: return GL_CONSTANT_COLOR;
+                    case core::pb::Pipeline_BlendFunc_ONE_MINUS_CONSTANT_COLOR: return GL_ONE_MINUS_CONSTANT_COLOR;
+                    case core::pb::Pipeline_BlendFunc_CONSTANT_ALPHA: return GL_CONSTANT_ALPHA;
+                    case core::pb::Pipeline_BlendFunc_ONE_MINUS_CONSTANT_ALPHA: return GL_ONE_MINUS_CONSTANT_ALPHA;
+                    case core::pb::Pipeline_BlendFunc_SRC_ALPHA_SATURATE: return GL_SRC_ALPHA_SATURATE;
+                    case core::pb::Pipeline_BlendFunc_SRC1_COLOR: return GL_SRC1_COLOR;
+                    case core::pb::Pipeline_BlendFunc_ONE_MINUS_SRC1_COLOR: return GL_ONE_MINUS_SRC1_COLOR;
+                    case core::pb::Pipeline_BlendFunc_SRC1_ALPHA: return GL_SRC1_ALPHA;
+                    case core::pb::Pipeline_BlendFunc_ONE_MINUS_SRC1_ALPHA: return GL_ONE_MINUS_SRC1_ALPHA;
                     default:;
                 }
                 return GL_ZERO;
@@ -330,18 +330,18 @@ Scene::ImportStatus Scene::LoadMaterials(const PbRepeatField<gpr5300::pb::Materi
         {
             glEnable(GL_STENCIL_TEST);
             glStencilMask(pipelineInfo.stencil_mask());
-            auto translateStencilOp = [](pb::Pipeline_StencilOp stencilOp)
+            auto translateStencilOp = [](core::pb::Pipeline_StencilOp stencilOp)
             {
                 switch (stencilOp)
                 {
-                    case pb::Pipeline_StencilOp_KEEP: return GL_KEEP;
-                    case pb::Pipeline_StencilOp_STENCIL_ZERO: return GL_ZERO;
-                    case pb::Pipeline_StencilOp_REPLACE: return GL_REPLACE;
-                    case pb::Pipeline_StencilOp_INCR: return GL_INCR;
-                    case pb::Pipeline_StencilOp_INCR_WRAP: return GL_INCR_WRAP;
-                    case pb::Pipeline_StencilOp_DECR: return GL_DECR;
-                    case pb::Pipeline_StencilOp_DECR_WRAP: return GL_DECR_WRAP;
-                    case pb::Pipeline_StencilOp_INVERT: return GL_INVERT;
+                    case core::pb::Pipeline_StencilOp_KEEP: return GL_KEEP;
+                    case core::pb::Pipeline_StencilOp_STENCIL_ZERO: return GL_ZERO;
+                    case core::pb::Pipeline_StencilOp_REPLACE: return GL_REPLACE;
+                    case core::pb::Pipeline_StencilOp_INCR: return GL_INCR;
+                    case core::pb::Pipeline_StencilOp_INCR_WRAP: return GL_INCR_WRAP;
+                    case core::pb::Pipeline_StencilOp_DECR: return GL_DECR;
+                    case core::pb::Pipeline_StencilOp_DECR_WRAP: return GL_DECR_WRAP;
+                    case core::pb::Pipeline_StencilOp_INVERT: return GL_INVERT;
                     default:;
                 }
                 return GL_KEEP;
@@ -377,13 +377,13 @@ Scene::ImportStatus Scene::LoadMaterials(const PbRepeatField<gpr5300::pb::Materi
             switch (pipelineInfo.cull_face())
             {
 
-                case pb::Pipeline_CullFace_BACK:
+                case core::pb::Pipeline_CullFace_BACK:
                     glCullFace(GL_BACK);
                     break;
-                case pb::Pipeline_CullFace_FRONT:
+                case core::pb::Pipeline_CullFace_FRONT:
                     glCullFace(GL_FRONT);
                     break;
-                case pb::Pipeline_CullFace_FRONT_AND_BACK:
+                case core::pb::Pipeline_CullFace_FRONT_AND_BACK:
                     glCullFace(GL_FRONT_AND_BACK);
                     break;
                 default:
@@ -391,10 +391,10 @@ Scene::ImportStatus Scene::LoadMaterials(const PbRepeatField<gpr5300::pb::Materi
             }
             switch (pipelineInfo.front_face())
             {
-                case pb::Pipeline_FrontFace_COUNTER_CLOCKWISE:
+                case core::pb::Pipeline_FrontFace_COUNTER_CLOCKWISE:
                     glFrontFace(GL_CCW);
                     break;
-                case pb::Pipeline_FrontFace_CLOCKWISE:
+                case core::pb::Pipeline_FrontFace_CLOCKWISE:
                     glFrontFace(GL_CW);
                     break;
                 default:
@@ -410,7 +410,7 @@ Scene::ImportStatus Scene::LoadMaterials(const PbRepeatField<gpr5300::pb::Materi
         for (std::size_t textureIndex = 0; textureIndex < material.textures.size(); textureIndex++)
         {
             const auto& materialTexture = material.textures[textureIndex];
-            if (materialTexture.textureId != INVALID_TEXTURE_ID)
+            if (materialTexture.textureId != core::INVALID_TEXTURE_ID)
             {
                 pipeline.SetTexture(materialTexture.uniformSamplerName, GetTexture(material.textures[textureIndex].textureId), textureIndex);
             }
@@ -450,7 +450,7 @@ Scene::ImportStatus Scene::LoadMaterials(const PbRepeatField<gpr5300::pb::Materi
         GLenum mode = 0;
         switch (command.mode())
         {
-            case pb::DrawCommand_Mode_TRIANGLES:
+            case core::pb::DrawCommand_Mode_TRIANGLES:
                 mode = GL_TRIANGLES;
                 break;
             default:
@@ -475,16 +475,16 @@ Scene::ImportStatus Scene::LoadMaterials(const PbRepeatField<gpr5300::pb::Materi
         }
     }
 
-    std::unique_ptr<gpr5300::SceneMaterial> Scene::GetMaterial(int materialIndex)
+    std::unique_ptr<core::SceneMaterial> Scene::GetMaterial(int materialIndex)
     {
-        return  std::make_unique<gpr5300::gl::SceneMaterial>(
+        return  std::make_unique<gl::SceneMaterial>(
                 &pipelines_[materials_[materialIndex].pipelineIndex],
                 &materials_[materialIndex]);
     }
 
     void Scene::OnEvent(SDL_Event& event)
     {
-        gpr5300::Scene::OnEvent(event);
+        core::Scene::OnEvent(event);
         switch (event.type)
         {
             case SDL_WINDOWEVENT:

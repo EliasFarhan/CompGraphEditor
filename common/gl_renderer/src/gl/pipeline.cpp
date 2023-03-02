@@ -8,7 +8,7 @@
 #include <fmt/format.h>
 
 
-namespace gpr5300::gl
+namespace gl
 {
 Shader::~Shader()
 {
@@ -18,24 +18,24 @@ Shader::~Shader()
     }
 }
 
-void Shader::LoadShader(const pb::Shader &shader)
+void Shader::LoadShader(const core::pb::Shader &shader)
 {
     GLenum glType = 0;
     switch (shader.type())
     {
-    case pb::Shader_Type_VERTEX:
+    case core::pb::Shader_Type_VERTEX:
         glType = GL_VERTEX_SHADER;
         break;
-    case pb::Shader_Type_FRAGMENT:
+    case core::pb::Shader_Type_FRAGMENT:
         glType = GL_FRAGMENT_SHADER;
         break;
-    case pb::Shader_Type_COMPUTE:
+    case core::pb::Shader_Type_COMPUTE:
         glType = GL_COMPUTE_SHADER;
         break;
     default:
         break;
     }
-    const auto &filesystem = FilesystemLocator::get();
+    const auto &filesystem = core::FilesystemLocator::get();
     std::string_view path = shader.path();
     if (filesystem.FileExists(path))
     {

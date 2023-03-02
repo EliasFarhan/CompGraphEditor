@@ -9,7 +9,7 @@ namespace gpr5300
 
 void ResourceManager::CheckDataFolder()
 {
-    auto& filesystem = FilesystemLocator::get();
+    auto& filesystem = core::FilesystemLocator::get();
     // Remove deleted file
     std::vector <fs::path> currentResources;
     auto fileIt = resources_.begin();
@@ -71,7 +71,7 @@ ResourceId ResourceManager::FindResourceByPath(std::string_view path) const
 {
     if (path.empty())
         return INVALID_RESOURCE_ID;
-    const auto& fileSystem = FilesystemLocator::get();
+    const auto& fileSystem = core::FilesystemLocator::get();
     if(!fileSystem.FileExists(path))
     {
         return INVALID_RESOURCE_ID;

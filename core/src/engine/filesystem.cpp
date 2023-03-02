@@ -7,7 +7,7 @@
 namespace fs = std::filesystem;
 
 
-namespace gpr5300
+namespace core
 {
 
 BufferFile::~BufferFile()

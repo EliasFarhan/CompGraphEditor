@@ -11,7 +11,7 @@ struct SceneInfo
 {
     std::string filename;
     std::string path;
-    pb::Scene info;
+    core::pb::Scene info;
     ResourceId resourceId = INVALID_RESOURCE_ID;
     ResourceId renderPassId = INVALID_RESOURCE_ID;
 };

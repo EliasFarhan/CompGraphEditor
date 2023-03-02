@@ -38,7 +38,7 @@ void TextureEditor::DrawInspector()
     if(GetFileExtension(currentTextureInfo.filename) == ".cube")
     {
         //choose cubemap textures
-        static constexpr std::array<std::string_view, pb::Cubemap::LENGTH> cubemapSides
+        static constexpr std::array<std::string_view, core::pb::Cubemap::LENGTH> cubemapSides
         {
             "Right Side",
             "Left Side",
@@ -97,7 +97,7 @@ void TextureEditor::DrawInspector()
         {
             if(ImGui::Selectable(wrappingModeNames[i].data(), i == currentTextureInfo.info.wrapping_mode()))
             {
-                currentTextureInfo.info.set_wrapping_mode(static_cast<pb::Texture_WrappingMode>(i));
+                currentTextureInfo.info.set_wrapping_mode(static_cast<core::pb::Texture_WrappingMode>(i));
             }
         }
         ImGui::EndCombo();
@@ -113,7 +113,7 @@ void TextureEditor::DrawInspector()
         {
             if (ImGui::Selectable(filterModeNames[i].data(), i == currentTextureInfo.info.filter_mode()))
             {
-                currentTextureInfo.info.set_filter_mode(static_cast<pb::Texture_FilteringMode>(i));
+                currentTextureInfo.info.set_filter_mode(static_cast<core::pb::Texture_FilteringMode>(i));
             }
         }
         ImGui::EndCombo();
@@ -197,7 +197,7 @@ void TextureEditor::Save()
 
 void TextureEditor::AddResource(const Resource &resource)
 {
-    auto& filesystem = FilesystemLocator::get();
+    auto& filesystem = core::FilesystemLocator::get();
     TextureInfo textureInfo{};
     textureInfo.resourceId = resource.resourceId;
     textureInfo.filename = GetFilename(resource.path);
@@ -360,7 +360,7 @@ void TextureEditor::HdrToKtx(const TextureInfo& textureInfo)
     const auto filename = GetFilename(path, false);
     const auto ktxMapPath = fmt::format("{}/{}.ktx", baseDir, filename);
 
-    auto& filesystem = FilesystemLocator::get();
+    auto& filesystem = core::FilesystemLocator::get();
     auto envMapFile = filesystem.LoadFile(path);
     int texW;
     int texH;
@@ -395,14 +395,14 @@ void TextureEditor::HdrToKtx(const TextureInfo& textureInfo)
     const auto targetSize = texH / 2;
     auto cube = gl::GenerateCube(glm::vec3(2.0f), glm::vec3(0.0f));
 
-    pb::FrameBuffer captureFboInfo;
+    core::pb::FrameBuffer captureFboInfo;
     captureFboInfo.set_name("captureFBO");
     auto* captureCubemap = captureFboInfo.add_color_attachments();
     captureCubemap->set_cubemap(true);
-    captureCubemap->set_type(pb::RenderTarget_Type_FLOAT);
-    captureCubemap->set_format(pb::RenderTarget_Format_RGBA);
-    captureCubemap->set_format_size(pb::RenderTarget_FormatSize_SIZE_32);
-    captureCubemap->set_size_type(pb::RenderTarget_Size_FIXED_SIZE);
+    captureCubemap->set_type(core::pb::RenderTarget_Type_FLOAT);
+    captureCubemap->set_format(core::pb::RenderTarget_Format_RGBA);
+    captureCubemap->set_format_size(core::pb::RenderTarget_FormatSize_SIZE_32);
+    captureCubemap->set_size_type(core::pb::RenderTarget_Size_FIXED_SIZE);
     captureCubemap->mutable_target_size()->set_x(targetSize);
     captureCubemap->mutable_target_size()->set_y(targetSize);
     static constexpr std::string_view envCubemapName = "envCubeName";
@@ -413,16 +413,16 @@ void TextureEditor::HdrToKtx(const TextureInfo& textureInfo)
 
     //Generate environment cubemap
     //from equirectangle to cubemap
-    pb::Shader cubemapShaderInfo;
+    core::pb::Shader cubemapShaderInfo;
     cubemapShaderInfo.set_path("shaders/cubemap.vert");
-    cubemapShaderInfo.set_type(pb::Shader_Type_VERTEX);
+    cubemapShaderInfo.set_type(core::pb::Shader_Type_VERTEX);
 
     gl::Shader cubemapShader;
     cubemapShader.LoadShader(cubemapShaderInfo);
 
-    pb::Shader equirectangleToCubemapShaderInfo;
+    core::pb::Shader equirectangleToCubemapShaderInfo;
     equirectangleToCubemapShaderInfo.set_path("shaders/equirectangle_to_cubemap.frag");
-    equirectangleToCubemapShaderInfo.set_type(pb::Shader_Type_FRAGMENT);
+    equirectangleToCubemapShaderInfo.set_type(core::pb::Shader_Type_FRAGMENT);
 
     gl::Shader equirectangleToCubemapShader;
     equirectangleToCubemapShader.LoadShader(equirectangleToCubemapShaderInfo);

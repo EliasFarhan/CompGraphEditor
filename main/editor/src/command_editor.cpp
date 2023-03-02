@@ -22,7 +22,7 @@ void CommandEditor::AddResource(const Resource& resource)
     const auto extension = GetFileExtension(resource.path);
     if (extension == ".cmd")
     {
-        const auto& fileSystem = FilesystemLocator::get();
+        const auto& fileSystem = core::FilesystemLocator::get();
         if (!fileSystem.IsRegularFile(resource.path))
         {
             LogWarning(fmt::format("Could not find command file: {}", resource.path));
@@ -126,7 +126,7 @@ void CommandEditor::DrawInspector()
     {
         switch(meshInfo->info.primitve_type())
         {
-        case pb::Mesh_PrimitveType_NONE:
+        case core::pb::Mesh_PrimitveType_NONE:
         {
             int count = currentCommand.info.count();
             if (ImGui::InputInt("Vertex Count", &count))
@@ -245,13 +245,13 @@ void CommandEditor::UpdateMeshInCommand(int index)
     {
         switch (meshInfo->info.primitve_type())
         {
-        case pb::Mesh_PrimitveType_QUAD:
+        case core::pb::Mesh_PrimitveType_QUAD:
         {
             currentCommand.info.set_draw_elements(true);
             currentCommand.info.set_count(6);
             break;
         }
-        case pb::Mesh_PrimitveType_CUBE:
+        case core::pb::Mesh_PrimitveType_CUBE:
         {
             currentCommand.info.set_draw_elements(true);
             currentCommand.info.set_count(36);

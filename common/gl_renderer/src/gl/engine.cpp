@@ -4,13 +4,13 @@
 #include <glm/ext/vector_uint2.hpp>
 
 #include <imgui.h>
-#include <imgui_impl_sdl.h>
+#include <imgui_impl_sdl2.h>
 #include <imgui_impl_opengl3.h>
 #include <glm/vec2.hpp>
 
 #include "gl/debug.h"
 
-namespace gpr5300::gl
+namespace gl
 {
 gl::TextureManager& Engine::GetTextureManager()
 {
@@ -67,12 +67,12 @@ void Engine::Begin()
     ImGui_ImplSDL2_InitForOpenGL(window_, glRenderContext_);
     ImGui_ImplOpenGL3_Init("#version 300 es");
 
-    gpr5300::Engine::Begin();
+    core::Engine::Begin();
 }
 
 void Engine::End()
 {
-    gpr5300::Engine::End();
+    core::Engine::End();
 
     ImGui_ImplOpenGL3_Shutdown();
     ImGui_ImplSDL2_Shutdown();
@@ -113,4 +113,4 @@ void Engine::SwapWindow()
     SDL_GL_SwapWindow(window_);
     glCheckError();
 }
-} // namespace gpr5300::gl
+} // namespace gl

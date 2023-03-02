@@ -15,7 +15,8 @@
 namespace gpr5300
 {
 
-class Editor : public System, public ImguiDrawInterface, public OnEventInterface, public ResourceChangeInterface
+class Editor : public core::System, public core::ImguiDrawInterface,
+    public core::OnEventInterface, public ResourceChangeInterface
 {
 public:
     Editor();
@@ -50,7 +51,7 @@ private:
 
     EditorSystem* FindEditorSystem(std::string_view path) const;
 
-    pb::Scene scene_;
+    core::pb::Scene scene_;
     ResourceManager resourceManager_;
     ImGui::FileBrowser fileDialog_;
     std::vector<std::unique_ptr<EditorSystem>> editorSystems_;

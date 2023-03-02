@@ -3,16 +3,13 @@
 #include <string_view>
 #include <vector>
 
-namespace gpr5300
+namespace core
 {
     void Error(const char* file, int line, std::string_view msg);
-    #define LogError(msg) Error(__FILE__, __LINE__, msg)
 
     void Warning(const char* file, int line, std::string_view msg);
-    #define LogWarning(msg) Warning(__FILE__, __LINE__, msg)
 
     void Debug(const char* file, int line, std::string_view msg);
-    #define LogDebug(msg) Debug(__FILE__, __LINE__, msg)
 
     // Used by the editor to show the logs
     void EnableLogRecording();
@@ -30,4 +27,9 @@ namespace gpr5300
         Type type = Type::None;
     };
     const std::vector<Log>& GetLogs();
-} // namespace gpr5300
+} // namespace core
+
+
+#define LogError(msg) core::Error(__FILE__, __LINE__, msg)
+#define LogWarning(msg) core::Warning(__FILE__, __LINE__, msg)
+#define LogDebug(msg) core::Debug(__FILE__, __LINE__, msg)

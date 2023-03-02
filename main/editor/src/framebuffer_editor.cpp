@@ -19,7 +19,7 @@ void FramebufferEditor::AddResource(const Resource& resource)
     framebufferInfo.resourceId = resource.resourceId;
     framebufferInfo.path = resource.path;
 
-    const auto& fileSystem = FilesystemLocator::get();
+    const auto& fileSystem = core::FilesystemLocator::get();
 
     if (!fileSystem.IsRegularFile(resource.path))
     {
@@ -95,7 +95,7 @@ void FramebufferEditor::DrawInspector()
             {
                 if(ImGui::Selectable(formatTxt[format].data(), format == colorAttachment->format()))
                 {
-                    colorAttachment->set_format(static_cast<pb::RenderTarget_Format>(format));
+                    colorAttachment->set_format(static_cast<core::pb::RenderTarget_Format>(format));
                 }
             }
             ImGui::EndCombo();
@@ -113,7 +113,7 @@ void FramebufferEditor::DrawInspector()
             {
                 if(ImGui::Selectable(sizeTxt[sizeType].data(), sizeType == colorAttachment->format_size()))
                 {
-                    colorAttachment->set_format_size(static_cast<pb::RenderTarget_FormatSize>(sizeType));
+                    colorAttachment->set_format_size(static_cast<core::pb::RenderTarget_FormatSize>(sizeType));
                 }
             }
             ImGui::EndCombo();
@@ -130,16 +130,16 @@ void FramebufferEditor::DrawInspector()
             {
                 if(ImGui::Selectable(typeTxt[type].data(), type == colorAttachment->type()))
                 {
-                    colorAttachment->set_type(static_cast<pb::RenderTarget_Type>(type));
+                    colorAttachment->set_type(static_cast<core::pb::RenderTarget_Type>(type));
                 }
             }
             ImGui::EndCombo();
         }
 
-        bool fixedSize = colorAttachment->size_type() == pb::RenderTarget_Size_FIXED_SIZE;
+        bool fixedSize = colorAttachment->size_type() == core::pb::RenderTarget_Size_FIXED_SIZE;
         if(ImGui::Checkbox("Fixed Size", &fixedSize))
         {
-            colorAttachment->set_size_type(fixedSize ? pb::RenderTarget_Size_FIXED_SIZE : pb::RenderTarget_Size_WINDOW_SIZE);
+            colorAttachment->set_size_type(fixedSize ? core::pb::RenderTarget_Size_FIXED_SIZE : core::pb::RenderTarget_Size_WINDOW_SIZE);
         }
         if(fixedSize)
         {
@@ -187,10 +187,10 @@ void FramebufferEditor::DrawInspector()
     if(currentFramebufferInfo.info.has_depth_stencil_attachment())
     {
         auto* depthStencilAttachment = currentFramebufferInfo.info.mutable_depth_stencil_attachment();
-        bool stencil = depthStencilAttachment->format() == pb::RenderTarget_Format_DEPTH_STENCIL;
+        bool stencil = depthStencilAttachment->format() == core::pb::RenderTarget_Format_DEPTH_STENCIL;
         if(ImGui::Checkbox("Stencil", &stencil))
         {
-            depthStencilAttachment->set_format(stencil ? pb::RenderTarget_Format_DEPTH_STENCIL : pb::RenderTarget_Format_DEPTH_COMP);
+            depthStencilAttachment->set_format(stencil ? core::pb::RenderTarget_Format_DEPTH_STENCIL : core::pb::RenderTarget_Format_DEPTH_COMP);
         }
 
         static constexpr std::array<std::string_view, 3> sizeTxt =
@@ -205,15 +205,15 @@ void FramebufferEditor::DrawInspector()
             {
                 if (ImGui::Selectable(sizeTxt[sizeType].data(), sizeType+1 == depthStencilAttachment->format_size()))
                 {
-                    depthStencilAttachment->set_format_size(static_cast<pb::RenderTarget_FormatSize>(sizeType+1));
+                    depthStencilAttachment->set_format_size(static_cast<core::pb::RenderTarget_FormatSize>(sizeType+1));
                     switch(depthStencilAttachment->format_size())
                     {
-                    case pb::RenderTarget_FormatSize_SIZE_16:
-                    case pb::RenderTarget_FormatSize_SIZE_24:
-                        depthStencilAttachment->set_type(pb::RenderTarget_Type_UNSIGNED);
+                    case core::pb::RenderTarget_FormatSize_SIZE_16:
+                    case core::pb::RenderTarget_FormatSize_SIZE_24:
+                        depthStencilAttachment->set_type(core::pb::RenderTarget_Type_UNSIGNED);
                         break;
-                    case pb::RenderTarget_FormatSize_SIZE_32: 
-                        depthStencilAttachment->set_type(pb::RenderTarget_Type_FLOAT);
+                    case core::pb::RenderTarget_FormatSize_SIZE_32:
+                        depthStencilAttachment->set_type(core::pb::RenderTarget_Type_FLOAT);
                         break;
                     default: 
                         break;
@@ -244,9 +244,9 @@ void FramebufferEditor::DrawInspector()
         if(ImGui::Button("Add Depth/Stencil Attachment"))
         {
             auto* depthStencilAttachment = currentFramebufferInfo.info.mutable_depth_stencil_attachment();
-            depthStencilAttachment->set_format(pb::RenderTarget_Format_DEPTH_STENCIL);
-            depthStencilAttachment->set_format_size(pb::RenderTarget_FormatSize_SIZE_24);
-            depthStencilAttachment->set_type(pb::RenderTarget_Type_UNSIGNED);
+            depthStencilAttachment->set_format(core::pb::RenderTarget_Format_DEPTH_STENCIL);
+            depthStencilAttachment->set_format_size(core::pb::RenderTarget_FormatSize_SIZE_24);
+            depthStencilAttachment->set_type(core::pb::RenderTarget_Type_UNSIGNED);
         }
     }
 }

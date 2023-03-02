@@ -1,9 +1,6 @@
-#pragma once
+#include "renderer/model.h"
 
 namespace core
 {
-class Framebuffer
-{
-
-};
+    
 } // namespace core

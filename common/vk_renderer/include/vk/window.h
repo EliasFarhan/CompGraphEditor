@@ -6,7 +6,7 @@
 #include <vector>
 #include <cstdint>
 
-namespace gpr5300::vk
+namespace vk
 {
 
 struct Driver
@@ -36,7 +36,7 @@ struct Swapchain
 class Window
 {
 public:
-    Window(const pb::Config& config);
+    Window(const core::pb::Config& config);
     void Begin();
 
     void End();
@@ -67,7 +67,7 @@ private:
     SDL_Window* window_ = nullptr;
     Driver driver_;
     Swapchain swapchain_;
-    const pb::Config& config_;
+    const core::pb::Config& config_;
 
     VkDebugUtilsMessengerEXT debugMessenger_;
 

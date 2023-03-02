@@ -3,7 +3,7 @@
 #include "utils/log.h"
 #include <fmt/core.h>
 
-namespace gpr5300::vk
+namespace vk
 {
 bool CheckError(VkResult result)
 {

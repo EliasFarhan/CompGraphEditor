@@ -1,6 +1,6 @@
 #pragma once
 
-namespace gpr5300
+namespace core
 {
 
 class Shader
@@ -15,4 +15,4 @@ public:
     virtual void Bind() = 0;
 
 };
-} // namespace gpr5300
+} // namespace core

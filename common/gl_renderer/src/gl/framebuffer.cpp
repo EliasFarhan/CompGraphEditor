@@ -5,7 +5,7 @@
 
 #include <fmt/format.h>
 
-namespace gpr5300::gl
+namespace gl
 {
 Framebuffer::~Framebuffer()
 {
@@ -33,7 +33,7 @@ void Framebuffer::Resize(glm::uvec2 windowSize)
         const auto& depthStencilAttachmentInfo = frameBufferPb_.depth_stencil_attachment();
         const auto attachmentType = GetAttachmentType(depthStencilAttachmentInfo);
         bool stencil = attachmentType.format == GL_DEPTH_STENCIL;
-        if(depthStencilAttachmentInfo.size_type() == pb::RenderTarget_Size_WINDOW_SIZE)
+        if(depthStencilAttachmentInfo.size_type() == core::pb::RenderTarget_Size_WINDOW_SIZE)
         {
             if (depthStencilAttachmentInfo.rbo())
             {
@@ -94,7 +94,7 @@ void Framebuffer::Resize(glm::uvec2 windowSize)
 
         auto& colorAttachment = colorAttachments_[i];
         const auto& colorAttachmentInfo = frameBufferPb_.color_attachments(i);
-        if (colorAttachmentInfo.size_type() == pb::RenderTarget_Size_FIXED_SIZE)
+        if (colorAttachmentInfo.size_type() == core::pb::RenderTarget_Size_FIXED_SIZE)
             continue;
         const auto attachmentType = GetAttachmentType(colorAttachmentInfo);
         if (colorAttachmentInfo.rbo())
@@ -184,9 +184,9 @@ void Framebuffer::Unbind()
     }
 }
 
-void Framebuffer::Load(const pb::FrameBuffer& framebufferPb)
+void Framebuffer::Load(const core::pb::FrameBuffer& framebufferPb)
 {
-    const auto windowSize = GetWindowSize();
+    const auto windowSize = core::GetWindowSize();
     frameBufferPb_ = framebufferPb;
     framebufferName_ = framebufferPb.name();
     glCreateFramebuffers(1, &name_);
@@ -207,8 +207,8 @@ void Framebuffer::Load(const pb::FrameBuffer& framebufferPb)
             glGenRenderbuffers(1, &colorAttachment);
             glBindRenderbuffer(GL_RENDERBUFFER, colorAttachment);
             glRenderbufferStorage(GL_RENDERBUFFER, attachmentType.internalFormat, 
-                colorAttachmentInfo.size_type() == pb::RenderTarget_Size_WINDOW_SIZE ? windowSize.x : colorAttachmentInfo.target_size().x(),
-                colorAttachmentInfo.size_type() == pb::RenderTarget_Size_WINDOW_SIZE ? windowSize.y : colorAttachmentInfo.target_size().y());
+                colorAttachmentInfo.size_type() == core::pb::RenderTarget_Size_WINDOW_SIZE ? windowSize.x : colorAttachmentInfo.target_size().x(),
+                colorAttachmentInfo.size_type() == core::pb::RenderTarget_Size_WINDOW_SIZE ? windowSize.y : colorAttachmentInfo.target_size().y());
 
             glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + i, GL_RENDERBUFFER, colorAttachment);
             glCheckError();
@@ -229,8 +229,8 @@ void Framebuffer::Load(const pb::FrameBuffer& framebufferPb)
                 for(int face = 0; face < 6; face++)
                 {
                     glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X+face, 0, attachmentType.internalFormat,
-                        colorAttachmentInfo.size_type() == pb::RenderTarget_Size_WINDOW_SIZE ? windowSize.x : colorAttachmentInfo.target_size().x(),
-                        colorAttachmentInfo.size_type() == pb::RenderTarget_Size_WINDOW_SIZE ? windowSize.y : colorAttachmentInfo.target_size().y(),
+                        colorAttachmentInfo.size_type() == core::pb::RenderTarget_Size_WINDOW_SIZE ? windowSize.x : colorAttachmentInfo.target_size().x(),
+                        colorAttachmentInfo.size_type() == core::pb::RenderTarget_Size_WINDOW_SIZE ? windowSize.y : colorAttachmentInfo.target_size().y(),
                         0,
                         attachmentType.format,
                         attachmentType.type,
@@ -249,8 +249,8 @@ void Framebuffer::Load(const pb::FrameBuffer& framebufferPb)
             else
             {
                 glTexImage2D(GL_TEXTURE_2D, 0, attachmentType.internalFormat,
-                    colorAttachmentInfo.size_type() == pb::RenderTarget_Size_WINDOW_SIZE ? windowSize.x : colorAttachmentInfo.target_size().x(),
-                    colorAttachmentInfo.size_type() == pb::RenderTarget_Size_WINDOW_SIZE ? windowSize.y : colorAttachmentInfo.target_size().y(),
+                    colorAttachmentInfo.size_type() == core::pb::RenderTarget_Size_WINDOW_SIZE ? windowSize.x : colorAttachmentInfo.target_size().x(),
+                    colorAttachmentInfo.size_type() == core::pb::RenderTarget_Size_WINDOW_SIZE ? windowSize.y : colorAttachmentInfo.target_size().y(),
                     0,
                     attachmentType.format,
                     attachmentType.type,
@@ -289,8 +289,8 @@ void Framebuffer::Load(const pb::FrameBuffer& framebufferPb)
             glGenRenderbuffers(1, &depthStencilAttachment_);
             glBindRenderbuffer(GL_RENDERBUFFER, depthStencilAttachment_);
             glRenderbufferStorage(GL_RENDERBUFFER, attachmentType.internalFormat,
-                depthStencilAttachmentInfo.size_type() == pb::RenderTarget_Size_WINDOW_SIZE ? windowSize.x : depthStencilAttachmentInfo.target_size().x(),
-                depthStencilAttachmentInfo.size_type() == pb::RenderTarget_Size_WINDOW_SIZE ? windowSize.y : depthStencilAttachmentInfo.target_size().y());
+                depthStencilAttachmentInfo.size_type() == core::pb::RenderTarget_Size_WINDOW_SIZE ? windowSize.x : depthStencilAttachmentInfo.target_size().x(),
+                depthStencilAttachmentInfo.size_type() == core::pb::RenderTarget_Size_WINDOW_SIZE ? windowSize.y : depthStencilAttachmentInfo.target_size().y());
 
             glFramebufferRenderbuffer(GL_FRAMEBUFFER, stencil?GL_DEPTH_STENCIL_ATTACHMENT: GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, depthStencilAttachment_);
             glCheckError();
@@ -309,8 +309,8 @@ void Framebuffer::Load(const pb::FrameBuffer& framebufferPb)
                 for(int face = 0; face < 6; face++)
                 {
                     glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X+face, 0, attachmentType.internalFormat,
-                        depthStencilAttachmentInfo.size_type() == pb::RenderTarget_Size_WINDOW_SIZE ? windowSize.x : depthStencilAttachmentInfo.target_size().x(),
-                        depthStencilAttachmentInfo.size_type() == pb::RenderTarget_Size_WINDOW_SIZE ? windowSize.y : depthStencilAttachmentInfo.target_size().y(),
+                        depthStencilAttachmentInfo.size_type() == core::pb::RenderTarget_Size_WINDOW_SIZE ? windowSize.x : depthStencilAttachmentInfo.target_size().x(),
+                        depthStencilAttachmentInfo.size_type() == core::pb::RenderTarget_Size_WINDOW_SIZE ? windowSize.y : depthStencilAttachmentInfo.target_size().y(),
                         0,
                         attachmentType.format,
                         attachmentType.type,
@@ -324,8 +324,8 @@ void Framebuffer::Load(const pb::FrameBuffer& framebufferPb)
             else
             {
                 glTexImage2D(GL_TEXTURE_2D, 0, attachmentType.internalFormat,
-                    depthStencilAttachmentInfo.size_type() == pb::RenderTarget_Size_WINDOW_SIZE ? windowSize.x : depthStencilAttachmentInfo.target_size().x(),
-                    depthStencilAttachmentInfo.size_type() == pb::RenderTarget_Size_WINDOW_SIZE ? windowSize.y : depthStencilAttachmentInfo.target_size().y(),
+                    depthStencilAttachmentInfo.size_type() == core::pb::RenderTarget_Size_WINDOW_SIZE ? windowSize.x : depthStencilAttachmentInfo.target_size().x(),
+                    depthStencilAttachmentInfo.size_type() == core::pb::RenderTarget_Size_WINDOW_SIZE ? windowSize.y : depthStencilAttachmentInfo.target_size().y(),
                     0,
                     attachmentType.format,
                     attachmentType.type,
@@ -358,7 +358,7 @@ GLuint Framebuffer::GetTextureName(std::string_view textureName)
     return 0;
 }
 
-AttachmentType GetAttachmentType(const pb::RenderTarget& renderTargetInfo)
+AttachmentType GetAttachmentType(const core::pb::RenderTarget& renderTargetInfo)
 {
     GLint internalFormat = 0;
     GLenum format = 0;
@@ -366,26 +366,26 @@ AttachmentType GetAttachmentType(const pb::RenderTarget& renderTargetInfo)
     GLint error = 0;
     switch (renderTargetInfo.type())
     {
-    case pb::RenderTarget_Type_UNSIGNED:
+    case core::pb::RenderTarget_Type_UNSIGNED:
         switch (renderTargetInfo.format_size())
         {
-        case pb::RenderTarget_FormatSize_SIZE_8:
+        case core::pb::RenderTarget_FormatSize_SIZE_8:
             type = GL_UNSIGNED_BYTE;
             switch (renderTargetInfo.format())
             {
-            case pb::RenderTarget_Format_RED:
+            case core::pb::RenderTarget_Format_RED:
                 internalFormat = GL_R8UI;
                 format = GL_RED_INTEGER;
                 break;
-            case pb::RenderTarget_Format_RG:
+            case core::pb::RenderTarget_Format_RG:
                 internalFormat = GL_RG8UI;
                 format = GL_RG_INTEGER;
                 break;
-            case pb::RenderTarget_Format_RGB:
+            case core::pb::RenderTarget_Format_RGB:
                 internalFormat = GL_RGB8UI;
                 format = GL_RGB_INTEGER;
                 break;
-            case pb::RenderTarget_Format_RGBA:
+            case core::pb::RenderTarget_Format_RGBA:
                 internalFormat = GL_RGBA8UI;
                 format = GL_RGBA_INTEGER;
                 break;
@@ -394,27 +394,27 @@ AttachmentType GetAttachmentType(const pb::RenderTarget& renderTargetInfo)
                 break;
             }
             break;
-        case pb::RenderTarget_FormatSize_SIZE_16:
+        case core::pb::RenderTarget_FormatSize_SIZE_16:
             type = GL_UNSIGNED_SHORT;
             switch (renderTargetInfo.format())
             {
-            case pb::RenderTarget_Format_RED:
+            case core::pb::RenderTarget_Format_RED:
                 internalFormat = GL_R16UI;
                 format = GL_RED_INTEGER;
                 break;
-            case pb::RenderTarget_Format_RG:
+            case core::pb::RenderTarget_Format_RG:
                 internalFormat = GL_RG16UI;
                 format = GL_RG_INTEGER;
                 break;
-            case pb::RenderTarget_Format_RGB:
+            case core::pb::RenderTarget_Format_RGB:
                 internalFormat = GL_RGB16UI;
                 format = GL_RGB_INTEGER;
                 break;
-            case pb::RenderTarget_Format_RGBA:
+            case core::pb::RenderTarget_Format_RGBA:
                 internalFormat = GL_RGBA16UI;
                 format = GL_RGBA_INTEGER;
                 break;
-            case pb::RenderTarget_Format_DEPTH_COMP:
+            case core::pb::RenderTarget_Format_DEPTH_COMP:
                 internalFormat = GL_DEPTH_COMPONENT16;
                 format = GL_DEPTH_COMPONENT;
             default: 
@@ -422,15 +422,15 @@ AttachmentType GetAttachmentType(const pb::RenderTarget& renderTargetInfo)
                 break;
             }
             break;
-        case pb::RenderTarget_FormatSize_SIZE_24:
+        case core::pb::RenderTarget_FormatSize_SIZE_24:
             switch (renderTargetInfo.format())
             {
-            case pb::RenderTarget_Format_DEPTH_COMP:
+            case core::pb::RenderTarget_Format_DEPTH_COMP:
                 type = GL_UNSIGNED_INT;
                 internalFormat = GL_DEPTH_COMPONENT24;
                 format = GL_DEPTH_COMPONENT;
                 break;
-            case pb::RenderTarget_Format_DEPTH_STENCIL:
+            case core::pb::RenderTarget_Format_DEPTH_STENCIL:
                 type = GL_UNSIGNED_INT;
                 internalFormat = GL_DEPTH24_STENCIL8;
                 format = GL_DEPTH_STENCIL;
@@ -441,23 +441,23 @@ AttachmentType GetAttachmentType(const pb::RenderTarget& renderTargetInfo)
                 break;
             }
             break;
-        case pb::RenderTarget_FormatSize_SIZE_32:
+        case core::pb::RenderTarget_FormatSize_SIZE_32:
             type = GL_UNSIGNED_INT;
             switch (renderTargetInfo.format())
             {
-            case pb::RenderTarget_Format_RED:
+            case core::pb::RenderTarget_Format_RED:
                 internalFormat = GL_R32UI;
                 format = GL_RED_INTEGER;
                 break;
-            case pb::RenderTarget_Format_RG:
+            case core::pb::RenderTarget_Format_RG:
                 internalFormat = GL_RG32UI;
                 format = GL_RG_INTEGER;
                 break;
-            case pb::RenderTarget_Format_RGB:
+            case core::pb::RenderTarget_Format_RGB:
                 internalFormat = GL_RGB32UI;
                 format = GL_RGB_INTEGER;
                 break;
-            case pb::RenderTarget_Format_RGBA:
+            case core::pb::RenderTarget_Format_RGBA:
                 internalFormat = GL_RGBA32UI;
                 format = GL_RGBA_INTEGER;
                 break;
@@ -471,26 +471,26 @@ AttachmentType GetAttachmentType(const pb::RenderTarget& renderTargetInfo)
             break;
         }
         break;
-    case pb::RenderTarget_Type_INT:
+    case core::pb::RenderTarget_Type_INT:
         switch (renderTargetInfo.format_size())
         {
-        case pb::RenderTarget_FormatSize_SIZE_8:
+        case core::pb::RenderTarget_FormatSize_SIZE_8:
             type = GL_BYTE;
             switch(renderTargetInfo.format())
             {
-            case pb::RenderTarget_Format_RED: 
+            case core::pb::RenderTarget_Format_RED: 
                 internalFormat = GL_R8I;
                 format = GL_RED_INTEGER;
                 break;
-            case pb::RenderTarget_Format_RG: 
+            case core::pb::RenderTarget_Format_RG: 
                 internalFormat = GL_RG8I;
                 format = GL_RG_INTEGER;
                 break;
-            case pb::RenderTarget_Format_RGB:
+            case core::pb::RenderTarget_Format_RGB:
                 internalFormat = GL_RGB8I;
                 format = GL_RGB_INTEGER;
                 break;
-            case pb::RenderTarget_Format_RGBA:
+            case core::pb::RenderTarget_Format_RGBA:
                 internalFormat = GL_RGBA8I;
                 format = GL_RGBA_INTEGER;
                 break;
@@ -499,23 +499,23 @@ AttachmentType GetAttachmentType(const pb::RenderTarget& renderTargetInfo)
                 break;
             }
             break;
-        case pb::RenderTarget_FormatSize_SIZE_16: 
+        case core::pb::RenderTarget_FormatSize_SIZE_16: 
             type = GL_SHORT;
             switch (renderTargetInfo.format())
             {
-            case pb::RenderTarget_Format_RED:
+            case core::pb::RenderTarget_Format_RED:
                 internalFormat = GL_R16I;
                 format = GL_RED_INTEGER;
                 break;
-            case pb::RenderTarget_Format_RG:
+            case core::pb::RenderTarget_Format_RG:
                 internalFormat = GL_RG16I;
                 format = GL_RG_INTEGER;
                 break;
-            case pb::RenderTarget_Format_RGB:
+            case core::pb::RenderTarget_Format_RGB:
                 internalFormat = GL_RGB16I;
                 format = GL_RGB_INTEGER;
                 break;
-            case pb::RenderTarget_Format_RGBA:
+            case core::pb::RenderTarget_Format_RGBA:
                 internalFormat = GL_RGBA16I;
                 format = GL_RGBA_INTEGER;
                 break;
@@ -524,23 +524,23 @@ AttachmentType GetAttachmentType(const pb::RenderTarget& renderTargetInfo)
                 break;
             }
             break;
-        case pb::RenderTarget_FormatSize_SIZE_32: 
+        case core::pb::RenderTarget_FormatSize_SIZE_32: 
             type = GL_INT;
             switch (renderTargetInfo.format())
             {
-            case pb::RenderTarget_Format_RED:
+            case core::pb::RenderTarget_Format_RED:
                 internalFormat = GL_R32I;
                 format = GL_RED_INTEGER;
                 break;
-            case pb::RenderTarget_Format_RG:
+            case core::pb::RenderTarget_Format_RG:
                 internalFormat = GL_RG32I;
                 format = GL_RG_INTEGER;
                 break;
-            case pb::RenderTarget_Format_RGB:
+            case core::pb::RenderTarget_Format_RGB:
                 internalFormat = GL_RGB32I;
                 format = GL_RGB_INTEGER;
                 break;
-            case pb::RenderTarget_Format_RGBA:
+            case core::pb::RenderTarget_Format_RGBA:
                 internalFormat = GL_RGBA32I;
                 format = GL_RGBA_INTEGER;
                 break;
@@ -554,26 +554,26 @@ AttachmentType GetAttachmentType(const pb::RenderTarget& renderTargetInfo)
             break;
         }
         break;
-    case pb::RenderTarget_Type_FLOAT:
+    case core::pb::RenderTarget_Type_FLOAT:
         switch (renderTargetInfo.format_size())
         {
-        case pb::RenderTarget_FormatSize_SIZE_8: 
+        case core::pb::RenderTarget_FormatSize_SIZE_8: 
             type = GL_BYTE;
             switch (renderTargetInfo.format())
             {
-            case pb::RenderTarget_Format_RED:
+            case core::pb::RenderTarget_Format_RED:
                 internalFormat = GL_R8;
                 format = GL_RED;
                 break;
-            case pb::RenderTarget_Format_RG:
+            case core::pb::RenderTarget_Format_RG:
                 internalFormat = GL_R16;
                 format = GL_RG;
                 break;
-            case pb::RenderTarget_Format_RGB:
+            case core::pb::RenderTarget_Format_RGB:
                 internalFormat = renderTargetInfo.snorm() ? GL_SRGB8 : GL_RGB8;
                 format = GL_RGB;
                 break;
-            case pb::RenderTarget_Format_RGBA:
+            case core::pb::RenderTarget_Format_RGBA:
                 internalFormat = renderTargetInfo.snorm() ? GL_SRGB8_ALPHA8 : GL_RGBA8;
                 format = GL_RGBA;
                 break;
@@ -582,23 +582,23 @@ AttachmentType GetAttachmentType(const pb::RenderTarget& renderTargetInfo)
                 break;
             }
             break;
-        case pb::RenderTarget_FormatSize_SIZE_16:
+        case core::pb::RenderTarget_FormatSize_SIZE_16:
             type = GL_FLOAT;
             switch (renderTargetInfo.format())
             {
-            case pb::RenderTarget_Format_RED:
+            case core::pb::RenderTarget_Format_RED:
                 internalFormat = GL_R16F;
                 format = GL_RED;
                 break;
-            case pb::RenderTarget_Format_RG:
+            case core::pb::RenderTarget_Format_RG:
                 internalFormat = GL_RG16F;
                 format = GL_RG;
                 break;
-            case pb::RenderTarget_Format_RGB:
+            case core::pb::RenderTarget_Format_RGB:
                 internalFormat = GL_RGB16F;
                 format = GL_RGB;
                 break;
-            case pb::RenderTarget_Format_RGBA:
+            case core::pb::RenderTarget_Format_RGBA:
                 internalFormat = GL_RGBA16F;
                 format = GL_RGBA;
                 break;
@@ -607,31 +607,31 @@ AttachmentType GetAttachmentType(const pb::RenderTarget& renderTargetInfo)
                 break;
             }
             break;
-        case pb::RenderTarget_FormatSize_SIZE_32: 
+        case core::pb::RenderTarget_FormatSize_SIZE_32: 
             type = GL_FLOAT;
             switch (renderTargetInfo.format())
             {
-            case pb::RenderTarget_Format_RED:
+            case core::pb::RenderTarget_Format_RED:
                 internalFormat = GL_R32F;
                 format = GL_RED;
                 break;
-            case pb::RenderTarget_Format_RG:
+            case core::pb::RenderTarget_Format_RG:
                 internalFormat = GL_RG32F;
                 format = GL_RG;
                 break;
-            case pb::RenderTarget_Format_RGB:
+            case core::pb::RenderTarget_Format_RGB:
                 internalFormat = GL_RGB32F;
                 format = GL_RGB;
                 break;
-            case pb::RenderTarget_Format_RGBA:
+            case core::pb::RenderTarget_Format_RGBA:
                 internalFormat = GL_RGBA32F;
                 format = GL_RGBA;
                 break;
-            case pb::RenderTarget_Format_DEPTH_COMP:
+            case core::pb::RenderTarget_Format_DEPTH_COMP:
                 internalFormat = GL_DEPTH_COMPONENT32F;
                 format = GL_DEPTH_COMPONENT;
                 break;
-            case pb::RenderTarget_Format_DEPTH_STENCIL:
+            case core::pb::RenderTarget_Format_DEPTH_STENCIL:
                 internalFormat = GL_DEPTH32F_STENCIL8;
                 format = GL_DEPTH_STENCIL;
                 type = GL_FLOAT_32_UNSIGNED_INT_24_8_REV;

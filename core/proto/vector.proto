@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-package gpr5300.pb;
+package core.pb;
 
 message Vec2f
 {

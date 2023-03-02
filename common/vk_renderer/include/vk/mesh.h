@@ -3,9 +3,9 @@
 #include "renderer/mesh.h"
 #include "vk/mesh.h"
 
-namespace gpr5300::vk
+namespace vk
 {
-class Mesh : public gpr5300::Mesh
+class Mesh : public core::Mesh
 {
 public:
     [[nodiscard]] std::string_view GetName() const override { return ""; }

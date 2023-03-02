@@ -17,14 +17,14 @@
 #include <unordered_set>
 #include <ranges>
 
-namespace gpr5300::gl
+namespace gl
 {
 void Model::LoadModel(std::string_view path)
 {
     tinyobj::ObjReaderConfig config;
     config.triangulate = true;
     config.vertex_color = false;
-    const auto& filesystem = FilesystemLocator::get();
+    const auto& filesystem = core::FilesystemLocator::get();
     const auto modelFile = filesystem.LoadFile(path);
     if(!reader.ParseFromString(reinterpret_cast<const char*>(modelFile.data), "", config))
     {

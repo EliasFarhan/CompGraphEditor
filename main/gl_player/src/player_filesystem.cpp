@@ -40,11 +40,11 @@ namespace gpr5300
         }
     }
 
-    BufferFile PhysFilesystem::LoadFile(std::string_view path) const
+    core::BufferFile PhysFilesystem::LoadFile(std::string_view path) const
     {
         std::string genericPath = path.data();
         std::ranges::replace(genericPath, '\\', '/');
-        BufferFile newFile;
+        core::BufferFile newFile;
         if (!FileExists(genericPath))
         {
             LogError(fmt::format("File does not exist: {}", genericPath));

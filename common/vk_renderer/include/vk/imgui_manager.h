@@ -3,7 +3,7 @@
 
 #include "engine/system.h"
 
-namespace gpr5300::vk
+namespace vk
 {
 class ImGuiManager
 {

@@ -34,7 +34,7 @@ void ModelEditor::AddResource(const Resource& resource)
     modelInfo.resourceId = resource.resourceId;
     modelInfo.filename = GetFilename(resource.path);
 
-    const auto& fileSystem = FilesystemLocator::get();
+    const auto& fileSystem = core::FilesystemLocator::get();
     if (!fileSystem.IsRegularFile(resource.path))
     {
         LogWarning(fmt::format("Could not find model file: {}", resource.path));
@@ -79,7 +79,7 @@ void ModelEditor::DrawInspector()
     {
         return;
     }
-    auto& filesystem = FilesystemLocator::get();
+    auto& filesystem = core::FilesystemLocator::get();
     auto& currentModelInfo = modelInfos_[currentIndex_];
     const auto baseDir = GetFolder(currentModelInfo.path);
     auto* editor = Editor::GetInstance();
@@ -121,47 +121,47 @@ void ModelEditor::DrawInspector()
             ImGui::SameLine();
             switch(textureInfo.type())
             {
-            case pb::NONE: break;
-            case pb::AMBIENT: 
+            case core::pb::NONE: break;
+            case core::pb::AMBIENT:
                 ImGui::Text("Ambient");
                 break;
-            case pb::DIFFUSE:
+            case core::pb::DIFFUSE:
                 ImGui::Text("Diffuse");
                 break;
-            case pb::SPECULAR: 
+            case core::pb::SPECULAR:
                 ImGui::Text("Specular");
                 break;
-            case pb::SPECULAR_HIGHLIGHT: 
+            case core::pb::SPECULAR_HIGHLIGHT:
                 ImGui::Text("Specular Highlight");
                 break;
-            case pb::BUMP: 
+            case core::pb::BUMP:
                 ImGui::Text("Bump");
                 break;
-            case pb::DISPLACEMENT: 
+            case core::pb::DISPLACEMENT:
                 ImGui::Text("Displacement");
                 break;
-            case pb::ALPHA: 
+            case core::pb::ALPHA:
                 ImGui::Text("Alpha");
                 break;
-            case pb::REFLECTION: 
+            case core::pb::REFLECTION:
                 ImGui::Text("Reflection");
                 break;
-            case pb::ROUGHNESS: 
+            case core::pb::ROUGHNESS:
                 ImGui::Text("Roughness");
                 break;
-            case pb::METALLIC: 
+            case core::pb::METALLIC:
                 ImGui::Text("Metallic");
                 break;
-            case pb::SHEEN: 
+            case core::pb::SHEEN:
                 ImGui::Text("Sheen");
                 break;
-            case pb::EMISSIVE: 
+            case core::pb::EMISSIVE:
                 ImGui::Text("Emissive");
                 break;
-            case pb::NORMAL: 
+            case core::pb::NORMAL:
                 ImGui::Text("Normal");
                 break;
-            case pb::AO: 
+            case core::pb::AO:
                 ImGui::Text("Ambient Occlusion");
                 break;
             default: ;
@@ -292,7 +292,7 @@ ModelInfo* ModelEditor::GetModel(ResourceId resourceId)
 
 void ModelEditor::ImportResource(std::string_view path)
 {
-    auto& filesystem = FilesystemLocator::get();
+    auto& filesystem = core::FilesystemLocator::get();
     if(GetFileExtension(path) != ".obj")
     {
         LogError("Can only import obj file");
@@ -338,7 +338,7 @@ void ModelEditor::ImportResource(std::string_view path)
     auto& resourceManager = editor->GetResourceManager();
     CreateNewDirectory(dstFolder);
 
-    pb::Model newModel;
+    core::pb::Model newModel;
     auto findTextureInModelFunc = [&newModel](const std::string_view texture)
     {
         for(int i = 0; i < newModel.textures_size(); i++)
@@ -353,7 +353,7 @@ void ModelEditor::ImportResource(std::string_view path)
     auto& materials = reader.GetMaterials();
     
     auto loadMaterialTextureFunc = [&]
-    (std::string_view textureName, pb::TextureType textureType, pb::ModelMaterial* material)
+    (std::string_view textureName, core::pb::TextureType textureType, core::pb::ModelMaterial* material)
     {
         if(textureName.empty())
         {
@@ -394,19 +394,19 @@ void ModelEditor::ImportResource(std::string_view path)
         auto* newMaterial = newModel.add_materials();
         newMaterial->set_material_name(material.name);
         
-        loadMaterialTextureFunc(material.ambient_texname, pb::TextureType::AMBIENT, newMaterial);
-        loadMaterialTextureFunc(material.diffuse_texname, pb::TextureType::DIFFUSE, newMaterial);
-        loadMaterialTextureFunc(material.specular_texname, pb::TextureType::SPECULAR, newMaterial);
-        loadMaterialTextureFunc(material.specular_highlight_texname, pb::TextureType::SPECULAR_HIGHLIGHT, newMaterial);
-        loadMaterialTextureFunc(material.bump_texname, pb::TextureType::BUMP, newMaterial);
-        loadMaterialTextureFunc(material.displacement_texname, pb::TextureType::DISPLACEMENT, newMaterial);
-        loadMaterialTextureFunc(material.alpha_texname, pb::TextureType::ALPHA, newMaterial);
-        loadMaterialTextureFunc(material.reflection_texname, pb::TextureType::REFLECTION, newMaterial);
-        loadMaterialTextureFunc(material.roughness_texname, pb::TextureType::ROUGHNESS, newMaterial);
-        loadMaterialTextureFunc(material.metallic_texname, pb::TextureType::METALLIC, newMaterial);
-        loadMaterialTextureFunc(material.sheen_texname, pb::TextureType::SHEEN, newMaterial);
-        loadMaterialTextureFunc(material.emissive_texname, pb::TextureType::EMISSIVE, newMaterial);
-        loadMaterialTextureFunc(material.normal_texname, pb::TextureType::NORMAL, newMaterial);
+        loadMaterialTextureFunc(material.ambient_texname, core::pb::TextureType::AMBIENT, newMaterial);
+        loadMaterialTextureFunc(material.diffuse_texname, core::pb::TextureType::DIFFUSE, newMaterial);
+        loadMaterialTextureFunc(material.specular_texname, core::pb::TextureType::SPECULAR, newMaterial);
+        loadMaterialTextureFunc(material.specular_highlight_texname, core::pb::TextureType::SPECULAR_HIGHLIGHT, newMaterial);
+        loadMaterialTextureFunc(material.bump_texname, core::pb::TextureType::BUMP, newMaterial);
+        loadMaterialTextureFunc(material.displacement_texname, core::pb::TextureType::DISPLACEMENT, newMaterial);
+        loadMaterialTextureFunc(material.alpha_texname, core::pb::TextureType::ALPHA, newMaterial);
+        loadMaterialTextureFunc(material.reflection_texname, core::pb::TextureType::REFLECTION, newMaterial);
+        loadMaterialTextureFunc(material.roughness_texname, core::pb::TextureType::ROUGHNESS, newMaterial);
+        loadMaterialTextureFunc(material.metallic_texname, core::pb::TextureType::METALLIC, newMaterial);
+        loadMaterialTextureFunc(material.sheen_texname, core::pb::TextureType::SHEEN, newMaterial);
+        loadMaterialTextureFunc(material.emissive_texname, core::pb::TextureType::EMISSIVE, newMaterial);
+        loadMaterialTextureFunc(material.normal_texname, core::pb::TextureType::NORMAL, newMaterial);
     }
     auto modelDstPath = fmt::format("{}{}", dstFolder, GetFilename(path));
 
@@ -423,7 +423,7 @@ void ModelEditor::ImportResource(std::string_view path)
         meshInfoId = resourceManager.FindResourceByPath(meshInfoDstPath);
         auto* meshEditor = dynamic_cast<MeshEditor*>(editor->GetEditorSystem(EditorType::MESH));
         auto* meshInfo = meshEditor->GetMesh(meshInfoId);
-        meshInfo->info.set_primitve_type(pb::Mesh_PrimitveType_MODEL);
+        meshInfo->info.set_primitve_type(core::pb::Mesh_PrimitveType_MODEL);
         meshInfo->info.set_model_path(modelDstPath);
         meshInfo->info.set_mesh_name(shape.name);
         auto* newMesh = newModel.add_meshes();
@@ -496,12 +496,12 @@ void ModelEditor::GenerateMaterialsAndCommands(int commandIndex)
         for (int materialTextureIndex = 0; materialTextureIndex < material->info.textures_size(); materialTextureIndex++)
         {
             auto* materialTexture = material->info.mutable_textures(materialTextureIndex);
-            if (materialTexture->texture_type() == pb::NONE)
+            if (materialTexture->texture_type() == core::pb::NONE)
                 continue;
             for (int modelMaterialTextureIndex = 0; modelMaterialTextureIndex < modelMaterial.texture_indices_size(); modelMaterialTextureIndex++)
             {
                 auto& modelTexture = currentModelInfo.info.textures(modelMaterial.texture_indices(modelMaterialTextureIndex));
-                if (modelTexture.type() != pb::NONE && modelTexture.type() == materialTexture->texture_type())
+                if (modelTexture.type() != core::pb::NONE && modelTexture.type() == materialTexture->texture_type())
                 {
                     materialTexture->set_texture_name(modelTexture.texture_path());
                     break;

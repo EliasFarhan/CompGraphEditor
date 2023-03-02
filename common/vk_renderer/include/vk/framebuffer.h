@@ -1,9 +1,9 @@
 #pragma once
 #include "renderer/framebuffer.h"
 
-namespace gpr5300::vk
+namespace vk
 {
-class Framebuffer : public gpr5300::Framebuffer
+class Framebuffer : public core::Framebuffer
 {
     
 };

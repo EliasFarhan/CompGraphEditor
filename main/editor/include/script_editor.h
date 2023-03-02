@@ -8,7 +8,7 @@ namespace gpr5300
     {
         std::string filename;
         ResourceId resourceId;
-        pb::PySystem info;
+        core::pb::PySystem info;
         std::vector<std::string> classesInScript;
 
     };

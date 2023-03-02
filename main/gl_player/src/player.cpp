@@ -59,9 +59,9 @@ void Player::DrawImGui()
         {
             if (ImGui::Selectable(scene.c_str()))
             {
-                auto& filesystem = dynamic_cast<PhysFilesystem&>(FilesystemLocator::get());
+                auto& filesystem = dynamic_cast<PhysFilesystem&>(core::FilesystemLocator::get());
                 filesystem.AddMount(scene, "", 1);
-                pb::Scene newScene;
+                core::pb::Scene newScene;
                 const auto file = filesystem.LoadFile("root.scene");
                 newScene.ParseFromArray(file.data, file.length);
                 playerScene_.SetScene(newScene);

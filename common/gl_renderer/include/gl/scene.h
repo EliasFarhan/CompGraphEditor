@@ -12,43 +12,43 @@
 #include "framebuffer.h"
 
 
-namespace gpr5300::gl
+namespace gl
 {
 
-class SceneMaterial : public gpr5300::SceneMaterial
+class SceneMaterial : public core::SceneMaterial
 {
 public:
-    using gpr5300::SceneMaterial::SceneMaterial;
+    using core::SceneMaterial::SceneMaterial;
     void Bind() const override;
 };
 
 
 struct SceneTexture
 {
-    TextureId textureId = INVALID_TEXTURE_ID;
+    core::TextureId textureId = core::INVALID_TEXTURE_ID;
 };
 
-class Scene : public gpr5300::Scene
+class Scene : public core::Scene
 {
 public:
     void UnloadScene() override;
     void Update(float dt) override;
-    void Draw(const pb::DrawCommand& drawCommand) override;
+    void Draw(const core::pb::DrawCommand& drawCommand) override;
 
-    std::unique_ptr<gpr5300::SceneMaterial> GetMaterial(int materialIndex) override;
+    std::unique_ptr<core::SceneMaterial> GetMaterial(int materialIndex) override;
 
     void OnEvent(SDL_Event& event) override;
-    gpr5300::Framebuffer& GetFramebuffer(int framebufferIndex) override { return framebuffers_[framebufferIndex]; }
-    gpr5300::Pipeline& GetPipeline(int index) override { return pipelines_[index]; }
-    gpr5300::Mesh& GetMesh(int index) override { return meshes_[index]; }
+    core::Framebuffer& GetFramebuffer(int framebufferIndex) override { return framebuffers_[framebufferIndex]; }
+    core::Pipeline& GetPipeline(int index) override { return pipelines_[index]; }
+    core::Mesh& GetMesh(int index) override { return meshes_[index]; }
 protected:
-    ImportStatus LoadShaders(const PbRepeatField<pb::Shader>& shadersPb) override;
-    ImportStatus LoadPipelines(const PbRepeatField<pb::Pipeline>& pipelines) override;
-    ImportStatus LoadTextures(const PbRepeatField<pb::Texture>& textures) override;
-    ImportStatus LoadMaterials(const PbRepeatField<pb::Material>& materials) override;
+    ImportStatus LoadShaders(const PbRepeatField<core::pb::Shader>& shadersPb) override;
+    ImportStatus LoadPipelines(const PbRepeatField<core::pb::Pipeline>& pipelines) override;
+    ImportStatus LoadTextures(const PbRepeatField<core::pb::Texture>& textures) override;
+    ImportStatus LoadMaterials(const PbRepeatField<core::pb::Material>& materials) override;
     ImportStatus LoadModels(const PbRepeatField<std::string>& models) override;
-    ImportStatus LoadMeshes(const PbRepeatField<pb::Mesh>& meshes) override;
-    ImportStatus LoadFramebuffers(const PbRepeatField<pb::FrameBuffer>& framebuffers) override;
+    ImportStatus LoadMeshes(const PbRepeatField<core::pb::Mesh>& meshes) override;
+    ImportStatus LoadFramebuffers(const PbRepeatField<core::pb::FrameBuffer>& framebuffers) override;
     
 
 private:
@@ -60,4 +60,4 @@ private:
     std::vector<Material> materials_;
     std::vector<Framebuffer> framebuffers_;
 };
-} // namespace gpr5300::gl
+} // namespace gl

@@ -5,7 +5,7 @@
 #include <string_view>
 
 
-namespace gpr5300
+namespace core
 {
     
 class BufferFile
@@ -86,4 +86,4 @@ public:
 using FilesystemLocator = Locator<FilesystemInterface, NullFilesystem>;
 
 
-} // namespace gpr5300
+} // namespace core

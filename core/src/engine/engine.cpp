@@ -6,7 +6,7 @@
 
 #include <chrono>
 #include <cassert>
-#include <imgui_impl_sdl.h>
+#include <imgui_impl_sdl2.h>
 #include <glm/vec2.hpp>
 
 #include "utils/log.h"
@@ -15,7 +15,7 @@
 
 #include "proto/vector.pb.h"
 
-namespace gpr5300
+namespace core
 {
 
 static Engine* instance = nullptr;
@@ -150,7 +150,7 @@ Engine::Engine()
         pb::Vec2i *windowSize = config_.mutable_windowsize();
         windowSize->set_x(1280);
         windowSize->set_y(720);
-        config_.set_window_name("GPR5300");
+        config_.set_window_name("CompGraphEditor");
         config_.set_fullscreen(false);
         config_.set_enable_debug(true);
     }

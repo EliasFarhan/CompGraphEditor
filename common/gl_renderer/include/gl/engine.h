@@ -3,10 +3,10 @@
 #include "gl/texture.h"
 #include "engine/engine.h"
 
-namespace gpr5300::gl
+namespace gl
 {
 
-class Engine: public gpr5300::Engine
+class Engine: public core::Engine
 {
 public:
     TextureManager& GetTextureManager() override;

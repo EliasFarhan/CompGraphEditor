@@ -5,7 +5,7 @@
 #include <glm/vec2.hpp>
 #include <glm/vec3.hpp>
 
-namespace gpr5300::gl
+namespace gl
 {
 
 Mesh GenerateQuad(glm::vec3 scale, glm::vec3 offset)
