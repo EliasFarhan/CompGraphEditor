@@ -30,32 +30,32 @@ public:
     ~Pipeline() override;
     void Bind() override;
     static void Unbind();
+
     void LoadRasterizePipeline(const Shader& vertex, const Shader& fragment);
     void LoadComputePipeline(const Shader& compute);
+
     void Destroy();
 
     //Uniform functions
-    void SetFloat(std::string_view uniformName, float f);
+    void SetFloat(std::string_view uniformName, float f) override;
 
-    void SetInt(std::string_view uniformName, int i) ;
+    void SetInt(std::string_view uniformName, int i)  override;
 
-    void SetVec2(std::string_view uniformName, glm::vec2 v);
+    void SetVec2(std::string_view uniformName, glm::vec2 v) override;
 
-    void SetVec3(std::string_view uniformName, glm::vec3 v);
+    void SetVec3(std::string_view uniformName, glm::vec3 v) override;
 
-    void SetVec4(std::string_view uniformName, glm::vec4 v);
+    void SetVec4(std::string_view uniformName, glm::vec4 v) override;
 
-    void SetMat4(std::string_view uniformName, const glm::mat4& mat);
+    void SetMat4(std::string_view uniformName, const glm::mat4& mat) override;
 
     void SetTexture(std::string_view uniformName, const Texture& texture, GLenum textureUnit) ;
     void SetTexture(std::string_view uniformName, GLuint textureName, GLenum textureUnit) ;
     void SetCubemap(std::string_view uniformName, GLuint textureName, GLenum textureUnit) ;
 
-    void SetPipelineName(std::string_view name);
-    [[nodiscard]] std::string_view GetPipelineName() const;
+
 private:
     GLuint name = 0;
-    std::string pipelineName_;
     inline static GLuint currentBindedPipeline = 0;
 
     std::unordered_map<std::string, int> uniformMap_;

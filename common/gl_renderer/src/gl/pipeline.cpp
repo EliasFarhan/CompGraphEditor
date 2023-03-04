@@ -98,6 +98,7 @@ void Pipeline::Bind()
 void Pipeline::Unbind()
 {
     glUseProgram(0);
+    currentBindedPipeline = 0;
 }
 
 void Pipeline::LoadRasterizePipeline(const Shader &vertex, const Shader &fragment)
@@ -229,15 +230,6 @@ void Pipeline::SetCubemap(std::string_view uniformName, GLuint textureName, GLen
     glCheckError();
 }
 
-void Pipeline::SetPipelineName(std::string_view name)
-{
-    pipelineName_ = name;
-}
-
-std::string_view Pipeline::GetPipelineName() const
-{
-    return pipelineName_;
-}
 
 int Pipeline::GetUniformLocation(std::string_view uniformName)
 {

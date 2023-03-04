@@ -1,11 +1,11 @@
-import gpr5300
+import core
 import math
 
 
-class Scene03(gpr5300.System):
+class Scene03(core.System):
 
     def begin(self):
-        scene = gpr5300.get_scene()
+        scene = core.get_scene()
         self.pipeline = scene.get_pipeline(0)
         self.t = 0.0
 

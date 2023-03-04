@@ -21,6 +21,12 @@ public:
     bool LoadComputePipeline(const core::pb::Pipeline& pipelinePb, Shader& computeShader);
     void Bind() override;
     void Destroy() const;
+    void SetFloat(std::string_view uniformName, float f) override;
+    void SetInt(std::string_view uniformName, int i) override;
+    void SetVec2(std::string_view uniformName, glm::vec2 v) override;
+    void SetVec3(std::string_view uniformName, glm::vec3 v) override;
+    void SetVec4(std::string_view uniformName, glm::vec4 v) override;
+    void SetMat4(std::string_view uniformName, const glm::mat4& mat) override;
 
 private:
     VkPipeline pipeline{};

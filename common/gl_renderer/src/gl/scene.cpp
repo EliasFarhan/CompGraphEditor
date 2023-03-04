@@ -1,5 +1,7 @@
 #include "gl/scene.h"
 
+#include "gl/utils.h"
+
 #include "gl/debug.h"
 #include "proto/renderer.pb.h"
 #include "gl/shape_primitive.h"
@@ -249,6 +251,8 @@ Scene::ImportStatus Scene::LoadMaterials(const PbRepeatField<core::pb::Material>
         glCheckError();
     }
 
+
+
     void Scene::Draw(const core::pb::DrawCommand& command)
     {
         const auto& material = materials_[command.material_index()];
@@ -258,34 +262,7 @@ Scene::ImportStatus Scene::LoadMaterials(const PbRepeatField<core::pb::Material>
         if (pipelineInfo.depth_test_enable())
         {
             glEnable(GL_DEPTH_TEST);
-            switch (pipelineInfo.depth_compare_op())
-            {
-                case core::pb::Pipeline_DepthCompareOp_LESS:
-                    glDepthFunc(GL_LESS);
-                    break;
-                case core::pb::Pipeline_DepthCompareOp_LESS_OR_EQUAL:
-                    glDepthFunc(GL_LEQUAL);
-                    break;
-                case core::pb::Pipeline_DepthCompareOp_EQUAL:
-                    glDepthFunc(GL_EQUAL);
-                    break;
-                case core::pb::Pipeline_DepthCompareOp_GREATER:
-                    glDepthFunc(GL_GREATER);
-                    break;
-                case core::pb::Pipeline_DepthCompareOp_NOT_EQUAL:
-                    glDepthFunc(GL_NOTEQUAL);
-                    break;
-                case core::pb::Pipeline_DepthCompareOp_GREATER_OR_EQUAL:
-                    glDepthFunc(GL_GEQUAL);
-                    break;
-                case core::pb::Pipeline_DepthCompareOp_ALWAYS:
-                    glDepthFunc(GL_ALWAYS);
-                    break;
-                case core::pb::Pipeline_DepthCompareOp_NEVER:
-                    glDepthFunc(GL_NEVER);
-                    break;
-                default:;
-            }
+            glDepthFunc(ConvertDepthCompareOpToGL(pipelineInfo.depth_compare_op()));
             glDepthMask(pipelineInfo.depth_mask());
         }
         else
@@ -296,34 +273,7 @@ Scene::ImportStatus Scene::LoadMaterials(const PbRepeatField<core::pb::Material>
         if (pipelineInfo.blend_enable())
         {
             glEnable(GL_BLEND);
-            auto translateBlendFunc = [](core::pb::Pipeline_BlendFunc blendFunc)
-            {
-                switch (blendFunc)
-                {
-                    case core::pb::Pipeline_BlendFunc_BLEND_ZERO: return GL_ZERO;
-                    case core::pb::Pipeline_BlendFunc_ONE: return GL_ONE;
-                    case core::pb::Pipeline_BlendFunc_SRC_COLOR: return GL_SRC_COLOR;
-                    case core::pb::Pipeline_BlendFunc_ONE_MINUS_SRC_COLOR: return GL_ONE_MINUS_SRC_COLOR;
-                    case core::pb::Pipeline_BlendFunc_DST_COLOR: return GL_DST_COLOR;
-                    case core::pb::Pipeline_BlendFunc_ONE_MINUS_DST_COLOR: return GL_ONE_MINUS_DST_COLOR;
-                    case core::pb::Pipeline_BlendFunc_SRC_ALPHA: return GL_SRC_ALPHA;
-                    case core::pb::Pipeline_BlendFunc_ONE_MINUS_SRC_ALPHA: return GL_ONE_MINUS_SRC_ALPHA;
-                    case core::pb::Pipeline_BlendFunc_DST_ALPHA: return GL_DST_ALPHA;
-                    case core::pb::Pipeline_BlendFunc_ONE_MINUS_DST_ALPHA: return GL_ONE_MINUS_DST_ALPHA;
-                    case core::pb::Pipeline_BlendFunc_CONSTANT_COLOR: return GL_CONSTANT_COLOR;
-                    case core::pb::Pipeline_BlendFunc_ONE_MINUS_CONSTANT_COLOR: return GL_ONE_MINUS_CONSTANT_COLOR;
-                    case core::pb::Pipeline_BlendFunc_CONSTANT_ALPHA: return GL_CONSTANT_ALPHA;
-                    case core::pb::Pipeline_BlendFunc_ONE_MINUS_CONSTANT_ALPHA: return GL_ONE_MINUS_CONSTANT_ALPHA;
-                    case core::pb::Pipeline_BlendFunc_SRC_ALPHA_SATURATE: return GL_SRC_ALPHA_SATURATE;
-                    case core::pb::Pipeline_BlendFunc_SRC1_COLOR: return GL_SRC1_COLOR;
-                    case core::pb::Pipeline_BlendFunc_ONE_MINUS_SRC1_COLOR: return GL_ONE_MINUS_SRC1_COLOR;
-                    case core::pb::Pipeline_BlendFunc_SRC1_ALPHA: return GL_SRC1_ALPHA;
-                    case core::pb::Pipeline_BlendFunc_ONE_MINUS_SRC1_ALPHA: return GL_ONE_MINUS_SRC1_ALPHA;
-                    default:;
-                }
-                return GL_ZERO;
-            };
-            glBlendFunc(translateBlendFunc(pipelineInfo.blending_source_factor()), translateBlendFunc(pipelineInfo.blending_destination_factor()));
+            glBlendFunc(ConvertBlendFuncToGL(pipelineInfo.blending_source_factor()), ConvertBlendFuncToGL(pipelineInfo.blending_destination_factor()));
         }
         else
         {
@@ -333,26 +283,10 @@ Scene::ImportStatus Scene::LoadMaterials(const PbRepeatField<core::pb::Material>
         {
             glEnable(GL_STENCIL_TEST);
             glStencilMask(pipelineInfo.stencil_mask());
-            auto translateStencilOp = [](core::pb::Pipeline_StencilOp stencilOp)
-            {
-                switch (stencilOp)
-                {
-                    case core::pb::Pipeline_StencilOp_KEEP: return GL_KEEP;
-                    case core::pb::Pipeline_StencilOp_STENCIL_ZERO: return GL_ZERO;
-                    case core::pb::Pipeline_StencilOp_REPLACE: return GL_REPLACE;
-                    case core::pb::Pipeline_StencilOp_INCR: return GL_INCR;
-                    case core::pb::Pipeline_StencilOp_INCR_WRAP: return GL_INCR_WRAP;
-                    case core::pb::Pipeline_StencilOp_DECR: return GL_DECR;
-                    case core::pb::Pipeline_StencilOp_DECR_WRAP: return GL_DECR_WRAP;
-                    case core::pb::Pipeline_StencilOp_INVERT: return GL_INVERT;
-                    default:;
-                }
-                return GL_KEEP;
-            };
             glStencilOp(
-                    translateStencilOp(pipelineInfo.stencil_source_fail()),
-                    translateStencilOp(pipelineInfo.stencil_depth_fail()),
-                    translateStencilOp(pipelineInfo.stencil_depth_pass())
+                ConvertStencilOpToGL(pipelineInfo.stencil_source_fail()),
+                ConvertStencilOpToGL(pipelineInfo.stencil_depth_fail()),
+                ConvertStencilOpToGL(pipelineInfo.stencil_depth_pass())
             );
             static constexpr std::array stencilFunc =
                     {
@@ -377,32 +311,8 @@ Scene::ImportStatus Scene::LoadMaterials(const PbRepeatField<core::pb::Material>
         if (pipelineInfo.enable_culling())
         {
             glEnable(GL_CULL_FACE);
-            switch (pipelineInfo.cull_face())
-            {
-
-                case core::pb::Pipeline_CullFace_BACK:
-                    glCullFace(GL_BACK);
-                    break;
-                case core::pb::Pipeline_CullFace_FRONT:
-                    glCullFace(GL_FRONT);
-                    break;
-                case core::pb::Pipeline_CullFace_FRONT_AND_BACK:
-                    glCullFace(GL_FRONT_AND_BACK);
-                    break;
-                default:
-                    break;
-            }
-            switch (pipelineInfo.front_face())
-            {
-                case core::pb::Pipeline_FrontFace_COUNTER_CLOCKWISE:
-                    glFrontFace(GL_CCW);
-                    break;
-                case core::pb::Pipeline_FrontFace_CLOCKWISE:
-                    glFrontFace(GL_CW);
-                    break;
-                default:
-                    break;
-            }
+            glCullFace(ConvertCullFaceToGL(pipelineInfo.cull_face()));
+            glFrontFace(ConvertFrontFaceToGL(pipelineInfo.front_face()));
         }
         else
         {

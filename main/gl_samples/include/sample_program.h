@@ -1,8 +1,6 @@
 #pragma once
-#include <array>
 
 #include "engine/system.h"
-#include "renderer/pipeline.h"
 #include "gl/scene.h"
 #include "engine/engine.h"
 

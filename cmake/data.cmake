@@ -34,7 +34,7 @@ function(copydata main_folder exe_name)
 
     add_custom_target(
             "${exe_name}_DATA"
-            DEPENDS ${Data_OUTPUT_FILES}
+            DEPENDS ${DATA_FILES} ${Data_OUTPUT_FILES}
     )
     add_dependencies(${exe_name} "${exe_name}_DATA")
 endfunction()

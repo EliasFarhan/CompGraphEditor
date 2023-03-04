@@ -129,6 +129,7 @@ core::pb::Scene Scene3()
     auto* pySystem = scene.add_py_systems();
     pySystem->set_class_("Scene03");
     pySystem->set_module("data.scripts.scene03");
+    pySystem->set_path("data/scripts/scene03.py");
 
     return scene;
 }

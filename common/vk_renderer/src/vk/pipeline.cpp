@@ -192,4 +192,34 @@ void Pipeline::Destroy() const
     vkDestroyPipeline(driver.device, pipeline, nullptr);
     vkDestroyPipelineLayout(driver.device, pipelineLayout, nullptr);
 }
+
+void Pipeline::SetFloat(std::string_view uniformName, float f)
+{
+    //TODO using push constant
+}
+
+void Pipeline::SetInt(std::string_view uniformName, int i)
+{
+    //TODO using push constant
+}
+
+void Pipeline::SetVec2(std::string_view uniformName, glm::vec2 v)
+{
+    //TODO using push constant
+}
+
+void Pipeline::SetVec3(std::string_view uniformName, glm::vec3 v)
+{
+    //TODO using push constant
+}
+
+void Pipeline::SetVec4(std::string_view uniformName, glm::vec4 v)
+{
+    //TODO using push constant
+}
+
+void Pipeline::SetMat4(std::string_view uniformName, const glm::mat4& mat)
+{
+    //TODO using push constant
+}
 }

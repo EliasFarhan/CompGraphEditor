@@ -1,4 +1,11 @@
 #include "engine/py_interface.h"
+
+#include "renderer/pipeline.h"
+#include "engine/filesystem.h"
+#include "engine/scene.h"
+#include "engine/engine.h"
+#include "utils/log.h"
+
 #include <pybind11/pybind11.h>
 #include <pybind11/embed.h>
 #include <pybind11/operators.h>
@@ -8,10 +15,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <fmt/format.h>
 
-#include "engine/filesystem.h"
-#include "engine/scene.h"
-#include "engine/engine.h"
-#include "utils/log.h"
+
 
 PYBIND11_EMBEDDED_MODULE(core, m)
 {
@@ -236,6 +240,31 @@ PYBIND11_EMBEDDED_MODULE(core, m)
         .value("RETURN", SDLK_RETURN)
     .export_values()
         ;
+
+    py::class_<core::Pipeline>(m, "Pipeline")
+            .def("set_float", &core::Pipeline::SetFloat)
+            .def("set_int", &core::Pipeline::SetInt)
+            .def("set_vec2", &core::Pipeline::SetVec2)
+            .def("set_vec3", &core::Pipeline::SetVec3)
+            .def("set_vec4", &core::Pipeline::SetVec4)
+            .def("set_mat4", &core::Pipeline::SetMat4)
+            /*.def("set_texture", [](core::Pipeline &pipeline,
+                    std::string_view uniformName,
+                    GLuint textureName,
+                    GLenum textureUnit = 0)
+                {
+                        return pipeline.SetTexture(uniformName, textureName, textureUnit);
+            })
+            .def("set_cubemap", [](core::Pipeline &pipeline,
+                    std::string_view uniformName,
+                    GLuint textureName,
+                    GLenum textureUnit = 0) {
+                return pipeline.SetCubemap(uniformName, textureName, textureUnit);
+            })*/
+            .def("get_name", &core::Pipeline::GetPipelineName)
+            .def_property_readonly("name", &core::Pipeline::GetPipelineName);
+
+
 }
 
 namespace core
@@ -280,9 +309,10 @@ Script* PyManager::LoadScript(std::string_view path, std::string_view module, st
     {
         const auto moduleObj = py::module_::import(module.data());
         auto newObject = moduleObj.attr(className.data())();
-        auto* newSystem = newObject.cast<Script*>();
-        newSystem->Begin();
         pySystems_.push_back(std::move(newObject));
+        auto* newSystem = pySystems_.back().cast<Script*>();
+        newSystem->Begin();
+        
         return newSystem;
     }
     catch (pybind11::error_already_set& e)

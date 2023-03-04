@@ -10,6 +10,7 @@ class VertexBuffer
 public:
     virtual ~VertexBuffer() = default;
     virtual void CreateFromMesh(const refactor::Mesh& mesh) = 0;
+    virtual void Bind() = 0;
 };
 
 } // namespace core

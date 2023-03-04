@@ -1,11 +1,13 @@
 #pragma once
 
-#include "renderer/mesh.h"
-
 #include <assimp/Importer.hpp>
 #include <assimp/scene.h>
 
 #include <vector>
+#include <glm/vec3.hpp>
+#include <glm/vec2.hpp>
+
+#include <span>
 
 namespace core
 {
@@ -16,12 +18,15 @@ struct Mesh
 {
     std::string name;
     std::vector<glm::vec3> positions;
-    std::vector<glm::vec3> texCoords;
+    std::vector<glm::vec2> texCoords;
     std::vector<glm::vec3> normals;
     std::vector<glm::vec3> tangents;
-    std::vector<glm::vec3> biTangents;
+    std::vector<glm::vec3> bitangents;
     std::vector<unsigned> indices;
 };
+Mesh GenerateQuad(glm::vec3 scale, glm::vec3 offset);
+Mesh GenerateCube(glm::vec3 scale, glm::vec3 offset);
+Mesh GenerateSphere(float scale, glm::vec3 offset);
 }
 
 struct ModelIndex
