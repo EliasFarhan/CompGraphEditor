@@ -15,4 +15,5 @@ public:
     virtual ~Mesh() = default;
     [[nodiscard]] virtual std::string_view GetName() const = 0;
 };
+
 } // namespace core

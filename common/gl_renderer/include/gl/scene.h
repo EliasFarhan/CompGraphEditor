@@ -59,5 +59,7 @@ private:
     std::vector<SceneTexture> textures_;
     std::vector<Material> materials_;
     std::vector<Framebuffer> framebuffers_;
+
+    GLuint emptyMeshVao_ = 0;
 };
 } // namespace gl

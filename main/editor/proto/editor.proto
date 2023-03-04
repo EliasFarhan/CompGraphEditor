@@ -1,5 +1,0 @@
-syntax = "proto3";
-
-//import "proto/vector.proto";
-package gpr5300.editor.pb;
-

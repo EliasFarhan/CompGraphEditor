@@ -152,6 +152,8 @@ Scene::ImportStatus Scene::LoadMaterials(const PbRepeatField<core::pb::Material>
             }
         }
 
+        glCreateVertexArrays(1, &emptyMeshVao_);
+
         return ImportStatus::SUCCESS;
     }
 
@@ -171,7 +173,7 @@ Scene::ImportStatus Scene::LoadMaterials(const PbRepeatField<core::pb::Material>
     void SceneMaterial::Bind() const
     {
         pipeline_->Bind();
-        auto* glMaterial = static_cast<gl::Material*>(material_);
+        const auto* glMaterial = static_cast<gl::Material*>(material_);
         auto* glPipeline = static_cast<gl::Pipeline*>(pipeline_);
         for (std::size_t textureIndex = 0; textureIndex < glMaterial->textures.size(); textureIndex++)
         {
@@ -201,6 +203,7 @@ Scene::ImportStatus Scene::LoadMaterials(const PbRepeatField<core::pb::Material>
         {
             glDeleteVertexArrays(1, &mesh.vao);
         }
+        glDeleteVertexArrays(1, &emptyMeshVao_);
     }
 
     void Scene::Update(float dt)
@@ -461,6 +464,11 @@ Scene::ImportStatus Scene::LoadMaterials(const PbRepeatField<core::pb::Material>
         if (meshIndex >= 0)
         {
             glBindVertexArray(meshes_[meshIndex].vao);
+            glCheckError();
+        }
+        else
+        {
+            glBindVertexArray(emptyMeshVao_);
             glCheckError();
         }
 
