@@ -300,6 +300,15 @@ message Material
     string name = 6;
 }
 
+message VertexBuffer
+{
+    repeated Vec3f positions = 1;
+    repeated Vec2f texCoords = 2;
+    repeated Vec3f normals = 3;
+    repeated Vec3f tangents = 4;
+    repeated Vec3f bitangents = 5;
+}
+
 message Mesh
 {
     enum PrimitveType
