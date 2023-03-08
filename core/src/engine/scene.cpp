@@ -27,7 +27,6 @@ void Scene::LoadScene(PyManager &pyManager)
     {
         LogError("Count not import render pass");
     }
-    const auto shadersSize = scene_.shaders_size();
     const auto shaders = scene_.shaders();
     if (LoadShaders(shaders) != ImportStatus::SUCCESS)
     {
@@ -64,6 +63,8 @@ void Scene::LoadScene(PyManager &pyManager)
 
 
     const auto pySystemSize = scene_.py_systems_size();
+    pySystems_.clear();
+    pySystems_.reserve(pySystemSize);
     for(int i = 0; i < pySystemSize; i++)
     {
         const auto& pySystem = scene_.py_systems(i);
@@ -119,7 +120,7 @@ void Scene::OnEvent(SDL_Event& event)
     }
     case SDL_MOUSEMOTION:
     {
-        glm::vec2 mouseMotion(event.motion.xrel, event.motion.yrel);
+        const glm::vec2 mouseMotion(event.motion.xrel, event.motion.yrel);
         for (auto* script : pySystems_)
         {
             if (script != nullptr)

@@ -237,6 +237,65 @@ core::pb::Scene Scene5()
     return scene;
 }
 
+/**
+ * @brief Scene 06 is a sample with rotating cubes, showcasing correct depth testing
+*/
+core::pb::Scene Scene6()
+{
+    core::pb::Scene scene;
+
+    core::pb::Shader *vertexShader = scene.add_shaders();
+    vertexShader->set_type(core::pb::Shader_Type_VERTEX);
+    vertexShader->set_path("data/shaders/scene06/rotated_cube.vert");
+
+    core::pb::Shader *fragmentShader = scene.add_shaders();
+    fragmentShader->set_type(core::pb::Shader_Type_FRAGMENT);
+    fragmentShader->set_path("data/shaders/scene06/rotated_cube.frag");
+
+    auto *pipeline = scene.add_pipelines();
+    pipeline->set_vertex_shader_index(0);
+    pipeline->set_fragment_shader_index(1);
+    pipeline->set_type(core::pb::Pipeline_Type_RASTERIZE);
+    pipeline->set_depth_test_enable(true);
+    pipeline->set_depth_compare_op(core::pb::Pipeline_DepthCompareOp_LESS_OR_EQUAL);
+    pipeline->set_depth_mask(true);
+    
+
+    auto* texture = scene.add_textures();
+    texture->set_path("data/textures/container.jpg");
+
+    auto* material = scene.add_materials();
+    material->set_pipeline_index(0);
+    auto* materialTexture = material->add_textures();
+    materialTexture->set_sampler_name("tex");
+    materialTexture->set_texture_index(0);
+
+    auto* mesh = scene.add_meshes();
+    mesh->set_primitve_type(core::pb::Mesh_PrimitveType_CUBE);
+
+    auto *renderPass = scene.mutable_render_pass();
+    auto *subPass = renderPass->add_sub_passes();
+    auto *clearColor = subPass->mutable_clear_color();
+    clearColor->set_r(0.0f);
+    clearColor->set_g(0.0f);
+    clearColor->set_b(0.0f);
+    clearColor->set_a(0.0f);
+
+
+    auto *drawCommand = subPass->add_commands();
+    drawCommand->set_material_index(0);
+    drawCommand->set_count(36);
+    drawCommand->set_mesh_index(0);
+    drawCommand->set_draw_elements(true);
+    drawCommand->set_mode(core::pb::DrawCommand_Mode_TRIANGLES);
+    drawCommand->set_automatic_draw(true);
+
+    auto* pySystem = scene.add_py_systems();
+    pySystem->set_class_("Scene06");
+    pySystem->set_module("data.scripts.scene06");
+    pySystem->set_path("data/scripts/scene06.py");
+    return scene;
+}
 
 void SampleBrowserProgram::Begin()
 {
@@ -245,7 +304,8 @@ void SampleBrowserProgram::Begin()
         {"scene2", Scene2()},
         {"scene3", Scene3()},
         {"scene4", Scene4()},
-        {"scene5", Scene5()}
+        {"scene5", Scene5()},
+        {"scene6", Scene6()}
     };
     for(auto& sample : samples_)
     {
