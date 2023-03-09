@@ -1,12 +1,21 @@
 #include "renderer/model.h"
 #include <assimp/postprocess.h>
 
+
+#ifdef TRACY_ENABLE
+#include <tracy/Tracy.hpp>
+#endif
+
 namespace core
 {
 namespace refactor
 {
 Mesh GenerateQuad(glm::vec3 scale, glm::vec3 offset)
 {
+
+#ifdef TRACY_ENABLE
+    ZoneScoped;
+#endif
     Mesh mesh{};
     mesh.name = "quad";
     mesh.positions = {
@@ -59,6 +68,10 @@ Mesh GenerateQuad(glm::vec3 scale, glm::vec3 offset)
 }
 Mesh GenerateCube(glm::vec3 scale, glm::vec3 offset)
 {
+
+#ifdef TRACY_ENABLE
+    ZoneScoped;
+#endif
     Mesh cube{};
     cube.name = "cube";
     cube.indices =
@@ -207,6 +220,10 @@ Mesh GenerateSphere(float scale, glm::vec3 offset)
 
 void Model::LoadFromNode(const aiScene* scene, const aiNode* node)
 {
+
+#ifdef TRACY_ENABLE
+    ZoneScoped;
+#endif
     for(unsigned i = 0; i < node->mNumMeshes; i++)
     {
         LoadMesh(scene->mMeshes[node->mMeshes[i]]);
@@ -219,6 +236,10 @@ void Model::LoadFromNode(const aiScene* scene, const aiNode* node)
 
 void Model::LoadMesh(const aiMesh* aiMesh)
 {
+
+#ifdef TRACY_ENABLE
+    ZoneScoped;
+#endif
     refactor::Mesh mesh;
     mesh.name = aiMesh->mName.C_Str();
     mesh.positions.reserve(aiMesh->mNumVertices);
@@ -258,6 +279,10 @@ void Model::LoadMesh(const aiMesh* aiMesh)
 
 ModelIndex ModelManager::ImportModel(std::string_view modelPath)
 {
+
+#ifdef TRACY_ENABLE
+    ZoneScoped;
+#endif
     const auto* scene = importer_.ReadFile(modelPath.data(), aiProcess_CalcTangentSpace | aiProcess_Triangulate);
     if(scene == nullptr)
     {
@@ -270,6 +295,10 @@ ModelIndex ModelManager::ImportModel(std::string_view modelPath)
 
 ModelIndex ModelManager::ImportScene(const aiScene* scene)
 {
+
+#ifdef TRACY_ENABLE
+    ZoneScoped;
+#endif
     const ModelIndex index = {models_.size()};
     Model model;
     model.LoadFromNode(scene, scene->mRootNode);

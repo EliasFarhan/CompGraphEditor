@@ -10,6 +10,10 @@
 
 #include "gl/debug.h"
 
+#ifdef TRACY_ENABLE
+#include <tracy/Tracy.hpp>
+#endif
+
 namespace gl
 {
 gl::TextureManager& Engine::GetTextureManager()
@@ -20,6 +24,9 @@ gl::TextureManager& Engine::GetTextureManager()
 void Engine::Begin()
 {
 
+#ifdef TRACY_ENABLE
+    ZoneScoped;
+#endif
     SDL_Init(SDL_INIT_VIDEO | SDL_INIT_GAMECONTROLLER);
     // Set our OpenGL version.
 #if true
@@ -72,6 +79,9 @@ void Engine::Begin()
 
 void Engine::End()
 {
+#ifdef TRACY_ENABLE
+    ZoneScoped;
+#endif
     core::Engine::End();
 
     ImGui_ImplOpenGL3_Shutdown();
@@ -84,17 +94,26 @@ void Engine::End()
 
 void Engine::ResizeWindow(glm::uvec2 windowSize)
 {
+#ifdef TRACY_ENABLE
+    ZoneScoped;
+#endif
     glViewport(0, 0, windowSize.x, windowSize.y);
 }
 
 void Engine::PreUpdate()
 {
+#ifdef TRACY_ENABLE
+    ZoneScoped;
+#endif
     glClearColor(0, 0, 0, 0);
     glClear(GL_COLOR_BUFFER_BIT);
 }
 
 void Engine::PreImGuiDraw()
 {
+#ifdef TRACY_ENABLE
+    ZoneScoped;
+#endif
     ImGui_ImplOpenGL3_NewFrame();
     glCheckError();
     ImGui_ImplSDL2_NewFrame(window_);
@@ -103,6 +122,9 @@ void Engine::PreImGuiDraw()
 
 void Engine::PostImGuiDraw()
 {
+#ifdef TRACY_ENABLE
+    ZoneScoped;
+#endif
     ImGui::Render();
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
     glCheckError();
@@ -110,6 +132,9 @@ void Engine::PostImGuiDraw()
 
 void Engine::SwapWindow()
 {
+#ifdef TRACY_ENABLE
+    ZoneScoped;
+#endif
     SDL_GL_SwapWindow(window_);
     glCheckError();
 }

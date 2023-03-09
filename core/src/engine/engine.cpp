@@ -15,6 +15,10 @@
 
 #include "proto/vector.pb.h"
 
+#ifdef TRACY_ENABLE
+#include <tracy/Tracy.hpp>
+#endif
+
 namespace core
 {
 
@@ -22,7 +26,9 @@ static Engine* instance = nullptr;
 
 void Engine::Begin()
 {
-
+#ifdef TRACY_ENABLE
+    ZoneScoped;
+#endif
     for(auto* system: systems_)
     {
         system->Begin();
@@ -37,6 +43,9 @@ void Engine::Run()
     std::chrono::time_point<std::chrono::system_clock> clock = std::chrono::system_clock::now();
     while(isOpen)
     {
+#ifdef TRACY_ENABLE
+        ZoneScoped;
+#endif
         const auto start = std::chrono::system_clock::now();
         using seconds = std::chrono::duration<float, std::ratio<1,1>>;
         const auto dt = std::chrono::duration_cast<seconds>(start - clock);
@@ -101,12 +110,19 @@ void Engine::Run()
         
 
         SwapWindow();
+#ifdef TRACY_ENABLE
+        FrameMark;
+#endif
     }
     End();
 }
 
 void Engine::End()
 {
+
+#ifdef TRACY_ENABLE
+    ZoneScoped;
+#endif
     for (auto* system : systems_)
     {
         system->End();
@@ -134,6 +150,10 @@ void Engine::RegisterSystem(System* system)
 }
 Engine::Engine()
 {
+
+#ifdef TRACY_ENABLE
+    ZoneScoped;
+#endif
     instance = this;
     const auto& fileSystem = FilesystemLocator::get();
 

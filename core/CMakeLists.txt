@@ -4,6 +4,10 @@ target_include_directories(Core PUBLIC include/ ${STB_INCLUDE_DIRS} ${Python3_IN
 generate_proto(Core)
 target_link_libraries(Core PUBLIC glm::glm SDL2::SDL2 SDL2::SDL2main imgui::imgui
     tinyobjloader::tinyobjloader pybind11::embed ${Python3_LIBRARIES} spdlog::spdlog KTX::ktx assimp::assimp)
+if(ENABLE_PROFILER)
+    target_link_libraries(Core PUBLIC TracyClient)
+    target_compile_definitions(Core PUBLIC TRACY_ENABLE=1)
+endif()
 set_target_properties(Core PROPERTIES UNITY_BUILD ON)
 
 if(MSVC)

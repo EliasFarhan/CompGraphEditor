@@ -5,6 +5,10 @@
 
 #include <fmt/format.h>
 
+#ifdef TRACY_ENABLE
+#include <tracy/Tracy.hpp>
+#endif
+
 namespace gl
 {
 Framebuffer::~Framebuffer()
@@ -17,6 +21,9 @@ Framebuffer::~Framebuffer()
 
 void Framebuffer::Bind() const
 {
+#ifdef TRACY_ENABLE
+    ZoneScoped;
+#endif
     if (currentFramebuffer_ != name_)
     {
         glBindFramebuffer(GL_FRAMEBUFFER, name_);
@@ -186,6 +193,9 @@ void Framebuffer::Unbind()
 
 void Framebuffer::Load(const core::pb::FrameBuffer& framebufferPb)
 {
+#ifdef TRACY_ENABLE
+    ZoneScoped;
+#endif
     const auto windowSize = core::GetWindowSize();
     frameBufferPb_ = framebufferPb;
     framebufferName_ = framebufferPb.name();

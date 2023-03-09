@@ -10,12 +10,19 @@
 #include <fmt/format.h>
 #include <ktx.h>
 
+#ifdef TRACY_ENABLE
+#include <tracy/Tracy.hpp>
+#endif
 
 namespace gl
 {
 
 core::TextureId TextureManager::LoadTexture(const core::pb::Texture &textureInfo)
 {
+
+#ifdef TRACY_ENABLE
+    ZoneScoped;
+#endif
     const auto& path = textureInfo.path();
     const auto it = textureNamesMap_.find(path);
     if(it == textureNamesMap_.end())
@@ -58,6 +65,9 @@ Texture::~Texture()
 
 bool Texture::LoadTexture(const core::pb::Texture &textureInfo)
 {
+#ifdef TRACY_ENABLE
+    ZoneScoped;
+#endif
     stbi_set_flip_vertically_on_load(true);
     const auto &filesystem = core::FilesystemLocator::get();
     std::string_view path = textureInfo.path();
@@ -167,6 +177,10 @@ bool Texture::LoadTexture(const core::pb::Texture &textureInfo)
 
 bool Texture::LoadCubemap(const core::pb::Texture& textureInfo)
 {
+
+#ifdef TRACY_ENABLE
+    ZoneScoped;
+#endif
     target = GL_TEXTURE_CUBE_MAP;
     stbi_set_flip_vertically_on_load(false);
     const auto& filesystem = core::FilesystemLocator::get();
@@ -249,6 +263,10 @@ bool Texture::LoadCubemap(const core::pb::Texture& textureInfo)
 
 bool Texture::LoadKtxTexture(const core::pb::Texture& textureInfo)
 {
+
+#ifdef TRACY_ENABLE
+    ZoneScoped;
+#endif
     ktxTexture* kTexture;
     GLenum glerror;
 

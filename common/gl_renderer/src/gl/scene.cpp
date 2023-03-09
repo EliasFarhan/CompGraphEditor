@@ -13,6 +13,11 @@
 #include <string_view>
 #include <string>
 
+#ifdef TRACY_ENABLE
+#include <tracy/Tracy.hpp>
+#include <tracy/TracyC.h>
+#endif
+
 namespace gl
 {
 
@@ -210,10 +215,16 @@ Scene::ImportStatus Scene::LoadMaterials(const PbRepeatField<core::pb::Material>
 
     void Scene::Update(float dt)
     {
+#ifdef TRACY_ENABLE
+        ZoneScoped;
+#endif
         glCheckError();
         const auto subPassSize = scene_.render_pass().sub_passes_size();
         for (int i = 0; i < subPassSize; i++)
         {
+#ifdef TRACY_ENABLE
+            ZoneNamedN(subpass, "Draw Subpass", true);
+#endif
             const auto& subPass = scene_.render_pass().sub_passes(i);
             const auto framebufferIndex = subPass.framebuffer_index();
             if (framebufferIndex != -1 && framebuffers_.size() > framebufferIndex)
@@ -224,12 +235,19 @@ Scene::ImportStatus Scene::LoadMaterials(const PbRepeatField<core::pb::Material>
             {
                 Framebuffer::Unbind();
             }
-            glClearColor(subPass.clear_color().r(),
-                         subPass.clear_color().g(),
-                         subPass.clear_color().b(),
-                         subPass.clear_color().a());
-            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+#ifdef TRACY_ENABLE
+            TracyCZoneN(glClearZone, "glClear", true);
+#endif
 
+            glClearColor(subPass.clear_color().r(),
+                subPass.clear_color().g(),
+                subPass.clear_color().b(),
+                subPass.clear_color().a());
+            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+#ifdef TRACY_ENABLE
+            TracyCZoneEnd(glClearZone);
+            TracyCZoneN(pySystemsDrawZone, "PySystem Draw", true);
+#endif
             for (auto* pySystem : pySystems_)
             {
                 if (pySystem != nullptr)
@@ -237,7 +255,9 @@ Scene::ImportStatus Scene::LoadMaterials(const PbRepeatField<core::pb::Material>
                     pySystem->Draw(i);
                 }
             }
-
+#ifdef TRACY_ENABLE
+            TracyCZoneEnd(pySystemsDrawZone);
+#endif
             const auto commandSize = subPass.commands_size();
             for (int j = 0; j < commandSize; j++)
             {
@@ -255,6 +275,9 @@ Scene::ImportStatus Scene::LoadMaterials(const PbRepeatField<core::pb::Material>
 
     void Scene::Draw(const core::pb::DrawCommand& command)
     {
+#ifdef TRACY_ENABLE
+        ZoneScoped;
+#endif
         const auto& material = materials_[command.material_index()];
         auto& pipeline = pipelines_[material.pipelineIndex];
         auto& pipelineInfo = scene_.pipelines(material.pipelineIndex);

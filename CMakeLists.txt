@@ -19,6 +19,10 @@ find_package(Ktx CONFIG REQUIRED)
 find_package(assimp CONFIG REQUIRED)
 
 add_subdirectory(external/pybind11)
+option(ENABLE_PROFILER "Enable Tracy Profiling" OFF)
+if(ENABLE_PROFILER)
+    add_subdirectory(external/tracy)
+endif()
 
 add_subdirectory(core/)
 add_subdirectory(common/)

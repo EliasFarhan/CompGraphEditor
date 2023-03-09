@@ -3,6 +3,10 @@
 #include <fmt/format.h>
 #include <GL/glew.h>
 
+#ifdef TRACY_ENABLE
+#include <tracy/Tracy.hpp>
+#endif
+
 namespace gl
 {
 bool CheckKtxError(ktx_error_code_e error_code)
@@ -98,6 +102,9 @@ std::string GetGlError(GLenum err)
 
 void CheckGlError(const char *file, int line)
 {
+#ifdef TRACY_ENABLE
+    ZoneScoped;
+#endif
     GLenum err;
     while ((err = glGetError()) != GL_NO_ERROR)
     {

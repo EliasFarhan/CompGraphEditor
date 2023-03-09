@@ -6,6 +6,10 @@
 #include <set>
 #include <cstring>
 
+#ifdef TRACY_ENABLE
+#include <tracy/Tracy.hpp>
+#endif
+
 namespace vk
 {
 
@@ -36,7 +40,7 @@ VKAPI_ATTR VkBool32 VKAPI_CALL DebugCallback(
 bool CheckValidationLayerSupport()
 {
 #ifdef TRACY_ENABLE
-    ZoneScoped
+    ZoneScoped;
 #endif
     std::uint32_t layerCount;
     vkEnumerateInstanceLayerProperties(&layerCount, nullptr);
@@ -95,7 +99,7 @@ VkResult CreateDebugUtilsMessengerEXT(VkInstance instance,
                                       VkDebugUtilsMessengerEXT* pDebugMessenger)
 {
 #ifdef TRACY_ENABLE
-    ZoneScoped
+    ZoneScoped;
 #endif
     const auto func = GetFuncPointer<PFN_vkCreateDebugUtilsMessengerEXT>
             (instance, "vkCreateDebugUtilsMessengerEXT");
@@ -114,7 +118,7 @@ VkResult CreateDebugUtilsMessengerEXT(VkInstance instance,
 QueueFamilyIndices FindQueueFamilies(VkPhysicalDevice device, VkSurfaceKHR surface)
 {
 #ifdef TRACY_ENABLE
-    ZoneScoped
+    ZoneScoped;
 #endif
     // Assign index to queue families that could be found
     QueueFamilyIndices indices;
@@ -148,7 +152,7 @@ QueueFamilyIndices FindQueueFamilies(VkPhysicalDevice device, VkSurfaceKHR surfa
 bool CheckDeviceExtensionSupport(VkPhysicalDevice device)
 {
 #ifdef TRACY_ENABLE
-    ZoneScoped
+    ZoneScoped;
 #endif
     uint32_t extensionCount;
     vkEnumerateDeviceExtensionProperties(device, nullptr, &extensionCount, nullptr);
@@ -198,7 +202,7 @@ SwapChainSupportDetails QuerySwapChainSupport(VkPhysicalDevice device, VkSurface
 bool IsDeviceSuitable(VkPhysicalDevice device, VkSurfaceKHR surface)
 {
 #ifdef TRACY_ENABLE
-    ZoneScoped
+    ZoneScoped;
 #endif
     VkPhysicalDeviceProperties deviceProperties;
     VkPhysicalDeviceFeatures deviceFeatures;
@@ -223,7 +227,7 @@ bool IsDeviceSuitable(VkPhysicalDevice device, VkSurfaceKHR surface)
 int RateDeviceSuitability(VkPhysicalDevice device, VkSurfaceKHR surface)
 {
 #ifdef TRACY_ENABLE
-    ZoneScoped
+    ZoneScoped;
 #endif
     int score = 0;
     //Checking queue family and geometry shader
@@ -287,7 +291,7 @@ VkPhysicalDevice PickPhysicalDevice(VkInstance instance, VkSurfaceKHR surface)
 VkSurfaceFormatKHR ChooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats)
 {
 #ifdef TRACY_ENABLE
-    ZoneScoped
+    ZoneScoped;
 #endif
     for (const auto& availableFormat : availableFormats)
     {
@@ -303,7 +307,7 @@ VkSurfaceFormatKHR ChooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>
 void DestroyDebugUtilsMessengerEXT(VkInstance instance, VkDebugUtilsMessengerEXT debugMessenger, const VkAllocationCallbacks* pAllocator)
 {
 #ifdef TRACY_ENABLE
-    ZoneScoped
+    ZoneScoped;
 #endif
     LogDebug("Destroy Debug Messenger");
     auto func = (PFN_vkDestroyDebugUtilsMessengerEXT)vkGetInstanceProcAddr(instance, "vkDestroyDebugUtilsMessengerEXT");
@@ -317,7 +321,7 @@ VkFormat FindSupportedFormat(VkPhysicalDevice physicalDevice, const std::vector<
                              VkFormatFeatureFlags features)
 {
 #ifdef TRACY_ENABLE
-    ZoneScoped
+    ZoneScoped;
 #endif
     for (VkFormat format : candidates)
     {
@@ -340,7 +344,7 @@ VkFormat FindSupportedFormat(VkPhysicalDevice physicalDevice, const std::vector<
 VkFormat FindDepthFormat(VkPhysicalDevice physicalDevice)
 {
 #ifdef TRACY_ENABLE
-    ZoneScoped
+    ZoneScoped;
 #endif
     return FindSupportedFormat(physicalDevice,
                                { VK_FORMAT_D32_SFLOAT, VK_FORMAT_D32_SFLOAT_S8_UINT, VK_FORMAT_D24_UNORM_S8_UINT },
@@ -352,7 +356,7 @@ VkFormat FindDepthFormat(VkPhysicalDevice physicalDevice)
 VkImageView CreateImageView(VkDevice device, VkImage image, VkFormat format, VkImageAspectFlags aspectFlags)
 {
 #ifdef TRACY_ENABLE
-    ZoneScoped
+    ZoneScoped;
 #endif
     VkImageViewCreateInfo viewInfo{};
     viewInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
@@ -378,7 +382,7 @@ VkImageView CreateImageView(VkDevice device, VkImage image, VkFormat format, VkI
 std::optional<VkShaderModule> CreateShaderModule(const core::BufferFile& bufferFile, VkDevice device)
 {
 #ifdef TRACY_ENABLE
-    ZoneScoped
+    ZoneScoped;
 #endif
     VkShaderModuleCreateInfo createInfo{};
     createInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
