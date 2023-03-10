@@ -138,6 +138,12 @@ void CommandEditor::DrawInspector()
             {
                 currentCommand.info.set_draw_elements(drawElements);
             }
+
+            break;
+        }
+        case core::pb::Mesh_PrimitveType_MODEL:
+        {
+            ImGui::Text("Vertex Count: %d", currentCommand.info.count());
             break;
         }
         default:

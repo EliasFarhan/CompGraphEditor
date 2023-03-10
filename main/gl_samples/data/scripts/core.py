@@ -2,7 +2,6 @@ from __future__ import annotations
 from enum import Enum
 
 
-
 class Key(Enum):
     A = 1
     B = 2
@@ -45,6 +44,7 @@ class Key(Enum):
     RSHIFT = 39
     SPACE = 40
     RETURN = 41
+
 
 class Vec2:
     def __init__(self):

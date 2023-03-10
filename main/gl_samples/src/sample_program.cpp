@@ -288,12 +288,82 @@ core::pb::Scene Scene6()
     drawCommand->set_mesh_index(0);
     drawCommand->set_draw_elements(true);
     drawCommand->set_mode(core::pb::DrawCommand_Mode_TRIANGLES);
-    drawCommand->set_automatic_draw(true);
+    drawCommand->set_automatic_draw(false);
 
     auto* pySystem = scene.add_py_systems();
     pySystem->set_class_("Scene06");
     pySystem->set_module("data.scripts.scene06");
     pySystem->set_path("data/scripts/scene06.py");
+    return scene;
+}
+
+core::pb::Scene Scene7()
+{
+    core::pb::Scene scene;
+
+    core::pb::Shader *vertexShader = scene.add_shaders();
+    vertexShader->set_type(core::pb::Shader_Type_VERTEX);
+    vertexShader->set_path("data/shaders/scene07/rock.vert");
+
+    core::pb::Shader *fragmentShader = scene.add_shaders();
+    fragmentShader->set_type(core::pb::Shader_Type_FRAGMENT);
+    fragmentShader->set_path("data/shaders/scene07/rock.frag");
+
+    auto *pipeline = scene.add_pipelines();
+    pipeline->set_vertex_shader_index(0);
+    pipeline->set_fragment_shader_index(1);
+    pipeline->set_type(core::pb::Pipeline_Type_RASTERIZE);
+    pipeline->set_depth_test_enable(true);
+    pipeline->set_depth_compare_op(core::pb::Pipeline_DepthCompareOp_LESS_OR_EQUAL);
+    pipeline->set_depth_mask(true);
+
+    auto* material = scene.add_materials();
+    material->set_pipeline_index(0);
+
+    auto* materialTexture = material->add_textures();
+    materialTexture->set_texture_index(0);
+    materialTexture->set_sampler_name("tex");
+
+    constexpr std::string_view modelPath = "data/model/rock.obj";
+    *scene.add_model_paths() = modelPath;
+
+    auto* mesh = scene.add_meshes();
+    mesh->set_primitve_type(core::pb::Mesh_PrimitveType_MODEL);
+    mesh->set_model_index(0);
+    mesh->set_model_path(modelPath.data());
+    mesh->set_mesh_name("Cube");
+
+    auto* texture = scene.add_textures();
+    texture->set_path("data/model/rock.png");
+
+
+    auto *renderPass = scene.mutable_render_pass();
+    auto *subPass = renderPass->add_sub_passes();
+    auto *clearColor = subPass->mutable_clear_color();
+    clearColor->set_r(0.0f);
+    clearColor->set_g(0.0f);
+    clearColor->set_b(0.0f);
+    clearColor->set_a(0.0f);
+
+
+    auto *drawCommand = subPass->add_commands();
+    drawCommand->set_material_index(0);
+    drawCommand->set_count(36);
+    drawCommand->set_mesh_index(0);
+    drawCommand->set_draw_elements(true);
+    drawCommand->set_mode(core::pb::DrawCommand_Mode_TRIANGLES);
+    drawCommand->set_automatic_draw(false);
+
+    auto* cameraPySystem = scene.add_py_systems();
+    cameraPySystem->set_path("data/scripts/camera.py");
+    cameraPySystem->set_class_("Camera");
+    cameraPySystem->set_module("data.scripts.camera");
+
+    auto* scenePySystem = scene.add_py_systems();
+    scenePySystem->set_path("data/scripts/scene07.py");
+    scenePySystem->set_class_("Scene07");
+    scenePySystem->set_module("data.scripts.scene07");
+
     return scene;
 }
 
@@ -305,7 +375,8 @@ void SampleBrowserProgram::Begin()
         {"scene3", Scene3()},
         {"scene4", Scene4()},
         {"scene5", Scene5()},
-        {"scene6", Scene6()}
+        {"scene6", Scene6()},
+        {"scene7", Scene7()},
     };
     for(auto& sample : samples_)
     {

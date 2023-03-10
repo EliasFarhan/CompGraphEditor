@@ -17,6 +17,8 @@ find_package(protobuf CONFIG REQUIRED)
 find_package(zstd CONFIG REQUIRED)
 find_package(Ktx CONFIG REQUIRED)
 find_package(assimp CONFIG REQUIRED)
+find_package(argh CONFIG REQUIRED)
+find_package(nlohmann_json CONFIG REQUIRED)
 
 add_subdirectory(external/pybind11)
 option(ENABLE_PROFILER "Enable Tracy Profiling" OFF)
