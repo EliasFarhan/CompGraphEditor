@@ -348,7 +348,7 @@ core::pb::Scene Scene7()
 
     auto *drawCommand = subPass->add_commands();
     drawCommand->set_material_index(0);
-    drawCommand->set_count(36);
+    drawCommand->set_count(192*3);
     drawCommand->set_mesh_index(0);
     drawCommand->set_draw_elements(true);
     drawCommand->set_mode(core::pb::DrawCommand_Mode_TRIANGLES);
