@@ -11,6 +11,9 @@ class Scene07(core.System):
         self.pipeline = self.material.get_pipeline()
 
     def update(self, dt: float):
+        pass
+
+    def draw(self, subpassIndex: int):
         self.material.bind()
         self.pipeline.set_mat4("projection", core.Mat4.perspective(math.radians(45), core.get_aspect(), 0.1, 100.0))
         self.pipeline.set_mat4("model", core.Mat4(1.0))

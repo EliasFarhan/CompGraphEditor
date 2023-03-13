@@ -324,7 +324,7 @@ core::pb::Scene Scene7()
     materialTexture->set_texture_index(0);
     materialTexture->set_sampler_name("tex");
 
-    constexpr std::string_view modelPath = "data/model/rock.obj";
+    constexpr std::string_view modelPath = "data/model/rock/rock.obj";
     *scene.add_model_paths() = modelPath;
 
     auto* mesh = scene.add_meshes();
@@ -334,7 +334,7 @@ core::pb::Scene Scene7()
     mesh->set_mesh_name("Cube");
 
     auto* texture = scene.add_textures();
-    texture->set_path("data/model/rock.png");
+    texture->set_path("data/model/rock/rock.png");
 
 
     auto *renderPass = scene.mutable_render_pass();
@@ -383,7 +383,8 @@ void SampleBrowserProgram::Begin()
         sample.scene.SetScene(sample.sceneInfo);
     }
 
-    sceneManager_.LoadScene(&samples_[0].scene);
+    sceneManager_.LoadScene(&samples_.back().scene);
+    currentIndex_ = samples_.size() - 1;
 }
 
 void SampleBrowserProgram::Update(float dt)
@@ -411,5 +412,10 @@ void SampleBrowserProgram::DrawImGui()
         ImGui::EndCombo();
     }
     ImGui::End();
+}
+
+void SampleBrowserProgram::OnEvent(SDL_Event& event)
+{
+    sceneManager_.OnEvent(event);
 }
 } // namespace gpr5300

@@ -38,6 +38,7 @@ class Camera(core.System):
         for i in range(subpass.draw_command_count):
             draw_command = subpass.get_draw_command(i)
             material = draw_command.get_material()
+            material.bind()
             pipeline = material.get_pipeline()
             pipeline.set_mat4("view", core.Mat4.view(
                 self.camera_pos, 
