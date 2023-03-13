@@ -3,8 +3,8 @@
 #include "engine/scene.h"
 #include "gl/pipeline.h"
 #include "gl/mesh.h"
-#include "gl/model.h"
 #include "gl/texture.h"
+#include "gl/buffer.h"
 #include "gl/material.h"
 
 #include <vector>
@@ -40,7 +40,8 @@ public:
     void OnEvent(SDL_Event& event) override;
     core::Framebuffer& GetFramebuffer(int framebufferIndex) override { return framebuffers_[framebufferIndex]; }
     core::Pipeline& GetPipeline(int index) override { return pipelines_[index]; }
-    core::Mesh& GetMesh(int index) override { return meshes_[index]; }
+    VertexBuffer& GetVertexBuffer(int index) { return vertexBuffers_[index]; }
+    
 protected:
     ImportStatus LoadShaders(const PbRepeatField<core::pb::Shader>& shadersPb) override;
     ImportStatus LoadPipelines(const PbRepeatField<core::pb::Pipeline>& pipelines) override;
@@ -49,13 +50,12 @@ protected:
     ImportStatus LoadModels(const PbRepeatField<std::string>& models) override;
     ImportStatus LoadMeshes(const PbRepeatField<core::pb::Mesh>& meshes) override;
     ImportStatus LoadFramebuffers(const PbRepeatField<core::pb::FrameBuffer>& framebuffers) override;
-    
 
 private:
     std::vector<Shader> shaders_;
     std::vector<Pipeline> pipelines_;
-    std::vector<Mesh> meshes_;
-    std::vector<Model> models_;
+    std::vector<VertexBuffer> vertexBuffers_;
+    std::vector<core::ModelIndex> modelIndices_;
     std::vector<SceneTexture> textures_;
     std::vector<Material> materials_;
     std::vector<Framebuffer> framebuffers_;

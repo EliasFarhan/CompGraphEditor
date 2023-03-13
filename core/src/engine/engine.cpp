@@ -24,6 +24,11 @@ namespace core
 
 static Engine* instance = nullptr;
 
+ModelManager& Engine::GetModelManager()
+{
+    return modelManager_;
+}
+
 void Engine::Begin()
 {
 #ifdef TRACY_ENABLE
@@ -193,4 +198,8 @@ TextureManager& GetTextureManager()
     return instance->GetTextureManager();
 }
 
+ModelManager& GetModelManager()
+{
+    return instance->GetModelManager();
+}
 }

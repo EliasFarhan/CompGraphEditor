@@ -7,6 +7,7 @@
 #include "engine/system.h"
 #include "proto/config.pb.h"
 #include "renderer/texture.h"
+#include "renderer/model.h"
 
 #include <glm/ext/vector_uint2.hpp>
 
@@ -42,6 +43,7 @@ public:
     void SetWindowName(std::string_view windowName);
     glm::uvec2 GetWindowSize() const;
     virtual TextureManager& GetTextureManager() = 0;
+    ModelManager& GetModelManager();
 protected:
     virtual void Begin();
     virtual void End();
@@ -54,6 +56,7 @@ protected:
     SDL_Window* window_ = nullptr;
     pb::Config config_;
 private:
+    core::ModelManager modelManager_;
     std::vector<System*> systems_;
     std::vector<OnEventInterface*> onEventInterfaces;
     std::vector<ImguiDrawInterface*> imguiDrawInterfaces;
@@ -63,5 +66,6 @@ private:
 glm::uvec2 GetWindowSize();
 
 TextureManager& GetTextureManager();
+ModelManager& GetModelManager();
 } // namespace core
 

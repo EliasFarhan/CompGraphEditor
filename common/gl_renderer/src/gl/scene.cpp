@@ -112,11 +112,11 @@ Scene::ImportStatus Scene::LoadMaterials(const PbRepeatField<core::pb::Material>
 
     Scene::ImportStatus Scene::LoadModels(const PbRepeatField<std::string>& models)
     {
+        auto& modelManager = core::GetModelManager();
         const auto modelsSize = models.size();
-        models_.resize(modelsSize);
         for (int i = 0; i < modelsSize; i++)
         {
-            models_[i].LoadModel(models.Get(i));
+            modelIndices_.push_back(modelManager.ImportModel(models.Get(i)));
         }
 
         return ImportStatus::SUCCESS;
@@ -124,36 +124,48 @@ Scene::ImportStatus Scene::LoadMaterials(const PbRepeatField<core::pb::Material>
 
     Scene::ImportStatus Scene::LoadMeshes(const PbRepeatField<core::pb::Mesh>& meshes)
     {
+
+        auto& modelManager = core::GetModelManager();
         const auto meshesSize = meshes.size();
-        meshes_.resize(meshesSize);
         for (int i = 0; i < meshesSize; i++)
         {
-            const auto& mesh = meshes.Get(i);
-            switch (mesh.primitve_type())
+            const auto& meshInfo = meshes.Get(i);
+            switch (meshInfo.primitve_type())
             {
                 case core::pb::Mesh_PrimitveType_QUAD:
                 {
-                    const glm::vec3 scale = mesh.has_scale() ? glm::vec3{ mesh.scale().x(), mesh.scale().y(), mesh.scale().z() } : glm::vec3(1.0f);
-                    const glm::vec3 offset{ mesh.offset().x(), mesh.offset().y(), mesh.offset().z() };
-                    meshes_[i] = GenerateQuad(scale, offset);
+                    const glm::vec3 scale = meshInfo.has_scale() ? glm::vec3{ meshInfo.scale().x(), meshInfo.scale().y(), meshInfo.scale().z() } : glm::vec3(1.0f);
+                    const glm::vec3 offset{ meshInfo.offset().x(), meshInfo.offset().y(), meshInfo.offset().z() };
+                    const auto mesh = core::refactor::GenerateQuad(scale, offset);
+                    vertexBuffers_.emplace_back();
+                    vertexBuffers_.back().CreateFromMesh(mesh);
                     break;
                 }
                 case core::pb::Mesh_PrimitveType_CUBE:
                 {
-                    const glm::vec3 scale = mesh.has_scale() ? glm::vec3{ mesh.scale().x(), mesh.scale().y(), mesh.scale().z() } : glm::vec3(1.0f);
-                    const glm::vec3 offset{ mesh.offset().x(), mesh.offset().y(), mesh.offset().z() };
+                    const glm::vec3 scale = meshInfo.has_scale() ? glm::vec3{ meshInfo.scale().x(), meshInfo.scale().y(), meshInfo.scale().z() } : glm::vec3(1.0f);
+                    const glm::vec3 offset{ meshInfo.offset().x(), meshInfo.offset().y(), meshInfo.offset().z() };
 
-                    meshes_[i] = GenerateCube(scale, offset);
+                    const auto mesh = core::refactor::GenerateCube(scale, offset);
+                    vertexBuffers_.emplace_back();
+                    vertexBuffers_.back().CreateFromMesh(mesh);
                     break;
                 }
                 case core::pb::Mesh_PrimitveType_SPHERE:
                     break;
                 case core::pb::Mesh_PrimitveType_NONE:
-                    meshes_[i] = GenerateEmpty();
+                {
+                    vertexBuffers_.emplace_back();
+                    vertexBuffers_.back().CreateFromMesh({});
                     break;
+                }
                 case core::pb::Mesh_PrimitveType_MODEL:
-                    meshes_[i] = models_[mesh.model_index()].GenerateMesh(mesh.mesh_name());
+                {
+                    const auto& mesh = modelManager.GetModel(modelIndices_[meshInfo.model_index()]).GetMesh(meshInfo.mesh_name());
+                    vertexBuffers_.emplace_back();
+                    vertexBuffers_.back().CreateFromMesh(mesh);
                     break;
+                }
                 default:
                     break;
             }
@@ -201,15 +213,19 @@ Scene::ImportStatus Scene::LoadMaterials(const PbRepeatField<core::pb::Material>
         {
             pipeline.Destroy();
         }
-    //TODO delete Texture
+        auto& textureManager = core::GetTextureManager();
+        textureManager.Clear();
         for (auto& framebuffer : framebuffers_)
         {
             framebuffer.Destroy();
         }
-        for (auto& mesh : meshes_)
+        for (auto& vertexBuffer : vertexBuffers_)
         {
-            glDeleteVertexArrays(1, &mesh.vao);
+            vertexBuffer.Destroy();
         }
+        modelIndices_.clear();
+        auto& modelManager = core::GetModelManager();
+        modelManager.Clear();
         glDeleteVertexArrays(1, &emptyMeshVao_);
     }
 
@@ -396,7 +412,7 @@ Scene::ImportStatus Scene::LoadMaterials(const PbRepeatField<core::pb::Material>
         const auto meshIndex = command.mesh_index();
         if (meshIndex >= 0)
         {
-            glBindVertexArray(meshes_[meshIndex].vao);
+            vertexBuffers_[meshIndex].Bind();
             glCheckError();
         }
         else

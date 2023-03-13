@@ -335,6 +335,7 @@ core::pb::Scene Scene7()
 
     auto* texture = scene.add_textures();
     texture->set_path("data/model/rock/rock.png");
+    texture->set_filter_mode(core::pb::Texture_FilteringMode_LINEAR);
 
 
     auto *renderPass = scene.mutable_render_pass();

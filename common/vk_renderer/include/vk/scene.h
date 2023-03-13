@@ -18,7 +18,6 @@ public:
     Framebuffer& GetFramebuffer(int framebufferIndex) override;
     std::unique_ptr<core::SceneMaterial> GetMaterial(int materialIndex) override;
     Pipeline& GetPipeline(int index) override;
-    Mesh& GetMesh(int index) override;
     VkRenderPass GetCurrentRenderPass() const;
 protected:
     ImportStatus LoadShaders(const PbRepeatField<core::pb::Shader>& shadersPb) override;

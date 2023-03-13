@@ -85,7 +85,7 @@ public:
     int GetMaterialCount() const;
     virtual Pipeline& GetPipeline(int index) = 0;
     int GetPipelineCount() const;
-    virtual Mesh& GetMesh(int index) = 0;
+    virtual std::string_view GetMeshName(int index);
     int GetMeshCount() const;
 
     void OnEvent(SDL_Event& event) override;

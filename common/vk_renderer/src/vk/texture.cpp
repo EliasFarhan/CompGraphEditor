@@ -10,4 +10,8 @@ core::TextureId TextureManager::LoadTexture(const core::pb::Texture &textureInfo
 {
     return core::INVALID_TEXTURE_ID;
 }
+
+void TextureManager::Clear()
+{
+}
 }

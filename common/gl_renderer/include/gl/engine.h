@@ -21,5 +21,6 @@ protected:
 private:
     SDL_GLContext glRenderContext_{};
     TextureManager textureManager_;
+
 };
 }

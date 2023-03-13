@@ -19,7 +19,7 @@ void VertexBuffer::CreateFromMesh(const core::refactor::Mesh& mesh)
     // 2. copy our vertices array in a buffer for OpenGL to use
     glBindBuffer(GL_ARRAY_BUFFER, vbo[0]);
     glBufferData(GL_ARRAY_BUFFER, mesh.positions.size() * sizeof(glm::vec3), mesh.positions.data(), GL_STATIC_DRAW);
-    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(glm::vec2), static_cast<void*>(0));
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(glm::vec3), static_cast<void*>(0));
     glEnableVertexAttribArray(0);
     //bind texture coords data
     glBindBuffer(GL_ARRAY_BUFFER, vbo[1]);
@@ -51,5 +51,13 @@ void VertexBuffer::CreateFromMesh(const core::refactor::Mesh& mesh)
 void VertexBuffer::Bind()
 {
     glBindVertexArray(vao);
+}
+
+void VertexBuffer::Destroy()
+{
+    if (vao != 0)
+    {
+        glDeleteVertexArrays(1, &vao);
+    }
 }
 } // namespace gl

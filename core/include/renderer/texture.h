@@ -20,5 +20,6 @@ class TextureManager
 public:
     virtual ~TextureManager() = default;
     virtual TextureId LoadTexture(const pb::Texture& textureInfo) = 0;
+    virtual void Clear() = 0;
 };
 } // namespace core

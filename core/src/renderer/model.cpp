@@ -218,6 +218,15 @@ Mesh GenerateSphere(float scale, glm::vec3 offset)
 }
 }
 
+const refactor::Mesh& Model::GetMesh(std::string_view meshName)
+{
+    const auto it = std::ranges::find_if(meshes_, [&meshName](const auto& mesh)
+    {
+        return meshName == mesh.name;
+    });
+    return *it;
+}
+
 void Model::LoadFromNode(const aiScene* scene, const aiNode* node)
 {
 
@@ -248,19 +257,19 @@ void Model::LoadMesh(const aiMesh* aiMesh)
 
     for(unsigned i = 0; i < aiMesh->mNumVertices; i++)
     {
-        const auto v = aiMesh->mVertices[i];
+        const auto& v = aiMesh->mVertices[i];
         mesh.positions.emplace_back(v.x, v.y, v.z);
 
-        const auto texCoords = aiMesh->mTextureCoords[i];
-        mesh.texCoords.emplace_back(texCoords->x, texCoords->y);
+        const auto& texCoords = aiMesh->mTextureCoords[0][i];
+        mesh.texCoords.emplace_back(texCoords.x, texCoords.y);
 
-        const auto normal = aiMesh->mNormals[i];
+        const auto& normal = aiMesh->mNormals[i];
         mesh.normals.emplace_back(normal.x, normal.y, normal.z);
 
-        const auto tangent = aiMesh->mTangents[i];
+        const auto& tangent = aiMesh->mTangents[i];
         mesh.tangents.emplace_back(tangent.x, tangent.y, tangent.z);
 
-        const auto bitangent = aiMesh->mBitangents[i];
+        const auto& bitangent = aiMesh->mBitangents[i];
         mesh.tangents.emplace_back(bitangent.x, bitangent.y, bitangent.z);
     }
 
@@ -283,7 +292,15 @@ ModelIndex ModelManager::ImportModel(std::string_view modelPath)
 #ifdef TRACY_ENABLE
     ZoneScoped;
 #endif
-    const auto* scene = importer_.ReadFile(modelPath.data(), aiProcess_CalcTangentSpace | aiProcess_Triangulate);
+    const auto& filesystem = core::FilesystemLocator::get();
+    const auto modelFile = filesystem.LoadFile(modelPath);
+    if (modelFile.data == nullptr)
+    {
+        LogError(fmt::format("Could not open: {}", modelPath));
+        return INVALID_MODEL_INDEX;
+    }
+    const auto* scene = importer_.ReadFileFromMemory(modelFile.data, modelFile.length, 
+        aiProcess_CalcTangentSpace | aiProcess_Triangulate | aiProcess_GenNormals);
     if(scene == nullptr)
     {
         LogError(fmt::format("Could not import scene, with error: {}", importer_.GetErrorString()));
@@ -291,6 +308,11 @@ ModelIndex ModelManager::ImportModel(std::string_view modelPath)
     }
     return ImportScene(scene);
 
+}
+
+void ModelManager::Clear()
+{
+    models_.clear();
 }
 
 ModelIndex ModelManager::ImportScene(const aiScene* scene)

@@ -85,10 +85,6 @@ Pipeline& Scene::GetPipeline(int index)
     return pipelines_[index];
 }
 
-Mesh& Scene::GetMesh(int index)
-{
-    return meshes_[index];
-}
 
 VkRenderPass Scene::GetCurrentRenderPass() const
 {

@@ -44,7 +44,8 @@ core::TextureId TextureManager::LoadTexture(const core::pb::Texture &textureInfo
         }
         const auto textureId = core::TextureId{ static_cast<int>(textures_.size()) };
         textureNamesMap_[path] = textureId;
-        textures_.push_back(std::move(newTexture));
+        textures_.emplace_back(std::move(newTexture));
+        newTexture = {};
         return textureId;
     }
     return it->second;
@@ -53,6 +54,17 @@ core::TextureId TextureManager::LoadTexture(const core::pb::Texture &textureInfo
 const Texture& TextureManager::GetTexture(core::TextureId textureId)
 {
     return textures_[static_cast<int>(textureId)];
+}
+
+void TextureManager::Clear()
+{
+    for(auto& texture: textures_)
+    {
+        texture.Destroy();
+    }
+
+    textures_.clear();
+    textureNamesMap_.clear();
 }
 
 Texture::~Texture()
@@ -341,5 +353,6 @@ bool Texture::LoadKtxTexture(const core::pb::Texture& textureInfo)
 void Texture::Destroy()
 {
     glDeleteTextures(1, &name);
+    name = 0;
 }
 } // namespace gpr5300

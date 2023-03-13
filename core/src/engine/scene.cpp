@@ -153,6 +153,11 @@ int Scene::GetPipelineCount() const
     return scene_.pipelines_size();
 }
 
+std::string_view Scene::GetMeshName(int index)
+{
+    return scene_.meshes(index).mesh_name();
+}
+
 void SceneManager::Begin()
 {
 
@@ -237,7 +242,7 @@ void SceneDrawCommand::Draw()
 
 std::string_view SceneDrawCommand::GetMeshName() const
 {
-    return scene_.GetMesh(drawCommand_.mesh_index()).GetName();
+    return scene_.GetMeshName(drawCommand_.mesh_index());
 }
 
 std::string_view SceneDrawCommand::GetName() const

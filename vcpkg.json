@@ -5,7 +5,7 @@
         {
             "name": "sdl2",
             "features": ["vulkan"]
-        }, "glm", "glew", "tinyobjloader", "stb", "fmt", "ktx",
+        }, "glm", "glew", "stb", "fmt", "ktx",
         {
             "name": "imgui",
             "features": ["sdl2-binding", "opengl3-binding", "docking-experimental", "vulkan-binding"]

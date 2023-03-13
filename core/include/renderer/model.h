@@ -43,6 +43,8 @@ class Model
 public:
     [[nodiscard]] std::span<refactor::Mesh> GetMeshes() { return meshes_; }
     [[nodiscard]] std::span<const refactor::Mesh> GetMeshes() const { return std::span{meshes_.cbegin(), meshes_.cend()}; }
+    const refactor::Mesh& GetMesh(std::string_view meshName);
+
 protected:
     void LoadFromNode(const aiScene* scene, const aiNode* node);
     void LoadMesh(const aiMesh* aiMesh);
@@ -58,6 +60,8 @@ public:
     ModelIndex ImportModel(std::string_view modelPath);
     [[nodiscard]] Model& GetModel(ModelIndex index) { return models_[index.index]; }
     [[nodiscard]] const Model& GetModel(ModelIndex index) const { return models_[index.index]; }
+    void Clear();
+
 protected:
     ModelIndex ImportScene(const aiScene* scene);
     std::vector<Model> models_;

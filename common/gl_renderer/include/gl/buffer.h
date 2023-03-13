@@ -13,6 +13,7 @@ class VertexBuffer final : core::VertexBuffer
 public:
     void CreateFromMesh(const core::refactor::Mesh& mesh) override;
     void Bind() override;
+    void Destroy() override;
 
 private:
     GLuint vao{};
