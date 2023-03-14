@@ -71,7 +71,7 @@ Editor::Editor()
     instance_ = this;
 }
 
-void Editor::DrawImGui()
+void Editor::OnGui()
 {
     const auto windowSize = core::GetWindowSize();
 

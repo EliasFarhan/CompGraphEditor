@@ -48,7 +48,7 @@ void Player::End()
     sceneManager_.End();
 }
 
-void Player::DrawImGui()
+void Player::OnGui()
 {
     if(sceneLoaded_)
         return;

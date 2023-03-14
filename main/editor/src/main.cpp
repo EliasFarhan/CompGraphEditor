@@ -15,7 +15,7 @@ int main(int argc, char** argv)
 
     gpr5300::Editor editor;
     engine.RegisterSystem(&editor);
-    engine.RegisterImGuiDrawInterface(&editor);
+    engine.RegisterOnGuiInterface(&editor);
     engine.RegisterEventObserver(&editor);
 
     engine.Run();

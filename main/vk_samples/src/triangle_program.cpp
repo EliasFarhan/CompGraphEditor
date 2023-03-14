@@ -62,7 +62,7 @@ void HelloVulkanProgram::End()
 {
     sceneManager_.End();
 }
-void HelloVulkanProgram::DrawImGui()
+void HelloVulkanProgram::OnGui()
 {
     ImGui::Begin("Hello Vulkan");
     ImGui::End();

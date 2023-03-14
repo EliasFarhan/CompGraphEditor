@@ -368,6 +368,112 @@ core::pb::Scene Scene7()
     return scene;
 }
 
+core::pb::Scene Scene8()
+{
+    core::pb::Scene scene;
+    auto* vertexShader = scene.add_shaders();
+    vertexShader->set_type(core::pb::Shader_Type_VERTEX);
+    vertexShader->set_path("data/shaders/scene08/model.vert");
+    auto* fragmentShader = scene.add_shaders();
+    fragmentShader->set_type(core::pb::Shader_Type_FRAGMENT);
+    fragmentShader->set_path("data/shaders/scene08/model.frag");
+    auto* postVertexShader = scene.add_shaders();
+    postVertexShader->set_type(core::pb::Shader_Type_VERTEX);
+    postVertexShader->set_path("data/shaders/scene08/screen.vert");
+    auto* postFragmentShader = scene.add_shaders();
+    postFragmentShader->set_type(core::pb::Shader_Type_FRAGMENT);
+    postFragmentShader->set_path("data/shaders/scene08/screen_edge_detection.frag");
+
+    auto* pipeline = scene.add_pipelines();
+    pipeline->set_type(core::pb::Pipeline_Type_RASTERIZE);
+    pipeline->set_vertex_shader_index(0);
+    pipeline->set_fragment_shader_index(1);
+    pipeline->set_depth_test_enable(true);
+    pipeline->set_depth_mask(true);
+    pipeline->set_depth_compare_op(core::pb::Pipeline_DepthCompareOp_LESS_OR_EQUAL);
+
+    auto* postProcessPipeline = scene.add_pipelines();
+    postProcessPipeline->set_type(core::pb::Pipeline_Type_RASTERIZE);
+    postProcessPipeline->set_vertex_shader_index(2);
+    postProcessPipeline->set_fragment_shader_index(3);
+    postProcessPipeline->set_depth_test_enable(true);
+    postProcessPipeline->set_depth_mask(true);
+    postProcessPipeline->set_depth_compare_op(core::pb::Pipeline_DepthCompareOp_LESS_OR_EQUAL);
+    
+    auto* defaultMaterial = scene.add_materials();
+    defaultMaterial->set_pipeline_index(0);
+    auto* diffuseTexture = defaultMaterial->add_textures();
+    diffuseTexture->set_sampler_name("texture_diffuse1");
+    diffuseTexture->set_texture_index(0);
+
+    auto* postProcessMaterial = scene.add_materials();
+    postProcessMaterial->set_pipeline_index(1);
+    auto* postProcessTexture = postProcessMaterial->add_textures();
+    postProcessTexture->set_framebuffer_name("FirstPassFramebuffer");
+    postProcessTexture->set_sampler_name("screenTexture");
+    postProcessTexture->set_attachment_name("ColorBuffer");
+    postProcessTexture->set_texture_index(-1);
+
+    auto* framebuffer = scene.add_framebuffers();
+    framebuffer->set_name("FirstPassFramebuffer");
+    auto* renderTarget = framebuffer->add_color_attachments();
+    renderTarget->set_format(core::pb::RenderTarget_Format_RGBA);
+    renderTarget->set_format_size(core::pb::RenderTarget_FormatSize_SIZE_8);
+    renderTarget->set_size_type(core::pb::RenderTarget_Size_WINDOW_SIZE);
+    renderTarget->set_type(core::pb::RenderTarget_Type_UNSIGNED);
+    renderTarget->set_name("ColorBuffer");
+
+    auto* depth = framebuffer->mutable_depth_stencil_attachment();
+    depth->set_format(core::pb::RenderTarget_Format_DEPTH_STENCIL);
+    depth->set_size_type(core::pb::RenderTarget_Size_WINDOW_SIZE);
+    depth->set_format_size(core::pb::RenderTarget_FormatSize_SIZE_24);
+    depth->set_rbo(true);
+    depth->set_type(core::pb::RenderTarget_Type_UNSIGNED);
+    depth->set_name("DepthRBO");
+
+    auto* modelTexture = scene.add_textures();
+    modelTexture->set_type(core::pb::DIFFUSE);
+    modelTexture->set_filter_mode(core::pb::Texture_FilteringMode_LINEAR);
+    modelTexture->set_path("data/textures/container.jpg");
+
+    auto* renderPass = scene.mutable_render_pass();
+    auto* firstPass = renderPass->add_sub_passes();
+    firstPass->set_framebuffer_index(0);
+    auto* cubeCommand = firstPass->add_commands();
+    cubeCommand->set_count(36);
+    cubeCommand->set_automatic_draw(false);
+    cubeCommand->set_draw_elements(true);
+    cubeCommand->set_material_index(0);
+    cubeCommand->set_mesh_index(0);
+
+    auto* postProcessPass = renderPass->add_sub_passes();
+    postProcessPass->set_framebuffer_index(-1);
+    auto* postProcessCommand = postProcessPass->add_commands();
+    postProcessCommand->set_automatic_draw(true);
+    postProcessCommand->set_count(6);
+    postProcessCommand->set_draw_elements(true);
+    postProcessCommand->set_material_index(1);
+    postProcessCommand->set_mesh_index(1);
+
+    auto* cubeMesh = scene.add_meshes();
+    cubeMesh->set_primitve_type(core::pb::Mesh_PrimitveType_CUBE);
+
+    auto* quadMesh = scene.add_meshes();
+    quadMesh->set_primitve_type(core::pb::Mesh_PrimitveType_QUAD);
+
+    auto* cameraPySystem = scene.add_py_systems();
+    cameraPySystem->set_path("data/scripts/camera.py");
+    cameraPySystem->set_class_("Camera");
+    cameraPySystem->set_module("data.scripts.camera");
+
+    auto* scenePySystem = scene.add_py_systems();
+    scenePySystem->set_path("data/scripts/scene08.py");
+    scenePySystem->set_class_("Scene08");
+    scenePySystem->set_module("data.scripts.scene08");
+
+    return scene;
+}
+
 void SampleBrowserProgram::Begin()
 {
     samples_ = {
@@ -378,6 +484,7 @@ void SampleBrowserProgram::Begin()
         {"scene5", Scene5()},
         {"scene6", Scene6()},
         {"scene7", Scene7()},
+        {"scene8", Scene8()},
     };
     for(auto& sample : samples_)
     {
@@ -397,7 +504,7 @@ void SampleBrowserProgram::End()
 {
     sceneManager_.End();
 }
-void SampleBrowserProgram::DrawImGui()
+void SampleBrowserProgram::OnGui()
 {
     ImGui::Begin("Sample Browser");
     if(ImGui::BeginCombo("Samples", samples_[currentIndex_].sceneName.data()))

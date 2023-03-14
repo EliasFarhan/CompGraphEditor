@@ -12,13 +12,13 @@ struct Sample
     core::pb::Scene sceneInfo;
     gl::Scene scene;
 };
-class SampleBrowserProgram : public core::System, public core::ImguiDrawInterface, public core::OnEventInterface
+class SampleBrowserProgram : public core::System, public core::OnGuiInterface, public core::OnEventInterface
 {
 public:
     void Begin() override;
     void Update(float dt) override;
     void End() override;
-    void DrawImGui() override;
+    void OnGui() override;
     void OnEvent(SDL_Event& event) override;
 
 private:

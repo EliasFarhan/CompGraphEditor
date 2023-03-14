@@ -12,7 +12,7 @@ int main([[maybe_unused]]int argc, [[maybe_unused]] char** argv)
 
     gpr5300::SampleBrowserProgram triangleProgram;
     engine.RegisterSystem(&triangleProgram);
-    engine.RegisterImGuiDrawInterface(&triangleProgram);
+    engine.RegisterOnGuiInterface(&triangleProgram);
     engine.RegisterEventObserver(&triangleProgram);
 
     engine.Run();

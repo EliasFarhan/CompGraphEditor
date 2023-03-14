@@ -183,6 +183,7 @@ Mesh GenerateCube(glm::vec3 scale, glm::vec3 offset)
 
 
    cube.tangents.resize(24);
+   cube.bitangents.resize(24);
     for (int i = 0; i < 36; i += 3)
     {
         std::array triIndices =

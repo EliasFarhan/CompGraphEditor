@@ -136,6 +136,7 @@ message Pipeline
     {
         RASTERIZE = 0;
         COMPUTE = 1;
+        RAYTRACING = 2;
     }
     Type type = 1;
     int32 vertex_shader_index = 2;

@@ -109,7 +109,7 @@ void Engine::Run()
 
         for(auto* imguiDrawInterface : imguiDrawInterfaces)
         {
-            imguiDrawInterface->DrawImGui();
+            imguiDrawInterface->OnGui();
         }
         PostImGuiDraw();
         
@@ -144,7 +144,7 @@ void Engine::RegisterEventObserver(OnEventInterface* eventInterface)
     onEventInterfaces.push_back(eventInterface);
 }
 
-void Engine::RegisterImGuiDrawInterface(ImguiDrawInterface* imguiDrawInterface)
+void Engine::RegisterOnGuiInterface(OnGuiInterface* imguiDrawInterface)
 {
     imguiDrawInterfaces.push_back(imguiDrawInterface);
 }

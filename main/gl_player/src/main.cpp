@@ -11,7 +11,7 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char** argv)
 
     gpr5300::Player player;
     gl::Engine engine;
-    engine.RegisterImGuiDrawInterface(&player);
+    engine.RegisterOnGuiInterface(&player);
     engine.RegisterSystem(&player);
     engine.RegisterEventObserver(&player);
     engine.Run();

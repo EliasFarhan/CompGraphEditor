@@ -21,11 +21,11 @@ public:
     virtual void OnEvent(SDL_Event& event) = 0;
 };
 
-class ImguiDrawInterface
+class OnGuiInterface
 {
 public:
-    virtual ~ImguiDrawInterface() = default;
-    virtual void DrawImGui() = 0;
+    virtual ~OnGuiInterface() = default;
+    virtual void OnGui() = 0;
 };
 
 class Engine
@@ -36,7 +36,7 @@ public:
     void Run();
     
     void RegisterEventObserver(OnEventInterface* eventInterface);
-    void RegisterImGuiDrawInterface(ImguiDrawInterface* imguiDrawInterface);
+    void RegisterOnGuiInterface(OnGuiInterface* imguiDrawInterface);
     void RegisterSystem(System* system);
 
 
@@ -59,7 +59,7 @@ private:
     core::ModelManager modelManager_;
     std::vector<System*> systems_;
     std::vector<OnEventInterface*> onEventInterfaces;
-    std::vector<ImguiDrawInterface*> imguiDrawInterfaces;
+    std::vector<OnGuiInterface*> imguiDrawInterfaces;
     inline static constexpr std::string_view configFilename = "config.bin";
 }; 
 

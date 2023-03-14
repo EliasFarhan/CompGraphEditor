@@ -101,6 +101,7 @@ Scene::ImportStatus Scene::LoadMaterials(const PbRepeatField<core::pb::Material>
             }
             else
             {
+                materialTexture.textureId = core::INVALID_TEXTURE_ID;
                 materialTexture.attachmentName = materialTextureInfo.attachment_name();
                 materialTexture.framebufferName = materialTextureInfo.framebuffer_name();
             }
@@ -196,6 +197,8 @@ Scene::ImportStatus Scene::LoadMaterials(const PbRepeatField<core::pb::Material>
         auto* glPipeline = static_cast<gl::Pipeline*>(pipeline_);
         for (std::size_t textureIndex = 0; textureIndex < glMaterial->textures.size(); textureIndex++)
         {
+            if(glMaterial->textures[textureIndex].textureId == core::INVALID_TEXTURE_ID)
+                continue;
             glPipeline->SetTexture(
                 glMaterial->textures[textureIndex].uniformSamplerName,
                 GetTexture(glMaterial->textures[textureIndex].textureId),

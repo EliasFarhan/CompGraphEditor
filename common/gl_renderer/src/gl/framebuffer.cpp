@@ -156,16 +156,23 @@ void Framebuffer::Resize(glm::uvec2 windowSize)
 
 void Framebuffer::Destroy()
 {
+    if(currentFramebuffer_ == name_)
+    {
+        Unbind();
+    }
     glDeleteFramebuffers(1, &name_);
+    name_ = 0;
     for(int i = 0; i < frameBufferPb_.color_attachments_size(); i++)
     {
         if(frameBufferPb_.color_attachments(i).rbo())
         {
             glDeleteRenderbuffers(1, &colorAttachments_[i]);
+            colorAttachments_[i] = 0;
         }
         else
         {
             glDeleteTextures(1, &colorAttachments_[i]);
+            colorAttachments_[i] = 0;
         }
     }
     if(depthStencilAttachment_ != 0)
@@ -173,10 +180,12 @@ void Framebuffer::Destroy()
         if(frameBufferPb_.depth_stencil_attachment().rbo())
         {
             glDeleteRenderbuffers(1, &depthStencilAttachment_);
+            depthStencilAttachment_ = 0;
         }
         else
         {
             glDeleteTextures(1, &depthStencilAttachment_);
+            depthStencilAttachment_ = 0;
         }
     }
 }

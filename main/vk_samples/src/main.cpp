@@ -16,7 +16,7 @@ int main(int argc, char** argv)
 
     gpr5300::HelloVulkanProgram triangleProgram;
     engine.RegisterSystem(&triangleProgram);
-    engine.RegisterImGuiDrawInterface(&triangleProgram);
+    engine.RegisterOnGuiInterface(&triangleProgram);
 
     engine.Run();
 

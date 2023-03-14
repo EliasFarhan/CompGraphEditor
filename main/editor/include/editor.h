@@ -15,12 +15,12 @@
 namespace gpr5300
 {
 
-class Editor : public core::System, public core::ImguiDrawInterface,
+class Editor : public core::System, public core::OnGuiInterface,
     public core::OnEventInterface, public ResourceChangeInterface
 {
 public:
     Editor();
-    void DrawImGui() override;
+    void OnGui() override;
     void Begin() override;
     void Update(float dt) override;
     void End() override;
