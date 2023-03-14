@@ -396,9 +396,7 @@ core::pb::Scene Scene8()
     postProcessPipeline->set_type(core::pb::Pipeline_Type_RASTERIZE);
     postProcessPipeline->set_vertex_shader_index(2);
     postProcessPipeline->set_fragment_shader_index(3);
-    postProcessPipeline->set_depth_test_enable(true);
-    postProcessPipeline->set_depth_mask(true);
-    postProcessPipeline->set_depth_compare_op(core::pb::Pipeline_DepthCompareOp_LESS_OR_EQUAL);
+
     
     auto* defaultMaterial = scene.add_materials();
     defaultMaterial->set_pipeline_index(0);
@@ -420,8 +418,9 @@ core::pb::Scene Scene8()
     renderTarget->set_format(core::pb::RenderTarget_Format_RGBA);
     renderTarget->set_format_size(core::pb::RenderTarget_FormatSize_SIZE_8);
     renderTarget->set_size_type(core::pb::RenderTarget_Size_WINDOW_SIZE);
-    renderTarget->set_type(core::pb::RenderTarget_Type_UNSIGNED);
+    renderTarget->set_type(core::pb::RenderTarget_Type_FLOAT);
     renderTarget->set_name("ColorBuffer");
+
 
     auto* depth = framebuffer->mutable_depth_stencil_attachment();
     depth->set_format(core::pb::RenderTarget_Format_DEPTH_STENCIL);
@@ -460,7 +459,10 @@ core::pb::Scene Scene8()
 
     auto* quadMesh = scene.add_meshes();
     quadMesh->set_primitve_type(core::pb::Mesh_PrimitveType_QUAD);
-
+    auto* scale = quadMesh->mutable_scale();
+    scale->set_x(2.0f);
+    scale->set_y(2.0f);
+    scale->set_z(2.0f);
     auto* cameraPySystem = scene.add_py_systems();
     cameraPySystem->set_path("data/scripts/camera.py");
     cameraPySystem->set_class_("Camera");
