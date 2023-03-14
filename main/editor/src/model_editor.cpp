@@ -2,7 +2,6 @@
 #include <array>
 #include "utils/log.h"
 #include <fmt/format.h>
-#include <tiny_obj_loader.h>
 
 #include "editor.h"
 #include "mesh_editor.h"
@@ -46,18 +45,15 @@ void ModelEditor::AddResource(const Resource& resource)
         LogWarning(fmt::format("Could not open protobuf file: {}", resource.path));
         return;
     }
-    tinyobj::ObjReaderConfig readerConfig{};
-    readerConfig.triangulate = true;
-    readerConfig.vertex_color = false;
+    auto& modelManager = core::GetModelManager();
     const auto& modelPath = modelInfo.info.model_path();
 
-    if (!modelInfo.reader.ParseFromFile(modelPath, readerConfig))
+    const auto modelId = modelManager.ImportModel(modelPath);
+    if (modelId == core::INVALID_MODEL_INDEX)
     {
-        if (!modelInfo.reader.Error().empty())
-        {
-            LogError(fmt::format("Error parsing obj file: {}", modelPath));
-            return;
-        }
+        LogError(fmt::format("Error parsing obj file: {}", modelPath));
+        return;
+
     }
     modelInfo.path = resource.path;
     modelInfos_.push_back(modelInfo);
@@ -299,18 +295,14 @@ void ModelEditor::ImportResource(std::string_view path)
         return;
     }
 
-    tinyobj::ObjReaderConfig readerConfig{};
-    readerConfig.triangulate = true;
-    readerConfig.vertex_color = false;
-    tinyobj::ObjReader reader;
+    auto& modelManager = core::GetModelManager();
+    const auto modelId = modelManager.ImportModel(path.data());
 
-    if (!reader.ParseFromFile(path.data(), readerConfig))
+    if (modelId == core::INVALID_MODEL_INDEX)
     {
-        if (!reader.Error().empty())
-        {
-            LogError(fmt::format("Error parsing obj file: {}", path));
-            return;
-        }
+        LogError(fmt::format("Error parsing obj file: {}", path));
+        return;
+
     }
     std::vector<std::string> mtlFiles;
     try
@@ -350,7 +342,9 @@ void ModelEditor::ImportResource(std::string_view path)
         }
         return -1;
     };
-    auto& materials = reader.GetMaterials();
+    const auto& model = modelManager.GetModel(modelId);
+
+    auto& materials = model.GetMaterials();
     
     auto loadMaterialTextureFunc = [&]
     (std::string_view textureName, core::pb::TextureType textureType, core::pb::ModelMaterial* material)
@@ -410,8 +404,8 @@ void ModelEditor::ImportResource(std::string_view path)
     }
     auto modelDstPath = fmt::format("{}{}", dstFolder, GetFilename(path));
 
-    auto& shapes = reader.GetShapes();
-    for (auto& shape : shapes)
+    auto meshes = model.GetMeshes();
+    for (auto& shape : meshes)
     {
         
         auto meshInfoDstPath = fmt::format("{}{}.mesh", dstFolder, shape.name);
@@ -428,7 +422,7 @@ void ModelEditor::ImportResource(std::string_view path)
         meshInfo->info.set_mesh_name(shape.name);
         auto* newMesh = newModel.add_meshes();
         newMesh->set_mesh_name(shape.name);
-        newMesh->set_material_name(newModel.materials(shape.mesh.material_ids[0]).material_name());
+        newMesh->set_material_name(newModel.materials(shape.material_ids[0]).material_name());
         newMesh->set_mesh_path(meshInfoDstPath);
     }
 
@@ -453,7 +447,6 @@ void ModelEditor::ImportResource(std::string_view path)
 
 void ModelEditor::GenerateMaterialsAndCommands(int commandIndex)
 {
-
     auto& currentModelInfo = modelInfos_[currentIndex_];
     auto* drawCommandInfo = currentModelInfo.info.mutable_draw_commands(commandIndex);
     auto& drawCommand = currentModelInfo.drawCommands[commandIndex];
@@ -541,7 +534,7 @@ void ModelEditor::GenerateMaterialsAndCommands(int commandIndex)
         command->materialId = materialId;
         command->meshId = meshId;
         command->info.set_draw_elements(true);
-        for (auto& mesh : currentModelInfo.reader.GetShapes())
+        for (auto& mesh : currentModelInfo.info.meshes())
         {
             if (mesh.name == modelMesh.mesh_name())
             {

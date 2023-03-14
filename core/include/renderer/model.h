@@ -32,6 +32,10 @@ Mesh GenerateSphere(float scale, glm::vec3 offset);
 struct ModelIndex
 {
     std::size_t index = std::numeric_limits<std::size_t>::max();
+    constexpr bool operator==(ModelIndex other) const
+    {
+        return index == other.index;
+    }
 };
 
 static constexpr ModelIndex INVALID_MODEL_INDEX = {};

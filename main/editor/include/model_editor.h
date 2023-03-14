@@ -1,7 +1,5 @@
 #pragma once
 
-#include <tiny_obj_loader.h>
-
 #include "editor_system.h"
 #include "proto/renderer.pb.h"
 
@@ -20,7 +18,6 @@ struct ModelInfo
     std::string path;
     std::string filename;
     core::pb::Model info;
-    tinyobj::ObjReader reader;
     ResourceId resourceId = INVALID_RESOURCE_ID;
     std::vector<ModelDrawCommand> drawCommands;
 };
