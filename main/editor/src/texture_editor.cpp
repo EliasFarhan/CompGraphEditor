@@ -23,7 +23,7 @@
 #include "gl/texture.h"
 
 
-namespace gpr5300
+namespace editor
 {
 
 void TextureEditor::DrawInspector()

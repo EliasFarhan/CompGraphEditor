@@ -22,7 +22,7 @@
 #include "framebuffer_editor.h"
 #include "pbr_utils.h"
 
-namespace gpr5300
+namespace editor
 {
 
 void Editor::Begin()

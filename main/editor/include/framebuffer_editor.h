@@ -2,7 +2,7 @@
 #include "editor_system.h"
 #include "proto/renderer.pb.h"
 
-namespace gpr5300
+namespace editor
 {
 
 struct FramebufferInfo

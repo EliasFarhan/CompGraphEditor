@@ -26,7 +26,7 @@
 namespace py = pybind11;
 using json = nlohmann::json;
 
-namespace gpr5300
+namespace editor
 {
 void SceneEditor::AddResource(const Resource& resource)
 {

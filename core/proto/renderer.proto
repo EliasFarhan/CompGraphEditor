@@ -242,10 +242,6 @@ message Pipeline
     FrontFace front_face = 29;
     string name = 30;
 
-    string vertex_shader_path = 8;// Used by the editor
-    string fragment_shader_path = 9;// Used by the editor
-    string compute_shader_path = 10;// Used by the editor
-    string geometry_shader_path = 11;// Used by the editor
 }
 
 
@@ -305,8 +301,7 @@ message Material
     int32 pipeline_index = 2;
     repeated Attribute in_vertex_attributes = 3;
     repeated Attribute uniforms = 4;
-    string pipeline_path = 5; //used for the editor
-    string name = 6;
+    string name = 5;
 }
 
 message Mesh
@@ -320,49 +315,12 @@ message Mesh
         NONE = 4;
     }
     PrimitveType primitve_type = 1;
-    string model_path = 2; //used by editor
     string mesh_name = 3;
     int32 model_index = 4;
     Vec3f scale = 5;
     Vec3f offset = 6;
 }
 
-message ModelMesh
-{
-    string mesh_name = 1;
-    string mesh_path = 2;
-    string material_name = 3;
-}
-
-message ModelMaterial
-{
-    string material_name = 1;
-    string material_path = 2;
-    repeated int32 texture_indices = 3;
-}
-
-message ModelTexture
-{
-    string texture_path = 1;
-    TextureType type = 2;
-}
-
-message ModelDrawCommand
-{
-	repeated string material_paths = 1;
-	repeated string draw_command_paths = 2;
-	string pipeline_path = 3;
-}
-
-message Model
-{
-    repeated ModelMesh meshes = 1;
-    repeated ModelMaterial materials = 2;
-    repeated ModelTexture textures = 3;
-    string model_path = 4; //the actual obj path
-    repeated ModelDrawCommand draw_commands = 5; // used by the editor
-    repeated string mtl_paths = 6;
-}
 
 message SceneModel
 {
@@ -382,9 +340,6 @@ message DrawCommand
     bool draw_elements = 6;
     bool automatic_draw = 9;
     string name = 10;
-    //for the editor
-    string material_path = 7;
-    string mesh_path = 8;
 }
 
 
@@ -393,9 +348,6 @@ message SubPass
     Color4 clear_color = 1;
     repeated DrawCommand commands = 2;
     int32 framebuffer_index = 4;
-    //Used by editor
-    repeated string command_paths = 3;
-    string framebuffer_path = 5;
 
 }
 
@@ -424,7 +376,4 @@ message Scene
     repeated string model_paths = 11;
     repeated FrameBuffer framebuffers = 12;
     repeated string cubemap_textures_side_paths = 13;
-    //used by editor
-    string render_pass_path = 9;
-    repeated string py_system_paths = 10;
 }

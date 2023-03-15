@@ -2,16 +2,16 @@
 
 #include "editor_system.h"
 #include "pipeline_editor.h"
-#include "proto/renderer.pb.h"
+#include "proto/editor.pb.h"
 
-namespace gpr5300
+namespace editor
 {
 
 struct MaterialInfo
 {
     std::string path;
     std::string filename;
-    core::pb::Material info;
+    pb::EditorMaterial info;
     ResourceId resourceId = INVALID_RESOURCE_ID;
     ResourceId pipelineId = INVALID_RESOURCE_ID;
 };

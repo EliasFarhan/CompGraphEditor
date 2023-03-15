@@ -3,7 +3,7 @@
 #include <fmt/format.h>
 #include "utils/log.h"
 
-namespace gpr5300
+namespace editor
 {
 
 std::string GetFileExtension(std::string_view path)

@@ -330,7 +330,6 @@ core::pb::Scene Scene7()
     auto* mesh = scene.add_meshes();
     mesh->set_primitve_type(core::pb::Mesh_PrimitveType_MODEL);
     mesh->set_model_index(0);
-    mesh->set_model_path(modelPath.data());
     mesh->set_mesh_name("Cube");
 
     auto* texture = scene.add_textures();

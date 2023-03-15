@@ -7,7 +7,7 @@
 #include <imgui_stdlib.h>
 #include <fstream>
 
-namespace gpr5300
+namespace editor
 {
     
 void PipelineEditor::DrawInspector()

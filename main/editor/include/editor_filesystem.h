@@ -4,7 +4,7 @@
 
 namespace fs = std::filesystem;
 
-namespace gpr5300
+namespace editor
 {
 std::string GetFileExtension(std::string_view path);
 std::string GetFilename(std::string_view path, bool withExtension=true);

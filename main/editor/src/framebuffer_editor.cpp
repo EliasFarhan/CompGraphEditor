@@ -10,7 +10,7 @@
 #include "gl/framebuffer.h"
 
 
-namespace gpr5300
+namespace editor
 {
 void FramebufferEditor::AddResource(const Resource& resource)
 {

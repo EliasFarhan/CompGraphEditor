@@ -4,7 +4,7 @@
 #include "resource_manager.h"
 #include "engine/filesystem.h"
 
-namespace gpr5300
+namespace editor
 {
 
 void ResourceManager::CheckDataFolder()

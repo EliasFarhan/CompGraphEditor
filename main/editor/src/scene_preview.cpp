@@ -1,6 +1,6 @@
 #include "scene_preview.h"
 
-namespace gpr5300
+namespace editor
 {
 
 }

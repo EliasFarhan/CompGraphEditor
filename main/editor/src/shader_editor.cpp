@@ -19,7 +19,7 @@ namespace py = pybind11;
 // for convenience
 using json = nlohmann::json;
 
-namespace gpr5300
+namespace editor
 {
 
 void ShaderEditor::AddResource(const Resource& resource)

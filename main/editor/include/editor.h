@@ -12,7 +12,7 @@
 
 #include <memory>
 
-namespace gpr5300
+namespace editor
 {
 
 class Editor : public core::System, public core::OnGuiInterface,

@@ -4,7 +4,7 @@
 
 #include <fmt/format.h>
 
-namespace gpr5300
+namespace editor
 {
 void EditorSystem::ImportResource(std::string_view path)
 {

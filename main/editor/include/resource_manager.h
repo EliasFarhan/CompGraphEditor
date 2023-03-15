@@ -4,7 +4,7 @@
 #include <vector>
 #include "resource.h"
 
-namespace gpr5300
+namespace editor
 {
 
 

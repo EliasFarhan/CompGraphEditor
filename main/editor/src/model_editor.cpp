@@ -22,7 +22,7 @@
 using json = nlohmann::json;
 namespace py = pybind11;
 
-namespace gpr5300
+namespace editor
 {
 void ModelEditor::AddResource(const Resource& resource)
 {
@@ -285,7 +285,7 @@ void ModelEditor::ImportResource(std::string_view path)
     auto& resourceManager = editor->GetResourceManager();
     CreateNewDirectory(dstFolder);
 
-    core::pb::Model newModel;
+    editor::pb::Model newModel;
     
     auto findTextureInModelFunc = [&newModel](const std::string_view texture)
     {
@@ -303,7 +303,7 @@ void ModelEditor::ImportResource(std::string_view path)
     const auto materials = model.GetMaterials();
     
     auto loadMaterialTextureFunc = [&]
-    (std::string_view textureName, core::pb::TextureType textureType, core::pb::ModelMaterial* material)
+    (std::string_view textureName, core::pb::TextureType textureType, editor::pb::ModelMaterial* material)
     {
         if(textureName.empty())
         {

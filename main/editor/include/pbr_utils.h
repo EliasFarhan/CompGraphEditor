@@ -1,6 +1,6 @@
 #pragma once
 
-namespace gpr5300
+namespace editor
 {
 void GeneratePreComputeBrdfLUT();
 void GenerateIrradianceMap(std::string_view path);

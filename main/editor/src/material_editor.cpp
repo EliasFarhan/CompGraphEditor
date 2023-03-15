@@ -10,7 +10,7 @@
 #include <fmt/format.h>
 #include <fstream>
 
-namespace gpr5300
+namespace editor
 {
     
     
@@ -48,7 +48,7 @@ void MaterialEditor::DrawInspector()
     {
         auto* materialTexture = currentMaterialInfo.info.mutable_textures(i);
         auto texturePath = materialTexture->texture_name();
-        const auto& fbAttachment = materialTexture->attachment_name();
+        const auto& fbAttachment = materialTexture->material_texture().attachment_name();
         if (!texturePath.empty())
         {
 
@@ -59,14 +59,14 @@ void MaterialEditor::DrawInspector()
                 texturePath = "";
             }
         }
-        if(ImGui::BeginCombo(materialTexture->sampler_name().c_str(), 
+        if(ImGui::BeginCombo(materialTexture->material_texture().sampler_name().c_str(), 
             texturePath.empty() && fbAttachment.empty() ? "Empty texture" : texturePath.empty()?fbAttachment.data():texturePath.data()))
         {
             for(const auto& texture : textureEditor->GetTextures())
             {
                 if(ImGui::Selectable(texture.filename.c_str(), texture.info.path() == materialTexture->sampler_name()))
                 {
-                    materialTexture->clear_attachment_name();
+                    materialTexture->mutable_material_texture()->clear_attachment_name();
                     materialTexture->set_texture_name(texture.info.path());
                 }
             }
@@ -88,12 +88,12 @@ void MaterialEditor::DrawInspector()
                         const auto& colorAttachmentName = colorAttachment.name();
                         const auto attachmentUniqueName = fmt::format("{}_{}", framebufferName, colorAttachmentName);
                         if (ImGui::Selectable(attachmentUniqueName.data(), 
-                            colorAttachmentName == materialTexture->sampler_name() &&
-                            framebufferName == materialTexture->framebuffer_name()))
+                            colorAttachmentName == materialTexture->material_texture().sampler_name() &&
+                            framebufferName == materialTexture->material_texture().framebuffer_name()))
                         {
                             materialTexture->clear_texture_name();
-                            materialTexture->set_attachment_name(colorAttachmentName);
-                            materialTexture->set_framebuffer_name(framebufferName);
+                            materialTexture->mutable_material_texture()->set_attachment_name(colorAttachmentName);
+                            materialTexture->mutable_material_texture()->set_framebuffer_name(framebufferName);
                         }
                     }
                     if(framebuffer.info.has_depth_stencil_attachment() && !framebuffer.info.depth_stencil_attachment().rbo())
@@ -101,12 +101,12 @@ void MaterialEditor::DrawInspector()
                         const auto& depthAttachmentName = framebuffer.info.depth_stencil_attachment().name();
                         const auto attachmentUniqueName = fmt::format("{}_{}", framebufferName, depthAttachmentName);
                         if(ImGui::Selectable(attachmentUniqueName.data(), 
-                            materialTexture->attachment_name() == depthAttachmentName && 
-                            materialTexture->framebuffer_name() == framebufferName))
+                            materialTexture->material_texture().attachment_name() == depthAttachmentName &&
+                            materialTexture->material_texture().framebuffer_name() == framebufferName))
                         {
                             materialTexture->clear_texture_name();
-                            materialTexture->set_attachment_name(depthAttachmentName);
-                            materialTexture->set_framebuffer_name(framebufferName);
+                            materialTexture->mutable_material_texture()->set_attachment_name(depthAttachmentName);
+                            materialTexture->mutable_material_texture()->set_framebuffer_name(framebufferName);
                         }
                     }
                 }
@@ -203,9 +203,9 @@ void MaterialEditor::AddResource(const Resource &resource)
         LogWarning(fmt::format("Could not open protobuf file: {}", resource.path));
         return;
     }
-    if(materialInfo.info.name().empty())
+    if(materialInfo.info.material().name().empty())
     {
-        materialInfo.info.set_name(GetFilename(resource.path, false));
+        materialInfo.info.mutable_material()->set_name(GetFilename(resource.path, false));
     }
     materialInfos_.push_back(materialInfo);
 }
@@ -321,11 +321,11 @@ void MaterialEditor::ReloadMaterialPipeline(const PipelineInfo& pipelineInfo, in
         samplerNames.emplace(samplerInfo.name());
         
     }
-    std::vector<core::pb::MaterialTexture> materialTextures;
+    std::vector<editor::pb::EditorMaterialTexture> materialTextures;
     for(int i = 0; i < currentMaterialInfo.info.textures_size(); i++)
     {
         const auto& materialTexture = currentMaterialInfo.info.textures(i);
-        if(samplerNames.contains(materialTexture.sampler_name()))
+        if(samplerNames.contains(materialTexture.material_texture().sampler_name()))
         {
             materialTextures.push_back(materialTexture);
         }
@@ -337,7 +337,7 @@ void MaterialEditor::ReloadMaterialPipeline(const PipelineInfo& pipelineInfo, in
         const auto& sampler = pipelineInfo.info.samplers(i);
         const auto it = std::ranges::find_if(materialTextures, [&sampler](const auto& matText)
             {
-                return sampler.name() == matText.sampler_name();
+                return sampler.name() == matText.material_texture().sampler_name();
             });
         if (it != materialTextures.end())
         {
@@ -349,7 +349,7 @@ void MaterialEditor::ReloadMaterialPipeline(const PipelineInfo& pipelineInfo, in
         }
         else
         {
-            newMaterialTexture->set_sampler_name(sampler.name());
+            newMaterialTexture->mutable_material_texture()->set_sampler_name(sampler.name());
             newMaterialTexture->set_texture_type(sampler.type());
         }
     }

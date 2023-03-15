@@ -2,7 +2,7 @@
 
 #include "editor_filesystem.h"
 
-namespace gpr5300
+namespace editor
 {
 
 using ResourceId = std::uint32_t;

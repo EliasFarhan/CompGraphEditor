@@ -3,16 +3,16 @@
 
 #include "editor_system.h"
 #include "resource.h"
-#include "proto/renderer.pb.h"
+#include "proto/editor.pb.h"
 
-namespace gpr5300
+namespace editor
 {
 
 struct CommandInfo
 {
     std::string filename;
     std::string path;
-    core::pb::DrawCommand info;
+    editor::pb::EditorDrawCommand info;
     ResourceId resourceId = INVALID_RESOURCE_ID;
     ResourceId materialId = INVALID_RESOURCE_ID;
     ResourceId meshId = INVALID_RESOURCE_ID;

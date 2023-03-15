@@ -15,7 +15,7 @@
 #include "scene_editor.h"
 #include "model_editor.h"
 
-namespace gpr5300
+namespace editor
 {
 void RenderPassEditor::DrawInspector()
 {

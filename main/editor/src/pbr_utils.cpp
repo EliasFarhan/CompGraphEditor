@@ -22,7 +22,7 @@
 #include "gl/framebuffer.h"
 #include "gl/pipeline.h"
 
-namespace gpr5300
+namespace editor
 {
 
 void GeneratePreComputeBrdfLUT()

@@ -3,7 +3,7 @@
 #include "resource.h"
 #include "editor_system.h"
 
-namespace gpr5300
+namespace editor
 {
 
 struct TextureInfo

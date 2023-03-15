@@ -1,9 +1,9 @@
 #pragma once
 
 #include "editor_system.h"
-#include "proto/renderer.pb.h"
+#include "proto/editor.pb.h"
 
-namespace gpr5300
+namespace editor
 {
 
 struct ModelDrawCommand
@@ -17,7 +17,7 @@ struct ModelInfo
 {
     std::string path;
     std::string filename;
-    core::pb::Model info;
+    editor::pb::Model info;
     core::ModelIndex modelIndex;
     ResourceId resourceId = INVALID_RESOURCE_ID;
     std::vector<ModelDrawCommand> drawCommands;

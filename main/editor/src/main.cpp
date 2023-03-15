@@ -11,9 +11,9 @@ int main(int argc, char** argv)
     core::DefaultFilesystem filesystem;
     core::FilesystemLocator::provide(&filesystem);
     gl::Engine engine;
-    engine.SetWindowName("GPR5300 Editor");
+    engine.SetWindowName("CompGraph Editor");
 
-    gpr5300::Editor editor;
+    editor::Editor editor;
     engine.RegisterSystem(&editor);
     engine.RegisterOnGuiInterface(&editor);
     engine.RegisterEventObserver(&editor);

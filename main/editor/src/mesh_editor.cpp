@@ -12,7 +12,7 @@
 #include <array>
 #include <fstream>
 
-namespace gpr5300
+namespace editor
 {
 
 void MeshEditor::DrawInspector()

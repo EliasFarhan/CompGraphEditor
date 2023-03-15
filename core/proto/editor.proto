@@ -1,12 +1,12 @@
 syntax = "proto3";
 
-package core.pb;
+package editor.pb;
 import "proto/renderer.proto";
 
 
 message EditorPipeline
 {
-    Pipeline pipeline = 1;
+    core.pb.Pipeline pipeline = 1;
 
     string vertex_shader_path = 8;// Used by the editor
     string fragment_shader_path = 9;// Used by the editor
@@ -17,23 +17,23 @@ message EditorPipeline
 
 message EditorMaterialTexture
 {
-    MaterialTexture material_texture = 1;
+    core.pb.MaterialTexture material_texture = 1;
     //Used only by editor
     string texture_name = 3;
-    TextureType texture_type = 4;
+    core.pb.TextureType texture_type = 4;
 }
 
 message EditorMaterial
 {
     repeated EditorMaterialTexture textures = 1;
-    Material material = 2;
+    core.pb.Material material = 2;
 
     string pipeline_path = 5; //used for the editor
 }
 
 message EditorMesh
 {
-    Mesh mesh = 1;
+    core.pb.Mesh mesh = 1;
 
     string model_path = 2; //used by editor
 }
@@ -54,7 +54,7 @@ message EditorModel
 
 message EditorDrawCommand
 {
-    DrawCommand draw_command = 1;
+    core.pb.DrawCommand draw_command = 1;
     //for the editor
     string material_path = 7;
     string mesh_path = 8;
@@ -63,7 +63,7 @@ message EditorDrawCommand
 
 message EditorSubPass
 {
-    SubPass subPass = 1;
+    core.pb.SubPass subPass = 1;
     //Used by editor
     repeated string command_paths = 3;
     string framebuffer_path = 5;
@@ -75,18 +75,56 @@ message EditorRenderPass
     repeated EditorSubPass sub_passes = 1;
 }
 
+
+message ModelMesh
+{
+    string mesh_name = 1;
+    string mesh_path = 2;
+    string material_name = 3;
+}
+
+message ModelMaterial
+{
+    string material_name = 1;
+    string material_path = 2;
+    repeated int32 texture_indices = 3;
+}
+
+message ModelTexture
+{
+    string texture_path = 1;
+    core.pb.TextureType type = 2;
+}
+
+message ModelDrawCommand
+{
+	repeated string material_paths = 1;
+	repeated string draw_command_paths = 2;
+	string pipeline_path = 3;
+}
+
+message Model
+{
+    repeated ModelMesh meshes = 1;
+    repeated ModelMaterial materials = 2;
+    repeated ModelTexture textures = 3;
+    string model_path = 4; //the actual obj path
+    repeated ModelDrawCommand draw_commands = 5; // used by the editor
+    repeated string mtl_paths = 6;
+}
+
 message EditorScene
 {
     string name = 1;
-    repeated Shader shaders = 2;
-    repeated Pipeline pipelines = 3;
-    RenderPass render_pass = 4;
-    repeated Mesh meshes = 5;
-    repeated Texture textures = 6;
-    repeated Material materials = 7;
-    repeated PySystem py_systems = 8;
-    repeated string model_paths = 11;
-    repeated FrameBuffer framebuffers = 12;
+    repeated core.pb.Shader shaders = 2;
+    repeated EditorPipeline pipelines = 3;
+    EditorRenderPass render_pass = 4;
+    repeated EditorMesh meshes = 5;
+    repeated core.pb.Texture textures = 6;
+    repeated EditorMaterial materials = 7;
+    repeated core.pb.PySystem py_systems = 8;
+    repeated EditorModel model_paths = 11;
+    repeated core.pb.FrameBuffer framebuffers = 12;
     repeated string cubemap_textures_side_paths = 13;
     //used by editor
     string render_pass_path = 9;

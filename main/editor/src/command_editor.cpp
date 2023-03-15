@@ -11,7 +11,7 @@
 #include "engine/filesystem.h"
 #include "utils/log.h"
 
-namespace gpr5300
+namespace editor
 {
 void CommandEditor::AddResource(const Resource& resource)
 {
@@ -35,7 +35,7 @@ void CommandEditor::AddResource(const Resource& resource)
             return;
         }
     }
-    commandInfo.info.set_name(GetFilename(resource.path, false));
+    commandInfo.info.mutable_draw_command()->set_name(GetFilename(resource.path, false));
     commandInfo.path = resource.path;
     commandInfos_.push_back(commandInfo);
 }
@@ -115,10 +115,10 @@ void CommandEditor::DrawInspector()
         }
         ImGui::EndCombo();
     }
-    bool automaticDraw = currentCommand.info.automatic_draw();
+    bool automaticDraw = currentCommand.info.draw_command().automatic_draw();
     if(ImGui::Checkbox("Automatic Draw", &automaticDraw))
     {
-        currentCommand.info.set_automatic_draw(automaticDraw);
+        currentCommand.info.mutable_draw_command()->set_automatic_draw(automaticDraw);
     }
 
     UpdateMeshInCommand(currentIndex_);
@@ -128,22 +128,22 @@ void CommandEditor::DrawInspector()
         {
         case core::pb::Mesh_PrimitveType_NONE:
         {
-            int count = currentCommand.info.count();
+            int count = currentCommand.info.mutable_draw_command()->count();
             if (ImGui::InputInt("Vertex Count", &count))
             {
-                currentCommand.info.set_count(count);
+                currentCommand.info.mutable_draw_command()->set_count(count);
             }
-            bool drawElements = currentCommand.info.draw_elements();
+            bool drawElements = currentCommand.info.mutable_draw_command()->draw_elements();
             if (ImGui::Checkbox("Draw Elements", &drawElements))
             {
-                currentCommand.info.set_draw_elements(drawElements);
+                currentCommand.info.mutable_draw_command()->set_draw_elements(drawElements);
             }
 
             break;
         }
         case core::pb::Mesh_PrimitveType_MODEL:
         {
-            ImGui::Text("Vertex Count: %d", currentCommand.info.count());
+            ImGui::Text("Vertex Count: %d", currentCommand.info.draw_command().count());
             break;
         }
         default:
@@ -253,14 +253,14 @@ void CommandEditor::UpdateMeshInCommand(int index)
         {
         case core::pb::Mesh_PrimitveType_QUAD:
         {
-            currentCommand.info.set_draw_elements(true);
-            currentCommand.info.set_count(6);
+            currentCommand.info.mutable_draw_command()->set_draw_elements(true);
+            currentCommand.info.mutable_draw_command()->set_count(6);
             break;
         }
         case core::pb::Mesh_PrimitveType_CUBE:
         {
-            currentCommand.info.set_draw_elements(true);
-            currentCommand.info.set_count(36);
+            currentCommand.info.mutable_draw_command()->set_draw_elements(true);
+            currentCommand.info.mutable_draw_command()->set_count(36);
             break;
         }
         default: break;
