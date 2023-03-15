@@ -251,6 +251,24 @@ void Model::LoadMaterials(const aiScene* scene)
     {
         const auto* material = scene->mMaterials[i];
         core::refactor::Material newMaterial = { material->GetName().C_Str() };
+        for(unsigned j = 0; j < core::pb::TextureType::LENGTH; j++)
+        {
+            const auto textureType = static_cast<aiTextureType>(j);
+            aiString textureName;
+            if(material->GetTextureCount(textureType)>0)
+            {
+
+                const auto returnStatus = material->GetTexture(textureType, 0, &textureName);
+                if (returnStatus == aiReturn_SUCCESS)
+                {
+                    newMaterial.textures[j] = textureName.C_Str();
+                }
+                else
+                {
+                    LogError(fmt::format("Error whole retrieving texture type {} from scene {}", aiTextureTypeToString(textureType), scene->mName.C_Str()));
+                }
+            }
+        }
         materials_.push_back(newMaterial);
     }
 }
@@ -311,7 +329,6 @@ ModelIndex ModelManager::ImportModel(std::string_view modelPath)
     {
         return it->second;
     }
-
 
     const auto& filesystem = core::FilesystemLocator::get();
     const auto modelFile = filesystem.LoadFile(modelPath);
