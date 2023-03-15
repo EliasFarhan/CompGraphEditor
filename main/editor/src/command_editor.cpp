@@ -124,7 +124,7 @@ void CommandEditor::DrawInspector()
     UpdateMeshInCommand(currentIndex_);
     if(meshInfo != nullptr)
     {
-        switch(meshInfo->info.primitve_type())
+        switch(meshInfo->info.mesh().primitve_type())
         {
         case core::pb::Mesh_PrimitveType_NONE:
         {
@@ -249,7 +249,7 @@ void CommandEditor::UpdateMeshInCommand(int index)
     const auto* meshInfo = meshEditor->GetMesh(currentCommand.meshId);
     if (meshInfo != nullptr)
     {
-        switch (meshInfo->info.primitve_type())
+        switch (meshInfo->info.mesh().primitve_type())
         {
         case core::pb::Mesh_PrimitveType_QUAD:
         {

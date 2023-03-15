@@ -195,7 +195,10 @@ bool SceneEditor::DrawContentList(bool unfocus)
             {
                 currentIndex_ = i;
                 wasFocused = true;
-                ExportScene();
+                if(ExportScene())
+                {
+                    LogDebug("Successfully export scene!");
+                }
                 ImGui::CloseCurrentPopup();
             }
             ImGui::EndPopup();
@@ -248,10 +251,11 @@ bool SceneEditor::ExportScene() const
     //TODO reload all editors to get all correct resourceId
     commandEditor->ReloadId();
     const auto& currentScene = sceneInfos_[currentIndex_];
-    auto exportScene = sceneInfos_[currentIndex_];
-    const auto pkgSceneName = exportScene.path + ".pkg";
+    core::pb::Scene exportScene;
+    //auto exportingScene = sceneInfos_[currentIndex_];
+    const auto pkgSceneName = currentScene.path + ".pkg";
     //Validate scene
-    exportScene.info.Clear();
+    
     if(currentScene.renderPassId == INVALID_RESOURCE_ID)
     {
         LogWarning("Could not export scene, missing render pass");
@@ -260,14 +264,15 @@ bool SceneEditor::ExportScene() const
     std::unordered_map<ResourceId, int> resourceIndexMap;
     std::vector<std::string> cubemapTextures;
     auto* currentRenderPass = renderPassEditor->GetRenderPass(currentScene.renderPassId);
-    auto* exportRenderPass = exportScene.info.mutable_render_pass();
-    *exportRenderPass = currentRenderPass->info;
-    for(int subPassIndex = 0; subPassIndex < exportRenderPass->sub_passes_size(); subPassIndex++)
+    auto* exportRenderPass = exportScene.mutable_render_pass();
+    //*exportRenderPass = currentRenderPass->info;
+    for(int subPassIndex = 0; subPassIndex < currentRenderPass->info.sub_passes_size(); subPassIndex++)
     {
-        auto* exportSubPass = exportRenderPass->mutable_sub_passes(subPassIndex);
+        auto* exportSubPass = exportRenderPass->add_sub_passes();
+        const auto& editorSubPass = currentRenderPass->info.sub_passes(subPassIndex);
 
         //export framebuffer
-        const auto& framebufferPath = exportSubPass->framebuffer_path();
+        const auto& framebufferPath = editorSubPass.framebuffer_path();
         if(!framebufferPath.empty())
         {
             const auto framebufferId = resourceManager.FindResourceByPath(framebufferPath);
@@ -280,8 +285,8 @@ bool SceneEditor::ExportScene() const
             auto framebufferIt = resourceIndexMap.find(framebufferInfo->resourceId);
             if (framebufferIt == resourceIndexMap.end())
             {
-                auto index = exportScene.info.framebuffers_size();
-                auto* newFramebuffer = exportScene.info.add_framebuffers();
+                auto index = exportScene.framebuffers_size();
+                auto* newFramebuffer = exportScene.add_framebuffers();
                 *newFramebuffer = framebufferInfo->info;
                 exportSubPass->set_framebuffer_index(index);
                 resourceIndexMap[framebufferId] = index;
@@ -296,59 +301,62 @@ bool SceneEditor::ExportScene() const
             exportSubPass->set_framebuffer_index(-1); // setting back to backbuffer
         }
         //Export commands
-        for(int commandIndex = 0; commandIndex < exportSubPass->command_paths_size(); commandIndex++)
+        for(int commandIndex = 0; commandIndex < editorSubPass.command_paths_size(); commandIndex++)
         {
             auto* exportCommand = exportSubPass->add_commands();
-            const auto commandPath = exportSubPass->command_paths(commandIndex);
-            const auto commandId = resourceManager.FindResourceByPath(commandPath);
+            const auto editorCommandPath = editorSubPass.command_paths(commandIndex);
+            const auto commandId = resourceManager.FindResourceByPath(editorCommandPath);
             if(commandId == INVALID_RESOURCE_ID)
             {
-                LogWarning(fmt::format("Could not export scene, missing command in subpass. Command path: {}", commandPath));
+                LogWarning(fmt::format("Could not export scene, missing command in subpass. Command path: {}", editorCommandPath));
                 return false;
             }
-            const auto* command = commandEditor->GetCommand(commandId);
-            *exportCommand = command->info;
-            if (command->materialId == INVALID_RESOURCE_ID)
+            const auto* editorCommand = commandEditor->GetCommand(commandId);
+            *exportCommand = editorCommand->info.draw_command();
+            if (editorCommand->materialId == INVALID_RESOURCE_ID)
             {
                 LogWarning(fmt::format("Could not export scene, missing material in command. Command {}", exportCommand->name()));
                 return false;
             }
             //link material index
-            const auto* material = materialEditor->GetMaterial(command->materialId);
+            const auto* material = materialEditor->GetMaterial(editorCommand->materialId);
             auto materialIndexIt = resourceIndexMap.find(material->resourceId);
             if(materialIndexIt == resourceIndexMap.end())
             {
-                const auto materialIndex = exportScene.info.materials_size();
-                auto* newMaterial = exportScene.info.add_materials();
-                *newMaterial = material->info;
+                const auto materialIndex = exportScene.materials_size();
+                auto* newMaterial = exportScene.add_materials();
+                *newMaterial = material->info.material();
                 resourceIndexMap[material->resourceId] = materialIndex;
 
                 //list textures
                 for(int textureIndex = 0; textureIndex < newMaterial->textures_size(); textureIndex++)
                 {
+                    const auto& editorMaterialTexture = material->info.textures(textureIndex);
                     auto* materialTexture = newMaterial->mutable_textures(textureIndex);
-                    if(materialTexture->texture_name().empty() && materialTexture->attachment_name().empty())
+                    if(editorMaterialTexture.texture_name().empty() && editorMaterialTexture.material_texture().attachment_name().empty())
                     {
                         LogWarning(fmt::format(
-                            "Could not export, missing texture/attachment in material sampler. Material: {} Sampler: {}", newMaterial->name(), materialTexture->sampler_name()));
+                            "Could not export, missing texture/attachment in material sampler. Material: {} Sampler: {}", 
+                            material->info.material().name(), editorMaterialTexture.material_texture().sampler_name()));
                         materialTexture->set_texture_index(-1);
                         return false;
                     }
-                    else if (materialTexture->attachment_name().empty())
+                    else if (editorMaterialTexture.material_texture().attachment_name().empty())
                     {
-                        auto textureId = resourceManager.FindResourceByPath(materialTexture->texture_name());
+                        auto textureId = resourceManager.FindResourceByPath(editorMaterialTexture.texture_name());
                         if (textureId == INVALID_RESOURCE_ID)
                         {
-                            LogWarning(fmt::format("Could not export scene. Missing texture in material sampler, Material: {} Sampler: {}", newMaterial->name(), materialTexture->sampler_name()));
+                            LogWarning(fmt::format("Could not export scene. Missing texture in material sampler, Material: {} Sampler: {}", 
+                                material->info.material().name(), editorMaterialTexture.material_texture().sampler_name()));
                             materialTexture->set_texture_index(-1);
                             return false;
                         }
                         auto textureIt = resourceIndexMap.find(textureId);
                         if (textureIt == resourceIndexMap.end())
                         {
-                            const auto index = exportScene.info.textures_size();
+                            const auto index = exportScene.textures_size();
                             auto* textureInfo = textureEditor->GetTexture(textureId);
-                            *exportScene.info.add_textures() = textureInfo->info;
+                            *exportScene.add_textures() = textureInfo->info;
                             if (GetFileExtension(textureInfo->info.path()) == ".cube")
                             {
                                 for (auto& cubeTexture : textureInfo->cubemap.texture_paths())
@@ -370,20 +378,20 @@ bool SceneEditor::ExportScene() const
                     else //framebuffer attachment for sampler
                     {
                         bool isValid = false;
-                        for(const auto& framebufferPb: exportScene.info.framebuffers())
+                        for(const auto& framebufferPb: currentScene.info.framebuffers())
                         {
-                            if(framebufferPb.name() == materialTexture->framebuffer_name())
+                            if(framebufferPb.name() == editorMaterialTexture.material_texture().framebuffer_name())
                             {
                                 for(const auto& colorAttachment : framebufferPb.color_attachments())
                                 {
-                                    if(!colorAttachment.rbo() && colorAttachment.name() == materialTexture->attachment_name())
+                                    if(!colorAttachment.rbo() && colorAttachment.name() == editorMaterialTexture.material_texture().attachment_name())
                                     {
                                         isValid = true;
                                     }
                                 }
                                 if(framebufferPb.has_depth_stencil_attachment() && !framebufferPb.depth_stencil_attachment().rbo())
                                 {
-                                    if(framebufferPb.depth_stencil_attachment().name() == materialTexture->attachment_name())
+                                    if(framebufferPb.depth_stencil_attachment().name() == editorMaterialTexture.material_texture().attachment_name())
                                     {
                                         isValid = true;
                                     }
@@ -392,7 +400,8 @@ bool SceneEditor::ExportScene() const
                         }
                         if(!isValid)
                         {
-                            LogWarning(fmt::format("Could not export, invalid framebuffer attachment in material sampler. Material: {} Sampler: {}", newMaterial->name(), materialTexture->sampler_name()));
+                            LogWarning(fmt::format("Could not export, invalid framebuffer attachment in material sampler. Material: {} Sampler: {}", 
+                                material->info.material().name(), editorMaterialTexture.material_texture().sampler_name()));
                             return false;
                         }
                         materialTexture->set_texture_index(-1);
@@ -409,9 +418,9 @@ bool SceneEditor::ExportScene() const
                 auto pipelineIndexIt = resourceIndexMap.find(pipeline->resourceId);
                 if(pipelineIndexIt == resourceIndexMap.end())
                 {
-                    const auto pipelineIndex = exportScene.info.pipelines_size();
-                    auto* newPipeline = exportScene.info.add_pipelines();
-                    *newPipeline = pipeline->info;
+                    const auto pipelineIndex = exportScene.pipelines_size();
+                    auto* newPipeline = exportScene.add_pipelines();
+                    *newPipeline = pipeline->info.pipeline();
                     resourceIndexMap[pipeline->resourceId] = pipelineIndex;
 
                     if(pipeline->vertexShaderId == INVALID_RESOURCE_ID)
@@ -423,8 +432,8 @@ bool SceneEditor::ExportScene() const
                     auto vertexShaderIt = resourceIndexMap.find(pipeline->vertexShaderId);
                     if(vertexShaderIt == resourceIndexMap.end())
                     {
-                        const auto vertexShaderIndex = exportScene.info.shaders_size();
-                        auto* newVertexShader = exportScene.info.add_shaders();
+                        const auto vertexShaderIndex = exportScene.shaders_size();
+                        auto* newVertexShader = exportScene.add_shaders();
                         *newVertexShader = vertexShader->info;
                         resourceIndexMap[vertexShader->resourceId] = vertexShaderIndex;
                         newPipeline->set_vertex_shader_index(vertexShaderIndex);
@@ -443,8 +452,8 @@ bool SceneEditor::ExportScene() const
                     auto fragmentShaderIt = resourceIndexMap.find(pipeline->fragmentShaderId);
                     if (fragmentShaderIt == resourceIndexMap.end())
                     {
-                        const auto fragmentShaderIndex = exportScene.info.shaders_size();
-                        auto* newFragmentShader = exportScene.info.add_shaders();
+                        const auto fragmentShaderIndex = exportScene.shaders_size();
+                        auto* newFragmentShader = exportScene.add_shaders();
                         *newFragmentShader = fragmentShader->info;
                         resourceIndexMap[vertexShader->resourceId] = fragmentShaderIndex;
                         newPipeline->set_fragment_shader_index(fragmentShaderIndex);
@@ -469,20 +478,20 @@ bool SceneEditor::ExportScene() const
                 exportCommand->set_material_index(materialIndexIt->second);
             }
             //link mesh index
-            if(command->meshId == INVALID_RESOURCE_ID)
+            if(editorCommand->meshId == INVALID_RESOURCE_ID)
             {
-                LogWarning(fmt::format("Could not export scene, missing mesh in command. Command: {}", command->path));
+                LogWarning(fmt::format("Could not export scene, missing mesh in command. Command: {}", editorCommand->path));
                 return false;
             }
-            auto* mesh = meshEditor->GetMesh(command->meshId);
+            auto* mesh = meshEditor->GetMesh(editorCommand->meshId);
             //add model if not done already
 
             int meshModel = -1;
             if (!mesh->info.model_path().empty())
             {
-                for (int modelIndex = 0; modelIndex < exportScene.info.model_paths_size(); modelIndex++)
+                for (int modelIndex = 0; modelIndex < currentScene.info.scene().model_paths_size(); modelIndex++)
                 {
-                    auto& sceneModelPath = exportScene.info.model_paths(modelIndex);
+                    auto& sceneModelPath = currentScene.info.scene().model_paths(modelIndex);
                     if (fs::equivalent(sceneModelPath, mesh->info.model_path()))
                     {
                         meshModel = modelIndex;
@@ -491,20 +500,20 @@ bool SceneEditor::ExportScene() const
                 }
                 if(meshModel == -1)
                 {
-                    meshModel = exportScene.info.model_paths_size();
-                    exportScene.info.add_model_paths(mesh->info.model_path());
+                    meshModel = exportScene.model_paths_size();
+                    exportScene.add_model_paths(mesh->info.model_path());
                 }
                 else
                 {
-                    mesh->info.set_model_index(meshModel);
+                    mesh->info.mutable_mesh()->set_model_index(meshModel);
                 }
             }
             auto meshIndexIt = resourceIndexMap.find(mesh->resourceId);
             if(meshIndexIt == resourceIndexMap.end())
             {
-                const auto meshIndex = exportScene.info.meshes_size();
-                auto* newMesh = exportScene.info.add_meshes();
-                *newMesh = mesh->info;
+                const auto meshIndex = exportScene.meshes_size();
+                auto* newMesh = exportScene.add_meshes();
+                *newMesh = mesh->info.mesh();
                 newMesh->set_model_index(meshModel);
                 resourceIndexMap[mesh->resourceId] = meshIndex;
                 exportCommand->set_mesh_index(meshIndex);
@@ -521,47 +530,47 @@ bool SceneEditor::ExportScene() const
         const auto pySystemId = resourceManager.FindResourceByPath(pySystemPath);
         const auto* pySystemInfo = scriptEditor->GetScriptInfo(pySystemId);
 
-        *exportScene.info.add_py_systems() = pySystemInfo->info;
+        *exportScene.add_py_systems() = pySystemInfo->info;
     }
-    exportScene.path = "root.scene";
+    constexpr std::string_view exportScenePath = "root.scene";
     //Write scene
-    std::ofstream fileOut(exportScene.path, std::ios::binary);
-    if (!exportScene.info.SerializeToOstream(&fileOut))
+    std::ofstream fileOut(exportScenePath.data(), std::ios::binary);
+    if (!exportScene.SerializeToOstream(&fileOut))
     {
-        LogWarning(fmt::format("Could not save scene for export at: {}", exportScene.path));
+        LogWarning(fmt::format("Could not save scene for export at: {}", exportScenePath));
         return false;
     }
     fileOut.close(); //force write
     //Create scene json
     json sceneJson;
-    sceneJson["scene"] = exportScene.path;
+    sceneJson["scene"] = exportScenePath.data();
     std::vector<std::string> shaderPaths;
-    shaderPaths.reserve(currentScene.info.shaders_size());
-    for(int i = 0; i < exportScene.info.shaders_size(); i++)
+    shaderPaths.reserve(exportScene.shaders_size());
+    for(int i = 0; i < exportScene.shaders_size(); i++)
     {
-        shaderPaths.push_back(fs::path(exportScene.info.shaders(i).path(), std::filesystem::path::generic_format).string());
+        shaderPaths.push_back(fs::path(exportScene.shaders(i).path(), std::filesystem::path::generic_format).string());
     }
     sceneJson["shaders"] = shaderPaths;
     std::vector<std::string> scriptPaths;
-    scriptPaths.reserve(exportScene.info.py_systems_size());
-    for (int i = 0; i < exportScene.info.py_systems_size(); i++)
+    scriptPaths.reserve(exportScene.py_systems_size());
+    for (int i = 0; i < exportScene.py_systems_size(); i++)
     {
-        scriptPaths.push_back(fs::path(exportScene.info.py_systems(i).path(), std::filesystem::path::generic_format).string());
+        scriptPaths.push_back(fs::path(exportScene.py_systems(i).path(), std::filesystem::path::generic_format).string());
     }
     sceneJson["scripts"] = scriptPaths;
     std::vector<std::string> texturePaths;
-    texturePaths.reserve(exportScene.info.textures_size());
-    for(int i = 0; i < exportScene.info.textures_size(); i++)
+    texturePaths.reserve(exportScene.textures_size());
+    for(int i = 0; i < exportScene.textures_size(); i++)
     {
-        texturePaths.push_back(exportScene.info.textures(i).path());
+        texturePaths.push_back(exportScene.textures(i).path());
     }
     sceneJson["textures"] = texturePaths;
     sceneJson["cubemap_textures"] = cubemapTextures;
     std::vector<std::string> objPaths;
-    objPaths.reserve(exportScene.info.model_paths_size());
-    for(int i = 0; i < exportScene.info.model_paths_size(); i++)
+    objPaths.reserve(exportScene.model_paths_size());
+    for(int i = 0; i < exportScene.model_paths_size(); i++)
     {
-        objPaths.push_back(exportScene.info.model_paths(i));
+        objPaths.push_back(exportScene.model_paths(i));
     }
     sceneJson["models"] = objPaths;
 
@@ -589,7 +598,7 @@ bool SceneEditor::ExportScene() const
         LogError(e.what());
         return false;
     }
-    RemoveFile(exportScene.path);
+    RemoveFile(exportScenePath);
     return true;
 }
 

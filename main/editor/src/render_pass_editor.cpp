@@ -41,14 +41,14 @@ void RenderPassEditor::DrawInspector()
         auto* subpassInfo = currentRenderPass.info.mutable_sub_passes(i);
         std::array color
         {
-            subpassInfo->clear_color().r(),
-            subpassInfo->clear_color().g(),
-            subpassInfo->clear_color().b(),
-            subpassInfo->clear_color().a(),
+            subpassInfo->subpass().clear_color().r(),
+            subpassInfo->subpass().clear_color().g(),
+            subpassInfo->subpass().clear_color().b(),
+            subpassInfo->subpass().clear_color().a(),
         };
         if (ImGui::ColorEdit4("Clear Color", color.data()))
         {
-            auto* clearColor = subpassInfo->mutable_clear_color();
+            auto* clearColor = subpassInfo->mutable_subpass()->mutable_clear_color();
             clearColor->set_r(color[0]);
             clearColor->set_g(color[1]);
             clearColor->set_b(color[2]);

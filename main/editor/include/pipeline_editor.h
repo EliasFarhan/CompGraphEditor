@@ -1,6 +1,6 @@
 #pragma once
 #include "editor_system.h"
-#include "proto/renderer.pb.h"
+#include "proto/editor.pb.h"
 
 namespace editor
 {
@@ -9,7 +9,7 @@ struct PipelineInfo
 {
     std::string path;
     std::string filename;
-    core::pb::Pipeline info;
+    editor::pb::EditorPipeline info;
     ResourceId resourceId = INVALID_RESOURCE_ID;
     ResourceId vertexShaderId = INVALID_RESOURCE_ID;
     ResourceId fragmentShaderId = INVALID_RESOURCE_ID;

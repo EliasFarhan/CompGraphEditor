@@ -45,12 +45,6 @@ message EditorModelDrawCommand
 	string pipeline_path = 3;
 }
 
-message EditorModel
-{
-	Model model = 1;
-    repeated EditorModelDrawCommand draw_commands = 5; // used by the editor
-    repeated string mtl_paths = 6;
-}
 
 message EditorDrawCommand
 {
@@ -103,7 +97,7 @@ message ModelDrawCommand
 	string pipeline_path = 3;
 }
 
-message Model
+message EditorModel
 {
     repeated ModelMesh meshes = 1;
     repeated ModelMaterial materials = 2;
@@ -123,10 +117,12 @@ message EditorScene
     repeated core.pb.Texture textures = 6;
     repeated EditorMaterial materials = 7;
     repeated core.pb.PySystem py_systems = 8;
-    repeated EditorModel model_paths = 11;
+    repeated EditorModel models = 11;
     repeated core.pb.FrameBuffer framebuffers = 12;
     repeated string cubemap_textures_side_paths = 13;
     //used by editor
     string render_pass_path = 9;
     repeated string py_system_paths = 10;
+    
+    core.pb.Scene scene = 14;
 }

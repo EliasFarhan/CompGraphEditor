@@ -2,6 +2,7 @@
 
 #include "resource.h"
 #include "editor_system.h"
+#include "proto/editor.pb.h"
 #include "proto/renderer.pb.h"
 
 namespace editor
@@ -11,7 +12,7 @@ struct MeshInfo
 {
     std::string path;
     std::string filename;
-    core::pb::Mesh info;
+    editor::pb::EditorMesh info;
     ResourceId resourceId = INVALID_RESOURCE_ID;
 };
 

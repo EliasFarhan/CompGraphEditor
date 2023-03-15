@@ -17,7 +17,7 @@ struct ModelInfo
 {
     std::string path;
     std::string filename;
-    editor::pb::Model info;
+    editor::pb::EditorModel info;
     core::ModelIndex modelIndex;
     ResourceId resourceId = INVALID_RESOURCE_ID;
     std::vector<ModelDrawCommand> drawCommands;

@@ -64,7 +64,7 @@ void MaterialEditor::DrawInspector()
         {
             for(const auto& texture : textureEditor->GetTextures())
             {
-                if(ImGui::Selectable(texture.filename.c_str(), texture.info.path() == materialTexture->sampler_name()))
+                if(ImGui::Selectable(texture.filename.c_str(), texture.info.path() == materialTexture->material_texture().sampler_name()))
                 {
                     materialTexture->mutable_material_texture()->clear_attachment_name();
                     materialTexture->set_texture_name(texture.info.path());
@@ -120,9 +120,9 @@ void MaterialEditor::DrawInspector()
     {
         if (ImGui::BeginListBox("Uniforms"))
         {
-            for(int i = 0; i < pipelineInfo->info.uniforms_size(); i++)
+            for(int i = 0; i < pipelineInfo->info.pipeline().uniforms_size(); i++)
             {
-                auto& uniformInfo = pipelineInfo->info.uniforms(i);
+                auto& uniformInfo = pipelineInfo->info.pipeline().uniforms(i);
                 const auto text = fmt::format("Name: {} Type: {}",
                                               uniformInfo.name(),
                                               uniformInfo.type_name());
@@ -132,9 +132,9 @@ void MaterialEditor::DrawInspector()
         }
         if (ImGui::BeginListBox("Vertex In Attributes"))
         {
-            for(int i = 0; i < pipelineInfo->info.in_vertex_attributes_size(); i++)
+            for(int i = 0; i < pipelineInfo->info.pipeline().in_vertex_attributes_size(); i++)
             {
-                auto& inVertexAttribute = pipelineInfo->info.in_vertex_attributes(i);
+                auto& inVertexAttribute = pipelineInfo->info.pipeline().in_vertex_attributes(i);
                 const auto text = fmt::format("Name: {} Type: {}",
                                               inVertexAttribute.name(),
                                               inVertexAttribute.type_name());
@@ -315,9 +315,9 @@ void MaterialEditor::ReloadMaterialPipeline(const PipelineInfo& pipelineInfo, in
     currentMaterialInfo.info.set_pipeline_path(pipelineInfo.path);
 
     std::unordered_set<std::string> samplerNames;
-    for (int i = 0; i < pipelineInfo.info.samplers_size(); i++)
+    for (int i = 0; i < pipelineInfo.info.pipeline().samplers_size(); i++)
     {
-        const auto& samplerInfo = pipelineInfo.info.samplers(i);
+        const auto& samplerInfo = pipelineInfo.info.pipeline().samplers(i);
         samplerNames.emplace(samplerInfo.name());
         
     }
@@ -331,10 +331,10 @@ void MaterialEditor::ReloadMaterialPipeline(const PipelineInfo& pipelineInfo, in
         }
     }
     currentMaterialInfo.info.mutable_textures()->Clear();
-    for(int i = 0; i < pipelineInfo.info.samplers_size(); i++)
+    for(int i = 0; i < pipelineInfo.info.pipeline().samplers_size(); i++)
     {
         auto* newMaterialTexture = currentMaterialInfo.info.add_textures();
-        const auto& sampler = pipelineInfo.info.samplers(i);
+        const auto& sampler = pipelineInfo.info.pipeline().samplers(i);
         const auto it = std::ranges::find_if(materialTextures, [&sampler](const auto& matText)
             {
                 return sampler.name() == matText.material_texture().sampler_name();

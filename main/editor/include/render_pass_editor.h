@@ -14,7 +14,7 @@ struct RenderPassInfo
 {
     std::string path;
     std::string filename;
-    core::pb::RenderPass info;
+    editor::pb::EditorRenderPass info;
     ResourceId resourceId = INVALID_RESOURCE_ID;
 };
 

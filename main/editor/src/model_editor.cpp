@@ -285,7 +285,7 @@ void ModelEditor::ImportResource(std::string_view path)
     auto& resourceManager = editor->GetResourceManager();
     CreateNewDirectory(dstFolder);
 
-    editor::pb::Model newModel;
+    editor::pb::EditorModel newModel;
     
     auto findTextureInModelFunc = [&newModel](const std::string_view texture)
     {
@@ -364,9 +364,9 @@ void ModelEditor::ImportResource(std::string_view path)
         meshInfoId = resourceManager.FindResourceByPath(meshInfoDstPath);
         auto* meshEditor = dynamic_cast<MeshEditor*>(editor->GetEditorSystem(EditorType::MESH));
         auto* meshInfo = meshEditor->GetMesh(meshInfoId);
-        meshInfo->info.set_primitve_type(core::pb::Mesh_PrimitveType_MODEL);
+        meshInfo->info.mutable_mesh()->set_primitve_type(core::pb::Mesh_PrimitveType_MODEL);
         meshInfo->info.set_model_path(modelDstPath);
-        meshInfo->info.set_mesh_name(shape.name);
+        meshInfo->info.mutable_mesh()->set_mesh_name(shape.name);
         auto* newMesh = newModel.add_meshes();
         newMesh->set_mesh_name(shape.name);
         newMesh->set_material_name(newModel.materials(shape.materialIndex).material_name());
@@ -429,7 +429,7 @@ void ModelEditor::GenerateMaterialsAndCommands(int commandIndex)
         auto* material = materialEditor->GetMaterial(materialId);
         material->info.set_pipeline_path(pipeline->path);
         material->pipelineId = pipeline->resourceId;
-        material->info.set_name(modelMaterial.material_name());
+        material->info.mutable_material()->set_name(modelMaterial.material_name());
         materialEditor->UpdateExistingResource(*resourceManager.GetResource(pipeline->resourceId));
 
         //Linking textures from model material
@@ -480,14 +480,14 @@ void ModelEditor::GenerateMaterialsAndCommands(int commandIndex)
         command->info.set_material_path(materialPath);
         command->materialId = materialId;
         command->meshId = meshId;
-        command->info.set_draw_elements(true);
+        command->info.mutable_draw_command()->set_draw_elements(true);
         const auto& modelManager = core::GetModelManager();
         const auto& model = modelManager.GetModel(currentModelInfo.modelIndex);
         for (auto& mesh : model.GetMeshes())
         {
             if (mesh.name == modelMesh.mesh_name())
             {
-                command->info.set_count(mesh.indices.size());
+                command->info.mutable_draw_command()->set_count(mesh.indices.size());
                 break;
             }
         }

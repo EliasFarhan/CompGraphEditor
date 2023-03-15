@@ -290,9 +290,6 @@ message MaterialTexture
     int32 texture_index = 2;
     string attachment_name = 5;
     string framebuffer_name = 6;
-    //Used only by editor
-    string texture_name = 3;
-    TextureType texture_type = 4;
 }
 
 message Material

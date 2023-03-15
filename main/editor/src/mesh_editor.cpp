@@ -23,25 +23,25 @@ void MeshEditor::DrawInspector()
     }
     auto& currentMesh = meshInfos_[currentIndex_];
 
-    bool none = currentMesh.info.primitve_type() == core::pb::Mesh_PrimitveType_NONE;
+    bool none = currentMesh.info.mesh().primitve_type() == core::pb::Mesh_PrimitveType_NONE;
     if(ImGui::Checkbox("No Mesh", &none))
     {
         if(none)
         {
-            currentMesh.info.set_primitve_type(core::pb::Mesh_PrimitveType_NONE);
+            currentMesh.info.mutable_mesh()->set_primitve_type(core::pb::Mesh_PrimitveType_NONE);
         }
     }
-    bool primitive = !none && currentMesh.info.primitve_type() != core::pb::Mesh_PrimitveType_MODEL;
+    bool primitive = !none && currentMesh.info.mesh().primitve_type() != core::pb::Mesh_PrimitveType_MODEL;
     if(ImGui::Checkbox("Primitive", &primitive))
     {
         if((primitive && none) ||
-            (primitive && currentMesh.info.primitve_type() == core::pb::Mesh_PrimitveType_MODEL))
+            (primitive && currentMesh.info.mesh().primitve_type() == core::pb::Mesh_PrimitveType_MODEL))
         {
-            currentMesh.info.set_primitve_type(core::pb::Mesh_PrimitveType_QUAD);
+            currentMesh.info.mutable_mesh()->set_primitve_type(core::pb::Mesh_PrimitveType_QUAD);
         }
         if(!primitive)
         {
-            currentMesh.info.set_primitve_type(core::pb::Mesh_PrimitveType_NONE);
+            currentMesh.info.mutable_mesh()->set_primitve_type(core::pb::Mesh_PrimitveType_NONE);
         }
     }
     if(primitive)
@@ -52,11 +52,11 @@ void MeshEditor::DrawInspector()
                         "Cube",
                         "Sphere"
                 };
-        int index = currentMesh.info.primitve_type();
+        int index = currentMesh.info.mesh().primitve_type();
         if(index < 0 || index >= primitiveTypes.size())
         {
             index = 0;
-            currentMesh.info.set_primitve_type(core::pb::Mesh_PrimitveType_QUAD);
+            currentMesh.info.mutable_mesh()->set_primitve_type(core::pb::Mesh_PrimitveType_QUAD);
         }
         if(ImGui::BeginCombo("Primitive Type", primitiveTypes[index].data()))
         {
@@ -64,16 +64,16 @@ void MeshEditor::DrawInspector()
             {
                 if(ImGui::Selectable(primitiveTypes[i].data(), i == index))
                 {
-                    currentMesh.info.set_primitve_type(
+                    currentMesh.info.mutable_mesh()->set_primitve_type(
                             static_cast<core::pb::Mesh_PrimitveType>(core::pb::Mesh_PrimitveType_QUAD + i));
                 }
             }
             ImGui::EndCombo();
         }
-        if(currentMesh.info.primitve_type() == core::pb::Mesh_PrimitveType_QUAD ||
-            currentMesh.info.primitve_type() == core::pb::Mesh_PrimitveType_CUBE)
+        if(currentMesh.info.mesh().primitve_type() == core::pb::Mesh_PrimitveType_QUAD ||
+            currentMesh.info.mesh().primitve_type() == core::pb::Mesh_PrimitveType_CUBE)
         {
-            auto* scale = currentMesh.info.mutable_scale();
+            auto* scale = currentMesh.info.mutable_mesh()->mutable_scale();
             std::array scaleInput{ scale->x(), scale->y(), scale->z() };
             if(ImGui::InputFloat3("Scale", scaleInput.data()))
             {
@@ -82,7 +82,7 @@ void MeshEditor::DrawInspector()
                 scale->set_z(scaleInput[2]);
             }
 
-            auto* offset = currentMesh.info.mutable_offset();
+            auto* offset = currentMesh.info.mutable_mesh()->mutable_offset();
             std::array offsetInput{ offset->x(), offset->y(), offset->z() };
             if(ImGui::InputFloat3("Offset", offsetInput.data()))
             {
