@@ -48,8 +48,8 @@ void ModelEditor::AddResource(const Resource& resource)
     auto& modelManager = core::GetModelManager();
     const auto& modelPath = modelInfo.info.model_path();
 
-    const auto modelId = modelManager.ImportModel(modelPath);
-    if (modelId == core::INVALID_MODEL_INDEX)
+    modelInfo.modelIndex = modelManager.ImportModel(modelPath);
+    if (modelInfo.modelIndex == core::INVALID_MODEL_INDEX)
     {
         LogError(fmt::format("Error parsing obj file: {}", modelPath));
         return;
@@ -115,53 +115,8 @@ void ModelEditor::DrawInspector()
             const auto& texturePath = textureInfo.texture_path();
             ImGui::Selectable(texturePath.c_str(), false);
             ImGui::SameLine();
-            switch(textureInfo.type())
-            {
-            case core::pb::NONE: break;
-            case core::pb::AMBIENT:
-                ImGui::Text("Ambient");
-                break;
-            case core::pb::DIFFUSE:
-                ImGui::Text("Diffuse");
-                break;
-            case core::pb::SPECULAR:
-                ImGui::Text("Specular");
-                break;
-            case core::pb::SPECULAR_HIGHLIGHT:
-                ImGui::Text("Specular Highlight");
-                break;
-            case core::pb::BUMP:
-                ImGui::Text("Bump");
-                break;
-            case core::pb::DISPLACEMENT:
-                ImGui::Text("Displacement");
-                break;
-            case core::pb::ALPHA:
-                ImGui::Text("Alpha");
-                break;
-            case core::pb::REFLECTION:
-                ImGui::Text("Reflection");
-                break;
-            case core::pb::ROUGHNESS:
-                ImGui::Text("Roughness");
-                break;
-            case core::pb::METALLIC:
-                ImGui::Text("Metallic");
-                break;
-            case core::pb::SHEEN:
-                ImGui::Text("Sheen");
-                break;
-            case core::pb::EMISSIVE:
-                ImGui::Text("Emissive");
-                break;
-            case core::pb::NORMAL:
-                ImGui::Text("Normal");
-                break;
-            case core::pb::AO:
-                ImGui::Text("Ambient Occlusion");
-                break;
-            default: ;
-            }
+
+            ImGui::Text("%s", aiTextureTypeToString(static_cast<aiTextureType>(textureInfo.type())));
         }
         ImGui::EndListBox();
     }
@@ -331,6 +286,7 @@ void ModelEditor::ImportResource(std::string_view path)
     CreateNewDirectory(dstFolder);
 
     core::pb::Model newModel;
+    
     auto findTextureInModelFunc = [&newModel](const std::string_view texture)
     {
         for(int i = 0; i < newModel.textures_size(); i++)
@@ -344,7 +300,7 @@ void ModelEditor::ImportResource(std::string_view path)
     };
     const auto& model = modelManager.GetModel(modelId);
 
-    auto& materials = model.GetMaterials();
+    const auto materials = model.GetMaterials();
     
     auto loadMaterialTextureFunc = [&]
     (std::string_view textureName, core::pb::TextureType textureType, core::pb::ModelMaterial* material)
@@ -387,20 +343,11 @@ void ModelEditor::ImportResource(std::string_view path)
         
         auto* newMaterial = newModel.add_materials();
         newMaterial->set_material_name(material.name);
-        
-        loadMaterialTextureFunc(material.ambient_texname, core::pb::TextureType::AMBIENT, newMaterial);
-        loadMaterialTextureFunc(material.diffuse_texname, core::pb::TextureType::DIFFUSE, newMaterial);
-        loadMaterialTextureFunc(material.specular_texname, core::pb::TextureType::SPECULAR, newMaterial);
-        loadMaterialTextureFunc(material.specular_highlight_texname, core::pb::TextureType::SPECULAR_HIGHLIGHT, newMaterial);
-        loadMaterialTextureFunc(material.bump_texname, core::pb::TextureType::BUMP, newMaterial);
-        loadMaterialTextureFunc(material.displacement_texname, core::pb::TextureType::DISPLACEMENT, newMaterial);
-        loadMaterialTextureFunc(material.alpha_texname, core::pb::TextureType::ALPHA, newMaterial);
-        loadMaterialTextureFunc(material.reflection_texname, core::pb::TextureType::REFLECTION, newMaterial);
-        loadMaterialTextureFunc(material.roughness_texname, core::pb::TextureType::ROUGHNESS, newMaterial);
-        loadMaterialTextureFunc(material.metallic_texname, core::pb::TextureType::METALLIC, newMaterial);
-        loadMaterialTextureFunc(material.sheen_texname, core::pb::TextureType::SHEEN, newMaterial);
-        loadMaterialTextureFunc(material.emissive_texname, core::pb::TextureType::EMISSIVE, newMaterial);
-        loadMaterialTextureFunc(material.normal_texname, core::pb::TextureType::NORMAL, newMaterial);
+
+        for(int i = 0; i < static_cast<int>(core::pb::TextureType::LENGTH); i++)
+        {
+            loadMaterialTextureFunc(material.textures[i], static_cast<core::pb::TextureType>(i), newMaterial);
+        }
     }
     auto modelDstPath = fmt::format("{}{}", dstFolder, GetFilename(path));
 
@@ -422,7 +369,7 @@ void ModelEditor::ImportResource(std::string_view path)
         meshInfo->info.set_mesh_name(shape.name);
         auto* newMesh = newModel.add_meshes();
         newMesh->set_mesh_name(shape.name);
-        newMesh->set_material_name(newModel.materials(shape.material_ids[0]).material_name());
+        newMesh->set_material_name(newModel.materials(shape.materialIndex).material_name());
         newMesh->set_mesh_path(meshInfoDstPath);
     }
 
@@ -534,11 +481,13 @@ void ModelEditor::GenerateMaterialsAndCommands(int commandIndex)
         command->materialId = materialId;
         command->meshId = meshId;
         command->info.set_draw_elements(true);
-        for (auto& mesh : currentModelInfo.info.meshes())
+        const auto& modelManager = core::GetModelManager();
+        const auto& model = modelManager.GetModel(currentModelInfo.modelIndex);
+        for (auto& mesh : model.GetMeshes())
         {
             if (mesh.name == modelMesh.mesh_name())
             {
-                command->info.set_count(mesh.mesh.indices.size());
+                command->info.set_count(mesh.indices.size());
                 break;
             }
         }

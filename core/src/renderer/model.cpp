@@ -244,6 +244,17 @@ void Model::LoadFromNode(const aiScene* scene, const aiNode* node)
     }
 }
 
+void Model::LoadMaterials(const aiScene* scene)
+{
+    materials_.reserve(scene->mNumMaterials);
+    for(unsigned i = 0; i < scene->mNumMaterials; i++)
+    {
+        const auto* material = scene->mMaterials[i];
+        core::refactor::Material newMaterial = { material->GetName().C_Str() };
+        materials_.push_back(newMaterial);
+    }
+}
+
 void Model::LoadMesh(const aiMesh* aiMesh)
 {
 
@@ -252,6 +263,7 @@ void Model::LoadMesh(const aiMesh* aiMesh)
 #endif
     refactor::Mesh mesh;
     mesh.name = aiMesh->mName.C_Str();
+    mesh.materialIndex = aiMesh->mMaterialIndex;
     mesh.positions.reserve(aiMesh->mNumVertices);
     mesh.normals.reserve(aiMesh->mNumVertices);
     mesh.texCoords.reserve(aiMesh->mNumVertices);
@@ -293,6 +305,14 @@ ModelIndex ModelManager::ImportModel(std::string_view modelPath)
 #ifdef TRACY_ENABLE
     ZoneScoped;
 #endif
+
+    const auto it = modelNamesMap_.find(modelPath.data());
+    if(it != modelNamesMap_.end())
+    {
+        return it->second;
+    }
+
+
     const auto& filesystem = core::FilesystemLocator::get();
     const auto modelFile = filesystem.LoadFile(modelPath);
     if (modelFile.data == nullptr)
@@ -307,7 +327,9 @@ ModelIndex ModelManager::ImportModel(std::string_view modelPath)
         LogError(fmt::format("Could not import scene, with error: {}", importer_.GetErrorString()));
         return INVALID_MODEL_INDEX;
     }
-    return ImportScene(scene);
+    const auto modelIndex = ImportScene(scene);
+    modelNamesMap_[modelPath.data()] = modelIndex;
+    return modelIndex;
 
 }
 
@@ -324,6 +346,7 @@ ModelIndex ModelManager::ImportScene(const aiScene* scene)
 #endif
     const ModelIndex index = {models_.size()};
     Model model;
+    model.LoadMaterials(scene);
     model.LoadFromNode(scene, scene->mRootNode);
     models_.push_back(model);
     return index;

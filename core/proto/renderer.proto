@@ -67,20 +67,28 @@ message FrameBuffer
 enum TextureType
 {
 	NONE = 0;
-	AMBIENT = 1;
-	DIFFUSE = 2;
-	SPECULAR = 3;
-	SPECULAR_HIGHLIGHT = 4;
-	BUMP = 5;
-	DISPLACEMENT = 6;
-	ALPHA = 7;
-	REFLECTION = 8;
-	ROUGHNESS = 9;
-	METALLIC = 10;
-	SHEEN = 11;
-	EMISSIVE = 12;
-	NORMAL = 13;
-	AO = 14;
+	DIFFUSE = 1;
+    SPECULAR = 2;
+    AMBIENT = 3;
+    EMISSIVE = 4;
+    HEIGHT = 5;
+    NORMALS = 6;
+    SHININESS = 7;
+    OPACITY = 8;
+    DISPLACEMENT = 9;
+    LIGHTMAP = 10;
+    REFLECTION = 11;
+    BASE_COLOR = 12;
+    NORMAL_CAMERA = 13;
+    EMISSION_COLOR = 14;
+    METALNESS = 15;
+    DIFFUSE_ROUGHNESS = 16;
+    AO = 17;
+    SHEEN = 18;
+    CLEARCOAT = 19;
+    TRANSMISSION = 20;
+    UNKNOWN = 21;
+    LENGTH = 22;
 }
 
 message Sampler

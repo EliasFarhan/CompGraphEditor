@@ -18,6 +18,7 @@ struct ModelInfo
     std::string path;
     std::string filename;
     core::pb::Model info;
+    core::ModelIndex modelIndex;
     ResourceId resourceId = INVALID_RESOURCE_ID;
     std::vector<ModelDrawCommand> drawCommands;
 };
