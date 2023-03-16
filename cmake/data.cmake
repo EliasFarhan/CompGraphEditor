@@ -4,6 +4,7 @@ function(copydata main_folder exe_name)
             "${main_folder}/data/*.json"
             "${main_folder}/data/*.png"
             "${main_folder}/data/*.jpg"
+            "${main_folder}/data/*.cube"
             "${main_folder}/data/*.bmp"
             "${main_folder}/data/*.hdr"
             "${main_folder}/data/*.obj"

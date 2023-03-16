@@ -479,6 +479,85 @@ core::pb::Scene Scene9()
 {
     core::pb::Scene scene;
 
+    auto* modelVertexShader = scene.add_shaders();
+    modelVertexShader->set_path("data/shaders/scene09/model.vert");
+    modelVertexShader->set_type(core::pb::Shader_Type_VERTEX);
+
+    auto* modelFragmentShader = scene.add_shaders();
+    modelFragmentShader->set_path("data/shaders/scene09/model_reflection.frag");
+    modelFragmentShader->set_type(core::pb::Shader_Type_FRAGMENT);
+
+    auto* skyboxVertexShader = scene.add_shaders();
+    skyboxVertexShader->set_path("data/shaders/scene09/skybox.vert");
+    skyboxVertexShader->set_type(core::pb::Shader_Type_VERTEX);
+
+    auto* skyboxFragmentShader = scene.add_shaders();
+    skyboxFragmentShader->set_path("data/shaders/scene09/skybox.frag");
+    skyboxFragmentShader->set_type(core::pb::Shader_Type_FRAGMENT);
+
+    auto* modelPipeline = scene.add_pipelines();
+    modelPipeline->set_type(core::pb::Pipeline_Type_RASTERIZE);
+    modelPipeline->set_vertex_shader_index(0);
+    modelPipeline->set_fragment_shader_index(1);
+    modelPipeline->set_depth_test_enable(true);
+    modelPipeline->set_depth_mask(true);
+    modelPipeline->set_depth_compare_op(core::pb::Pipeline_DepthCompareOp_LESS);
+
+    auto* skyboxPipeline = scene.add_pipelines();
+    skyboxPipeline->set_type(core::pb::Pipeline_Type_RASTERIZE);
+    skyboxPipeline->set_vertex_shader_index(2);
+    skyboxPipeline->set_fragment_shader_index(3);
+    skyboxPipeline->set_depth_test_enable(true);
+    skyboxPipeline->set_depth_mask(false);
+    skyboxPipeline->set_depth_compare_op(core::pb::Pipeline_DepthCompareOp_LESS_OR_EQUAL);
+
+    auto* modelMaterial = scene.add_materials();
+    modelMaterial->set_pipeline_index(0);
+    auto* modelTexture = modelMaterial->add_textures();
+    modelTexture->set_sampler_name("skybox");
+    modelTexture->set_texture_index(0);
+
+    auto* skyboxMaterial = scene.add_materials();
+    skyboxMaterial->set_pipeline_index(1);
+    auto* skyboxTexture = skyboxMaterial->add_textures();
+    skyboxTexture->set_sampler_name("skybox");
+    skyboxTexture->set_texture_index(0);
+
+    auto* renderPass = scene.mutable_render_pass();
+    auto* subpass = renderPass->add_sub_passes();
+    subpass->set_framebuffer_index(-1);
+    auto* modelCommand = subpass->add_commands();
+    modelCommand->set_count(36);
+    modelCommand->set_material_index(0);
+    modelCommand->set_mesh_index(0);
+    modelCommand->set_draw_elements(true);
+    modelCommand->set_automatic_draw(false);
+    modelCommand->set_mode(core::pb::DrawCommand_Mode_TRIANGLES);
+
+    auto* skyboxCommand = subpass->add_commands();
+    skyboxCommand ->set_count(36);
+    skyboxCommand->set_material_index(1);
+    skyboxCommand->set_mesh_index(0);
+    skyboxCommand->set_automatic_draw(false);
+    skyboxCommand->set_mode(core::pb::DrawCommand_Mode_TRIANGLES);
+    skyboxCommand->set_draw_elements(true);
+
+    auto* cubeMesh = scene.add_meshes();
+    cubeMesh->set_primitve_type(core::pb::Mesh_PrimitveType_CUBE);
+
+    auto* cubemap = scene.add_textures();
+    cubemap->set_path("data/textures/skybox/skybox.cube");
+
+    auto* cameraPySystem = scene.add_py_systems();
+    cameraPySystem->set_path("data/scripts/camera.py");
+    cameraPySystem->set_class_("Camera");
+    cameraPySystem->set_module("data.scripts.camera");
+
+    auto* scenePySystem = scene.add_py_systems();
+    scenePySystem->set_path("data/scripts/scene09.py");
+    scenePySystem->set_class_("Scene09");
+    scenePySystem->set_module("data.scripts.scene09");
+
     return scene;
 }
 
