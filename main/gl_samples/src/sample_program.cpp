@@ -475,6 +475,13 @@ core::pb::Scene Scene8()
     return scene;
 }
 
+core::pb::Scene Scene9()
+{
+    core::pb::Scene scene;
+
+    return scene;
+}
+
 void SampleBrowserProgram::Begin()
 {
     samples_ = {
@@ -486,6 +493,7 @@ void SampleBrowserProgram::Begin()
         {"scene6", Scene6()},
         {"scene7", Scene7()},
         {"scene8", Scene8()},
+        {"scene9", Scene9()},
     };
     for(auto& sample : samples_)
     {

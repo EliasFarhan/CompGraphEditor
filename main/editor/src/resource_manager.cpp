@@ -102,8 +102,8 @@ const Resource* ResourceManager::GetResource(ResourceId resourceId) const
 
 ResourceId ResourceManager::GenerateResourceId()
 {
-    static ResourceId resourceId = 1;
-    return resourceId++;
+    static unsigned resourceId = { 1 };
+    return { resourceId++ };
 }
 void ResourceManager::RemoveResource(const Resource &resource)
 {

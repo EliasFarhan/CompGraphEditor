@@ -157,7 +157,7 @@ void MeshEditor::AddResource(const Resource &resource)
     meshInfos_.push_back(meshInfo);
 }
 
-void MeshEditor::RemoveResource(const Resource &resource)
+void MeshEditor::RemoveResource(const Resource& resource)
 {
     const auto it = std::ranges::find_if(meshInfos_, [&resource](const auto& mesh)
         {
