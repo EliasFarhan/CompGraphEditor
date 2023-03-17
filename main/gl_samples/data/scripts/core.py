@@ -159,6 +159,9 @@ class Mat3:
     def __init__(self):
         pass
 
+    def __init__(self, m: Mat4):
+        pass
+
     def __add__(self, other: Mat3) -> Mat3:
         return Mat3()
 
@@ -186,6 +189,9 @@ class Mat4:
         pass
 
     def __init__(self, v: float):
+        pass
+
+    def __int__(self, m: Mat3):
         pass
 
     def translate(self, v: Vec3)-> Mat4:

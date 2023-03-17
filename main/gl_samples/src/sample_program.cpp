@@ -257,7 +257,7 @@ core::pb::Scene Scene6()
     pipeline->set_fragment_shader_index(1);
     pipeline->set_type(core::pb::Pipeline_Type_RASTERIZE);
     pipeline->set_depth_test_enable(true);
-    pipeline->set_depth_compare_op(core::pb::Pipeline_DepthCompareOp_LESS_OR_EQUAL);
+    pipeline->set_depth_compare_op(core::pb::Pipeline_DepthCompareOp_LESS);
     pipeline->set_depth_mask(true);
     
 
@@ -314,7 +314,7 @@ core::pb::Scene Scene7()
     pipeline->set_fragment_shader_index(1);
     pipeline->set_type(core::pb::Pipeline_Type_RASTERIZE);
     pipeline->set_depth_test_enable(true);
-    pipeline->set_depth_compare_op(core::pb::Pipeline_DepthCompareOp_LESS_OR_EQUAL);
+    pipeline->set_depth_compare_op(core::pb::Pipeline_DepthCompareOp_LESS);
     pipeline->set_depth_mask(true);
 
     auto* material = scene.add_materials();
@@ -509,7 +509,7 @@ core::pb::Scene Scene9()
     skyboxPipeline->set_vertex_shader_index(2);
     skyboxPipeline->set_fragment_shader_index(3);
     skyboxPipeline->set_depth_test_enable(true);
-    skyboxPipeline->set_depth_mask(false);
+    skyboxPipeline->set_depth_mask(true);
     skyboxPipeline->set_depth_compare_op(core::pb::Pipeline_DepthCompareOp_LESS_OR_EQUAL);
 
     auto* modelMaterial = scene.add_materials();
@@ -527,6 +527,12 @@ core::pb::Scene Scene9()
     auto* renderPass = scene.mutable_render_pass();
     auto* subpass = renderPass->add_sub_passes();
     subpass->set_framebuffer_index(-1);
+    auto* clearColor = subpass->mutable_clear_color();
+    clearColor->set_r(0.0f);
+    clearColor->set_g(0.0f);
+    clearColor->set_b(0.0f);
+    clearColor->set_a(0.0f);
+
     auto* modelCommand = subpass->add_commands();
     modelCommand->set_name("model");
     modelCommand->set_count(36);
@@ -538,15 +544,22 @@ core::pb::Scene Scene9()
 
     auto* skyboxCommand = subpass->add_commands();
     skyboxCommand->set_name("skybox");
-    skyboxCommand ->set_count(36);
+    skyboxCommand->set_count(36);
     skyboxCommand->set_material_index(1);
-    skyboxCommand->set_mesh_index(0);
+    skyboxCommand->set_mesh_index(1);
     skyboxCommand->set_automatic_draw(false);
     skyboxCommand->set_mode(core::pb::DrawCommand_Mode_TRIANGLES);
     skyboxCommand->set_draw_elements(true);
 
     auto* cubeMesh = scene.add_meshes();
     cubeMesh->set_primitve_type(core::pb::Mesh_PrimitveType_CUBE);
+
+    auto* skyboxMesh = scene.add_meshes();
+    skyboxMesh->set_primitve_type(core::pb::Mesh_PrimitveType_CUBE);
+    auto* skyboxScale = skyboxMesh->mutable_scale();
+    skyboxScale->set_x(2.0f);
+    skyboxScale->set_y(2.0f);
+    skyboxScale->set_z(2.0f);
 
     auto* cubemap = scene.add_textures();
     cubemap->set_path("data/textures/skybox/skybox.cube");

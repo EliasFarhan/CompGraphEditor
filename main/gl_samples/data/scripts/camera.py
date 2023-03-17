@@ -22,7 +22,7 @@ class Camera(core.System):
             direction += core.Vec3(0, 1, 0)
         if self.keys[3]:
             direction -= core.Vec3(0, 1, 0)
-        horizontal = core.Vec3.cross(core.Vec3(0, 1, 0), self.camera.direction).normalize()
+        horizontal = core.Vec3.cross(self.camera.up, self.camera.direction).normalize()
         vertical = core.Vec3.cross(horizontal, self.camera.direction)
         window_size = core.get_window_size()
         self.mouse_motion.x /= window_size.x
@@ -33,7 +33,6 @@ class Camera(core.System):
         self.camera.direction = core.Vec3(rotate_x*rotate_y*core.Vec4(self.camera.direction, 1.0))
 
         self.camera.position += (horizontal*direction.x+self.camera.direction*direction.y)*self.speed*dt
-
     def draw(self, subpass_index: int):
         scene = core.get_scene()
         subpass = scene.get_subpass(subpass_index)
