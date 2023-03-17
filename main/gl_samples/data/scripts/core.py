@@ -330,12 +330,24 @@ class SubPass:
     def get_framebuffer(self):
         return Framebuffer()
 
+        
+class Camera:
+    def __init__(self) -> None:
+        self.position = Vec3()
+        self.direction = Vec3()
+        self.up = Vec3()
+        self.view = Mat4()
+
+    def get_view(self) -> Mat4:
+        return Mat4()
+
 
 class Scene:
     def __init__(self) -> None:
         self.subpass_count = 0
         self.pipeline_count = 0
         self.material_count = 0
+        self.camera = Camera()
 
     def get_pipeline(self, pipeline_index:int) -> Pipeline:
         return Pipeline()
@@ -345,6 +357,9 @@ class Scene:
 
     def get_subpass(self, subpass_index: int) -> SubPass:
         return SubPass()
+
+    def get_camera(self) -> Camera:
+        return Camera()
 
 
 def get_window_size():

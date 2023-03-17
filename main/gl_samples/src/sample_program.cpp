@@ -347,6 +347,7 @@ core::pb::Scene Scene7()
 
 
     auto *drawCommand = subPass->add_commands();
+
     drawCommand->set_material_index(0);
     drawCommand->set_count(192*3);
     drawCommand->set_mesh_index(0);
@@ -480,7 +481,7 @@ core::pb::Scene Scene9()
     core::pb::Scene scene;
 
     auto* modelVertexShader = scene.add_shaders();
-    modelVertexShader->set_path("data/shaders/scene09/model.vert");
+    modelVertexShader->set_path("data/shaders/scene09/model_reflection.vert");
     modelVertexShader->set_type(core::pb::Shader_Type_VERTEX);
 
     auto* modelFragmentShader = scene.add_shaders();
@@ -527,6 +528,7 @@ core::pb::Scene Scene9()
     auto* subpass = renderPass->add_sub_passes();
     subpass->set_framebuffer_index(-1);
     auto* modelCommand = subpass->add_commands();
+    modelCommand->set_name("model");
     modelCommand->set_count(36);
     modelCommand->set_material_index(0);
     modelCommand->set_mesh_index(0);
@@ -535,6 +537,7 @@ core::pb::Scene Scene9()
     modelCommand->set_mode(core::pb::DrawCommand_Mode_TRIANGLES);
 
     auto* skyboxCommand = subpass->add_commands();
+    skyboxCommand->set_name("skybox");
     skyboxCommand ->set_count(36);
     skyboxCommand->set_material_index(1);
     skyboxCommand->set_mesh_index(0);

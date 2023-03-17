@@ -22,14 +22,14 @@ PYBIND11_EMBEDDED_MODULE(core, m)
     
 
     py::class_<core::Script, core::PySystem>(m, "System")
-            .def(py::init())
-            .def("begin", &core::Script::Begin)
-            .def("update", &core::Script::Update)
-            .def("end", &core::Script::End)
-            .def("draw", &core::Script::Draw)
-            .def("on_key_up", &core::Script::OnKeyUp)
-            .def("on_key_down", &core::Script::OnKeyDown)
-            .def("on_mouse_motion", &core::Script::OnMouseMotion)
+        .def(py::init())
+        .def("begin", &core::Script::Begin)
+        .def("update", &core::Script::Update)
+        .def("end", &core::Script::End)
+        .def("draw", &core::Script::Draw)
+        .def("on_key_up", &core::Script::OnKeyUp)
+        .def("on_key_down", &core::Script::OnKeyDown)
+        .def("on_mouse_motion", &core::Script::OnMouseMotion)
     ;
 
 
@@ -40,14 +40,16 @@ PYBIND11_EMBEDDED_MODULE(core, m)
         ;
 
     py::class_<core::Scene>(m, "Scene")
-            .def("get_pipeline", &core::Scene::GetPipeline,
-                 py::return_value_policy::reference)
-            .def("get_material", &core::Scene::GetMaterial)
-            .def("get_subpass", &core::Scene::GetSubpass)
-            .def_property_readonly("subpass_count", &core::Scene::GetSubpassCount)
-            .def_property_readonly("pipeline_count", &core::Scene::GetPipelineCount)
-            .def_property_readonly("material_count", &core::Scene::GetMaterialCount)
-            ;
+        .def("get_pipeline", &core::Scene::GetPipeline,
+            py::return_value_policy::reference)
+        .def("get_material", &core::Scene::GetMaterial)
+        .def("get_subpass", &core::Scene::GetSubpass)
+        .def("get_camera", &core::Scene::GetCamera)
+        .def_property_readonly("camera", &core::Scene::GetCamera)
+        .def_property_readonly("subpass_count", &core::Scene::GetSubpassCount)
+        .def_property_readonly("pipeline_count", &core::Scene::GetPipelineCount)
+        .def_property_readonly("material_count", &core::Scene::GetMaterialCount)
+        ;
             
 
     py::class_<glm::vec2>(m, "Vec2")
@@ -65,7 +67,6 @@ PYBIND11_EMBEDDED_MODULE(core, m)
         .def(py::self*=float())
         .def(py::self*float())
         .def(float()*py::self)
-
         .def("normalize", [](const glm::vec2& v) {return glm::normalize(v); })
         .def_property_readonly("length", [](glm::vec2 v) {return glm::length(v); })
         .def_static("dot", [](glm::vec2 v1, glm::vec2 v2) {return glm::dot(v1, v2); })
@@ -240,6 +241,13 @@ PYBIND11_EMBEDDED_MODULE(core, m)
         .value("RETURN", SDLK_RETURN)
     .export_values()
         ;
+
+    py::class_<core::Camera>(m, "Camera")
+        .def_readwrite("position", &core::Camera::position)
+        .def_readwrite("direction", &core::Camera::direction)
+        .def_readwrite("up", &core::Camera::up)
+        .def("get_view", &core::Camera::GetView)
+        .def_property_readonly("view", &core::Camera::GetView);
 
     py::class_<core::Pipeline>(m, "Pipeline")
             .def("set_float", &core::Pipeline::SetFloat)

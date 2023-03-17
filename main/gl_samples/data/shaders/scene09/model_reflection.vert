@@ -13,12 +13,12 @@ out vec3 Position;
 uniform mat4 model;
 uniform mat4 view;
 uniform mat4 projection;
-uniform mat4 transposeInverseModel;
+uniform mat4 normalMatrix;
 
 void main()
 {
     TexCoords = aTexCoords;    
-	Normal = mat3(transposeInverseModel) * aNormal;
+	Normal = mat3(normalMatrix) * aNormal;
     Position = vec3(model * vec4(aPos, 1.0));
     gl_Position = projection * view * model * vec4(aPos, 1.0);
 }

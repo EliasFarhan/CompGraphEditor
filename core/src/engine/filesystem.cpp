@@ -24,7 +24,10 @@ BufferFile DefaultFilesystem::LoadFile(std::string_view path) const
 {
     // allocate memory to contain file data
     BufferFile bufferFile;
-
+    if(!FileExists(path))
+    {
+        return bufferFile;
+    }
     const std::ifstream file(path.data(), std::ifstream::binary);
     // get pointer to associated buffer object
     std::filebuf* pbuf = file.rdbuf();

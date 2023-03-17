@@ -1,14 +1,14 @@
 #pragma once
 
-#include <span>
 
 #include "engine/system.h"
 #include "renderer/texture.h"
-#include "py_interface.h"
+#include "engine/py_interface.h"
 #include "proto/renderer.pb.h"
 #include "engine/engine.h"
+#include "renderer/camera.h"
 
-
+#include <span>
 #include <vector>
 
 namespace core
@@ -88,6 +88,8 @@ public:
     virtual std::string_view GetMeshName(int index);
     int GetMeshCount() const;
 
+    Camera& GetCamera() { return camera_; }
+
     void OnEvent(SDL_Event& event) override;
 protected:
     enum class ImportStatus
@@ -111,6 +113,8 @@ protected:
 
     pb::Scene scene_;
     std::vector<Script*> pySystems_;
+    
+    Camera camera_;
 };
 
 class SceneManager : public System, public OnEventInterface
