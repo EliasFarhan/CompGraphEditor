@@ -267,7 +267,7 @@ bool Texture::LoadCubemap(const core::pb::Texture& textureInfo)
             data = stbi_load_from_memory(cubeTextureFile.data, cubeTextureFile.length, &width, &height, &nrChannels, 0);
             if(data == nullptr)
             {
-                LogError("Could not parse side texture: {} for cubemap: {}", texturePath, path);
+                LogError(fmt::format("Could not parse side texture: {} for cubemap: {}", texturePath, path));
                 return false;
             }
             glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, textureInfo.gamma_correction()?GL_SRGB:GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
