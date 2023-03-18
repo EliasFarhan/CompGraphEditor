@@ -13,6 +13,8 @@ class Camera(core.System):
         self.mouse_motion = core.Vec2()
 
     def update(self, dt: float):
+        scene = core.get_scene()
+        self.camera = scene.get_camera()
         direction = core.Vec3()
         if self.keys[0]:
             direction += core.Vec3(1, 0, 0)

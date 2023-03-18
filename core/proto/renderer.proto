@@ -324,6 +324,13 @@ message SceneModel
     string path = 1;
 }
 
+message Transform
+{
+    Vec3f position = 1;
+    Vec3f scale = 2;
+    Vec3f euler_angles = 3;
+}
+
 message DrawCommand
 {
     enum Mode
@@ -337,6 +344,7 @@ message DrawCommand
     bool draw_elements = 6;
     bool automatic_draw = 9;
     string name = 10;
+    Transform model_transform = 11;
 }
 
 

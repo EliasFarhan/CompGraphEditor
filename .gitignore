@@ -5,3 +5,5 @@ cmake-build-release/
 cmake-build-relwithdebinfo/
 .vs/
 CMakeSettings.json
+/**/__pycache__/
+.idea/
