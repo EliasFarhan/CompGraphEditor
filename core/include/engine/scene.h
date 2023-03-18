@@ -28,11 +28,8 @@ class SceneMaterial
     public:
         SceneMaterial(Pipeline* pipeline, Material* material);
         virtual ~SceneMaterial() = default;
-        /**
-         * \brief Bind is a method that bind the underlying pipeline and material to the draw command
-         */
-        virtual void Bind() const = 0;
         [[nodiscard]] Pipeline* GetPipeline() const;
+        [[nodiscard]] Material* GetMaterial() const { return material_; }
         [[nodiscard]] std::string_view GetName() const;
     protected:
         Pipeline* pipeline_ = nullptr;
@@ -44,7 +41,7 @@ class SceneDrawCommand
 {
 public:
     SceneDrawCommand(Scene& scene, const pb::DrawCommand& drawCommand);
-    [[nodiscard]] std::unique_ptr<SceneMaterial> GetMaterial() const;
+    [[nodiscard]] SceneMaterial GetMaterial() const;
     void Draw();
     [[nodiscard]] std::string_view GetMeshName() const;
     [[nodiscard]] std::string_view GetName() const;
@@ -81,7 +78,7 @@ public:
 
     SceneSubPass GetSubpass(int subPassIndex);
     int GetSubpassCount() const;
-    virtual std::unique_ptr<SceneMaterial> GetMaterial(int materialIndex) = 0;
+    virtual SceneMaterial GetMaterial(int materialIndex) = 0;
     int GetMaterialCount() const;
     virtual Pipeline& GetPipeline(int index) = 0;
     int GetPipelineCount() const;

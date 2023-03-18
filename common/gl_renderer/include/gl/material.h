@@ -21,6 +21,7 @@ struct Material : core::Material
     int pipelineIndex = -1;
     std::vector<MaterialTexture> textures;
     [[nodiscard]] std::string_view GetName() const override { return name; }
+    void Bind() override;
 };
 
 }

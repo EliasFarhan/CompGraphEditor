@@ -15,6 +15,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <fmt/format.h>
 
+#include "renderer/material.h"
 
 
 PYBIND11_EMBEDDED_MODULE(core, m)
@@ -184,7 +185,10 @@ PYBIND11_EMBEDDED_MODULE(core, m)
         });
 
     py::class_<core::SceneMaterial>(m, "Material")
-        .def("bind", &core::SceneMaterial::Bind)
+        .def("bind", [](const core::SceneMaterial& sceneMaterial)
+            {
+                sceneMaterial.GetMaterial()->Bind();
+            })
         .def("get_pipeline", &core::SceneMaterial::GetPipeline, py::return_value_policy::reference)
         .def("get_name", &core::SceneMaterial::GetName)
         .def_property_readonly("name", &core::SceneMaterial::GetName)

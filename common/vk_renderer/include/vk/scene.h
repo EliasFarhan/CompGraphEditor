@@ -16,7 +16,7 @@ public:
     void Update(float dt) override;
     void Draw(const core::pb::DrawCommand& drawCommand) override;
     Framebuffer& GetFramebuffer(int framebufferIndex) override;
-    std::unique_ptr<core::SceneMaterial> GetMaterial(int materialIndex) override;
+    core::SceneMaterial GetMaterial(int materialIndex) override;
     Pipeline& GetPipeline(int index) override;
     VkRenderPass GetCurrentRenderPass() const;
 protected:

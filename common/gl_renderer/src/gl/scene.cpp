@@ -189,23 +189,6 @@ Scene::ImportStatus Scene::LoadMaterials(const PbRepeatField<core::pb::Material>
         return ImportStatus::SUCCESS;
     }
 
-
-    void SceneMaterial::Bind() const
-    {
-        pipeline_->Bind();
-        const auto* glMaterial = static_cast<gl::Material*>(material_);
-        auto* glPipeline = static_cast<gl::Pipeline*>(pipeline_);
-        for (std::size_t textureIndex = 0; textureIndex < glMaterial->textures.size(); textureIndex++)
-        {
-            if(glMaterial->textures[textureIndex].textureId == core::INVALID_TEXTURE_ID)
-                continue;
-            glPipeline->SetTexture(
-                glMaterial->textures[textureIndex].uniformSamplerName,
-                GetTexture(glMaterial->textures[textureIndex].textureId),
-                    textureIndex);
-        }
-    }
-
     void Scene::UnloadScene()
     {
         for (auto& shader : shaders_)
@@ -436,11 +419,10 @@ Scene::ImportStatus Scene::LoadMaterials(const PbRepeatField<core::pb::Material>
         }
     }
 
-    std::unique_ptr<core::SceneMaterial> Scene::GetMaterial(int materialIndex)
+    core::SceneMaterial Scene::GetMaterial(int materialIndex)
     {
-        return  std::make_unique<gl::SceneMaterial>(
-                &pipelines_[materials_[materialIndex].pipelineIndex],
-                &materials_[materialIndex]);
+        return  { &pipelines_[materials_[materialIndex].pipelineIndex],
+                &materials_[materialIndex] };
     }
 
     void Scene::OnEvent(SDL_Event& event)

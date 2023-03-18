@@ -75,9 +75,9 @@ Framebuffer& Scene::GetFramebuffer(int framebufferIndex)
     return framebuffers_[framebufferIndex];
 }
 
-std::unique_ptr<core::SceneMaterial> Scene::GetMaterial(int materialIndex)
+core::SceneMaterial Scene::GetMaterial(int materialIndex)
 {
-    return nullptr;
+    return {nullptr, nullptr};
 }
 
 Pipeline& Scene::GetPipeline(int index)

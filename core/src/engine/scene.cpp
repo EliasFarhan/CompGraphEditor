@@ -144,6 +144,8 @@ int Scene::GetSubpassCount() const
 {
     return scene_.render_pass().sub_passes_size();
 }
+
+
 int Scene::GetMaterialCount() const
 {
     return scene_.materials_size();
@@ -231,7 +233,7 @@ SceneDrawCommand::SceneDrawCommand(Scene& scene, const pb::DrawCommand& drawComm
 {
 
 }
-std::unique_ptr<SceneMaterial> SceneDrawCommand::GetMaterial() const
+SceneMaterial SceneDrawCommand::GetMaterial() const
 {
     return scene_.GetMaterial(drawCommand_.material_index());
 }

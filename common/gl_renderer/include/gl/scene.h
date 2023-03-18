@@ -15,12 +15,6 @@
 namespace gl
 {
 
-class SceneMaterial : public core::SceneMaterial
-{
-public:
-    using core::SceneMaterial::SceneMaterial;
-    void Bind() const override;
-};
 
 
 struct SceneTexture
@@ -35,7 +29,7 @@ public:
     void Update(float dt) override;
     void Draw(const core::pb::DrawCommand& drawCommand) override;
 
-    std::unique_ptr<core::SceneMaterial> GetMaterial(int materialIndex) override;
+    core::SceneMaterial GetMaterial(int materialIndex) override;
 
     void OnEvent(SDL_Event& event) override;
     core::Framebuffer& GetFramebuffer(int framebufferIndex) override { return framebuffers_[framebufferIndex]; }
