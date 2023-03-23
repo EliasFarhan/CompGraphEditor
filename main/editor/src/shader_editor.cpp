@@ -144,7 +144,7 @@ void ShaderEditor::DrawCenterView()
     }
 
     ImGui::InputTextMultiline("Shader Content",
-        &shaderText, 
+        &shaderText_, 
         ImGui::GetContentRegionAvail());
 }
 
@@ -160,7 +160,10 @@ bool ShaderEditor::DrawContentList(bool unfocus)
 {
     bool wasFocused = false;
     if (unfocus)
+    {
         currentIndex_ = shaderInfos_.size();
+        shaderText_.clear();
+    }
     for (std::size_t i = 0; i < shaderInfos_.size(); i++)
     {
         const auto& shaderInfo = shaderInfos_[i];
@@ -173,7 +176,7 @@ bool ShaderEditor::DrawContentList(bool unfocus)
             if (filesystem.FileExists(shaderPath))
             {
                 const auto shaderContent = filesystem.LoadFile(shaderPath);
-                shaderText = reinterpret_cast<const char*>(shaderContent.data);
+                shaderText_ = reinterpret_cast<const char*>(shaderContent.data);
             }
             else
             {
@@ -191,7 +194,7 @@ void ShaderEditor::Save()
         return;
     }
     const auto& filesystem = core::FilesystemLocator::get();
-    filesystem.WriteString(shaderInfos_[currentIndex_].info.path(), shaderText);
+    filesystem.WriteString(shaderInfos_[currentIndex_].info.path(), shaderText_);
     auto& resourceManager = Editor::GetInstance()->GetResourceManager();
     auto* resource = resourceManager.GetResource(shaderInfos_[currentIndex_].resourceId);
     resourceManager.UpdateExistingResource(*resource);

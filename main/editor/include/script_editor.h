@@ -20,6 +20,7 @@ public:
     void RemoveResource(const Resource& resource) override;
     void UpdateExistingResource(const Resource& resource) override;
     void DrawInspector() override;
+    void DrawCenterView() override;
     bool DrawContentList(bool unfocus) override;
     std::string_view GetSubFolder() override;
     EditorType GetEditorType() override;
@@ -33,5 +34,6 @@ public:
 private:
     std::vector<ScriptInfo> scriptInfos_;
     std::size_t currentIndex_ = -1;
+    std::string scriptText_;
 };
 } // namespace grp5300

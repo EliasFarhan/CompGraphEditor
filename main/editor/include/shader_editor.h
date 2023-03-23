@@ -35,7 +35,7 @@ private:
     static core::pb::Attribute::Type GetType(std::string_view attributeTypeString);
     std::vector<ShaderInfo> shaderInfos_;
     std::size_t currentIndex_ = -1;
-    std::string shaderText;
+    std::string shaderText_;
 };
 
 }

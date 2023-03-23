@@ -3,8 +3,10 @@
 #include "utils/log.h"
 #include "editor.h"
 #include "scene_editor.h"
+#include "engine/filesystem.h"
 
 #include <imgui.h>
+#include <imgui_stdlib.h>
 #include <fmt/format.h>
 
 #include <nlohmann/json.hpp>
@@ -118,17 +120,33 @@ void ScriptEditor::DrawInspector()
 
 }
 
+void ScriptEditor::DrawCenterView()
+{
+    if(currentIndex_ >= scriptInfos_.size())
+        return;
+    ImGui::InputTextMultiline("Shader Content",
+        &scriptText_,
+        ImGui::GetContentRegionAvail());
+
+}
+
 bool ScriptEditor::DrawContentList(bool unfocus)
 {
     bool wasFocused = false;
     if (unfocus)
+    {
         currentIndex_ = scriptInfos_.size();
+        scriptText_.clear();
+    }
     for (std::size_t i = 0; i < scriptInfos_.size(); i++)
     {
-        const auto& shaderInfo = scriptInfos_[i];
-        if (ImGui::Selectable(shaderInfo.filename.data(), currentIndex_ == i))
+        const auto& scriptInfo = scriptInfos_[i];
+        if (ImGui::Selectable(scriptInfo.filename.data(), currentIndex_ == i))
         {
             currentIndex_ = i;
+            auto& filesystem = core::FilesystemLocator::get();
+            const auto scriptContent = filesystem.LoadFile(scriptInfo.info.path());
+            scriptText_ = reinterpret_cast<const char*>(scriptContent.data);
             wasFocused = true;
         }
     }
@@ -147,6 +165,16 @@ EditorType ScriptEditor::GetEditorType()
 
 void ScriptEditor::Save()
 {
+    if (currentIndex_ >= scriptInfos_.size())
+    {
+        return;
+    }
+    const auto& filesystem = core::FilesystemLocator::get();
+    filesystem.WriteString(scriptInfos_[currentIndex_].info.path(), scriptText_);
+    auto& resourceManager = Editor::GetInstance()->GetResourceManager();
+    auto* resource = resourceManager.GetResource(scriptInfos_[currentIndex_].resourceId);
+    resourceManager.UpdateExistingResource(*resource);
+    
 }
 
 void ScriptEditor::ReloadId()
