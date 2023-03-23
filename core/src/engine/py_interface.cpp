@@ -20,8 +20,6 @@
 
 PYBIND11_EMBEDDED_MODULE(core, m)
 {
-    
-
     py::class_<core::Script, core::PySystem>(m, "System")
         .def(py::init())
         .def("begin", &core::Script::Begin)

@@ -2,6 +2,7 @@
 
 #include "editor_system.h"
 #include "proto/editor.pb.h"
+#include "renderer/model.h"
 
 namespace editor
 {

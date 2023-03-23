@@ -79,14 +79,14 @@ void Editor::OnGui()
     ImGui::SetNextWindowSize(ImVec2(windowSize.x * 0.2f, windowSize.y), ImGuiCond_FirstUseEver);
     DrawEditorContent();
 
-    /*
+    
     ImGui::SetNextWindowPos(ImVec2(windowSize.x * 0.2f, 0), ImGuiCond_FirstUseEver);
     ImGui::SetNextWindowSize(ImVec2(windowSize.x * 0.6f, windowSize.y), ImGuiCond_FirstUseEver);
-    ImGui::Begin("Center View", nullptr, ImGuiWindowFlags_NoTitleBar);
-    DrawMenuBar();
+    //ImGui::Begin("Center View", nullptr, ImGuiWindowFlags_NoTitleBar);
+    //DrawMenuBar();
     DrawCenterView();
-    ImGui::End();
-    */
+    //ImGui::End();
+    
     ImGui::SetNextWindowPos(ImVec2(windowSize.x * 0.8f, 0), ImGuiCond_FirstUseEver);
     ImGui::SetNextWindowSize(ImVec2(windowSize.x * 0.2f, windowSize.y), ImGuiCond_FirstUseEver);
     DrawInspector();
@@ -321,6 +321,16 @@ bool Editor::UpdateCreateNewFile()
 
 void Editor::DrawCenterView()
 {
+    ImGui::Begin("Center View");
+    if (currentFocusedSystem_ != EditorType::LENGTH)
+    {
+        auto* editorSystem = editorSystems_[static_cast<int>(currentFocusedSystem_)].get();
+        if (editorSystem)
+        {
+            editorSystem->DrawCenterView();
+        }
+    }
+    ImGui::End();
 }
 void Editor::DrawInspector()
 {

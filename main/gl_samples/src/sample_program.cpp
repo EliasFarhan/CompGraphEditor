@@ -8,11 +8,11 @@ core::pb::Scene Scene1()
 {
     core::pb::Scene scene;
 
-    core::pb::Shader *vertexShader = scene.add_shaders();
+    core::pb::Shader* vertexShader = scene.add_shaders();
     vertexShader->set_type(core::pb::Shader_Type_VERTEX);
     vertexShader->set_path("data/shaders/scene01/triangle.vert");
 
-    core::pb::Shader *fragmentShader = scene.add_shaders();
+    core::pb::Shader* fragmentShader = scene.add_shaders();
     fragmentShader->set_type(core::pb::Shader_Type_FRAGMENT);
     fragmentShader->set_path("data/shaders/scene01/triangle.frag");
 

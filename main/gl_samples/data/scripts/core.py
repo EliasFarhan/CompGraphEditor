@@ -147,6 +147,7 @@ class Vec4:
     def __mul__(self, other:float) -> Vec4:
         return Vec4()
 
+    '''Normalie does bla bla bl'''
     def normalize(self) -> Vec4:
         return Vec4()
 

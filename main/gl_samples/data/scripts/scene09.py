@@ -9,6 +9,7 @@ class Scene09(core.System):
         self.subpass = scene.get_subpass(0)
         self.camera = scene.camera
 
+
     def update(self, dt):
         pass
 

@@ -4,6 +4,7 @@
 
 #include "editor_system.h"
 #include "resource.h"
+#include "proto/editor.pb.h"
 #include "proto/renderer.pb.h"
 
 namespace editor

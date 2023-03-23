@@ -6,6 +6,7 @@
 
 namespace editor
 {
+
 void EditorSystem::ImportResource(std::string_view path)
 {
     const auto dstPath = fmt::format("{}{}{}",

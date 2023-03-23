@@ -3,11 +3,11 @@
 #include <nlohmann/json.hpp>
 
 #include <imgui.h>
+#include <imgui_stdlib.h>
 #include "proto/renderer.pb.h"
 #include "utils/log.h"
-
+#include "engine/filesystem.h"
 #include "editor.h"
-#include "pipeline_editor.h"
 
 #include <fmt/format.h>
 
@@ -135,6 +135,19 @@ void ShaderEditor::DrawInspector()
         ImGui::EndListBox();
     }
 }
+
+void ShaderEditor::DrawCenterView()
+{
+    if (currentIndex_ >= shaderInfos_.size())
+    {
+        return;
+    }
+
+    ImGui::InputTextMultiline("Shader Content",
+        &shaderText, 
+        ImGui::GetContentRegionAvail());
+}
+
 std::string_view ShaderEditor::GetSubFolder()
 {
     return "shaders/";
@@ -155,9 +168,33 @@ bool ShaderEditor::DrawContentList(bool unfocus)
         {
             currentIndex_ = i;
             wasFocused = true;
+            auto& filesystem = core::FilesystemLocator::get();
+            std::string_view shaderPath = shaderInfo.info.path();
+            if (filesystem.FileExists(shaderPath))
+            {
+                const auto shaderContent = filesystem.LoadFile(shaderPath);
+                shaderText = reinterpret_cast<const char*>(shaderContent.data);
+            }
+            else
+            {
+                LogError(fmt::format("Could not load shader file: {} for central view", shaderPath));
+            }
         }
     }
     return wasFocused;
+}
+
+void ShaderEditor::Save()
+{
+    if(currentIndex_ >= shaderInfos_.size())
+    {
+        return;
+    }
+    const auto& filesystem = core::FilesystemLocator::get();
+    filesystem.WriteString(shaderInfos_[currentIndex_].info.path(), shaderText);
+    auto& resourceManager = Editor::GetInstance()->GetResourceManager();
+    auto* resource = resourceManager.GetResource(shaderInfos_[currentIndex_].resourceId);
+    resourceManager.UpdateExistingResource(*resource);
 }
 
 const ShaderInfo* ShaderEditor::GetShader(ResourceId resourceId) const

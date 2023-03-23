@@ -37,11 +37,12 @@ public:
             });
     }
     virtual void DrawInspector() = 0;
+    virtual void DrawCenterView(){}
     // Return true if getting focused
     virtual bool DrawContentList(bool unfocus = false) = 0;
     virtual std::string_view GetSubFolder() = 0;
     virtual EditorType GetEditorType() = 0;
-    virtual void Save() = 0;
+    virtual void Save(){}
     virtual void ReloadId() = 0;
     virtual void Delete() = 0;
     virtual void ImportResource(std::string_view path);
