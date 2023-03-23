@@ -17,14 +17,18 @@ namespace core
 
 namespace refactor
 {
+struct Vertex
+{
+    glm::vec3 position;
+    glm::vec2 texCoords;
+    glm::vec3 normal;
+    glm::vec3 tangent;
+    glm::vec3 bitangent;
+};
 struct Mesh
 {
     std::string name;
-    std::vector<glm::vec3> positions;
-    std::vector<glm::vec2> texCoords;
-    std::vector<glm::vec3> normals;
-    std::vector<glm::vec3> tangents;
-    std::vector<glm::vec3> bitangents;
+    std::vector<Vertex> vertices;
     std::vector<unsigned> indices;
     unsigned materialIndex = std::numeric_limits<unsigned>::max();
 };

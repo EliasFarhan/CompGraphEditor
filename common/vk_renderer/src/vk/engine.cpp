@@ -69,9 +69,50 @@ void Engine::EndSingleTimeCommands(VkCommandBuffer commandBuffer)
     vkFreeCommandBuffers(window_.GetDriver().device, renderer_.commandPool, 1, &commandBuffer);
 }
 
+Buffer Engine::CreateBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties) const
+{
+    Buffer buffer{};
+    VkBufferCreateInfo bufferInfo{};
+    bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
+    bufferInfo.size = size;
+    bufferInfo.usage = usage;
+    bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+
+    VmaAllocationCreateInfo allocInfo = {};
+    allocInfo.usage = VMA_MEMORY_USAGE_CPU_TO_GPU;
+    allocInfo.requiredFlags = properties;
+    if (vmaCreateBuffer(allocator_, &bufferInfo, &allocInfo, &buffer.buffer,
+        &buffer.allocation, nullptr) != VK_SUCCESS)
+    {
+        LogError("Failed to create a buffer");
+        std::terminate();
+    }
+    return buffer;
+}
+
+void Engine::CopyBuffer(const Buffer& srcBuffer, const Buffer& dstBuffer, std::size_t bufferSize)
+{
+    VkCommandBuffer commandBuffer = BeginSingleTimeCommands();
+    {
+        VkBufferCopy copyRegion{};
+        copyRegion.srcOffset = 0; // Optional
+        copyRegion.dstOffset = 0; // Optional
+        copyRegion.size = bufferSize;
+        vkCmdCopyBuffer(commandBuffer, srcBuffer.buffer, dstBuffer.buffer, 1,
+            &copyRegion);
+    }
+    EndSingleTimeCommands(commandBuffer);
+}
+
 void Engine::Begin()
 {
     window_.Begin();
+    VmaAllocatorCreateInfo allocatorInfo = {};
+    allocatorInfo.vulkanApiVersion = VK_API_VERSION_1_0;
+    allocatorInfo.physicalDevice = window_.GetDriver().physicalDevice;
+    allocatorInfo.device = window_.GetDriver().device;
+    allocatorInfo.instance = window_.GetDriver().instance;
+    vmaCreateAllocator(&allocatorInfo, &allocator_);
     CreateCommandPool();
     CreateCommandBuffers();
     CreateSyncObjects();
@@ -97,7 +138,7 @@ void Engine::End()
         vkDestroyFence(driver.device, renderer_.inFlightFences[i], nullptr);
     }
     core::Engine::End();
-    //vmaDestroyAllocator();
+    vmaDestroyAllocator(allocator_);
     window_.End();
 }
 
@@ -141,7 +182,7 @@ void Engine::PreUpdate()
         LogError("Failed to begin recording command buffer!");
         std::terminate();
     }
-    
+
 }
 
 void Engine::PreImGuiDraw()
@@ -299,5 +340,10 @@ Window& GetWindow()
 Engine& GetEngine()
 {
     return *instance;
+}
+
+VmaAllocator& GetAllocator()
+{
+    return instance->GetAllocator();
 }
 }

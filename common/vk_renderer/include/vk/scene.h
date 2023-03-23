@@ -32,6 +32,7 @@ private:
     std::vector<Pipeline> pipelines_;
     std::vector<Framebuffer> framebuffers_;
     std::vector<Mesh> meshes_;
+    std::vector<VertexBuffer> vertexBuffers_;
     std::vector<Shader> shaders_;
     VkRenderPass renderPass_{};
     std::vector<VkFramebuffer> vkFramebuffers_;

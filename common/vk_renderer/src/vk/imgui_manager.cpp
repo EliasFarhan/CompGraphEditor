@@ -18,7 +18,8 @@ void ImGuiManager::Begin()
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
     ImGuiIO& io = ImGui::GetIO(); (void)io;
-    io.KeysDown[ImGuiKey_Delete] = SDL_GetScancodeFromKey(SDLK_DELETE);
+    io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
+    io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
     auto& window = GetWindow();
     ImGui_ImplSDL2_InitForVulkan(window.GetSdlWindow());
 
@@ -36,6 +37,7 @@ void ImGuiManager::Begin()
     initInfo.DescriptorPool = descriptorPool_;
     initInfo.MinImageCount = swapchain.minImageCount;
     initInfo.ImageCount = swapchain.imageCount;
+    initInfo.Subpass = 0;
     
     const auto& renderPass = GetCurrentRenderPass();
 
@@ -55,7 +57,7 @@ void ImGuiManager::PostImGuiDraw()
 {
     auto& renderer = GetRenderer();
     ImGui::Render();
-    ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), renderer.commandBuffers[renderer.imageIndex]);
+    //ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), renderer.commandBuffers[renderer.imageIndex]);
 }
 
 void ImGuiManager::End() const
@@ -115,7 +117,6 @@ void ImGuiManager::UploadFontAtlas()
 
     const auto commandBuffer = engine.BeginSingleTimeCommands();
     {
-
         ImGui_ImplVulkan_CreateFontsTexture(commandBuffer);
     }
     engine.EndSingleTimeCommands(commandBuffer);

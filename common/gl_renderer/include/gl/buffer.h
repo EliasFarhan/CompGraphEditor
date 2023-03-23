@@ -17,7 +17,7 @@ public:
 
 private:
     GLuint vao{};
-    std::array<GLuint, 5> vbo{};
+    GLuint vbo{};
     GLuint ebo{};
 };
 

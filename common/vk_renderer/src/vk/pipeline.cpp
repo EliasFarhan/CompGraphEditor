@@ -15,16 +15,50 @@ bool Pipeline::LoadRaterizePipeline(const core::pb::Pipeline& pipelinePb, Shader
             {.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,.stage = vertexShader.stage, .module = vertexShader.module,.pName = "main"},
             {.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,.stage = fragmentShader.stage, .module = fragmentShader.module,.pName = "main"}
         } };
-    std::vector<VkVertexInputBindingDescription> vertexBindingDescriptors;
-    std::vector<VkVertexInputAttributeDescription> vertexAttributeDescriptors;
-    //TODO fill binding and attribute descriptors
+    
+    
+    VkVertexInputBindingDescription vertexInputBindingDescription{};
+    vertexInputBindingDescription.binding = 0;
+    vertexInputBindingDescription.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
+    vertexInputBindingDescription.stride = sizeof(core::refactor::Vertex);
+    
+    std::array<VkVertexInputAttributeDescription, 5> vertexAttributeDescriptors;
+    auto& positionAttribute = vertexAttributeDescriptors[0];
+    positionAttribute.format = VK_FORMAT_R32G32B32_SFLOAT;
+    positionAttribute.binding = 0;
+    positionAttribute.location = 0;
+    positionAttribute.offset = offsetof(core::refactor::Vertex, position);
+
+    auto& texCoordsAttribute = vertexAttributeDescriptors[1];
+    texCoordsAttribute.format = VK_FORMAT_R32G32_SFLOAT;
+    texCoordsAttribute.binding = 0;
+    texCoordsAttribute.location = 1;
+    texCoordsAttribute.offset = offsetof(core::refactor::Vertex, texCoords);
+
+    auto& normalAttribute = vertexAttributeDescriptors[2];
+    normalAttribute.format = VK_FORMAT_R32G32B32_SFLOAT;
+    normalAttribute.binding = 0;
+    normalAttribute.location = 2;
+    normalAttribute.offset = offsetof(core::refactor::Vertex, normal);
+
+    auto& tangentAttribute = vertexAttributeDescriptors[3];
+    tangentAttribute.format = VK_FORMAT_R32G32B32_SFLOAT;
+    tangentAttribute.binding = 0;
+    tangentAttribute.location = 3;
+    tangentAttribute.offset = offsetof(core::refactor::Vertex, tangent);
+
+    auto& bitangentAttribute = vertexAttributeDescriptors[4];
+    bitangentAttribute.format = VK_FORMAT_R32G32B32_SFLOAT;
+    bitangentAttribute.binding = 0;
+    bitangentAttribute.location = 4;
+    bitangentAttribute.offset = offsetof(core::refactor::Vertex, bitangent);
 
     VkPipelineVertexInputStateCreateInfo vertexInputInfo{};
     vertexInputInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
-    vertexInputInfo.vertexBindingDescriptionCount = vertexBindingDescriptors.size();
-    vertexInputInfo.pVertexBindingDescriptions = vertexBindingDescriptors.empty() ? nullptr : vertexBindingDescriptors.data();
+    vertexInputInfo.vertexBindingDescriptionCount =  1;
+    vertexInputInfo.pVertexBindingDescriptions = &vertexInputBindingDescription;
     vertexInputInfo.vertexAttributeDescriptionCount = vertexAttributeDescriptors.size();
-    vertexInputInfo.pVertexAttributeDescriptions = vertexAttributeDescriptors.empty() ? nullptr : vertexAttributeDescriptors.data(); // Optional
+    vertexInputInfo.pVertexAttributeDescriptions =  vertexAttributeDescriptors.data(); // Optional
 
     VkPipelineInputAssemblyStateCreateInfo inputAssembly{};
     inputAssembly.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
@@ -56,23 +90,29 @@ bool Pipeline::LoadRaterizePipeline(const core::pb::Pipeline& pipelinePb, Shader
     rasterizer.rasterizerDiscardEnable = VK_FALSE;
     rasterizer.polygonMode = VK_POLYGON_MODE_FILL;
     rasterizer.lineWidth = 1.0f;
-    switch (pipelinePb.cull_face())
+    if (pipelinePb.enable_culling())
     {
-    case core::pb::Pipeline_CullFace_BACK:
+        switch (pipelinePb.cull_face())
+        {
+        case core::pb::Pipeline_CullFace_BACK:
 
-        rasterizer.cullMode = VK_CULL_MODE_BACK_BIT;
-        break;
-    case core::pb::Pipeline_CullFace_FRONT:
+            rasterizer.cullMode = VK_CULL_MODE_BACK_BIT;
+            break;
+        case core::pb::Pipeline_CullFace_FRONT:
 
-        rasterizer.cullMode = VK_CULL_MODE_FRONT_BIT;
-        break;
-    case core::pb::Pipeline_CullFace_FRONT_AND_BACK:
+            rasterizer.cullMode = VK_CULL_MODE_FRONT_BIT;
+            break;
+        case core::pb::Pipeline_CullFace_FRONT_AND_BACK:
 
-        rasterizer.cullMode = VK_CULL_MODE_FRONT_AND_BACK;
-        break;
-    default: break;
+            rasterizer.cullMode = VK_CULL_MODE_FRONT_AND_BACK;
+            break;
+        default: break;
+        }
     }
-
+    else
+    {
+        rasterizer.cullMode = VK_CULL_MODE_NONE;
+    }
     switch (pipelinePb.front_face())
     {
     case core::pb::Pipeline_FrontFace_CLOCKWISE:

@@ -27,6 +27,14 @@ void Scene::UnloadScene()
     pipelines_.clear();
     vkDestroyRenderPass(driver.device, renderPass_, nullptr);
     renderPass_ = VK_NULL_HANDLE;
+
+    auto& allocator = GetAllocator();
+    for(auto& vertexBuffer: vertexBuffers_)
+    {
+        vmaDestroyBuffer(allocator, vertexBuffer.vertexBuffer.buffer, vertexBuffer.vertexBuffer.allocation);
+        vmaDestroyBuffer(allocator, vertexBuffer.indexBuffer.buffer, vertexBuffer.indexBuffer.allocation);
+    }
+    vertexBuffers_.clear();
 }
 
 void Scene::Update(float dt)
@@ -63,11 +71,36 @@ void Scene::Update(float dt)
 void Scene::Draw(const core::pb::DrawCommand& drawCommand)
 {
     const auto& renderer = GetRenderer();
+
     const auto pipelineIndex = scene_.materials(drawCommand.material_index()).pipeline_index();
     auto& pipeline = pipelines_[pipelineIndex];
-
     pipeline.Bind();
-    vkCmdDraw(renderer.commandBuffers[renderer.imageIndex], drawCommand.count(), 1, 0, 0);
+    const auto meshIndex = drawCommand.mesh_index();
+    VkDeviceSize offsets[] = { 0 };
+    if (meshIndex != -1)
+    {
+        const auto& vertexBuffer = vertexBuffers_[meshIndex];
+        vkCmdBindVertexBuffers(renderer.commandBuffers[renderer.imageIndex], 0, 1, &vertexBuffer.vertexBuffer.buffer, offsets);
+        vkCmdBindIndexBuffer(renderer.commandBuffers[renderer.imageIndex], vertexBuffer.indexBuffer.buffer, 0, VK_INDEX_TYPE_UINT32);
+
+    }
+    if (drawCommand.draw_elements())
+    {
+        vkCmdDrawIndexed(renderer.commandBuffers[renderer.imageIndex],
+            drawCommand.count(),
+            1,
+            0,
+            0,
+            0);
+    }
+    else
+    {
+        vkCmdDraw(renderer.commandBuffers[renderer.imageIndex],
+            drawCommand.count(),
+            1, 
+            0,
+            0);
+    }
 }
 
 Framebuffer& Scene::GetFramebuffer(int framebufferIndex)
@@ -93,6 +126,7 @@ VkRenderPass Scene::GetCurrentRenderPass() const
 
 Scene::ImportStatus Scene::LoadShaders(const PbRepeatField<core::pb::Shader>& shadersPb)
 {
+    LogDebug("Load Shaders");
     const auto& driver = GetDriver();
     const auto& filesystem = core::FilesystemLocator::get();
     for (auto& shaderPb : shadersPb)
@@ -124,6 +158,7 @@ Scene::ImportStatus Scene::LoadShaders(const PbRepeatField<core::pb::Shader>& sh
 
 Scene::ImportStatus Scene::LoadPipelines(const PbRepeatField<core::pb::Pipeline>& pipelines)
 {
+    LogDebug("Load Pipelines");
     pipelines_.resize(pipelines.size());
     for(int i = 0; i < pipelines.size(); i++)
     {
@@ -154,7 +189,50 @@ Scene::ImportStatus Scene::LoadModels(const PbRepeatField<std::string>& models)
 
 Scene::ImportStatus Scene::LoadMeshes(const PbRepeatField<core::pb::Mesh>& meshes)
 {
-    return ImportStatus::FAILURE;
+    LogDebug("Load Meshes");
+    const auto meshesSize = meshes.size();
+    for (int i = 0; i < meshesSize; i++)
+    {
+        const auto& meshInfo = meshes.Get(i);
+        switch (meshInfo.primitve_type())
+        {
+        case core::pb::Mesh_PrimitveType_QUAD:
+        {
+            const glm::vec3 scale = meshInfo.has_scale() ? glm::vec3{ meshInfo.scale().x(), meshInfo.scale().y(), meshInfo.scale().z() } : glm::vec3(1.0f);
+            const glm::vec3 offset{ meshInfo.offset().x(), meshInfo.offset().y(), meshInfo.offset().z() };
+            const auto mesh = core::refactor::GenerateQuad(scale, offset);
+            vertexBuffers_.emplace_back();
+            
+            vertexBuffers_.back() = CreateVertexBufferFromMesh(mesh);
+            break;
+        }
+        case core::pb::Mesh_PrimitveType_CUBE:
+        {
+            const glm::vec3 scale = meshInfo.has_scale() ? glm::vec3{ meshInfo.scale().x(), meshInfo.scale().y(), meshInfo.scale().z() } : glm::vec3(1.0f);
+            const glm::vec3 offset{ meshInfo.offset().x(), meshInfo.offset().y(), meshInfo.offset().z() };
+
+            const auto mesh = core::refactor::GenerateCube(scale, offset);
+            vertexBuffers_.emplace_back();
+            vertexBuffers_.back() = CreateVertexBufferFromMesh(mesh);;
+            break;
+        }
+        case core::pb::Mesh_PrimitveType_SPHERE:
+            break;
+        case core::pb::Mesh_PrimitveType_NONE:
+        {
+            vertexBuffers_.emplace_back();
+            //vertexBuffers_.back() = CreateVertexBufferFromMesh(mesh);;
+            break;
+        }
+        case core::pb::Mesh_PrimitveType_MODEL:
+        {
+            break;
+        }
+        default:
+            break;
+        }
+    }
+    return ImportStatus::SUCCESS;
 }
 
 Scene::ImportStatus Scene::LoadFramebuffers(const PbRepeatField<core::pb::FrameBuffer>& framebuffers)

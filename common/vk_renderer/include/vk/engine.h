@@ -43,7 +43,14 @@ public:
     Window& GetWindow() { return window_; }
     VkCommandBuffer BeginSingleTimeCommands();
     void EndSingleTimeCommands(VkCommandBuffer commandBuffer);
+
+    Buffer CreateBuffer(VkDeviceSize size, VkBufferUsageFlags usage,
+        VkMemoryPropertyFlags properties) const;
+
     Renderer& GetRenderer() { return renderer_; }
+
+    VmaAllocator& GetAllocator() { return allocator_; }
+    void CopyBuffer(const Buffer& srcBuffer, const Buffer& dstBuffer, std::size_t bufferSize);
 
 protected:
     void Begin() override;
@@ -67,7 +74,7 @@ private:
     TextureManager textureManager_;
     Renderer renderer_;
     ImGuiManager imGuiManager_{};
-
+    VmaAllocator allocator_;
 
     static constexpr int MAX_FRAMES_IN_FLIGHT = 2;
 };
@@ -75,5 +82,6 @@ private:
 Renderer& GetRenderer();
 Window& GetWindow();
 Engine& GetEngine();
+VmaAllocator& GetAllocator();
 
 }
