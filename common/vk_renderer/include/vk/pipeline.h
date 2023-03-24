@@ -31,5 +31,7 @@ public:
 private:
     VkPipeline pipeline{};
     VkPipelineLayout pipelineLayout{};
+    std::vector<std::uint8_t> pushConstantData_;
+    std::unordered_map<std::string, std::size_t> uniformOffsetMap_;
 };
 }

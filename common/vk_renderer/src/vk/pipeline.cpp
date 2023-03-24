@@ -160,6 +160,76 @@ bool Pipeline::LoadRaterizePipeline(const core::pb::Pipeline& pipelinePb, Shader
     colorBlending.blendConstants[2] = 0.0f; // Optional
     colorBlending.blendConstants[3] = 0.0f; // Optional
 
+    //TODO uniform management through push constant
+    std::size_t size = 0;
+    std::size_t base = 0;
+    for(int i = 0; i < pipelinePb.uniforms_size(); i++)
+    {
+        const auto& uniform = pipelinePb.uniforms(i);
+        switch (uniform.type())
+        {
+        case core::pb::Attribute_Type_BOOL: break;
+        case core::pb::Attribute_Type_FLOAT: 
+        case core::pb::Attribute_Type_INT:
+        {
+            if(base % 4 != 0)
+            {
+                base += 4 - base % 4;
+            }
+            uniformOffsetMap_[uniform.name()] = base;
+            base += 4;
+            break;
+        }
+        case core::pb::Attribute_Type_VEC2:
+        case core::pb::Attribute_Type_IVEC2:
+        {
+            if (base % 8 != 0)
+            {
+                base += 8 - base % 8;
+            }
+            uniformOffsetMap_[uniform.name()] = base;
+            base += 8;
+            break;
+        }
+        case core::pb::Attribute_Type_VEC3: 
+        case core::pb::Attribute_Type_IVEC3:
+        case core::pb::Attribute_Type_VEC4: 
+        case core::pb::Attribute_Type_IVEC4:
+        {
+            if (base % 16 != 0)
+            {
+                base += 16 - base % 16;
+            }
+            uniformOffsetMap_[uniform.name()] = base;
+            base += 16;
+            break;
+        }
+        case core::pb::Attribute_Type_MAT2:
+        {
+            if (base % 8 != 0)
+            {
+                base += 8 - base % 8;
+            }
+            uniformOffsetMap_[uniform.name()] = base;
+            base += 16;
+            break;
+        }
+        case core::pb::Attribute_Type_MAT3:
+        {
+            if (base % 12 != 0)
+            {
+                base += 12 - base % 12;
+            }
+            uniformOffsetMap_[uniform.name()] = base;
+            base += 36;
+            break;
+        }
+        case core::pb::Attribute_Type_MAT4: break;
+        case core::pb::Attribute_Type_CUSTOM: break;
+        default: ;
+        }
+    }
+    VkPushConstantRange pushConstantRange{};
     
     VkPipelineLayoutCreateInfo pipelineLayoutInfo{};
     pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
@@ -182,7 +252,8 @@ bool Pipeline::LoadRaterizePipeline(const core::pb::Pipeline& pipelinePb, Shader
     VkPipelineDepthStencilStateCreateInfo depthStencil{};
     if(pipelinePb.depth_test_enable())
     {
-        
+        //TODO fill data for depth stencil
+        pipelineInfo.pDepthStencilState = &depthStencil;
     }
     else
     {
