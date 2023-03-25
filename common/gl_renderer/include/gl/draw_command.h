@@ -14,7 +14,7 @@ class Texture;
 class DrawCommand : public core::DrawCommand
 {
 public:
-    DrawCommand();
+    DrawCommand(const core::pb::DrawCommand& drawCommandInfo, int subpassIndex);
     void SetFloat(std::string_view uniformName, float f) override;
     void SetInt(std::string_view uniformName, int i) override;
     void SetVec2(std::string_view uniformName, glm::vec2 v) override;

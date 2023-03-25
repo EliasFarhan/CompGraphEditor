@@ -22,7 +22,7 @@ class CameraSystem final : public Script
 {
 public:
     void Begin() override;
-    void Draw(int subpassIndex) override;
+    void Draw(DrawCommand* drawCommand) override;
     void OnKeyDown(SDL_Keycode keycode) override;
     void OnKeyUp(SDL_Keycode keycode) override;
     void OnMouseMotion(glm::vec2 mouseMotion) override;

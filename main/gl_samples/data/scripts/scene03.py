@@ -11,7 +11,11 @@ class Scene03(core.System):
 
     def update(self, dt):
         self.t += dt
-        self.pipeline.set_float("value", (math.sin(self.t)+1)/2)
+
+    def draw(self, draw_command: core.DrawCommand):
+        draw_command.bind()
+        draw_command.set_float("value", (math.sin(self.t)+1)/2)
+        draw_command.draw()
 
     def end(self):
         print("End")

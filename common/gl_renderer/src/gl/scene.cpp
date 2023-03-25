@@ -217,7 +217,7 @@ Scene::ImportStatus Scene::LoadMaterials(const PbRepeatField<core::pb::Material>
             for(int j = 0; j < subpassInfo.commands_size(); j++)
             {
                 const auto& commandInfo = subpassInfo.commands(j);
-                drawCommands_.emplace_back();
+                drawCommands_.emplace_back(commandInfo, i);
             }
         }
         return ImportStatus::SUCCESS;
@@ -284,17 +284,22 @@ Scene::ImportStatus Scene::LoadMaterials(const PbRepeatField<core::pb::Material>
             TracyCZoneEnd(glClearZone);
             TracyCZoneN(pySystemsDrawZone, "PySystem Draw", true);
 #endif
-            for (auto* pySystem : pySystems_)
+
+            const auto commandSize = subPass.commands_size();
+            for (int j = 0; j < commandSize; j++)
             {
-                if (pySystem != nullptr)
+                const auto& command = subPass.commands(j);
+                for (auto* pySystem : pySystems_)
                 {
-                    pySystem->Draw(i);
+                    if (pySystem != nullptr)
+                    {
+                        pySystem->Draw(&GetDrawCommand(i, j));
+                    }
                 }
             }
 #ifdef TRACY_ENABLE
             TracyCZoneEnd(pySystemsDrawZone);
 #endif
-            const auto commandSize = subPass.commands_size();
             for (int j = 0; j < commandSize; j++)
             {
                 const auto& command = subPass.commands(j);

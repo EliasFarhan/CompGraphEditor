@@ -35,15 +35,10 @@ class Camera(core.System):
         self.camera.direction = core.Vec3(rotate_x*rotate_y*core.Vec4(self.camera.direction, 1.0))
 
         self.camera.position += (horizontal*direction.x+self.camera.direction*direction.y)*self.speed*dt
-    def draw(self, subpass_index: int):
-        scene = core.get_scene()
-        subpass = scene.get_subpass(subpass_index)
-        for i in range(subpass.draw_command_count):
-            draw_command = subpass.get_draw_command(i)
-            material = draw_command.get_material()
-            material.bind()
-            pipeline = material.get_pipeline()
-            pipeline.set_mat4("view", self.camera.view)
+
+    def draw(self, draw_command: core.DrawCommand):
+        draw_command.bind()
+        draw_command.set_mat4("view", self.camera.view)
     
     def end(self):
         pass

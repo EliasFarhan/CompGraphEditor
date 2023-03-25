@@ -26,7 +26,7 @@ PYBIND11_EMBEDDED_MODULE(core, m)
         .def("begin", &core::Script::Begin)
         .def("update", &core::Script::Update)
         .def("end", &core::Script::End)
-        .def("draw", &core::Script::Draw)
+        .def("draw", &core::Script::Draw, py::return_value_policy::reference)
         .def("on_key_up", &core::Script::OnKeyUp)
         .def("on_key_down", &core::Script::OnKeyDown)
         .def("on_mouse_motion", &core::Script::OnMouseMotion)
@@ -38,7 +38,27 @@ PYBIND11_EMBEDDED_MODULE(core, m)
         .def("set_vec2", &core::DrawCommand::SetVec2)
         .def("set_vec3", &core::DrawCommand::SetVec3)
         .def("set_vec4", &core::DrawCommand::SetVec4)
-        .def("set_mat4", &core::DrawCommand::SetMat4);
+        .def("set_mat4", &core::DrawCommand::SetMat4)
+        .def_property_readonly("subpass_index", &core::DrawCommand::GetSubpassIndex)
+        .def("draw", [](core::DrawCommand& drawCommand)
+        {
+                auto* scene = core::GetCurrentScene();
+                scene->Draw(drawCommand);
+        })
+        .def("bind", &core::DrawCommand::Bind)
+        .def("get_material", [](core::DrawCommand& drawCommand)
+        {
+            auto* scene = core::GetCurrentScene();
+            return scene->GetMaterial(drawCommand.GetMaterialIndex());
+        })
+        .def("get_name", &core::DrawCommand::GetName)
+        .def_property_readonly("name", &core::DrawCommand::GetName)
+        .def("get_mesh_name", [](core::DrawCommand& drawCommand)
+        {
+            auto* scene = core::GetCurrentScene();
+            return scene->GetMeshName(drawCommand.GetMeshIndex());
+        })
+        .def_property_readonly("mesh_name", &core::DrawCommand::GetName);
 
 
     py::class_<core::SceneSubPass>(m, "SubPass")
@@ -197,18 +217,6 @@ PYBIND11_EMBEDDED_MODULE(core, m)
         .def_property_readonly("name", &core::SceneMaterial::GetName)
         ;
 
-    py::class_<core::SceneDrawCommand>(m, "DrawCommand")
-        .def("draw", &core::SceneDrawCommand::Draw)
-        .def("bind", [](core::SceneDrawCommand& drawCommand)
-        {
-                drawCommand.GetDrawCommand().Bind();
-        })
-        .def("get_material", &core::SceneDrawCommand::GetMaterial)
-        .def("get_name", &core::SceneDrawCommand::GetName)
-        .def_property_readonly("name", &core::SceneDrawCommand::GetName)
-        .def("get_mesh_name", &core::SceneDrawCommand::GetMeshName)
-        .def_property_readonly("mesh_name", &core::SceneDrawCommand::GetName)
-        ;
     py::enum_<SDL_KeyCode>(m, "Key", py::arithmetic())
         .value("A", SDLK_a)
         .value("B", SDLK_b)
@@ -262,20 +270,6 @@ PYBIND11_EMBEDDED_MODULE(core, m)
         .def_property_readonly("view", &core::Camera::GetView);
 
     py::class_<core::Pipeline>(m, "Pipeline")
-            
-            /*.def("set_texture", [](core::Pipeline &pipeline,
-                    std::string_view uniformName,
-                    GLuint textureName,
-                    GLenum textureUnit = 0)
-                {
-                        return pipeline.SetTexture(uniformName, textureName, textureUnit);
-            })
-            .def("set_cubemap", [](core::Pipeline &pipeline,
-                    std::string_view uniformName,
-                    GLuint textureName,
-                    GLenum textureUnit = 0) {
-                return pipeline.SetCubemap(uniformName, textureName, textureUnit);
-            })*/
             .def("get_name", &core::Pipeline::GetPipelineName)
             .def_property_readonly("name", &core::Pipeline::GetPipelineName);
 

@@ -595,8 +595,8 @@ void SampleBrowserProgram::Begin()
         sample.scene.SetScene(sample.sceneInfo);
     }
 
-    sceneManager_.LoadScene(&samples_.back().scene);
-    currentIndex_ = samples_.size() - 1;
+    currentIndex_ = 0;
+    sceneManager_.LoadScene(&samples_[currentIndex_].scene);
 }
 
 void SampleBrowserProgram::Update(float dt)

@@ -2,8 +2,6 @@
 
 
 #include "engine/system.h"
-#include "renderer/texture.h"
-#include "engine/py_interface.h"
 #include "proto/renderer.pb.h"
 #include "engine/engine.h"
 #include "renderer/camera.h"
@@ -13,6 +11,8 @@
 
 namespace core
 {
+class Script;
+class PyManager;
 class DrawCommand;
 
 class Scene;
@@ -38,28 +38,13 @@ class SceneMaterial
 };
 
 
-class SceneDrawCommand
-{
-public:
-    SceneDrawCommand(Scene& scene, DrawCommand& drawCommand);
-    [[nodiscard]] SceneMaterial GetMaterial() const;
-    void Draw() const;
-    [[nodiscard]] std::string_view GetMeshName() const;
-    [[nodiscard]] std::string_view GetName() const;
-    DrawCommand& GetDrawCommand() {return drawCommand_;
-    }
-private:
-    Scene& scene_;
-    DrawCommand& drawCommand_;
-};
-
 
 class SceneSubPass
 {
 public:
     SceneSubPass(Scene& scene, const pb::SubPass& subPass, int subPassIndex);
-    SceneDrawCommand GetDrawCommand(int drawCommandIndex) const;
-    int GetDrawCommandCount() const;
+    [[nodiscard]] DrawCommand& GetDrawCommand(int drawCommandIndex) const;
+    [[nodiscard]] int GetDrawCommandCount() const;
     Framebuffer* GetFramebuffer();
 private:
     Scene& scene_;

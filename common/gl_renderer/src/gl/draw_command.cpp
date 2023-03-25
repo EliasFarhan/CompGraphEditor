@@ -8,10 +8,10 @@
 
 namespace gl
 {
-DrawCommand::DrawCommand()
+DrawCommand::DrawCommand(const core::pb::DrawCommand& drawCommandInfo, int subpassIndex) : core::DrawCommand(drawCommandInfo, subpassIndex)
 {
     auto* scene = core::GetCurrentScene();
-    const auto material = scene->GetMaterial(drawCommandInfo_.material_index());
+    const auto material = scene->GetMaterial(GetMaterialIndex());
     material_ = static_cast<Material*>(material.GetMaterial());
     pipeline_ = static_cast<Pipeline*>(material.GetPipeline());
 }

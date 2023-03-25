@@ -4,10 +4,9 @@
 
 #include <GL/glew.h>
 #include <array>
-
 namespace gl
 {
-
+    
 class VertexBuffer final : core::VertexBuffer
 {
 public:
@@ -20,5 +19,4 @@ private:
     GLuint vbo{};
     GLuint ebo{};
 };
-
 } // namespace gl

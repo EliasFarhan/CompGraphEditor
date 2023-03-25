@@ -238,6 +238,37 @@ class Pipeline:
     def __init__(self) -> None:
         self.name = ""
 
+   
+    def get_name(self) ->str:
+        return ""
+        
+
+class Material:
+    def __init__(self) -> None:
+        self.name = ""
+
+    def get_pipeline(self) -> Pipeline:
+        return Pipeline()
+
+    def get_name(self) -> str:
+        return ""
+
+
+
+class DrawCommand:
+    def __init__(self) -> None:
+        self.name = ""
+        self.mesh_name = ""
+
+    def get_material(self) -> Material:
+        return Material()
+
+    def get_name(self) -> str:
+        return ""
+
+    def get_mesh_name(self) -> str:
+        return ""
+
     def set_float(self, uniform_name: str, v: float):
         pass
 
@@ -259,62 +290,8 @@ class Pipeline:
     def set_cubemap(self, uniform_name: str, texture_name: int, texture_unit: int):
         pass
 
-    def get_name(self) ->str:
-        return ""
-        
-
-class Material:
-    def __init__(self) -> None:
-        self.name = ""
-
     def bind(self):
         pass
-
-    def get_pipeline(self) -> Pipeline:
-        return Pipeline()
-
-    def get_name(self) -> str:
-        return ""
-
-class System:
-    def __init__(self):
-        pass
-
-    def begin(self):
-        pass
-
-    def update(self, dt: float):
-        pass
-
-    def end(self):
-        pass
-
-    def draw(self, subpass_index: int):
-        pass
-
-    def on_key_down(self, keycode: Key):
-        pass
-
-    def on_key_up(self, keycode: Key):
-        pass
-
-    def on_motion_motion(self, motion: Vec2):
-        pass
-
-
-class DrawCommand:
-    def __init__(self) -> None:
-        self.name = ""
-        self.mesh_name = ""
-
-    def get_material(self) -> Material:
-        return Material()
-
-    def get_name(self) -> str:
-        return ""
-
-    def get_mesh_name(self) -> str:
-        return ""
 
     def draw(self):
         pass
@@ -367,6 +344,32 @@ class Scene:
 
     def get_camera(self) -> Camera:
         return Camera()
+
+
+class System:
+    def __init__(self):
+        pass
+
+    def begin(self):
+        pass
+
+    def update(self, dt: float):
+        pass
+
+    def end(self):
+        pass
+
+    def draw(self, draw_command: DrawCommand):
+        pass
+
+    def on_key_down(self, keycode: Key):
+        pass
+
+    def on_key_up(self, keycode: Key):
+        pass
+
+    def on_motion_motion(self, motion: Vec2):
+        pass
 
 
 def get_window_size():

@@ -10,15 +10,17 @@
 
 #include <pybind11/pybind11.h>
 
+
 namespace py = pybind11;
 
 namespace core
 {
+class DrawCommand;
 
 class Script : public System
 {
 public:
-    virtual void Draw(int subpassIndex) {}
+    virtual void Draw(DrawCommand* sceneDrawCommand) {}
     virtual void OnKeyDown(SDL_Keycode keycode) {}
     virtual void OnKeyUp(SDL_Keycode keycode){}
     virtual void OnMouseMotion(glm::vec2 mouseMotion){}
@@ -80,7 +82,7 @@ public:
             LogError(e.what());
         }
     }
-    void Draw(int subpassIndex) override
+    void Draw(DrawCommand* drawCommand) override
     {
         try
         {
@@ -89,7 +91,7 @@ public:
                 Script,      /* Parent class */
                 "draw",
                 Draw      /* Name of the function(s) */,
-                subpassIndex
+                drawCommand
             );
         }
         catch(py::error_already_set& e)

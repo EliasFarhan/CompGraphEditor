@@ -17,7 +17,9 @@ namespace core
 class DrawCommand
 {
 public:
+    DrawCommand(const pb::DrawCommand& drawCommandInfo, int subpassIndex): drawCommandInfo_(drawCommandInfo), subPassIndex_(subpassIndex){}
     virtual ~DrawCommand() = default;
+    
     //Uniform functions
     virtual void SetFloat(std::string_view uniformName, float f) = 0;
 
@@ -33,14 +35,15 @@ public:
 
     void SetName(std::string_view name){name_ = name;}
     [[nodiscard]] std::string_view GetName() const{return name_;}
-    int GetMaterialIndex() const { return drawCommandInfo_.material_index(); }
-    int GetMeshIndex() const { return drawCommandInfo_.mesh_index(); }
+    int GetMaterialIndex() const { return drawCommandInfo_.get().material_index(); }
+    int GetMeshIndex() const { return drawCommandInfo_.get().mesh_index(); }
     const pb::DrawCommand& GetInfo() const { return drawCommandInfo_; }
-
+    int GetSubpassIndex() const { return subPassIndex_; }
     virtual void Bind() = 0;
 protected:
-    pb::DrawCommand drawCommandInfo_;
+    std::reference_wrapper<const pb::DrawCommand> drawCommandInfo_;
     std::string name_;
+    int subPassIndex_ = -1;
 };
 
 } // namespace core

@@ -1,4 +1,4 @@
-#include "gl/mesh.h"
+#include "gl/buffer.h"
 #include "renderer/model.h"
 
 #include <glm/vec2.hpp>
@@ -8,6 +8,7 @@
 
 namespace gl
 {
+
 void VertexBuffer::CreateFromMesh(const core::Mesh& mesh)
 {
     //Initialize the EBO program
@@ -52,4 +53,5 @@ void VertexBuffer::Destroy()
         glDeleteVertexArrays(1, &vao);
     }
 }
+
 } // namespace gl

@@ -1,6 +1,5 @@
 #include "engine/scene.h"
-#include <SDL.h>
-#include <fmt/format.h>
+
 
 #include "renderer/texture.h"
 #include "renderer/material.h"
@@ -8,8 +7,10 @@
 #include "renderer/pipeline.h"
 #include "renderer/framebuffer.h"
 #include "renderer/model.h"
+#include "engine/py_interface.h"
 
-
+#include <SDL.h>
+#include <fmt/format.h>
 namespace core
 {
 
@@ -226,29 +227,6 @@ SceneManager::SceneManager()
 {
     sceneManagerInstance = this;
 }
-SceneDrawCommand::SceneDrawCommand(Scene& scene, DrawCommand& drawCommand) :
-    scene_(scene), drawCommand_(drawCommand)
-{
-
-}
-SceneMaterial SceneDrawCommand::GetMaterial() const
-{
-    return scene_.GetMaterial(drawCommand_.GetMaterialIndex());
-}
-void SceneDrawCommand::Draw() const
-{
-    scene_.Draw(drawCommand_);
-}
-
-std::string_view SceneDrawCommand::GetMeshName() const
-{
-    return scene_.GetMeshName(drawCommand_.GetMeshIndex());
-}
-
-std::string_view SceneDrawCommand::GetName() const
-{
-    return drawCommand_.GetName();
-}
 
 int SceneSubPass::GetDrawCommandCount() const
 {
@@ -268,8 +246,8 @@ SceneSubPass::SceneSubPass(Scene& scene, const pb::SubPass& subPass, int subPass
 {
 
 }
-SceneDrawCommand SceneSubPass::GetDrawCommand(int drawCommandIndex) const
+DrawCommand& SceneSubPass::GetDrawCommand(int drawCommandIndex) const
 {
-    return { scene_, scene_.GetDrawCommand(subPassIndex_, drawCommandIndex) };
+    return scene_.GetDrawCommand(subPassIndex_, drawCommandIndex);
 }
 }

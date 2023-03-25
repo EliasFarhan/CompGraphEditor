@@ -2,7 +2,7 @@
 
 #include "engine/scene.h"
 #include "gl/pipeline.h"
-#include "gl/mesh.h"
+#include "gl/buffer.h"
 #include "gl/texture.h"
 #include "gl/material.h"
 #include "gl/draw_command.h"

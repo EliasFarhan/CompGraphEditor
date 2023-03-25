@@ -49,16 +49,11 @@ void CameraSystem::End()
 
 }
 
-void CameraSystem::Draw(int subpassIndex)
+void CameraSystem::Draw(DrawCommand* drawCommand)
 {
-    auto* scene = GetCurrentScene();
-    auto subpass = scene->GetSubpass(subpassIndex);
-    for(int i = 0; i < subpass.GetDrawCommandCount(); i++)
-    {
-        auto command = subpass.GetDrawCommand(i);
-        command.GetDrawCommand().SetMat4("view", 
+    drawCommand->SetMat4("view", 
             glm::lookAt(camera_.position, camera_.position + camera_.direction, camera_.up));
-    }
+    
 }
 
 void CameraSystem::OnKeyDown(SDL_Keycode keycode)
