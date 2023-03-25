@@ -33,8 +33,7 @@ public:
 
     virtual void SetMat4(std::string_view uniformName, const glm::mat4& mat) = 0;
 
-    void SetName(std::string_view name){name_ = name;}
-    [[nodiscard]] std::string_view GetName() const{return name_;}
+    [[nodiscard]] std::string_view GetName() const{ return drawCommandInfo_.get().name();}
     int GetMaterialIndex() const { return drawCommandInfo_.get().material_index(); }
     int GetMeshIndex() const { return drawCommandInfo_.get().mesh_index(); }
     const pb::DrawCommand& GetInfo() const { return drawCommandInfo_; }
@@ -42,7 +41,6 @@ public:
     virtual void Bind() = 0;
 protected:
     std::reference_wrapper<const pb::DrawCommand> drawCommandInfo_;
-    std::string name_;
     int subPassIndex_ = -1;
 };
 

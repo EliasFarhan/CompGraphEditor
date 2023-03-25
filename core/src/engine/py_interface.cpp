@@ -2,6 +2,7 @@
 
 #include "renderer/pipeline.h"
 #include "renderer/draw_command.h"
+#include "renderer/framebuffer.h"
 #include "engine/filesystem.h"
 #include "engine/scene.h"
 #include "engine/engine.h"
@@ -39,7 +40,6 @@ PYBIND11_EMBEDDED_MODULE(core, m)
         .def("set_vec3", &core::DrawCommand::SetVec3)
         .def("set_vec4", &core::DrawCommand::SetVec4)
         .def("set_mat4", &core::DrawCommand::SetMat4)
-        .def_property_readonly("subpass_index", &core::DrawCommand::GetSubpassIndex)
         .def("draw", [](core::DrawCommand& drawCommand)
         {
                 auto* scene = core::GetCurrentScene();
@@ -58,6 +58,7 @@ PYBIND11_EMBEDDED_MODULE(core, m)
             auto* scene = core::GetCurrentScene();
             return scene->GetMeshName(drawCommand.GetMeshIndex());
         })
+        .def_property_readonly("subpass_index", &core::DrawCommand::GetSubpassIndex)
         .def_property_readonly("mesh_name", &core::DrawCommand::GetName);
 
 
@@ -72,8 +73,8 @@ PYBIND11_EMBEDDED_MODULE(core, m)
             py::return_value_policy::reference)
         .def("get_material", &core::Scene::GetMaterial)
         .def("get_subpass", &core::Scene::GetSubpass)
-        .def("get_camera", &core::Scene::GetCamera)
-        .def_property_readonly("camera", &core::Scene::GetCamera)
+        .def("get_camera", &core::Scene::GetCamera, py::return_value_policy::reference)
+        .def_property_readonly("camera", &core::Scene::GetCamera, py::return_value_policy::reference)
         .def_property_readonly("subpass_count", &core::Scene::GetSubpassCount)
         .def_property_readonly("pipeline_count", &core::Scene::GetPipelineCount)
         .def_property_readonly("material_count", &core::Scene::GetMaterialCount)
@@ -263,9 +264,9 @@ PYBIND11_EMBEDDED_MODULE(core, m)
         ;
 
     py::class_<core::Camera>(m, "Camera")
-        .def_readwrite("position", &core::Camera::position)
-        .def_readwrite("direction", &core::Camera::direction)
-        .def_readwrite("up", &core::Camera::up)
+        .def_readwrite("position", &core::Camera::position, py::return_value_policy::reference)
+        .def_readwrite("direction", &core::Camera::direction, py::return_value_policy::reference)
+        .def_readwrite("up", &core::Camera::up, py::return_value_policy::reference)
         .def("get_view", &core::Camera::GetView)
         .def_property_readonly("view", &core::Camera::GetView);
 

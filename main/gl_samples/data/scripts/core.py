@@ -192,7 +192,7 @@ class Mat4:
     def __init__(self, v: float):
         pass
 
-    def __int__(self, m: Mat3):
+    def __init__(self, m: Mat3):
         pass
 
     def translate(self, v: Vec3)-> Mat4:
@@ -259,6 +259,7 @@ class DrawCommand:
     def __init__(self) -> None:
         self.name = ""
         self.mesh_name = ""
+        self.subpass_index = 0
 
     def get_material(self) -> Material:
         return Material()

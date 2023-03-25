@@ -1,7 +1,7 @@
 
- .\data\textures\skybox\right.jpg
-.\data\textures\skybox\left.jpg
-.\data\textures\skybox\top.jpg
-!.\data\textures\skybox\bottom.jpg
- .\data\textures\skybox\front.jpg
-.\data\textures\skybox\back.jpg
+data/textures/skybox/right.jpg
+data/textures/skybox/left.jpg
+data/textures/skybox/top.jpg
+data/textures/skybox/bottom.jpg
+data/textures/skybox/front.jpg
+data/textures/skybox/back.jpg

@@ -37,7 +37,6 @@ class Camera(core.System):
         self.camera.position += (horizontal*direction.x+self.camera.direction*direction.y)*self.speed*dt
 
     def draw(self, draw_command: core.DrawCommand):
-        draw_command.bind()
         draw_command.set_mat4("view", self.camera.view)
     
     def end(self):
