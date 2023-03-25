@@ -6,7 +6,7 @@
 
 #include <SDL_main.h>
 
-#include "triangle_program.h"
+#include "sample_program.h"
 
 int main(int argc, char** argv)
 {

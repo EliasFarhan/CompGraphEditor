@@ -56,10 +56,8 @@ void CameraSystem::Draw(int subpassIndex)
     for(int i = 0; i < subpass.GetDrawCommandCount(); i++)
     {
         auto command = subpass.GetDrawCommand(i);
-        auto material = command.GetMaterial();
-        material.GetPipeline()->
-            SetMat4("view",
-                glm::lookAt(camera_.position, camera_.position+camera_.direction, camera_.up));
+        command.GetDrawCommand().SetMat4("view", 
+            glm::lookAt(camera_.position, camera_.position + camera_.direction, camera_.up));
     }
 }
 

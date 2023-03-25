@@ -13,6 +13,7 @@
 
 namespace core
 {
+class DrawCommand;
 
 class Scene;
 class Framebuffer;
@@ -40,30 +41,31 @@ class SceneMaterial
 class SceneDrawCommand
 {
 public:
-    SceneDrawCommand(Scene& scene, const pb::DrawCommand& drawCommand);
+    SceneDrawCommand(Scene& scene, DrawCommand& drawCommand);
     [[nodiscard]] SceneMaterial GetMaterial() const;
-    void Draw();
+    void Draw() const;
     [[nodiscard]] std::string_view GetMeshName() const;
     [[nodiscard]] std::string_view GetName() const;
+    DrawCommand& GetDrawCommand() {return drawCommand_;
+    }
 private:
     Scene& scene_;
-    const pb::DrawCommand& drawCommand_;
+    DrawCommand& drawCommand_;
 };
 
 
 class SceneSubPass
 {
 public:
-    SceneSubPass(Scene& scene, const pb::SubPass& subPass);
+    SceneSubPass(Scene& scene, const pb::SubPass& subPass, int subPassIndex);
     SceneDrawCommand GetDrawCommand(int drawCommandIndex) const;
     int GetDrawCommandCount() const;
     Framebuffer* GetFramebuffer();
 private:
     Scene& scene_;
     const pb::SubPass& subPass_;
+    int subPassIndex_ = -1;
 };
-
-
 
 
 class Scene : public OnEventInterface
@@ -73,7 +75,7 @@ public:
     virtual void UnloadScene() = 0;
     void SetScene(const pb::Scene &scene);
     virtual void Update(float dt) = 0;
-    virtual void Draw(const pb::DrawCommand& drawCommand) = 0;
+    virtual void Draw(DrawCommand& drawCommand) = 0;
     virtual Framebuffer& GetFramebuffer(int framebufferIndex) = 0;
 
     SceneSubPass GetSubpass(int subPassIndex);
@@ -88,6 +90,8 @@ public:
     Camera& GetCamera() { return camera_; }
 
     void OnEvent(SDL_Event& event) override;
+    virtual DrawCommand& GetDrawCommand(int subPassIndex, int drawCommandIndex) = 0;
+
 protected:
     enum class ImportStatus
     {
@@ -106,7 +110,7 @@ protected:
     virtual ImportStatus LoadMeshes(const PbRepeatField<pb::Mesh>& meshes) = 0;
     virtual ImportStatus LoadFramebuffers(const PbRepeatField<pb::FrameBuffer>& framebuffers) = 0;
 
-    virtual ImportStatus LoadRenderPass(const pb::RenderPass& renderPass) { return ImportStatus::SUCCESS; }
+    virtual ImportStatus LoadRenderPass(const pb::RenderPass& renderPass) = 0;
 
     pb::Scene scene_;
     std::vector<Script*> pySystems_;

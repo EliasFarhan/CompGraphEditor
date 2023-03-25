@@ -1,4 +1,4 @@
-#include "gl/buffer.h"
+#include "gl/mesh.h"
 #include "renderer/model.h"
 
 #include <glm/vec2.hpp>
@@ -8,7 +8,7 @@
 
 namespace gl
 {
-void VertexBuffer::CreateFromMesh(const core::refactor::Mesh& mesh)
+void VertexBuffer::CreateFromMesh(const core::Mesh& mesh)
 {
     //Initialize the EBO program
     glGenBuffers(1, &vbo);
@@ -18,20 +18,20 @@ void VertexBuffer::CreateFromMesh(const core::refactor::Mesh& mesh)
     glBindVertexArray(vao);
     // 2. copy our vertices array in a buffer for OpenGL to use
     glBindBuffer(GL_ARRAY_BUFFER, vbo);
-    glBufferData(GL_ARRAY_BUFFER, mesh.vertices.size() * sizeof(core::refactor::Vertex), mesh.vertices.data(), GL_STATIC_DRAW);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(core::refactor::Vertex), (void*)offsetof(core::refactor::Vertex, position));
+    glBufferData(GL_ARRAY_BUFFER, mesh.vertices.size() * sizeof(core::Vertex), mesh.vertices.data(), GL_STATIC_DRAW);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(core::Vertex), (void*)offsetof(core::Vertex, position));
     glEnableVertexAttribArray(0);
     //bind texture coords data
-    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(core::refactor::Vertex), (void*)offsetof(core::refactor::Vertex, texCoords));
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(core::Vertex), (void*)offsetof(core::Vertex, texCoords));
     glEnableVertexAttribArray(1);
     // bind normals data
-    glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, sizeof(core::refactor::Vertex), (void*)offsetof(core::refactor::Vertex, normal));
+    glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, sizeof(core::Vertex), (void*)offsetof(core::Vertex, normal));
     glEnableVertexAttribArray(2);
     // bind tangent data
-    glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, sizeof(core::refactor::Vertex), (void*)offsetof(core::refactor::Vertex, tangent));
+    glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, sizeof(core::Vertex), (void*)offsetof(core::Vertex, tangent));
     glEnableVertexAttribArray(3);
     // bind bitangent data
-    glVertexAttribPointer(4, 3, GL_FLOAT, GL_FALSE, sizeof(core::refactor::Vertex), (void*)offsetof(core::refactor::Vertex, bitangent));
+    glVertexAttribPointer(4, 3, GL_FLOAT, GL_FALSE, sizeof(core::Vertex), (void*)offsetof(core::Vertex, bitangent));
     glEnableVertexAttribArray(4);
     //bind EBO
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);

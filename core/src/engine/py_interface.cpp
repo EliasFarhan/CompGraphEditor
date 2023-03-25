@@ -1,6 +1,7 @@
 #include "engine/py_interface.h"
 
 #include "renderer/pipeline.h"
+#include "renderer/draw_command.h"
 #include "engine/filesystem.h"
 #include "engine/scene.h"
 #include "engine/engine.h"
@@ -30,6 +31,14 @@ PYBIND11_EMBEDDED_MODULE(core, m)
         .def("on_key_down", &core::Script::OnKeyDown)
         .def("on_mouse_motion", &core::Script::OnMouseMotion)
     ;
+
+    py::class_<core::DrawCommand>(m, "DrawCommand")
+        .def("set_float", &core::DrawCommand::SetFloat)
+        .def("set_int", &core::DrawCommand::SetInt)
+        .def("set_vec2", &core::DrawCommand::SetVec2)
+        .def("set_vec3", &core::DrawCommand::SetVec3)
+        .def("set_vec4", &core::DrawCommand::SetVec4)
+        .def("set_mat4", &core::DrawCommand::SetMat4);
 
 
     py::class_<core::SceneSubPass>(m, "SubPass")
@@ -183,10 +192,6 @@ PYBIND11_EMBEDDED_MODULE(core, m)
         });
 
     py::class_<core::SceneMaterial>(m, "Material")
-        .def("bind", [](const core::SceneMaterial& sceneMaterial)
-            {
-                sceneMaterial.GetMaterial()->Bind();
-            })
         .def("get_pipeline", &core::SceneMaterial::GetPipeline, py::return_value_policy::reference)
         .def("get_name", &core::SceneMaterial::GetName)
         .def_property_readonly("name", &core::SceneMaterial::GetName)
@@ -194,6 +199,10 @@ PYBIND11_EMBEDDED_MODULE(core, m)
 
     py::class_<core::SceneDrawCommand>(m, "DrawCommand")
         .def("draw", &core::SceneDrawCommand::Draw)
+        .def("bind", [](core::SceneDrawCommand& drawCommand)
+        {
+                drawCommand.GetDrawCommand().Bind();
+        })
         .def("get_material", &core::SceneDrawCommand::GetMaterial)
         .def("get_name", &core::SceneDrawCommand::GetName)
         .def_property_readonly("name", &core::SceneDrawCommand::GetName)
@@ -253,12 +262,7 @@ PYBIND11_EMBEDDED_MODULE(core, m)
         .def_property_readonly("view", &core::Camera::GetView);
 
     py::class_<core::Pipeline>(m, "Pipeline")
-            .def("set_float", &core::Pipeline::SetFloat)
-            .def("set_int", &core::Pipeline::SetInt)
-            .def("set_vec2", &core::Pipeline::SetVec2)
-            .def("set_vec3", &core::Pipeline::SetVec3)
-            .def("set_vec4", &core::Pipeline::SetVec4)
-            .def("set_mat4", &core::Pipeline::SetMat4)
+            
             /*.def("set_texture", [](core::Pipeline &pipeline,
                     std::string_view uniformName,
                     GLuint textureName,

@@ -2,7 +2,7 @@
 // Created by efarhan on 12/28/22.
 //
 
-#include "triangle_program.h"
+#include "sample_program.h"
 
 #include <imgui.h>
 
@@ -47,6 +47,7 @@ core::pb::Scene Scene1()
     drawCommand->set_automatic_draw(true);
     return scene;
 }
+
 
 core::pb::Scene Scene2()
 {

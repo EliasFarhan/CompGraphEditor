@@ -1,19 +1,24 @@
 #pragma once
 
-#include <GL/glew.h>
-#include <string>
+#include "renderer/buffer.h"
 
-#include "renderer/mesh.h"
+#include <GL/glew.h>
+#include <array>
 
 namespace gl
 {
-struct Mesh : core::Mesh
+
+class VertexBuffer final : core::VertexBuffer
 {
-    [[nodiscard]] std::string_view GetName() const override
-    {
-        return name;
-    }
-    std::string name;
-    GLuint vao;
+public:
+    void CreateFromMesh(const core::Mesh& mesh) override;
+    void Bind() override;
+    void Destroy() override;
+
+private:
+    GLuint vao{};
+    GLuint vbo{};
+    GLuint ebo{};
 };
-}
+
+} // namespace gl

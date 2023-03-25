@@ -1,5 +1,7 @@
 #pragma once
 
+#include "proto/renderer.pb.h"
+
 #include <glm/vec2.hpp>
 #include <glm/vec3.hpp>
 #include <glm/vec4.hpp>
@@ -15,6 +17,7 @@ namespace core
 class DrawCommand
 {
 public:
+    virtual ~DrawCommand() = default;
     //Uniform functions
     virtual void SetFloat(std::string_view uniformName, float f) = 0;
 
@@ -30,8 +33,13 @@ public:
 
     void SetName(std::string_view name){name_ = name;}
     [[nodiscard]] std::string_view GetName() const{return name_;}
+    int GetMaterialIndex() const { return drawCommandInfo_.material_index(); }
+    int GetMeshIndex() const { return drawCommandInfo_.mesh_index(); }
+    const pb::DrawCommand& GetInfo() const { return drawCommandInfo_; }
 
-private:
+    virtual void Bind() = 0;
+protected:
+    pb::DrawCommand drawCommandInfo_;
     std::string name_;
 };
 

@@ -17,16 +17,7 @@ static SceneManager* sceneManagerInstance = nullptr;
 
 void Scene::LoadScene(PyManager &pyManager)
 {
-    const auto framebuffers = scene_.framebuffers();
-    if (LoadFramebuffers(framebuffers) != ImportStatus::SUCCESS)
-    {
-        LogError("Could not import framebuffers");
-    }
-    const auto& renderPass = scene_.render_pass();
-    if (LoadRenderPass(renderPass) != ImportStatus::SUCCESS)
-    {
-        LogError("Count not import render pass");
-    }
+
     const auto shaders = scene_.shaders();
     if (LoadShaders(shaders) != ImportStatus::SUCCESS)
     {
@@ -37,7 +28,7 @@ void Scene::LoadScene(PyManager &pyManager)
     {
         LogError("Could not import pipelines");
     }
-
+    
     const auto textures = scene_.textures();
     if(LoadTextures(textures) != ImportStatus::SUCCESS)
     {
@@ -49,6 +40,18 @@ void Scene::LoadScene(PyManager &pyManager)
     {
         LogError("Could not import materials");
     }
+
+    const auto framebuffers = scene_.framebuffers();
+    if (LoadFramebuffers(framebuffers) != ImportStatus::SUCCESS)
+    {
+        LogError("Could not import framebuffers");
+    }
+    const auto& renderPass = scene_.render_pass();
+    if (LoadRenderPass(renderPass) != ImportStatus::SUCCESS)
+    {
+        LogError("Count not import render pass");
+    }
+
     const auto models = scene_.model_paths();
     if(LoadModels(models) != ImportStatus::SUCCESS)
     {
@@ -85,11 +88,6 @@ void Scene::Update(float dt)
 int Scene::GetMeshCount() const
 {
     return scene_.meshes_size();
-}
-
-void Scene::Draw(const pb::DrawCommand& command)
-{
-    
 }
 
 void Scene::OnEvent(SDL_Event& event)
@@ -138,7 +136,7 @@ void Scene::OnEvent(SDL_Event& event)
 
 SceneSubPass Scene::GetSubpass(int subPassIndex)
 {
-    return { *this, scene_.render_pass().sub_passes(subPassIndex) };
+    return { *this, scene_.render_pass().sub_passes(subPassIndex), subPassIndex };
 }
 int Scene::GetSubpassCount() const
 {
@@ -228,28 +226,28 @@ SceneManager::SceneManager()
 {
     sceneManagerInstance = this;
 }
-SceneDrawCommand::SceneDrawCommand(Scene& scene, const pb::DrawCommand& drawCommand) :
+SceneDrawCommand::SceneDrawCommand(Scene& scene, DrawCommand& drawCommand) :
     scene_(scene), drawCommand_(drawCommand)
 {
 
 }
 SceneMaterial SceneDrawCommand::GetMaterial() const
 {
-    return scene_.GetMaterial(drawCommand_.material_index());
+    return scene_.GetMaterial(drawCommand_.GetMaterialIndex());
 }
-void SceneDrawCommand::Draw()
+void SceneDrawCommand::Draw() const
 {
     scene_.Draw(drawCommand_);
 }
 
 std::string_view SceneDrawCommand::GetMeshName() const
 {
-    return scene_.GetMeshName(drawCommand_.mesh_index());
+    return scene_.GetMeshName(drawCommand_.GetMeshIndex());
 }
 
 std::string_view SceneDrawCommand::GetName() const
 {
-    return drawCommand_.name();
+    return drawCommand_.GetName();
 }
 
 int SceneSubPass::GetDrawCommandCount() const
@@ -266,12 +264,12 @@ Framebuffer* SceneSubPass::GetFramebuffer()
     return nullptr;
 }
 
-SceneSubPass::SceneSubPass(Scene& scene, const pb::SubPass& subPass) : scene_(scene), subPass_(subPass)
+SceneSubPass::SceneSubPass(Scene& scene, const pb::SubPass& subPass, int subPassIndex) : scene_(scene), subPass_(subPass), subPassIndex_(subPassIndex)
 {
 
 }
 SceneDrawCommand SceneSubPass::GetDrawCommand(int drawCommandIndex) const
 {
-    return { scene_, subPass_.commands(drawCommandIndex) };
+    return { scene_, scene_.GetDrawCommand(subPassIndex_, drawCommandIndex) };
 }
 }

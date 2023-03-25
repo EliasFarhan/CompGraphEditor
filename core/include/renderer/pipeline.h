@@ -21,18 +21,6 @@ public:
     virtual ~Pipeline() = default;
     virtual void Bind() = 0;
 
-    //Uniform functions
-    virtual void SetFloat(std::string_view uniformName, float f) = 0;
-
-    virtual void SetInt(std::string_view uniformName, int i)  = 0;
-
-    virtual void SetVec2(std::string_view uniformName, glm::vec2 v) = 0;
-
-    virtual void SetVec3(std::string_view uniformName, glm::vec3 v) = 0;
-
-    virtual void SetVec4(std::string_view uniformName, glm::vec4 v) = 0;
-
-    virtual void SetMat4(std::string_view uniformName, const glm::mat4& mat) = 0;
     void SetPipelineName(std::string_view name);
     [[nodiscard]] std::string_view GetPipelineName() const;
 private:

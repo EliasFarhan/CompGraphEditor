@@ -4,8 +4,8 @@
 #include "gl/pipeline.h"
 #include "gl/mesh.h"
 #include "gl/texture.h"
-#include "gl/buffer.h"
 #include "gl/material.h"
+#include "gl/draw_command.h"
 
 #include <vector>
 
@@ -27,7 +27,7 @@ class Scene : public core::Scene
 public:
     void UnloadScene() override;
     void Update(float dt) override;
-    void Draw(const core::pb::DrawCommand& drawCommand) override;
+    void Draw(core::DrawCommand& drawCommand) override;
 
     core::SceneMaterial GetMaterial(int materialIndex) override;
 
@@ -35,6 +35,7 @@ public:
     core::Framebuffer& GetFramebuffer(int framebufferIndex) override { return framebuffers_[framebufferIndex]; }
     core::Pipeline& GetPipeline(int index) override { return pipelines_[index]; }
     VertexBuffer& GetVertexBuffer(int index) { return vertexBuffers_[index]; }
+    core::DrawCommand& GetDrawCommand(int subPassIndex, int drawCommandIndex) override;
     
 protected:
     ImportStatus LoadShaders(const PbRepeatField<core::pb::Shader>& shadersPb) override;
@@ -44,6 +45,7 @@ protected:
     ImportStatus LoadModels(const PbRepeatField<std::string>& models) override;
     ImportStatus LoadMeshes(const PbRepeatField<core::pb::Mesh>& meshes) override;
     ImportStatus LoadFramebuffers(const PbRepeatField<core::pb::FrameBuffer>& framebuffers) override;
+    ImportStatus LoadRenderPass(const core::pb::RenderPass& renderPass) override;
 
 private:
     std::vector<Shader> shaders_;
@@ -53,6 +55,7 @@ private:
     std::vector<SceneTexture> textures_;
     std::vector<Material> materials_;
     std::vector<Framebuffer> framebuffers_;
+    std::vector<DrawCommand> drawCommands_;
 
     GLuint emptyMeshVao_ = 0;
 };

@@ -4,7 +4,8 @@
 
 #include "gl/debug.h"
 #include "proto/renderer.pb.h"
-#include "gl/shape_primitive.h"
+
+#include "renderer/draw_command.h"
 
 #include "renderer/pipeline.h"
 #include "renderer/material.h"
@@ -25,6 +26,24 @@ const Texture& GetTexture(core::TextureId textureId)
 {
     auto& textureManager = static_cast<TextureManager&>(core::GetTextureManager());
     return textureManager.GetTexture(textureId);
+}
+
+core::DrawCommand& Scene::GetDrawCommand(int subPassIndex, int drawCommandIndex)
+{
+    int resultIndex = 0;
+    for(int i = 0; i < this->scene_.render_pass().sub_passes_size(); i++)
+    {
+        if(i < subPassIndex)
+        {
+            resultIndex += scene_.render_pass().sub_passes(i).commands_size();
+        }
+        else if(i == subPassIndex)
+        {
+            break;
+            
+        }
+    }
+    return drawCommands_[resultIndex + drawCommandIndex];
 }
 
 Scene::ImportStatus Scene::LoadShaders(
@@ -137,7 +156,7 @@ Scene::ImportStatus Scene::LoadMaterials(const PbRepeatField<core::pb::Material>
                 {
                     const glm::vec3 scale = meshInfo.has_scale() ? glm::vec3{ meshInfo.scale().x(), meshInfo.scale().y(), meshInfo.scale().z() } : glm::vec3(1.0f);
                     const glm::vec3 offset{ meshInfo.offset().x(), meshInfo.offset().y(), meshInfo.offset().z() };
-                    const auto mesh = core::refactor::GenerateQuad(scale, offset);
+                    const auto mesh = core::GenerateQuad(scale, offset);
                     vertexBuffers_.emplace_back();
                     vertexBuffers_.back().CreateFromMesh(mesh);
                     break;
@@ -147,7 +166,7 @@ Scene::ImportStatus Scene::LoadMaterials(const PbRepeatField<core::pb::Material>
                     const glm::vec3 scale = meshInfo.has_scale() ? glm::vec3{ meshInfo.scale().x(), meshInfo.scale().y(), meshInfo.scale().z() } : glm::vec3(1.0f);
                     const glm::vec3 offset{ meshInfo.offset().x(), meshInfo.offset().y(), meshInfo.offset().z() };
 
-                    const auto mesh = core::refactor::GenerateCube(scale, offset);
+                    const auto mesh = core::GenerateCube(scale, offset);
                     vertexBuffers_.emplace_back();
                     vertexBuffers_.back().CreateFromMesh(mesh);
                     break;
@@ -186,6 +205,21 @@ Scene::ImportStatus Scene::LoadMaterials(const PbRepeatField<core::pb::Material>
             framebuffers_[i].Load(framebuffers.Get(i));
         }
 
+        return ImportStatus::SUCCESS;
+    }
+
+    Scene::ImportStatus Scene::LoadRenderPass(const core::pb::RenderPass& renderPass)
+    {
+        for(int i = 0; i < renderPass.sub_passes_size(); i++)
+        {
+            const auto& subpassInfo = renderPass.sub_passes(i);
+
+            for(int j = 0; j < subpassInfo.commands_size(); j++)
+            {
+                const auto& commandInfo = subpassInfo.commands(j);
+                drawCommands_.emplace_back();
+            }
+        }
         return ImportStatus::SUCCESS;
     }
 
@@ -266,7 +300,7 @@ Scene::ImportStatus Scene::LoadMaterials(const PbRepeatField<core::pb::Material>
                 const auto& command = subPass.commands(j);
                 if (!command.automatic_draw())
                     continue;
-                Draw(command);
+                Draw(GetDrawCommand(i, j));
             }
         }
 
@@ -275,12 +309,14 @@ Scene::ImportStatus Scene::LoadMaterials(const PbRepeatField<core::pb::Material>
 
 
 
-    void Scene::Draw(const core::pb::DrawCommand& command)
+    void Scene::Draw(core::DrawCommand& command)
     {
 #ifdef TRACY_ENABLE
         ZoneScoped;
 #endif
-        const auto& material = materials_[command.material_index()];
+        auto& glCommand = reinterpret_cast<DrawCommand&>(command);
+        const auto& commandInfo = command.GetInfo();
+        const auto& material = materials_[command.GetMaterialIndex()];
         auto& pipeline = pipelines_[material.pipelineIndex];
         auto& pipelineInfo = scene_.pipelines(material.pipelineIndex);
 
@@ -350,7 +386,7 @@ Scene::ImportStatus Scene::LoadMaterials(const PbRepeatField<core::pb::Material>
             const auto& materialTexture = material.textures[textureIndex];
             if (materialTexture.textureId != core::INVALID_TEXTURE_ID)
             {
-                pipeline.SetTexture(materialTexture.uniformSamplerName, GetTexture(material.textures[textureIndex].textureId), textureIndex);
+                glCommand.SetTexture(materialTexture.uniformSamplerName, GetTexture(material.textures[textureIndex].textureId), textureIndex);
             }
             else
             {
@@ -377,7 +413,7 @@ Scene::ImportStatus Scene::LoadMaterials(const PbRepeatField<core::pb::Material>
 
                     continue;
                 }
-                pipeline.SetTexture(materialTexture.uniformSamplerName, textureName, textureIndex);
+                glCommand.SetTexture(materialTexture.uniformSamplerName, textureName, textureIndex);
 
 
             }
@@ -386,7 +422,7 @@ Scene::ImportStatus Scene::LoadMaterials(const PbRepeatField<core::pb::Material>
 
 
         GLenum mode = 0;
-        switch (command.mode())
+        switch (commandInfo.mode())
         {
             case core::pb::DrawCommand_Mode_TRIANGLES:
                 mode = GL_TRIANGLES;
@@ -395,7 +431,7 @@ Scene::ImportStatus Scene::LoadMaterials(const PbRepeatField<core::pb::Material>
                 break;
         }
 
-        const auto meshIndex = command.mesh_index();
+        const auto meshIndex = command.GetMeshIndex();
         if (meshIndex >= 0)
         {
             vertexBuffers_[meshIndex].Bind();
@@ -407,14 +443,14 @@ Scene::ImportStatus Scene::LoadMaterials(const PbRepeatField<core::pb::Material>
             glCheckError();
         }
 
-        if (command.draw_elements())
+        if (commandInfo.draw_elements())
         {
-            glDrawElements(mode, command.count(), GL_UNSIGNED_INT, nullptr);
+            glDrawElements(mode, commandInfo.count(), GL_UNSIGNED_INT, nullptr);
             glCheckError();
         }
         else
         {
-            glDrawArrays(mode, 0, command.count());
+            glDrawArrays(mode, 0, commandInfo.count());
             glCheckError();
         }
     }

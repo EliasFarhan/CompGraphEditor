@@ -20,38 +20,38 @@ bool Pipeline::LoadRaterizePipeline(const core::pb::Pipeline& pipelinePb, Shader
     VkVertexInputBindingDescription vertexInputBindingDescription{};
     vertexInputBindingDescription.binding = 0;
     vertexInputBindingDescription.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
-    vertexInputBindingDescription.stride = sizeof(core::refactor::Vertex);
+    vertexInputBindingDescription.stride = sizeof(core::Vertex);
     
     std::array<VkVertexInputAttributeDescription, 5> vertexAttributeDescriptors;
     auto& positionAttribute = vertexAttributeDescriptors[0];
     positionAttribute.format = VK_FORMAT_R32G32B32_SFLOAT;
     positionAttribute.binding = 0;
     positionAttribute.location = 0;
-    positionAttribute.offset = offsetof(core::refactor::Vertex, position);
+    positionAttribute.offset = offsetof(core::Vertex, position);
 
     auto& texCoordsAttribute = vertexAttributeDescriptors[1];
     texCoordsAttribute.format = VK_FORMAT_R32G32_SFLOAT;
     texCoordsAttribute.binding = 0;
     texCoordsAttribute.location = 1;
-    texCoordsAttribute.offset = offsetof(core::refactor::Vertex, texCoords);
+    texCoordsAttribute.offset = offsetof(core::Vertex, texCoords);
 
     auto& normalAttribute = vertexAttributeDescriptors[2];
     normalAttribute.format = VK_FORMAT_R32G32B32_SFLOAT;
     normalAttribute.binding = 0;
     normalAttribute.location = 2;
-    normalAttribute.offset = offsetof(core::refactor::Vertex, normal);
+    normalAttribute.offset = offsetof(core::Vertex, normal);
 
     auto& tangentAttribute = vertexAttributeDescriptors[3];
     tangentAttribute.format = VK_FORMAT_R32G32B32_SFLOAT;
     tangentAttribute.binding = 0;
     tangentAttribute.location = 3;
-    tangentAttribute.offset = offsetof(core::refactor::Vertex, tangent);
+    tangentAttribute.offset = offsetof(core::Vertex, tangent);
 
     auto& bitangentAttribute = vertexAttributeDescriptors[4];
     bitangentAttribute.format = VK_FORMAT_R32G32B32_SFLOAT;
     bitangentAttribute.binding = 0;
     bitangentAttribute.location = 4;
-    bitangentAttribute.offset = offsetof(core::refactor::Vertex, bitangent);
+    bitangentAttribute.offset = offsetof(core::Vertex, bitangent);
 
     VkPipelineVertexInputStateCreateInfo vertexInputInfo{};
     vertexInputInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
