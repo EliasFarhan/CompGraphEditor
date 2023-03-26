@@ -2,11 +2,14 @@
 
 #include "vk/engine.h"
 #include "vk/scene.h"
+#include "vk/utils.h"
 
 namespace vk
 {
 bool Pipeline::LoadRaterizePipeline(const core::pb::Pipeline& pipelinePb, Shader& vertexShader, Shader& fragmentShader)
 {
+    auto* scene = core::GetCurrentScene();
+    const auto& sceneInfo = scene->GetInfo();
     auto& swapchain = GetSwapchain();
     auto& driver = GetDriver();
     std::array<VkShaderModule, 2> shaderModules{ {vertexShader.module, fragmentShader.module} };
@@ -160,83 +163,87 @@ bool Pipeline::LoadRaterizePipeline(const core::pb::Pipeline& pipelinePb, Shader
     colorBlending.blendConstants[2] = 0.0f; // Optional
     colorBlending.blendConstants[3] = 0.0f; // Optional
 
-    //TODO uniform management through push constant
-    std::size_t size = 0;
-    std::size_t base = 0;
-    for(int i = 0; i < pipelinePb.uniforms_size(); i++)
+    //TODO generate uniform push constant table
+    std::vector<std::reference_wrapper<const core::pb::Shader>> shaderInfo;
+    std::array shaderIndices =
+            {
+                    pipelinePb.vertex_shader_index(),
+                    pipelinePb.fragment_shader_index(),
+                    pipelinePb.compute_shader_index(),
+                    pipelinePb.geometry_shader_index()
+            };
+    for(std::size_t i = 0; i < shaderIndices.size(); i++)
     {
-        const auto& uniform = pipelinePb.uniforms(i);
-        switch (uniform.type())
+        auto shaderIndex = shaderIndices[i];
+        auto& shader = sceneInfo.shaders(shaderIndex);
+        if(shader.type() == i)
         {
-        case core::pb::Attribute_Type_BOOL: break;
-        case core::pb::Attribute_Type_FLOAT: 
-        case core::pb::Attribute_Type_INT:
-        {
-            if(base % 4 != 0)
-            {
-                base += 4 - base % 4;
-            }
-            uniformOffsetMap_[uniform.name()] = base;
-            base += 4;
-            break;
-        }
-        case core::pb::Attribute_Type_VEC2:
-        case core::pb::Attribute_Type_IVEC2:
-        {
-            if (base % 8 != 0)
-            {
-                base += 8 - base % 8;
-            }
-            uniformOffsetMap_[uniform.name()] = base;
-            base += 8;
-            break;
-        }
-        case core::pb::Attribute_Type_VEC3: 
-        case core::pb::Attribute_Type_IVEC3:
-        case core::pb::Attribute_Type_VEC4: 
-        case core::pb::Attribute_Type_IVEC4:
-        {
-            if (base % 16 != 0)
-            {
-                base += 16 - base % 16;
-            }
-            uniformOffsetMap_[uniform.name()] = base;
-            base += 16;
-            break;
-        }
-        case core::pb::Attribute_Type_MAT2:
-        {
-            if (base % 8 != 0)
-            {
-                base += 8 - base % 8;
-            }
-            uniformOffsetMap_[uniform.name()] = base;
-            base += 16;
-            break;
-        }
-        case core::pb::Attribute_Type_MAT3:
-        {
-            if (base % 12 != 0)
-            {
-                base += 12 - base % 12;
-            }
-            uniformOffsetMap_[uniform.name()] = base;
-            base += 36;
-            break;
-        }
-        case core::pb::Attribute_Type_MAT4: break;
-        case core::pb::Attribute_Type_CUSTOM: break;
-        default: ;
+            shaderInfo.emplace_back(shader);
         }
     }
+    int basePushConstantIndex = 0;
+    std::vector<VkPushConstantRange> pushConstantRanges{};
+    for(auto& shader: shaderInfo)
+    {
+        for(const auto& uniform: shader.get().uniforms())
+        {
+            auto& uniformData = pushConstantDataTable_[uniform.stage()];
+            if(uniform.push_constant())
+            {
+                VkPushConstantRange pushConstantRange{};
+                if(uniform.type() != core::pb::Attribute_Type_CUSTOM)
+                {
+                    const auto typeInfo = core::GetTypeInfo(uniform.type());
+                    if(basePushConstantIndex % typeInfo.alignment != 0)
+                    {
+                        basePushConstantIndex += typeInfo.alignment - basePushConstantIndex % typeInfo.alignment;
+                    }
+                    uniformData.index = basePushConstantIndex;
+                    uniformData.size = typeInfo.size;
+                    pushConstantRange.offset = basePushConstantIndex;
+                    pushConstantRange.size = typeInfo.size;
+                    basePushConstantIndex += typeInfo.size;
+
+                }
+                else
+                {
+                    for(auto& structType : shader.get().structs())
+                    {
+                        if(structType.name() == uniform.type_name())
+                        {
+                            core::TypeInfo typeInfo
+                            {
+                                .size = structType.size(),
+                                .alignment = structType.alignment()
+                            };
+                            if(basePushConstantIndex % typeInfo.alignment != 0)
+                            {
+                                basePushConstantIndex += typeInfo.alignment - basePushConstantIndex % typeInfo.alignment;
+                            }
+                            uniformData.index = basePushConstantIndex;
+                            uniformData.size = typeInfo.size;
+                            pushConstantRange.offset = basePushConstantIndex;
+                            pushConstantRange.size = typeInfo.size;
+                            basePushConstantIndex += typeInfo.size;
+                            break;
+                        }
+                    }
+                }
+                pushConstantRange.stageFlags = GetShaderStage(uniform.stage());
+                pushConstantRanges.push_back(pushConstantRange);
+            }
+        }
+    }
+
+
     VkPushConstantRange pushConstantRange{};
     
     VkPipelineLayoutCreateInfo pipelineLayoutInfo{};
     pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
     pipelineLayoutInfo.setLayoutCount = 0;
     pipelineLayoutInfo.pSetLayouts = nullptr;
-    pipelineLayoutInfo.pushConstantRangeCount = 0; // Optional
-    pipelineLayoutInfo.pPushConstantRanges = nullptr; // Optional
+    pipelineLayoutInfo.pushConstantRangeCount = pushConstantRanges.size();
+    pipelineLayoutInfo.pPushConstantRanges = pushConstantRanges.empty() ? 0 : pushConstantRanges.data();
 
     if (vkCreatePipelineLayout(driver.device, &pipelineLayoutInfo, nullptr, &pipelineLayout) !=
         VK_SUCCESS)
@@ -304,33 +311,4 @@ void Pipeline::Destroy() const
     vkDestroyPipelineLayout(driver.device, pipelineLayout, nullptr);
 }
 
-void Pipeline::SetFloat(std::string_view uniformName, float f)
-{
-    //TODO using push constant
-}
-
-void Pipeline::SetInt(std::string_view uniformName, int i)
-{
-    //TODO using push constant
-}
-
-void Pipeline::SetVec2(std::string_view uniformName, glm::vec2 v)
-{
-    //TODO using push constant
-}
-
-void Pipeline::SetVec3(std::string_view uniformName, glm::vec3 v)
-{
-    //TODO using push constant
-}
-
-void Pipeline::SetVec4(std::string_view uniformName, glm::vec4 v)
-{
-    //TODO using push constant
-}
-
-void Pipeline::SetMat4(std::string_view uniformName, const glm::mat4& mat)
-{
-    //TODO using push constant
-}
 }

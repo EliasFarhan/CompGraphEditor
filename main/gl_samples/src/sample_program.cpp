@@ -9,11 +9,11 @@ core::pb::Scene Scene1()
     core::pb::Scene scene;
 
     core::pb::Shader* vertexShader = scene.add_shaders();
-    vertexShader->set_type(core::pb::Shader_Type_VERTEX);
+    vertexShader->set_type(core::pb::VERTEX);
     vertexShader->set_path("data/shaders/scene01/triangle.vert");
 
     core::pb::Shader* fragmentShader = scene.add_shaders();
-    fragmentShader->set_type(core::pb::Shader_Type_FRAGMENT);
+    fragmentShader->set_type(core::pb::FRAGMENT);
     fragmentShader->set_path("data/shaders/scene01/triangle.frag");
 
     auto *pipeline = scene.add_pipelines();
@@ -47,11 +47,11 @@ core::pb::Scene Scene2()
     core::pb::Scene scene;
 
     core::pb::Shader *vertexShader = scene.add_shaders();
-    vertexShader->set_type(core::pb::Shader_Type_VERTEX);
+    vertexShader->set_type(core::pb::VERTEX);
     vertexShader->set_path("data/shaders/scene02/quad.vert");
 
     core::pb::Shader *fragmentShader = scene.add_shaders();
-    fragmentShader->set_type(core::pb::Shader_Type_FRAGMENT);
+    fragmentShader->set_type(core::pb::FRAGMENT);
     fragmentShader->set_path("data/shaders/scene02/quad.frag");
 
     auto *pipeline = scene.add_pipelines();
@@ -91,11 +91,11 @@ core::pb::Scene Scene3()
     core::pb::Scene scene;
 
     core::pb::Shader *vertexShader = scene.add_shaders();
-    vertexShader->set_type(core::pb::Shader_Type_VERTEX);
+    vertexShader->set_type(core::pb::VERTEX);
     vertexShader->set_path("data/shaders/scene03/uniform.vert");
 
     core::pb::Shader *fragmentShader = scene.add_shaders();
-    fragmentShader->set_type(core::pb::Shader_Type_FRAGMENT);
+    fragmentShader->set_type(core::pb::FRAGMENT);
     fragmentShader->set_path("data/shaders/scene03/uniform.frag");
 
     auto *pipeline = scene.add_pipelines();
@@ -124,7 +124,7 @@ core::pb::Scene Scene3()
     drawCommand->set_mesh_index(0);
     drawCommand->set_draw_elements(true);
     drawCommand->set_mode(core::pb::DrawCommand_Mode_TRIANGLES);
-    drawCommand->set_automatic_draw(true);
+    drawCommand->set_automatic_draw(false);
 
     auto* pySystem = scene.add_py_systems();
     pySystem->set_class_("Scene03");
@@ -140,11 +140,11 @@ core::pb::Scene Scene4()
     core::pb::Scene scene;
 
     core::pb::Shader *vertexShader = scene.add_shaders();
-    vertexShader->set_type(core::pb::Shader_Type_VERTEX);
+    vertexShader->set_type(core::pb::VERTEX);
     vertexShader->set_path("data/shaders/scene04/texture.vert");
 
     core::pb::Shader *fragmentShader = scene.add_shaders();
-    fragmentShader->set_type(core::pb::Shader_Type_FRAGMENT);
+    fragmentShader->set_type(core::pb::FRAGMENT);
     fragmentShader->set_path("data/shaders/scene04/texture.frag");
 
     auto *pipeline = scene.add_pipelines();
@@ -189,11 +189,11 @@ core::pb::Scene Scene5()
     core::pb::Scene scene;
 
     core::pb::Shader *vertexShader = scene.add_shaders();
-    vertexShader->set_type(core::pb::Shader_Type_VERTEX);
+    vertexShader->set_type(core::pb::VERTEX);
     vertexShader->set_path("data/shaders/scene05/mix.vert");
 
     core::pb::Shader *fragmentShader = scene.add_shaders();
-    fragmentShader->set_type(core::pb::Shader_Type_FRAGMENT);
+    fragmentShader->set_type(core::pb::FRAGMENT);
     fragmentShader->set_path("data/shaders/scene05/mix.frag");
 
     auto *pipeline = scene.add_pipelines();
@@ -245,11 +245,11 @@ core::pb::Scene Scene6()
     core::pb::Scene scene;
 
     core::pb::Shader *vertexShader = scene.add_shaders();
-    vertexShader->set_type(core::pb::Shader_Type_VERTEX);
+    vertexShader->set_type(core::pb::VERTEX);
     vertexShader->set_path("data/shaders/scene06/rotated_cube.vert");
 
     core::pb::Shader *fragmentShader = scene.add_shaders();
-    fragmentShader->set_type(core::pb::Shader_Type_FRAGMENT);
+    fragmentShader->set_type(core::pb::FRAGMENT);
     fragmentShader->set_path("data/shaders/scene06/rotated_cube.frag");
 
     auto *pipeline = scene.add_pipelines();
@@ -302,11 +302,11 @@ core::pb::Scene Scene7()
     core::pb::Scene scene;
 
     core::pb::Shader *vertexShader = scene.add_shaders();
-    vertexShader->set_type(core::pb::Shader_Type_VERTEX);
+    vertexShader->set_type(core::pb::VERTEX);
     vertexShader->set_path("data/shaders/scene07/rock.vert");
 
     core::pb::Shader *fragmentShader = scene.add_shaders();
-    fragmentShader->set_type(core::pb::Shader_Type_FRAGMENT);
+    fragmentShader->set_type(core::pb::FRAGMENT);
     fragmentShader->set_path("data/shaders/scene07/rock.frag");
 
     auto *pipeline = scene.add_pipelines();
@@ -372,16 +372,16 @@ core::pb::Scene Scene8()
 {
     core::pb::Scene scene;
     auto* vertexShader = scene.add_shaders();
-    vertexShader->set_type(core::pb::Shader_Type_VERTEX);
+    vertexShader->set_type(core::pb::VERTEX);
     vertexShader->set_path("data/shaders/scene08/model.vert");
     auto* fragmentShader = scene.add_shaders();
-    fragmentShader->set_type(core::pb::Shader_Type_FRAGMENT);
+    fragmentShader->set_type(core::pb::FRAGMENT);
     fragmentShader->set_path("data/shaders/scene08/model.frag");
     auto* postVertexShader = scene.add_shaders();
-    postVertexShader->set_type(core::pb::Shader_Type_VERTEX);
+    postVertexShader->set_type(core::pb::VERTEX);
     postVertexShader->set_path("data/shaders/scene08/screen.vert");
     auto* postFragmentShader = scene.add_shaders();
-    postFragmentShader->set_type(core::pb::Shader_Type_FRAGMENT);
+    postFragmentShader->set_type(core::pb::FRAGMENT);
     postFragmentShader->set_path("data/shaders/scene08/screen_edge_detection.frag");
 
     auto* pipeline = scene.add_pipelines();
@@ -482,19 +482,19 @@ core::pb::Scene Scene9()
 
     auto* modelVertexShader = scene.add_shaders();
     modelVertexShader->set_path("data/shaders/scene09/model_reflection.vert");
-    modelVertexShader->set_type(core::pb::Shader_Type_VERTEX);
+    modelVertexShader->set_type(core::pb::VERTEX);
 
     auto* modelFragmentShader = scene.add_shaders();
     modelFragmentShader->set_path("data/shaders/scene09/model_reflection.frag");
-    modelFragmentShader->set_type(core::pb::Shader_Type_FRAGMENT);
+    modelFragmentShader->set_type(core::pb::FRAGMENT);
 
     auto* skyboxVertexShader = scene.add_shaders();
     skyboxVertexShader->set_path("data/shaders/scene09/skybox.vert");
-    skyboxVertexShader->set_type(core::pb::Shader_Type_VERTEX);
+    skyboxVertexShader->set_type(core::pb::VERTEX);
 
     auto* skyboxFragmentShader = scene.add_shaders();
     skyboxFragmentShader->set_path("data/shaders/scene09/skybox.frag");
-    skyboxFragmentShader->set_type(core::pb::Shader_Type_FRAGMENT);
+    skyboxFragmentShader->set_type(core::pb::FRAGMENT);
 
     auto* modelPipeline = scene.add_pipelines();
     modelPipeline->set_type(core::pb::Pipeline_Type_RASTERIZE);

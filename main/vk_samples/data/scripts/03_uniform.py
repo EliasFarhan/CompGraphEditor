@@ -2,7 +2,7 @@ import core
 import math
 
 
-class Scene03(core.System):
+class UniformSystem(core.System):
 
     def begin(self):
         self.t = 0.0

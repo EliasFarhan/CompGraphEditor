@@ -39,6 +39,10 @@ public:
     const pb::DrawCommand& GetInfo() const { return drawCommandInfo_; }
     int GetSubpassIndex() const { return subPassIndex_; }
     virtual void Bind() = 0;
+    /**
+     * @brief PreDrawBind is a method that bind transform and apply all deferred changes before drawing
+     */
+    virtual void PreDrawBind() = 0;
 protected:
     std::reference_wrapper<const pb::DrawCommand> drawCommandInfo_;
     int subPassIndex_ = -1;

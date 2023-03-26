@@ -27,6 +27,7 @@ public:
     void SetCubemap(std::string_view uniformName, GLuint textureName, GLenum textureUnit);
 
     void Bind() override;
+    void PreDrawBind() override;
 private:
 
     std::unordered_map<std::string, int> uniformMap_;

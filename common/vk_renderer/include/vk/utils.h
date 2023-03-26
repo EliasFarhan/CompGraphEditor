@@ -1,5 +1,6 @@
 #pragma once
 #include "engine/filesystem.h"
+#include "proto/renderer.pb.h"
 
 #include <vulkan/vulkan.h>
 
@@ -73,4 +74,52 @@ T GetFuncPointer(VkDevice device, std::string_view name)
     return reinterpret_cast<T>(vkGetDeviceProcAddr(device,
                                                    name.data()));
 }
+
+constexpr VkShaderStageFlagBits GetShaderStage(core::pb::ShaderType type)
+{
+    auto stage = VK_SHADER_STAGE_FLAG_BITS_MAX_ENUM;
+    switch (type)
+    {
+    case core::pb::VERTEX:
+        stage = VK_SHADER_STAGE_VERTEX_BIT;
+        break;
+    case core::pb::FRAGMENT:
+        stage = VK_SHADER_STAGE_FRAGMENT_BIT;
+        break;
+    case core::pb::COMPUTE:
+        stage = VK_SHADER_STAGE_COMPUTE_BIT;
+        break;
+    case core::pb::GEOMETRY:
+        stage = VK_SHADER_STAGE_GEOMETRY_BIT;
+        break;
+    case core::pb::TESSELATION_CONTROL:
+        stage = VK_SHADER_STAGE_TESSELLATION_CONTROL_BIT;
+        break;
+    case core::pb::TESSELATION_EVAL:
+        stage = VK_SHADER_STAGE_TESSELLATION_EVALUATION_BIT;
+        break;
+    case core::pb::RAY_ANY_HIT:
+        stage = VK_SHADER_STAGE_ANY_HIT_BIT_KHR;
+        break;
+    case core::pb::RAY_CLOSEST_HIT:
+        stage = VK_SHADER_STAGE_CLOSEST_HIT_BIT_KHR;
+        break;
+    case core::pb::RAY_GEN:
+        stage = VK_SHADER_STAGE_RAYGEN_BIT_KHR;
+        break;
+    case core::pb::RAY_MISS:
+        stage = VK_SHADER_STAGE_MISS_BIT_KHR;
+        break;
+    case core::pb::RAY_INTERSECTION:
+        stage = VK_SHADER_STAGE_INTERSECTION_BIT_KHR;
+        break;
+    case core::pb::RAY_CALL:
+        stage = VK_SHADER_STAGE_CALLABLE_BIT_KHR;
+        break;
+    default:
+        break;
+    }
+    return stage;
+}
+
 }

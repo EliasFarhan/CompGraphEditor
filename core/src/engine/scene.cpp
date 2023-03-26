@@ -18,7 +18,16 @@ static SceneManager* sceneManagerInstance = nullptr;
 
 void Scene::LoadScene(PyManager &pyManager)
 {
-
+    const auto framebuffers = scene_.framebuffers();
+    if (LoadFramebuffers(framebuffers) != ImportStatus::SUCCESS)
+    {
+        LogError("Could not import framebuffers");
+    }
+    const auto& renderPass = scene_.render_pass();
+    if (LoadRenderPass(renderPass) != ImportStatus::SUCCESS)
+    {
+        LogError("Count not import render pass");
+    }
     const auto shaders = scene_.shaders();
     if (LoadShaders(shaders) != ImportStatus::SUCCESS)
     {
@@ -42,15 +51,9 @@ void Scene::LoadScene(PyManager &pyManager)
         LogError("Could not import materials");
     }
 
-    const auto framebuffers = scene_.framebuffers();
-    if (LoadFramebuffers(framebuffers) != ImportStatus::SUCCESS)
+    if(LoadDrawCommands(renderPass) != ImportStatus::SUCCESS)
     {
-        LogError("Could not import framebuffers");
-    }
-    const auto& renderPass = scene_.render_pass();
-    if (LoadRenderPass(renderPass) != ImportStatus::SUCCESS)
-    {
-        LogError("Count not import render pass");
+        LogError("Could not import draw commands");
     }
 
     const auto models = scene_.model_paths();

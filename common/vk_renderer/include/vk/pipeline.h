@@ -14,6 +14,12 @@ struct Shader
     VkShaderStageFlagBits stage;
 };
 
+struct PushConstantData
+{
+    int index = -1;
+    int size = 0;
+};
+
 class Pipeline final : public core::Pipeline
 {
 public:
@@ -21,17 +27,11 @@ public:
     bool LoadComputePipeline(const core::pb::Pipeline& pipelinePb, Shader& computeShader);
     void Bind() override;
     void Destroy() const;
-    void SetFloat(std::string_view uniformName, float f) override;
-    void SetInt(std::string_view uniformName, int i) override;
-    void SetVec2(std::string_view uniformName, glm::vec2 v) override;
-    void SetVec3(std::string_view uniformName, glm::vec3 v) override;
-    void SetVec4(std::string_view uniformName, glm::vec4 v) override;
-    void SetMat4(std::string_view uniformName, const glm::mat4& mat) override;
-
+    [[nodiscard]] VkPipelineLayout GetLayout() const { return pipelineLayout; }
+    [[nodiscard]] const auto& GetPushConstantDataTable() const {return pushConstantDataTable_;}
 private:
     VkPipeline pipeline{};
     VkPipelineLayout pipelineLayout{};
-    std::vector<std::uint8_t> pushConstantData_;
-    std::unordered_map<std::string, std::size_t> uniformOffsetMap_;
+    std::array<PushConstantData, core::pb::SHADER_TYPE_COUNT> pushConstantDataTable_{};
 };
 }

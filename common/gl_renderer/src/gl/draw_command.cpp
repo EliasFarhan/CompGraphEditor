@@ -113,4 +113,9 @@ int DrawCommand::GetUniformLocation(std::string_view uniformName)
     }
     return uniformLocation;
 }
+
+void DrawCommand::PreDrawBind()
+{
+    //TODO bind transform if any
+}
 }

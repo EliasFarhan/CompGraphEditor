@@ -97,6 +97,23 @@ message Sampler
     TextureType type = 2;
 }
 
+enum ShaderType
+{
+    VERTEX = 0;
+    FRAGMENT = 1;
+    COMPUTE = 2;
+    GEOMETRY = 3;
+    TESSELATION_CONTROL = 4;
+    TESSELATION_EVAL = 5;
+    RAY_GEN = 6;
+    RAY_INTERSECTION = 7;
+    RAY_ANY_HIT = 8;
+    RAY_CLOSEST_HIT = 9;
+    RAY_MISS = 10;
+    RAY_CALL = 11;
+    SHADER_TYPE_COUNT = 12;
+}
+
 message Attribute
 {
     enum Type
@@ -121,21 +138,27 @@ message Attribute
     string name = 1;
     Type type = 2;
     string type_name = 3;
+    ShaderType stage = 4;
+    //only used for Vulkan
+    bool push_constant = 5;
+}
+
+message CustomStruct
+{
+    string name = 1;
+    repeated Attribute attributes = 2;
+    int32 size = 3;
+    int32 alignment = 4;
 }
 
 message Shader
 {
-    enum Type
-    {
-        VERTEX = 0;
-        FRAGMENT = 1;
-        COMPUTE = 2;
-    }
     string path = 1;
-    Type type = 2;
+    ShaderType type = 2;
     repeated Attribute in_attributes = 3;
     repeated Attribute out_attributes = 4;
     repeated Attribute uniforms = 5;
+    repeated CustomStruct structs = 6;
 }
 
 message Pipeline

@@ -210,16 +210,6 @@ Scene::ImportStatus Scene::LoadMaterials(const PbRepeatField<core::pb::Material>
 
     Scene::ImportStatus Scene::LoadRenderPass(const core::pb::RenderPass& renderPass)
     {
-        for(int i = 0; i < renderPass.sub_passes_size(); i++)
-        {
-            const auto& subpassInfo = renderPass.sub_passes(i);
-
-            for(int j = 0; j < subpassInfo.commands_size(); j++)
-            {
-                const auto& commandInfo = subpassInfo.commands(j);
-                drawCommands_.emplace_back(commandInfo, i);
-            }
-        }
         return ImportStatus::SUCCESS;
     }
 
@@ -490,6 +480,21 @@ Scene::ImportStatus Scene::LoadMaterials(const PbRepeatField<core::pb::Material>
             }
         }
     }
+
+Scene::ImportStatus Scene::LoadDrawCommands(const core::pb::RenderPass &renderPass)
+{
+    for(int i = 0; i < renderPass.sub_passes_size(); i++)
+    {
+        const auto& subpassInfo = renderPass.sub_passes(i);
+
+        for(int j = 0; j < subpassInfo.commands_size(); j++)
+        {
+            const auto& commandInfo = subpassInfo.commands(j);
+            drawCommands_.emplace_back(commandInfo, i);
+        }
+    }
+    return ImportStatus::SUCCESS;
+}
 }
 
 

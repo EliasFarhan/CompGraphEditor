@@ -10,6 +10,8 @@
 
 #include <pybind11/pybind11.h>
 
+#include "renderer/draw_command.h"
+
 
 namespace py = pybind11;
 

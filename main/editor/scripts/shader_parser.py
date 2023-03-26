@@ -19,7 +19,6 @@ def analyze_struct(struct_txt: str):
     struct_name = struct_txt[begin_index+6:end_index]
     struct_name = re.sub(r'[^a-zA-Z0-9]', '', struct_name)
 
-
     struct_content = struct_txt[end_index+1:struct_txt.find("}")]
     struct_content = re.sub(r'[^a-zA-Z0-9 ;]', '', struct_content)
     struct_lines = list(filter(None, struct_content.split(";")))
@@ -32,6 +31,7 @@ def analyze_struct(struct_txt: str):
             continue
         attributes.append({"type": line_split[0], "name": line_split[1]})
     return {"name": struct_name, "attributes": attributes}
+
 
 def analyze_shader(shader_path):
 

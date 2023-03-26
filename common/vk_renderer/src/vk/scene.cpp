@@ -5,6 +5,8 @@
 #include "vk/window.h"
 #include "vk/pipeline.h"
 
+#include "renderer/draw_command.h"
+
 namespace vk
 {
 void Scene::UnloadScene()
@@ -57,25 +59,34 @@ void Scene::Update(float dt)
 
     vkCmdBeginRenderPass(renderer.commandBuffers[renderer.imageIndex], &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
 
-    for(const auto& subpassPb : scene_.render_pass().sub_passes())
+
+
+    //Automatic draw
+    for(int i = 0; i < scene_.render_pass().sub_passes_size(); i++)
     {
-        for(const auto& drawCommandPb : subpassPb.commands())
+        const auto& subpass = scene_.render_pass().sub_passes(i);
+        for (int j = 0; j < subpass.commands_size(); j++)
         {
-            Draw(drawCommandPb);
+            const auto& command = subpass.commands(j);
+            if (!command.automatic_draw())
+                continue;
+            auto& drawCommand = static_cast<DrawCommand&>(GetDrawCommand(i, j));
+            drawCommand.PreDrawBind();
+            Draw(drawCommand);
         }
     }
 
     vkCmdEndRenderPass(renderer.commandBuffers[renderer.imageIndex]);
 }
 
-void Scene::Draw(const core::pb::DrawCommand& drawCommand)
+void Scene::Draw(core::DrawCommand& drawCommand)
 {
     const auto& renderer = GetRenderer();
 
-    const auto pipelineIndex = scene_.materials(drawCommand.material_index()).pipeline_index();
+    const auto pipelineIndex = scene_.materials(drawCommand.GetMaterialIndex()).pipeline_index();
     auto& pipeline = pipelines_[pipelineIndex];
     pipeline.Bind();
-    const auto meshIndex = drawCommand.mesh_index();
+    const auto meshIndex = drawCommand.GetMeshIndex();
     VkDeviceSize offsets[] = { 0 };
     if (meshIndex != -1)
     {
@@ -84,10 +95,10 @@ void Scene::Draw(const core::pb::DrawCommand& drawCommand)
         vkCmdBindIndexBuffer(renderer.commandBuffers[renderer.imageIndex], vertexBuffer.indexBuffer.buffer, 0, VK_INDEX_TYPE_UINT32);
 
     }
-    if (drawCommand.draw_elements())
+    if (drawCommand.GetInfo().draw_elements())
     {
         vkCmdDrawIndexed(renderer.commandBuffers[renderer.imageIndex],
-            drawCommand.count(),
+            drawCommand.GetInfo().count(),
             1,
             0,
             0,
@@ -96,7 +107,7 @@ void Scene::Draw(const core::pb::DrawCommand& drawCommand)
     else
     {
         vkCmdDraw(renderer.commandBuffers[renderer.imageIndex],
-            drawCommand.count(),
+            drawCommand.GetInfo().count(),
             1, 
             0,
             0);
@@ -136,20 +147,8 @@ Scene::ImportStatus Scene::LoadShaders(const PbRepeatField<core::pb::Shader>& sh
         if (!shaderModule)
             return ImportStatus::FAILURE;
         Shader shader{.module = shaderModule.value()};
-        switch (shaderPb.type())
-        {
-        case core::pb::Shader_Type_VERTEX:
-            shader.stage = VK_SHADER_STAGE_VERTEX_BIT;
-            break;
-        case core::pb::Shader_Type_FRAGMENT:
-            shader.stage = VK_SHADER_STAGE_FRAGMENT_BIT;
-            break;
-        case core::pb::Shader_Type_COMPUTE:
-            shader.stage = VK_SHADER_STAGE_COMPUTE_BIT;
-            break;
-        default:
-            return ImportStatus::FAILURE;
-        }
+
+        shader.stage = GetShaderStage(shaderPb.type());
         shaders_.push_back(shader);
         
     }
@@ -200,7 +199,7 @@ Scene::ImportStatus Scene::LoadMeshes(const PbRepeatField<core::pb::Mesh>& meshe
         {
             const glm::vec3 scale = meshInfo.has_scale() ? glm::vec3{ meshInfo.scale().x(), meshInfo.scale().y(), meshInfo.scale().z() } : glm::vec3(1.0f);
             const glm::vec3 offset{ meshInfo.offset().x(), meshInfo.offset().y(), meshInfo.offset().z() };
-            const auto mesh = core::refactor::GenerateQuad(scale, offset);
+            const auto mesh = core::GenerateQuad(scale, offset);
             vertexBuffers_.emplace_back();
             
             vertexBuffers_.back() = CreateVertexBufferFromMesh(mesh);
@@ -211,7 +210,7 @@ Scene::ImportStatus Scene::LoadMeshes(const PbRepeatField<core::pb::Mesh>& meshe
             const glm::vec3 scale = meshInfo.has_scale() ? glm::vec3{ meshInfo.scale().x(), meshInfo.scale().y(), meshInfo.scale().z() } : glm::vec3(1.0f);
             const glm::vec3 offset{ meshInfo.offset().x(), meshInfo.offset().y(), meshInfo.offset().z() };
 
-            const auto mesh = core::refactor::GenerateCube(scale, offset);
+            const auto mesh = core::GenerateCube(scale, offset);
             vertexBuffers_.emplace_back();
             vertexBuffers_.back() = CreateVertexBufferFromMesh(mesh);;
             break;
@@ -381,9 +380,46 @@ Scene::ImportStatus Scene::LoadRenderPass(const core::pb::RenderPass& renderPass
     return ImportStatus::SUCCESS;
 }
 
+core::DrawCommand& Scene::GetDrawCommand(int subPassIndex, int drawCommandIndex) {
+    int resultIndex = 0;
+    for(int i = 0; i < this->scene_.render_pass().sub_passes_size(); i++)
+    {
+        if(i < subPassIndex)
+        {
+            resultIndex += scene_.render_pass().sub_passes(i).commands_size();
+        }
+        else if(i == subPassIndex)
+        {
+            break;
+
+        }
+    }
+    return drawCommands_[resultIndex + drawCommandIndex];
+}
+
+Scene::ImportStatus Scene::LoadDrawCommands(const core::pb::RenderPass& renderPass)
+{
+    for (int i = 0; i < renderPass.sub_passes_size(); i++)
+    {
+        const auto& subpassPb = renderPass.sub_passes(i);
+        for(int j = 0; j < subpassPb.commands_size(); j++)
+        {
+            drawCommands_.emplace_back(subpassPb.commands(j), i);
+            drawCommands_.back().GenerateUniforms();
+        }
+    }
+    return Scene::ImportStatus::SUCCESS;
+}
+
 VkRenderPass GetCurrentRenderPass()
 {
     const auto* scene = static_cast<Scene*>(core::GetCurrentScene());
     return scene->GetCurrentRenderPass();
+}
+
+VkCommandBuffer GetCurrentCommandBuffer()
+{
+    auto& renderer = GetRenderer();
+    return renderer.commandBuffers[renderer.imageIndex];
 }
 }

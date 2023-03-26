@@ -46,6 +46,7 @@ protected:
     ImportStatus LoadMeshes(const PbRepeatField<core::pb::Mesh>& meshes) override;
     ImportStatus LoadFramebuffers(const PbRepeatField<core::pb::FrameBuffer>& framebuffers) override;
     ImportStatus LoadRenderPass(const core::pb::RenderPass& renderPass) override;
+    ImportStatus LoadDrawCommands(const core::pb::RenderPass &renderPass) override;
 
 private:
     std::vector<Shader> shaders_;

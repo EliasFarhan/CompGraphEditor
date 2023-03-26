@@ -4,6 +4,7 @@
 #include "vk/framebuffer.h"
 #include "vk/mesh.h"
 #include "vk/common.h"
+#include "vk/draw_command.h"
 
 #include <vulkan/vulkan.h>
 
@@ -14,11 +15,14 @@ class Scene : public core::Scene
 public:
     void UnloadScene() override;
     void Update(float dt) override;
-    void Draw(const core::pb::DrawCommand& drawCommand) override;
+    void Draw(core::DrawCommand& drawCommand) override;
     Framebuffer& GetFramebuffer(int framebufferIndex) override;
     core::SceneMaterial GetMaterial(int materialIndex) override;
     Pipeline& GetPipeline(int index) override;
     VkRenderPass GetCurrentRenderPass() const;
+
+    core::DrawCommand& GetDrawCommand(int subPassIndex, int drawCommandIndex) override;
+
 protected:
     ImportStatus LoadShaders(const PbRepeatField<core::pb::Shader>& shadersPb) override;
     ImportStatus LoadPipelines(const PbRepeatField<core::pb::Pipeline>& pipelines) override;
@@ -28,15 +32,18 @@ protected:
     ImportStatus LoadMeshes(const PbRepeatField<core::pb::Mesh>& meshes) override;
     ImportStatus LoadFramebuffers(const PbRepeatField<core::pb::FrameBuffer>& framebuffers) override;
     ImportStatus LoadRenderPass(const core::pb::RenderPass& renderPass) override;
+    ImportStatus LoadDrawCommands(const core::pb::RenderPass &renderPass) override;
 private:
     std::vector<Pipeline> pipelines_;
     std::vector<Framebuffer> framebuffers_;
-    std::vector<Mesh> meshes_;
+    std::vector<core::Mesh> meshes_;
     std::vector<VertexBuffer> vertexBuffers_;
     std::vector<Shader> shaders_;
+    std::vector<DrawCommand> drawCommands_;
     VkRenderPass renderPass_{};
     std::vector<VkFramebuffer> vkFramebuffers_;
 };
 
 VkRenderPass GetCurrentRenderPass();
+VkCommandBuffer GetCurrentCommandBuffer();
 }

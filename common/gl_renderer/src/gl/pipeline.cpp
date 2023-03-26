@@ -23,14 +23,23 @@ void Shader::LoadShader(const core::pb::Shader &shader)
     GLenum glType = 0;
     switch (shader.type())
     {
-    case core::pb::Shader_Type_VERTEX:
+    case core::pb::VERTEX:
         glType = GL_VERTEX_SHADER;
         break;
-    case core::pb::Shader_Type_FRAGMENT:
+    case core::pb::FRAGMENT:
         glType = GL_FRAGMENT_SHADER;
         break;
-    case core::pb::Shader_Type_COMPUTE:
+    case core::pb::COMPUTE:
         glType = GL_COMPUTE_SHADER;
+        break;
+    case core::pb::GEOMETRY:
+        glType = GL_GEOMETRY_SHADER;
+        break;
+    case core::pb::TESSELATION_CONTROL:
+        glType = GL_TESS_CONTROL_SHADER;
+        break;
+    case core::pb::TESSELATION_EVAL:
+        glType = GL_TESS_EVALUATION_SHADER;
         break;
     default:
         break;

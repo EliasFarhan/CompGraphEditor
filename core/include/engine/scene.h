@@ -77,6 +77,7 @@ public:
     void OnEvent(SDL_Event& event) override;
     virtual DrawCommand& GetDrawCommand(int subPassIndex, int drawCommandIndex) = 0;
 
+    const pb::Scene& GetInfo() const { return scene_; }
 protected:
     enum class ImportStatus
     {
@@ -94,7 +95,7 @@ protected:
     virtual ImportStatus LoadModels(const PbRepeatField<std::string>& models) = 0;
     virtual ImportStatus LoadMeshes(const PbRepeatField<pb::Mesh>& meshes) = 0;
     virtual ImportStatus LoadFramebuffers(const PbRepeatField<pb::FrameBuffer>& framebuffers) = 0;
-
+    virtual ImportStatus LoadDrawCommands(const pb::RenderPass& renderPass) = 0;
     virtual ImportStatus LoadRenderPass(const pb::RenderPass& renderPass) = 0;
 
     pb::Scene scene_;

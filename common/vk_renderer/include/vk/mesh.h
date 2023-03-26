@@ -7,11 +7,6 @@
 
 namespace vk
 {
-class Mesh : public core::Mesh
-{
-public:
-    [[nodiscard]] std::string_view GetName() const override { return ""; }
-};
 
 struct VertexBuffer
 {
@@ -21,6 +16,6 @@ struct VertexBuffer
     std::size_t indicesCount;
 };
 
-VertexBuffer CreateVertexBufferFromMesh(const core::refactor::Mesh& mesh);
+VertexBuffer CreateVertexBufferFromMesh(const core::Mesh& mesh);
 
 }

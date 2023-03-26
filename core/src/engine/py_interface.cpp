@@ -43,6 +43,7 @@ PYBIND11_EMBEDDED_MODULE(core, m)
         .def("draw", [](core::DrawCommand& drawCommand)
         {
                 auto* scene = core::GetCurrentScene();
+                drawCommand.PreDrawBind();
                 scene->Draw(drawCommand);
         })
         .def("bind", &core::DrawCommand::Bind)
