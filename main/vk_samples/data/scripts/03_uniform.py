@@ -12,7 +12,7 @@ class UniformSystem(core.System):
 
     def draw(self, draw_command: core.DrawCommand):
         draw_command.bind()
-        draw_command.set_float("value", (math.sin(self.t)+1)/2)
+        draw_command.set_float("constant_values.value", (math.sin(self.t)+1)/2)
         draw_command.draw()
 
     def end(self):

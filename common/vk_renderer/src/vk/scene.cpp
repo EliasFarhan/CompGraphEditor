@@ -59,12 +59,24 @@ void Scene::Update(float dt)
 
     vkCmdBeginRenderPass(renderer.commandBuffers[renderer.imageIndex], &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
 
-
-
     //Automatic draw
     for(int i = 0; i < scene_.render_pass().sub_passes_size(); i++)
     {
         const auto& subpass = scene_.render_pass().sub_passes(i);
+        
+        const auto commandSize = subpass.commands_size();
+        for (int j = 0; j < commandSize; j++)
+        {
+            const auto& command = subpass.commands(j);
+            for (auto* pySystem : pySystems_)
+            {
+                if (pySystem != nullptr)
+                {
+                    pySystem->Draw(&GetDrawCommand(i, j));
+                }
+            }
+        }
+
         for (int j = 0; j < subpass.commands_size(); j++)
         {
             const auto& command = subpass.commands(j);

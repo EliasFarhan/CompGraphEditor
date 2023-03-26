@@ -183,6 +183,8 @@ bool Pipeline::LoadRaterizePipeline(const core::pb::Pipeline& pipelinePb, Shader
     }
     int basePushConstantIndex = 0;
     std::vector<VkPushConstantRange> pushConstantRanges{};
+    //TODO descriptor set layout for uniform buffer
+
     for(auto& shader: shaderInfo)
     {
         for(const auto& uniform: shader.get().uniforms())
@@ -234,9 +236,10 @@ bool Pipeline::LoadRaterizePipeline(const core::pb::Pipeline& pipelinePb, Shader
             }
         }
     }
-
-
-    VkPushConstantRange pushConstantRange{};
+    if(basePushConstantIndex > 128)
+    {
+        LogWarning("Push Constant Size is bigger than 128 bytes");
+    }
     
     VkPipelineLayoutCreateInfo pipelineLayoutInfo{};
     pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;

@@ -22,6 +22,7 @@ public:
     VkRenderPass GetCurrentRenderPass() const;
 
     core::DrawCommand& GetDrawCommand(int subPassIndex, int drawCommandIndex) override;
+    const std::vector<VertexBuffer>& GetVertexBuffers() const { return vertexBuffers_; }
 
 protected:
     ImportStatus LoadShaders(const PbRepeatField<core::pb::Shader>& shadersPb) override;

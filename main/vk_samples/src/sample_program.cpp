@@ -103,6 +103,13 @@ core::pb::Scene Scene3()
     constantValueStruct->set_name("constants");
     constantValueStruct->set_alignment(4);
     constantValueStruct->set_size(4);
+    auto* constantValueFloat = constantValueStruct->add_attributes();
+    constantValueFloat->set_name("value");
+    constantValueFloat->set_type(core::pb::Attribute_Type_FLOAT);
+    constantValueFloat->set_type_name("float");
+    constantValueFloat->set_push_constant(true);
+    constantValueFloat->set_stage(core::pb::VERTEX);
+
     auto* uniform = vertexShader->add_uniforms();
     uniform->set_name("constant_values");
     uniform->set_type(core::pb::Attribute_Type_CUSTOM);
