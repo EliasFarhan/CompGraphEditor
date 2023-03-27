@@ -46,12 +46,15 @@ public:
 
     Buffer CreateBuffer(VkDeviceSize size, VkBufferUsageFlags usage,
         VkMemoryPropertyFlags properties) const;
-
+    Image CreateImage(uint32_t width, uint32_t height, VkFormat format, std::uint32_t layerCount, VkImageTiling tiling,
+                      VkImageUsageFlags usage, VkMemoryPropertyFlags properties, int mipLevels, VkImageCreateFlags flags = 0);
+    void TransitionImageLayout(VkImage image, VkImageLayout oldLayout, VkImageLayout newLayout,
+                                   std::uint32_t mipLevels, std::uint32_t layerCount, VkCommandBuffer commandBuffer=VK_NULL_HANDLE);
     Renderer& GetRenderer() { return renderer_; }
 
     VmaAllocator& GetAllocator() { return allocator_; }
     void CopyBuffer(const Buffer& srcBuffer, const Buffer& dstBuffer, std::size_t bufferSize);
-
+    void CopyImageFromBuffer(const Buffer& srcBuffer, const Image& image, int width, int height, int layerCount);
 protected:
     void Begin() override;
     void End() override;

@@ -160,9 +160,135 @@ core::pb::Scene Scene3()
     return scene;
 }
 
+core::pb::Scene Scene4()
+{
+    core::pb::Scene scene;
+    core::pb::Shader* vertexShader = scene.add_shaders();
+    vertexShader->set_type(core::pb::VERTEX);
+    vertexShader->set_path("data/shaders/04_texture/texture.vert.spv");
+
+    
+
+    core::pb::Shader* fragmentShader = scene.add_shaders();
+    fragmentShader->set_type(core::pb::FRAGMENT);
+    fragmentShader->set_path("data/shaders/04_texture/texture.frag.spv");
+    auto* uniform = vertexShader->add_uniforms();
+    uniform->set_name("tex");
+    uniform->set_type(core::pb::Attribute_Type_SAMPLER2D);
+    uniform->set_type_name("sampler2D");
+    uniform->set_binding(0);
+    uniform->set_stage(core::pb::FRAGMENT);
+
+    auto* pipeline = scene.add_pipelines();
+    pipeline->set_vertex_shader_index(0);
+    pipeline->set_fragment_shader_index(1);
+    pipeline->set_type(core::pb::Pipeline_Type_RASTERIZE);
+    pipeline->set_cull_face(core::pb::Pipeline_CullFace_BACK);
+    pipeline->set_enable_culling(false);
+
+    auto* mesh = scene.add_meshes();
+    mesh->set_primitve_type(core::pb::Mesh_PrimitveType_QUAD);
+    mesh->set_mesh_name("Quad");
+
+    auto* material = scene.add_materials();
+    material->set_pipeline_index(0);
+    auto* textureMaterial = material->add_textures();
+    textureMaterial->set_sampler_name("tex");
+    textureMaterial->set_texture_index(0);
+
+    auto* renderPass = scene.mutable_render_pass();
+    auto* subPass = renderPass->add_sub_passes();
+    auto* clearColor = subPass->mutable_clear_color();
+    clearColor->set_r(0.0f);
+    clearColor->set_g(0.0f);
+    clearColor->set_b(0.0f);
+    clearColor->set_a(0.0f);
+
+    auto* drawCommand = subPass->add_commands();
+    drawCommand->set_material_index(0);
+    drawCommand->set_count(6);
+    drawCommand->set_mesh_index(0);
+    drawCommand->set_draw_elements(true);
+    drawCommand->set_mode(core::pb::DrawCommand_Mode_TRIANGLES);
+    drawCommand->set_automatic_draw(false);
+
+    auto* texture = scene.add_textures();
+    texture->set_path("data/textures/container.jpg");
+    texture->set_filter_mode(core::pb::Texture_FilteringMode_LINEAR);
+
+    return scene;
+}
+
+core::pb::Scene Scene5()
+{
+    core::pb::Scene scene;
+    core::pb::Shader* vertexShader = scene.add_shaders();
+    vertexShader->set_type(core::pb::VERTEX);
+    vertexShader->set_path("data/shaders/05_ubo/uniform.vert.spv");
+    auto* constantValueStruct = vertexShader->add_structs();
+    constantValueStruct->set_name("constants");
+    constantValueStruct->set_alignment(4);
+    constantValueStruct->set_size(4);
+    auto* constantValueFloat = constantValueStruct->add_attributes();
+    constantValueFloat->set_name("model");
+    constantValueFloat->set_type(core::pb::Attribute_Type_MAT4);
+    constantValueFloat->set_type_name("mat4");
+    constantValueFloat->set_push_constant(true);
+    constantValueFloat->set_stage(core::pb::VERTEX);
+
+    auto* uniform = vertexShader->add_uniforms();
+    uniform->set_name("constant_values");
+    uniform->set_type(core::pb::Attribute_Type_CUSTOM);
+    uniform->set_type_name("constants");
+    uniform->set_push_constant(true);
+    uniform->set_stage(core::pb::VERTEX);
+
+    core::pb::Shader* fragmentShader = scene.add_shaders();
+    fragmentShader->set_type(core::pb::FRAGMENT);
+    fragmentShader->set_path("data/shaders/05_ubo/uniform.frag.spv");
+
+    auto* pipeline = scene.add_pipelines();
+    pipeline->set_vertex_shader_index(0);
+    pipeline->set_fragment_shader_index(1);
+    pipeline->set_type(core::pb::Pipeline_Type_RASTERIZE);
+    pipeline->set_cull_face(core::pb::Pipeline_CullFace_BACK);
+    pipeline->set_enable_culling(false);
+
+    auto* mesh = scene.add_meshes();
+    mesh->set_primitve_type(core::pb::Mesh_PrimitveType_QUAD);
+    mesh->set_mesh_name("Quad");
+
+    auto* material = scene.add_materials();
+    material->set_pipeline_index(0);
+
+    auto* renderPass = scene.mutable_render_pass();
+    auto* subPass = renderPass->add_sub_passes();
+    auto* clearColor = subPass->mutable_clear_color();
+    clearColor->set_r(0.0f);
+    clearColor->set_g(0.0f);
+    clearColor->set_b(0.0f);
+    clearColor->set_a(0.0f);
+
+    auto* drawCommand = subPass->add_commands();
+    drawCommand->set_material_index(0);
+    drawCommand->set_count(6);
+    drawCommand->set_mesh_index(0);
+    drawCommand->set_draw_elements(true);
+    drawCommand->set_mode(core::pb::DrawCommand_Mode_TRIANGLES);
+    drawCommand->set_automatic_draw(false);
+
+
+    auto* pySystem = scene.add_py_systems();
+    pySystem->set_class_("UniformSystem");
+    pySystem->set_module("data.scripts.05_ubo");
+    pySystem->set_path("data/scripts/05_ubo.py");
+
+    return scene;
+}
+
 void HelloVulkanProgram::Begin() 
 {
-    scene_.SetScene(Scene3());
+    scene_.SetScene(Scene4());
 
     sceneManager_.LoadScene(&scene_);
 }

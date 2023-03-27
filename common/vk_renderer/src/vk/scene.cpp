@@ -29,7 +29,8 @@ void Scene::UnloadScene()
     pipelines_.clear();
     vkDestroyRenderPass(driver.device, renderPass_, nullptr);
     renderPass_ = VK_NULL_HANDLE;
-
+    auto& textureManager = core::GetTextureManager();
+    textureManager.Clear();
     auto& allocator = GetAllocator();
     for(auto& vertexBuffer: vertexBuffers_)
     {
@@ -185,7 +186,14 @@ Scene::ImportStatus Scene::LoadPipelines(const PbRepeatField<core::pb::Pipeline>
 
 Scene::ImportStatus Scene::LoadTextures(const PbRepeatField<core::pb::Texture>& textures)
 {
-    return ImportStatus::FAILURE;
+    const auto texturesSize = textures.size();
+    textures_.resize(texturesSize);
+    auto& textureManager = core::GetTextureManager();
+    for (int i = 0; i < texturesSize; i++)
+    {
+        textures_[i] = { textureManager.LoadTexture(scene_.textures(i)) };
+    }
+    return ImportStatus::SUCCESS;
 }
 
 Scene::ImportStatus Scene::LoadMaterials(const PbRepeatField<core::pb::Material>& materials)

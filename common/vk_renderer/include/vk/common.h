@@ -16,7 +16,6 @@ struct Image
 {
     VkImage image{};
     VmaAllocation allocation{};
-    std::uint32_t mipLevels = 1;
 };
 
 // Holds data for a ray tracing scratch buffer that is used as a temporary storage

@@ -8,8 +8,17 @@
 
 #include <vulkan/vulkan.h>
 
+#include "vk/texture.h"
+
 namespace vk
 {
+
+
+struct SceneTexture
+{
+    core::TextureId textureId = core::INVALID_TEXTURE_ID;
+};
+
 class Scene : public core::Scene
 {
 public:
@@ -41,6 +50,7 @@ private:
     std::vector<VertexBuffer> vertexBuffers_;
     std::vector<Shader> shaders_;
     std::vector<DrawCommand> drawCommands_;
+    std::vector<SceneTexture> textures_;
     VkRenderPass renderPass_{};
     std::vector<VkFramebuffer> vkFramebuffers_;
 };

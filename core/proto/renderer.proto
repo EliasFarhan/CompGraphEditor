@@ -141,6 +141,7 @@ message Attribute
     ShaderType stage = 4;
     //only used for Vulkan
     bool push_constant = 5;
+    int32 binding = 6;
 }
 
 message CustomStruct

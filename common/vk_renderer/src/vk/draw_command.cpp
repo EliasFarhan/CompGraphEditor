@@ -13,6 +13,7 @@
 #include <glm/vec4.hpp>
 
 #include <string_view>
+#include <glm/gtx/euler_angles.hpp>
 
 
 namespace vk
@@ -96,6 +97,28 @@ void DrawCommand::Bind()
         vkCmdBindIndexBuffer(renderer.commandBuffers[renderer.imageIndex], vertexBuffer.indexBuffer.buffer, 0, VK_INDEX_TYPE_UINT32);
     }
     //TODO bind textures samplers
+
+    if (drawCommandInfo_.get().has_model_transform())
+    {
+        glm::mat4 modelMatrix = glm::mat4(1.0f);
+        const auto& modelTransform = drawCommandInfo_.get().model_transform();
+        if (modelTransform.has_euler_angles())
+        {
+            const auto& eulerAngles = modelTransform.euler_angles();
+            modelMatrix *= glm::orientate4(glm::vec3(eulerAngles.x(), eulerAngles.y(), eulerAngles.z()));
+        }
+        if (modelTransform.has_scale())
+        {
+            const auto& scale = modelTransform.scale();
+            modelMatrix = glm::scale(modelMatrix, glm::vec3(scale.x(), scale.y(), scale.z()));
+        }
+        if (modelTransform.has_position())
+        {
+            const auto& translate = modelTransform.position();
+            modelMatrix = glm::translate(modelMatrix, glm::vec3(translate.x(), translate.y(), translate.z()));
+        }
+        SetMat4("model", modelMatrix);
+    }
 }
 
 void DrawCommand::GenerateUniforms()
