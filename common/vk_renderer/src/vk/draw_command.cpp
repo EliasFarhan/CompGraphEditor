@@ -123,10 +123,12 @@ void DrawCommand::Bind()
 
 void DrawCommand::GenerateUniforms()
 {
-    const auto* scene = core::GetCurrentScene();
+    auto* scene = core::GetCurrentScene();
     const auto& sceneInfo = scene->GetInfo();
     const auto& materialInfo = sceneInfo.materials(drawCommandInfo_.get().material_index());
     const auto& pipelineInfo = sceneInfo.pipelines(materialInfo.pipeline_index());
+
+    
 
     std::vector<std::reference_wrapper<const core::pb::Shader>> shaderInfos;
     const std::array shaderIndices =
@@ -145,7 +147,10 @@ void DrawCommand::GenerateUniforms()
             shaderInfos.emplace_back(shader);
         }
     }
+
     int basePushConstantIndex = 0;
+    int samplerCount = 0;
+    int uboCount = 0;
     for(auto& shaderInfo: shaderInfos)
     {
         for(const auto& uniform: shaderInfo.get().uniforms())
@@ -162,7 +167,6 @@ void DrawCommand::GenerateUniforms()
                         basePushConstantIndex += typeInfo.alignment - basePushConstantIndex % typeInfo.alignment;
                     }
                     uniformData.index = basePushConstantIndex;
-                    uniformData.size = typeInfo.size;
                     uniformData.pushConstant = true;
                     basePushConstantIndex += typeInfo.size;
                 }
@@ -182,7 +186,6 @@ void DrawCommand::GenerateUniforms()
                                 basePushConstantIndex += typeInfo.alignment - basePushConstantIndex % typeInfo.alignment;
                             }
                             uniformData.index = basePushConstantIndex;
-                            uniformData.size = typeInfo.size;
                             uniformData.pushConstant = true;
                             int internalPushConstantIndex = basePushConstantIndex;
                             for(auto& structUniform: structType.attributes())
@@ -194,7 +197,6 @@ void DrawCommand::GenerateUniforms()
                                     internalPushConstantIndex += internalTypeInfo.alignment - internalPushConstantIndex % internalTypeInfo.alignment;
                                 }
                                 internalUniformData.index = internalPushConstantIndex;
-                                internalUniformData.size = internalTypeInfo.size;
                                 internalUniformData.pushConstant = true;
                                 internalPushConstantIndex += typeInfo.size;
                                 uniforms_[fmt::format("{}.{}",name, structUniform.name())] = internalUniformData;
@@ -207,12 +209,46 @@ void DrawCommand::GenerateUniforms()
             }
             else
             {
-                //TODO uniform buffer data
+                //TODO uniform buffer data and samplers
             }
             uniforms_[name] = uniformData;
         }
     }
     pushConstantBuffer_.resize(basePushConstantIndex);
+
+    const auto& driver = GetDriver();
+    //Generate descriptor pool
+    VkDescriptorPoolSize poolSize{};
+    //TODO count numbers of ubo and samplers
+    poolSize.type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+    poolSize.descriptorCount = static_cast<uint32_t>(Engine::MAX_FRAMES_IN_FLIGHT);
+
+    VkDescriptorPoolCreateInfo poolInfo{};
+    poolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
+    poolInfo.poolSizeCount = 1;
+    poolInfo.pPoolSizes = &poolSize;
+    poolInfo.maxSets = static_cast<uint32_t>(Engine::MAX_FRAMES_IN_FLIGHT);
+
+    if (vkCreateDescriptorPool(driver.device, &poolInfo, nullptr, &descriptorPool) != VK_SUCCESS)
+    {
+        LogError("Failed to create descriptor pool!");
+        return;
+    }
+
+    //Allocate descriptor sets
+
+    Pipeline& pipeline = static_cast<Pipeline&>(scene->GetPipeline(materialInfo.pipeline_index()));
+    std::vector<VkDescriptorSetLayout> layouts(Engine::MAX_FRAMES_IN_FLIGHT, pipeline.GetDescriptorSetLayout());
+    VkDescriptorSetAllocateInfo allocInfo{};
+    allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
+    allocInfo.descriptorPool = descriptorPool;
+    allocInfo.descriptorSetCount = static_cast<uint32_t>(Engine::MAX_FRAMES_IN_FLIGHT);
+    allocInfo.pSetLayouts = layouts.data();
+
+    descriptorSets.resize(Engine::MAX_FRAMES_IN_FLIGHT);
+    if (vkAllocateDescriptorSets(driver.device, &allocInfo, descriptorSets.data()) != VK_SUCCESS) {
+        throw std::runtime_error("failed to allocate descriptor sets!");
+    }
 }
 
 void DrawCommand::PreDrawBind()

@@ -38,6 +38,8 @@ struct Renderer
 class Engine final : public core::Engine
 {
 public:
+
+    static constexpr int MAX_FRAMES_IN_FLIGHT = 2;
     Engine();
     core::TextureManager &GetTextureManager() override { return textureManager_; }
     Window& GetWindow() { return window_; }
@@ -79,7 +81,6 @@ private:
     ImGuiManager imGuiManager_{};
     VmaAllocator allocator_;
 
-    static constexpr int MAX_FRAMES_IN_FLIGHT = 2;
 };
 
 Renderer& GetRenderer();

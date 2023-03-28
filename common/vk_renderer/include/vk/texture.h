@@ -21,8 +21,13 @@ public:
     Image image;
     int width = 0;
     int height = 0;
+    VkImageView imageView;
+    VkSampler sampler;
 
     void Destroy();
+private:
+    bool CreateImageView(VkFormat format, int mipLevels, int layerCount);
+    bool CreateSampler(const core::pb::Texture& texture);
 };
 
 class TextureManager : public core::TextureManager

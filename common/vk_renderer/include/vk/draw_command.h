@@ -1,5 +1,8 @@
 #pragma once
 
+#include <vulkan/vulkan_core.h>
+
+#include "engine.h"
 #include "renderer/draw_command.h"
 #include "proto/renderer.pb.h"
 
@@ -33,11 +36,13 @@ private:
     struct UniformInternalData
     {
         int index = 0;
-        int size = 0;
         bool pushConstant = false;
     };
 
     std::vector<std::uint8_t> pushConstantBuffer_;
     std::unordered_map<std::string, UniformInternalData> uniforms_;
+    std::vector<std::array<VkBuffer, Engine::MAX_FRAMES_IN_FLIGHT>> uniformBuffers_;
+    std::vector<VkDescriptorSet> descriptorSets;
+    VkDescriptorPool descriptorPool;
 };
 }

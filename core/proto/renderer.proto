@@ -265,6 +265,8 @@ message Pipeline
     }
     FrontFace front_face = 29;
     string name = 30;
+    int32 tess_control_shader_index = 31;
+    int32 tess_eval_shader_index = 32;
 
 }
 

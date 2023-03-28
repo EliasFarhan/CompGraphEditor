@@ -28,10 +28,12 @@ public:
     void Bind() override;
     void Destroy() const;
     [[nodiscard]] VkPipelineLayout GetLayout() const { return pipelineLayout; }
+    [[nodiscard]] VkDescriptorSetLayout GetDescriptorSetLayout() const{ return descriptorSetLayout; }
     [[nodiscard]] const auto& GetPushConstantDataTable() const {return pushConstantDataTable_;}
 private:
     VkPipeline pipeline{};
     VkPipelineLayout pipelineLayout{};
+    VkDescriptorSetLayout descriptorSetLayout{};
     std::array<PushConstantData, core::pb::SHADER_TYPE_COUNT> pushConstantDataTable_{};
 };
 }

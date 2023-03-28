@@ -69,45 +69,38 @@ bool Texture::LoadTexture(const core::pb::Texture& textureInfo)
 
     stbi_image_free(imageData);
 
+    //TODO manage gamma format
+    VkFormat format;
     switch (channelInFile)
     {
     case 1:
     {
-        image = engine.CreateImage(width, height, VK_FORMAT_R8_SRGB, 1,
-            VK_IMAGE_TILING_OPTIMAL,
-            VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT,
-            VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, mipMapLevels);
+        format = VK_FORMAT_R8_SRGB;
         break;
     }
     case 2:
     {
-        image = engine.CreateImage(width, height, VK_FORMAT_R8G8_SRGB, 1,
-            VK_IMAGE_TILING_OPTIMAL,
-            VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT,
-            VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, mipMapLevels);
+        format = VK_FORMAT_R8G8_SRGB;
         break;
     }
     case 3:
     {
-        image = engine.CreateImage(width, height, VK_FORMAT_R8G8B8_SRGB, 1,
-            VK_IMAGE_TILING_OPTIMAL,
-            VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT,
-            VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, mipMapLevels);
+        format = VK_FORMAT_R8G8B8_SRGB;
         break;
     }
     case 4:
     {
-        image = engine.CreateImage(width, height, VK_FORMAT_R8G8B8A8_SRGB, 1,
-            VK_IMAGE_TILING_OPTIMAL,
-            VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT,
-            VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, mipMapLevels);
+        format = VK_FORMAT_R8G8B8A8_SRGB;
         break;
     }
     default:
         LogError(fmt::format("Invalid channel count on image. Count: {}, for texture at path: {}", channelInFile, path));
         return false;
     }
-
+    image = engine.CreateImage(width, height, format, 1,
+        VK_IMAGE_TILING_OPTIMAL,
+        VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT,
+        VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, mipMapLevels);
     
 
     engine.TransitionImageLayout(image.image, VK_IMAGE_LAYOUT_UNDEFINED,
@@ -126,6 +119,7 @@ bool Texture::LoadTexture(const core::pb::Texture& textureInfo)
     {
         //TODO Generate the mip maps
     }
+    CreateImageView(format, mipMapLevels, 1);
     return true;
 }
 
@@ -137,8 +131,115 @@ bool Texture::LoadCubemap(const core::pb::Texture& texture)
 void Texture::Destroy()
 {
     const auto& allocator = GetAllocator();
+    const auto& driver = GetDriver();
+    vkDestroySampler(driver.device, sampler, nullptr);
+    vkDestroyImageView(driver.device, imageView, nullptr);
     vmaDestroyImage(allocator, image.image, image.allocation);
     image.image = VK_NULL_HANDLE;
+}
+
+bool Texture::CreateImageView(VkFormat format, int mipLevels, int layerCount)
+{
+    VkImageViewCreateInfo viewInfo{};
+    viewInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+    viewInfo.image = image.image;
+    viewInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
+    viewInfo.format = format;
+    viewInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+    viewInfo.subresourceRange.baseMipLevel = 0;
+    viewInfo.subresourceRange.levelCount = mipLevels;
+    viewInfo.subresourceRange.baseArrayLayer = 0;
+    viewInfo.subresourceRange.layerCount = 1;
+
+    if (vkCreateImageView(GetDriver().device, &viewInfo, nullptr, &imageView) != VK_SUCCESS) {
+        LogError("Failed to create texture image view!");
+        return false;
+    }
+    return true;
+}
+
+bool Texture::CreateSampler(const core::pb::Texture& texture)
+{
+    VkSamplerCreateInfo samplerInfo{};
+    samplerInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
+
+    switch(texture.filter_mode())
+    {
+    case core::pb::Texture_FilteringMode_NEAREST:
+    {
+        samplerInfo.magFilter = VK_FILTER_NEAREST;
+        samplerInfo.minFilter = VK_FILTER_NEAREST;
+        break;
+    }
+    case core::pb::Texture_FilteringMode_LINEAR:
+    {
+
+        samplerInfo.magFilter = VK_FILTER_LINEAR;
+        samplerInfo.minFilter = VK_FILTER_LINEAR;
+        break;
+    }
+    default: 
+        break;
+    }
+
+    switch(texture.wrapping_mode())
+    {
+    case core::pb::Texture_WrappingMode_REPEAT:
+    {
+        samplerInfo.addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+        samplerInfo.addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+        samplerInfo.addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+        break;
+    }
+    case core::pb::Texture_WrappingMode_MIRROR_REPEAT:
+    {
+        samplerInfo.addressModeU = VK_SAMPLER_ADDRESS_MODE_MIRRORED_REPEAT;
+        samplerInfo.addressModeV = VK_SAMPLER_ADDRESS_MODE_MIRRORED_REPEAT;
+        samplerInfo.addressModeW = VK_SAMPLER_ADDRESS_MODE_MIRRORED_REPEAT;
+        break;
+    }
+    case core::pb::Texture_WrappingMode_CLAMP_TO_EDGE:
+    {
+        samplerInfo.addressModeU = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
+        samplerInfo.addressModeV = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
+        samplerInfo.addressModeW = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
+        break;
+    }
+    case core::pb::Texture_WrappingMode_CLAMP_TO_BORDER:
+    {
+        samplerInfo.addressModeU = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_BORDER;
+        samplerInfo.addressModeV = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_BORDER;
+        samplerInfo.addressModeW = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_BORDER;
+        break;
+    }
+    
+    default: 
+        break;
+    }
+
+
+    samplerInfo.anisotropyEnable = VK_TRUE;
+    samplerInfo.maxAnisotropy = GetDriver().maxAnisotropy;
+
+    samplerInfo.borderColor = VK_BORDER_COLOR_INT_OPAQUE_BLACK;
+
+    samplerInfo.unnormalizedCoordinates = VK_FALSE;
+
+    samplerInfo.compareEnable = VK_FALSE;
+    samplerInfo.compareOp = VK_COMPARE_OP_ALWAYS;
+
+    //TODO Implement mip map
+    samplerInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
+    samplerInfo.mipLodBias = 0.0f;
+    samplerInfo.minLod = 0.0f;
+    samplerInfo.maxLod = 0.0f;
+
+    if (vkCreateSampler(GetDriver().device, &samplerInfo, nullptr, &sampler) != VK_SUCCESS)
+    {
+        LogError("Failed to create texture sampler");
+        return false;
+    }
+    return true;
 }
 
 core::TextureId TextureManager::LoadTexture(const core::pb::Texture &textureInfo)

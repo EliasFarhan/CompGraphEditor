@@ -163,20 +163,29 @@ bool Pipeline::LoadRaterizePipeline(const core::pb::Pipeline& pipelinePb, Shader
     colorBlending.blendConstants[2] = 0.0f; // Optional
     colorBlending.blendConstants[3] = 0.0f; // Optional
 
-    //TODO generate uniform push constant table
+    //generate uniform push constant table
     std::vector<std::reference_wrapper<const core::pb::Shader>> shaderInfo;
     std::array shaderIndices =
-            {
-                    pipelinePb.vertex_shader_index(),
-                    pipelinePb.fragment_shader_index(),
-                    pipelinePb.compute_shader_index(),
-                    pipelinePb.geometry_shader_index()
-            };
+    {
+        pipelinePb.vertex_shader_index(),
+        pipelinePb.fragment_shader_index(),
+        pipelinePb.geometry_shader_index(),
+        pipelinePb.tess_control_shader_index(),
+        pipelinePb.tess_eval_shader_index(),
+    };
+    std::array shaderTypes =
+    {
+        core::pb::VERTEX,
+        core::pb::FRAGMENT,
+        core::pb::GEOMETRY,
+        core::pb::TESSELATION_CONTROL,
+        core::pb::TESSELATION_EVAL
+    };
     for(std::size_t i = 0; i < shaderIndices.size(); i++)
     {
         auto shaderIndex = shaderIndices[i];
         auto& shader = sceneInfo.shaders(shaderIndex);
-        if(shader.type() == i)
+        if(shader.type() == shaderTypes[i])
         {
             shaderInfo.emplace_back(shader);
         }
