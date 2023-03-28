@@ -3,7 +3,7 @@
 
 layout (location = 0) in vec2 aPos;
 
-layout(location = 0)out vec3 color;
+layout(location = 0) out vec3 color;
 
 layout(push_constant) uniform constants {
     float value;

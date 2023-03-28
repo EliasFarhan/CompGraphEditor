@@ -29,7 +29,7 @@ public:
     core::SceneMaterial GetMaterial(int materialIndex) override;
     Pipeline& GetPipeline(int index) override;
     VkRenderPass GetCurrentRenderPass() const;
-
+    const Texture& GetTexture(int index) const;
     core::DrawCommand& GetDrawCommand(int subPassIndex, int drawCommandIndex) override;
     const std::vector<VertexBuffer>& GetVertexBuffers() const { return vertexBuffers_; }
 

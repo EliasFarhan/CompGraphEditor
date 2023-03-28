@@ -22,6 +22,11 @@ void Scene::UnloadScene()
         vkDestroyFramebuffer(driver.device, framebuffer, nullptr);
     }
     vkFramebuffers_.clear();
+    for(auto& drawCommand : drawCommands_)
+    {
+        drawCommand.Destroy();
+    }
+    drawCommands_.clear();
     for(auto& pipeline : pipelines_)
     {
         pipeline.Destroy();
@@ -148,6 +153,12 @@ VkRenderPass Scene::GetCurrentRenderPass() const
     return renderPass_;
 }
 
+const Texture& Scene::GetTexture(int index) const
+{
+    const auto& textureManager = static_cast<TextureManager&>(core::GetTextureManager());
+    return textureManager.GetTexture(textures_[index].textureId);
+}
+
 Scene::ImportStatus Scene::LoadShaders(const PbRepeatField<core::pb::Shader>& shadersPb)
 {
     LogDebug("Load Shaders");
@@ -186,6 +197,7 @@ Scene::ImportStatus Scene::LoadPipelines(const PbRepeatField<core::pb::Pipeline>
 
 Scene::ImportStatus Scene::LoadTextures(const PbRepeatField<core::pb::Texture>& textures)
 {
+    LogDebug("Load Texture");
     const auto texturesSize = textures.size();
     textures_.resize(texturesSize);
     auto& textureManager = core::GetTextureManager();
@@ -419,6 +431,7 @@ core::DrawCommand& Scene::GetDrawCommand(int subPassIndex, int drawCommandIndex)
 
 Scene::ImportStatus Scene::LoadDrawCommands(const core::pb::RenderPass& renderPass)
 {
+    LogDebug("Loading Draw Commands");
     for (int i = 0; i < renderPass.sub_passes_size(); i++)
     {
         const auto& subpassPb = renderPass.sub_passes(i);

@@ -120,6 +120,7 @@ bool Texture::LoadTexture(const core::pb::Texture& textureInfo)
         //TODO Generate the mip maps
     }
     CreateImageView(format, mipMapLevels, 1);
+    CreateSampler(textureInfo);
     return true;
 }
 
@@ -284,5 +285,10 @@ void TextureManager::Clear()
 
     textures_.clear();
     textureNamesMap_.clear();
+}
+
+const Texture& TextureManager::GetTexture(core::TextureId textureId) const
+{
+    return textures_[static_cast<int>(textureId)];
 }
 }

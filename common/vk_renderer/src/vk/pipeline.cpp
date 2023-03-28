@@ -192,7 +192,8 @@ bool Pipeline::LoadRaterizePipeline(const core::pb::Pipeline& pipelinePb, Shader
     }
     int basePushConstantIndex = 0;
     std::vector<VkPushConstantRange> pushConstantRanges{};
-    //TODO descriptor set layout for uniform buffer
+    //TODO descriptor set layout for uniform buffer and sampler
+    std::vector<VkDescriptorSetLayoutBinding > descriptorSetLayoutBindings;
 
     for(auto& shader: shaderInfo)
     {
@@ -243,22 +244,66 @@ bool Pipeline::LoadRaterizePipeline(const core::pb::Pipeline& pipelinePb, Shader
                 pushConstantRange.stageFlags = GetShaderStage(uniform.stage());
                 pushConstantRanges.push_back(pushConstantRange);
             }
+            else
+            {
+                VkDescriptorSetLayoutBinding layoutBinding{};
+                if(uniform.type() == core::pb::Attribute_Type_SAMPLER2D || uniform.type() == core::pb::Attribute_Type_SAMPLERCUBE)
+                {
+                    //sampler
+                    layoutBinding.binding = uniform.binding();
+                    layoutBinding.descriptorCount = 1;
+                    layoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+                    layoutBinding.pImmutableSamplers = nullptr;
+                    layoutBinding.stageFlags = GetShaderStage(uniform.stage());
+                }
+                else
+                {
+                    //ubo
+                    layoutBinding.binding = uniform.binding();
+                    layoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+                    layoutBinding.descriptorCount = 1;
+                    layoutBinding.stageFlags = GetShaderStage(uniform.stage());
+                    layoutBinding.pImmutableSamplers = nullptr;
+                }
+                descriptorSetLayoutBindings.push_back(layoutBinding);
+            }
         }
     }
     if(basePushConstantIndex > 128)
     {
         LogWarning("Push Constant Size is bigger than 128 bytes");
     }
-    
+
+    if(!descriptorSetLayoutBindings.empty())
+    {
+        VkDescriptorSetLayoutCreateInfo layoutInfo{};
+        layoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
+        layoutInfo.bindingCount = descriptorSetLayoutBindings.size();
+        layoutInfo.pBindings = descriptorSetLayoutBindings.data();
+
+        if (vkCreateDescriptorSetLayout(
+            driver.device, 
+            &layoutInfo, 
+            nullptr, 
+            &descriptorSetLayout) != VK_SUCCESS) 
+        {
+            LogError("Failed to create descriptor set layout!");
+            return false;
+        }
+    }
+
     VkPipelineLayoutCreateInfo pipelineLayoutInfo{};
     pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
-    pipelineLayoutInfo.setLayoutCount = 0;
-    pipelineLayoutInfo.pSetLayouts = nullptr;
+    pipelineLayoutInfo.setLayoutCount = descriptorSetLayoutBindings.empty() ? 0 : 1;
+    pipelineLayoutInfo.pSetLayouts = descriptorSetLayoutBindings.empty() ? nullptr : &descriptorSetLayout;
     pipelineLayoutInfo.pushConstantRangeCount = pushConstantRanges.size();
     pipelineLayoutInfo.pPushConstantRanges = pushConstantRanges.empty() ? 0 : pushConstantRanges.data();
 
-    if (vkCreatePipelineLayout(driver.device, &pipelineLayoutInfo, nullptr, &pipelineLayout) !=
-        VK_SUCCESS)
+    if (vkCreatePipelineLayout(
+        driver.device, 
+        &pipelineLayoutInfo, 
+        nullptr,
+        &pipelineLayout) != VK_SUCCESS)
     {
         LogError("Failed to create pipeline layout!\n");
         return false;
@@ -319,6 +364,7 @@ void Pipeline::Bind()
 void Pipeline::Destroy() const
 {
     const auto& driver = GetDriver();
+    vkDestroyDescriptorSetLayout(driver.device, descriptorSetLayout, nullptr);
     vkDestroyPipeline(driver.device, pipeline, nullptr);
     vkDestroyPipelineLayout(driver.device, pipelineLayout, nullptr);
 }

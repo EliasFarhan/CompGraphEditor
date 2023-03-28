@@ -21,8 +21,8 @@ public:
     Image image;
     int width = 0;
     int height = 0;
-    VkImageView imageView;
-    VkSampler sampler;
+    VkImageView imageView = VK_NULL_HANDLE;
+    VkSampler sampler = VK_NULL_HANDLE;
 
     void Destroy();
 private:
@@ -35,6 +35,7 @@ class TextureManager : public core::TextureManager
 public:
     core::TextureId LoadTexture(const core::pb::Texture &textureInfo) override;
     void Clear() override;
+    const Texture& GetTexture(core::TextureId textureId) const;
 private:
     std::unordered_map<std::string, core::TextureId> textureNamesMap_;
     std::vector<Texture> textures_;

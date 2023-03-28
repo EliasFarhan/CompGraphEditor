@@ -172,7 +172,7 @@ core::pb::Scene Scene4()
     core::pb::Shader* fragmentShader = scene.add_shaders();
     fragmentShader->set_type(core::pb::FRAGMENT);
     fragmentShader->set_path("data/shaders/04_texture/texture.frag.spv");
-    auto* uniform = vertexShader->add_uniforms();
+    auto* uniform = fragmentShader->add_uniforms();
     uniform->set_name("tex");
     uniform->set_type(core::pb::Attribute_Type_SAMPLER2D);
     uniform->set_type_name("sampler2D");
@@ -210,7 +210,7 @@ core::pb::Scene Scene4()
     drawCommand->set_mesh_index(0);
     drawCommand->set_draw_elements(true);
     drawCommand->set_mode(core::pb::DrawCommand_Mode_TRIANGLES);
-    drawCommand->set_automatic_draw(false);
+    drawCommand->set_automatic_draw(true);
 
     auto* texture = scene.add_textures();
     texture->set_path("data/textures/container.jpg");
@@ -224,28 +224,54 @@ core::pb::Scene Scene5()
     core::pb::Scene scene;
     core::pb::Shader* vertexShader = scene.add_shaders();
     vertexShader->set_type(core::pb::VERTEX);
-    vertexShader->set_path("data/shaders/05_ubo/uniform.vert.spv");
+    vertexShader->set_path("data/shaders/05_ubo/rotated_cube.vert.spv");
     auto* constantValueStruct = vertexShader->add_structs();
     constantValueStruct->set_name("constants");
-    constantValueStruct->set_alignment(4);
-    constantValueStruct->set_size(4);
+    constantValueStruct->set_alignment(16);
+    constantValueStruct->set_size(64);
     auto* constantValueFloat = constantValueStruct->add_attributes();
     constantValueFloat->set_name("model");
     constantValueFloat->set_type(core::pb::Attribute_Type_MAT4);
     constantValueFloat->set_type_name("mat4");
     constantValueFloat->set_push_constant(true);
     constantValueFloat->set_stage(core::pb::VERTEX);
+    auto* uboStruct = vertexShader->add_structs();
+    uboStruct->set_name("uniforms");
+    uboStruct->set_alignment(16);
+    uboStruct->set_size(128);
+    auto* viewMatrix = uboStruct->add_attributes();
+    viewMatrix->set_name("view");
+    viewMatrix->set_type(core::pb::Attribute_Type_MAT4);
+    viewMatrix->set_type_name("mat4");
+    viewMatrix->set_stage(core::pb::VERTEX);
+    auto* projectionMatrix = uboStruct->add_attributes();
+    projectionMatrix->set_name("projection");
+    projectionMatrix->set_type(core::pb::Attribute_Type_MAT4);
+    projectionMatrix->set_type_name("mat4");
+    projectionMatrix->set_stage(core::pb::VERTEX);
 
-    auto* uniform = vertexShader->add_uniforms();
-    uniform->set_name("constant_values");
-    uniform->set_type(core::pb::Attribute_Type_CUSTOM);
-    uniform->set_type_name("constants");
-    uniform->set_push_constant(true);
-    uniform->set_stage(core::pb::VERTEX);
+    auto* constantUniform = vertexShader->add_uniforms();
+    constantUniform->set_name("constant_values");
+    constantUniform->set_type(core::pb::Attribute_Type_CUSTOM);
+    constantUniform->set_type_name("constants");
+    constantUniform->set_push_constant(true);
+    constantUniform->set_stage(core::pb::VERTEX);
+
+    auto* ubo = vertexShader->add_uniforms();
+    ubo->set_name("ubo");
+    ubo->set_type(core::pb::Attribute_Type_CUSTOM);
+    ubo->set_stage(core::pb::VERTEX);
+    ubo->set_type_name("uniforms");
 
     core::pb::Shader* fragmentShader = scene.add_shaders();
     fragmentShader->set_type(core::pb::FRAGMENT);
-    fragmentShader->set_path("data/shaders/05_ubo/uniform.frag.spv");
+    fragmentShader->set_path("data/shaders/05_ubo/rotated_cube.frag.spv");
+    auto* textureSampler = fragmentShader->add_uniforms();
+    textureSampler->set_name("tex");
+    textureSampler->set_type(core::pb::Attribute_Type_SAMPLER2D);
+    textureSampler->set_type_name("sampler2D");
+    textureSampler->set_binding(1);
+    textureSampler->set_stage(core::pb::FRAGMENT);
 
     auto* pipeline = scene.add_pipelines();
     pipeline->set_vertex_shader_index(0);
@@ -255,11 +281,14 @@ core::pb::Scene Scene5()
     pipeline->set_enable_culling(false);
 
     auto* mesh = scene.add_meshes();
-    mesh->set_primitve_type(core::pb::Mesh_PrimitveType_QUAD);
-    mesh->set_mesh_name("Quad");
+    mesh->set_primitve_type(core::pb::Mesh_PrimitveType_CUBE);
+    mesh->set_mesh_name("Cube");
 
     auto* material = scene.add_materials();
     material->set_pipeline_index(0);
+    auto* textureMaterial = material->add_textures();
+    textureMaterial->set_sampler_name("tex");
+    textureMaterial->set_texture_index(0);
 
     auto* renderPass = scene.mutable_render_pass();
     auto* subPass = renderPass->add_sub_passes();
@@ -271,12 +300,15 @@ core::pb::Scene Scene5()
 
     auto* drawCommand = subPass->add_commands();
     drawCommand->set_material_index(0);
-    drawCommand->set_count(6);
+    drawCommand->set_count(36);
     drawCommand->set_mesh_index(0);
     drawCommand->set_draw_elements(true);
     drawCommand->set_mode(core::pb::DrawCommand_Mode_TRIANGLES);
     drawCommand->set_automatic_draw(false);
 
+    auto* texture = scene.add_textures();
+    texture->set_path("data/textures/container.jpg");
+    texture->set_filter_mode(core::pb::Texture_FilteringMode_LINEAR);
 
     auto* pySystem = scene.add_py_systems();
     pySystem->set_class_("UniformSystem");
@@ -288,7 +320,7 @@ core::pb::Scene Scene5()
 
 void HelloVulkanProgram::Begin() 
 {
-    scene_.SetScene(Scene4());
+    scene_.SetScene(Scene5());
 
     sceneManager_.LoadScene(&scene_);
 }

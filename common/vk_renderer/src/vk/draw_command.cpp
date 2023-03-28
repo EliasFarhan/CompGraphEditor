@@ -21,61 +21,94 @@ namespace vk
 void DrawCommand::SetFloat(std::string_view uniformName, float f)
 {
     const auto& uniformData = uniforms_[uniformName.data()];
-    if(uniformData.pushConstant)
+    float* ptr = nullptr;
+    if(uniformData.uniformType == UniformType::PUSH_CONSTANT)
     {
-        auto* ptr = reinterpret_cast<float*>(&pushConstantBuffer_[uniformData.index]);
-        *ptr = f;
+        ptr = reinterpret_cast<float*>(&pushConstantBuffer_[uniformData.index]);
     }
+    else if(uniformData.uniformType == UniformType::UBO)
+    {
+        ptr = reinterpret_cast<float*>(&uniformBuffer_[uniformData.index]);
+    }
+    *ptr = f;
+
 }
 
 void DrawCommand::SetInt(std::string_view uniformName, int i)
 {
     const auto& uniformData = uniforms_[uniformName.data()];
-    if(uniformData.pushConstant)
+    int* ptr = nullptr;
+    if (uniformData.uniformType == UniformType::PUSH_CONSTANT)
     {
-        auto* ptr = reinterpret_cast<int*>(&pushConstantBuffer_[uniformData.index]);
-        *ptr = i;
+        ptr = reinterpret_cast<int*>(&pushConstantBuffer_[uniformData.index]);
     }
+    else if (uniformData.uniformType == UniformType::UBO)
+    {
+        ptr = reinterpret_cast<int*>(&uniformBuffer_[uniformData.index]);
+    }
+    *ptr = i;
 }
 
 void DrawCommand::SetVec2(std::string_view uniformName, glm::vec2 v)
 {
     const auto& uniformData = uniforms_[uniformName.data()];
-    if(uniformData.pushConstant)
+    glm::vec2* ptr = nullptr;
+    if (uniformData.uniformType == UniformType::PUSH_CONSTANT)
     {
-        auto* ptr = reinterpret_cast<glm::vec2*>(&pushConstantBuffer_[uniformData.index]);
-        *ptr = v;
+        ptr = reinterpret_cast<glm::vec2*>(&pushConstantBuffer_[uniformData.index]);
     }
+    else if (uniformData.uniformType == UniformType::UBO)
+    {
+        ptr = reinterpret_cast<glm::vec2*>(&uniformBuffer_[uniformData.index]);
+    }
+    *ptr = v;
 }
 
 void DrawCommand::SetVec3(std::string_view uniformName, glm::vec3 v)
 {
     const auto& uniformData = uniforms_[uniformName.data()];
-    if(uniformData.pushConstant)
+    glm::vec3* ptr = nullptr;
+    if (uniformData.uniformType == UniformType::PUSH_CONSTANT)
     {
-        auto* ptr = reinterpret_cast<glm::vec3*>(&pushConstantBuffer_[uniformData.index]);
-        *ptr = v;
+        ptr = reinterpret_cast<glm::vec3*>(&pushConstantBuffer_[uniformData.index]);
     }
+    else if (uniformData.uniformType == UniformType::UBO)
+    {
+        ptr = reinterpret_cast<glm::vec3*>(&uniformBuffer_[uniformData.index]);
+    }
+    *ptr = v;
 }
 
 void DrawCommand::SetVec4(std::string_view uniformName, glm::vec4 v)
 {
     const auto& uniformData = uniforms_[uniformName.data()];
-    if(uniformData.pushConstant)
+    glm::vec4* ptr = nullptr;
+    if (uniformData.uniformType == UniformType::PUSH_CONSTANT)
     {
-        auto* ptr = reinterpret_cast<glm::vec4*>(&pushConstantBuffer_[uniformData.index]);
-        *ptr = v;
+        ptr = reinterpret_cast<glm::vec4*>(&pushConstantBuffer_[uniformData.index]);
     }
+    else if (uniformData.uniformType == UniformType::UBO)
+    {
+        ptr = reinterpret_cast<glm::vec4*>(&uniformBuffer_[uniformData.index]);
+    }
+    *ptr = v;
 }
 
-void DrawCommand::SetMat4(std::string_view uniformName, const glm::mat4 &mat)
+void DrawCommand::SetMat4(std::string_view uniformName, const glm::mat4& mat)
 {
     const auto& uniformData = uniforms_[uniformName.data()];
-    if(uniformData.pushConstant)
+    
+    glm::mat4* ptr = nullptr;
+    if (uniformData.uniformType == UniformType::PUSH_CONSTANT)
     {
-        auto* ptr = reinterpret_cast<glm::mat4*>(&pushConstantBuffer_[uniformData.index]);
-        *ptr = mat;
+        ptr = reinterpret_cast<glm::mat4*>(&pushConstantBuffer_[uniformData.index]);
     }
+    else if (uniformData.uniformType == UniformType::UBO)
+    {
+        ptr = reinterpret_cast<glm::mat4*>(&uniformBuffer_[uniformData.index]);
+    }
+    *ptr = mat;
+    
 }
 
 void DrawCommand::Bind()
@@ -123,11 +156,11 @@ void DrawCommand::Bind()
 
 void DrawCommand::GenerateUniforms()
 {
-    auto* scene = core::GetCurrentScene();
+    auto* scene = static_cast<Scene*>(core::GetCurrentScene());
     const auto& sceneInfo = scene->GetInfo();
     const auto& materialInfo = sceneInfo.materials(drawCommandInfo_.get().material_index());
     const auto& pipelineInfo = sceneInfo.pipelines(materialInfo.pipeline_index());
-
+    auto& textureManager = static_cast<TextureManager&>(core::GetTextureManager());
     
 
     std::vector<std::reference_wrapper<const core::pb::Shader>> shaderInfos;
@@ -149,8 +182,11 @@ void DrawCommand::GenerateUniforms()
     }
 
     int basePushConstantIndex = 0;
-    int samplerCount = 0;
-    int uboCount = 0;
+    int baseUniformIndex = 0;
+
+    std::vector<VkDescriptorPoolSize> poolSizes{};
+    std::vector<VkDescriptorImageInfo> imageInfos{};
+    std::vector<UniformInternalData> uniformDatas{}; //sampler and ubo
     for(auto& shaderInfo: shaderInfos)
     {
         for(const auto& uniform: shaderInfo.get().uniforms())
@@ -159,6 +195,7 @@ void DrawCommand::GenerateUniforms()
             UniformInternalData uniformData{};
             if(uniform.push_constant())
             {
+                uniformData.uniformType = UniformType::PUSH_CONSTANT;
                 if(uniform.type() != core::pb::Attribute_Type_CUSTOM)
                 {
                     const auto typeInfo = core::GetTypeInfo(uniform.type());
@@ -167,66 +204,159 @@ void DrawCommand::GenerateUniforms()
                         basePushConstantIndex += typeInfo.alignment - basePushConstantIndex % typeInfo.alignment;
                     }
                     uniformData.index = basePushConstantIndex;
-                    uniformData.pushConstant = true;
                     basePushConstantIndex += typeInfo.size;
                 }
                 else
                 {
                     for(auto& structType: shaderInfo.get().structs())
                     {
-                        if(structType.name() == uniform.type_name())
+                        if (structType.name() != uniform.type_name())
                         {
-                            const core::TypeInfo typeInfo
-                            {
-                                .size = structType.size(),
-                                .alignment = structType.alignment()
-                            };
-                            if (basePushConstantIndex % typeInfo.alignment != 0)
-                            {
-                                basePushConstantIndex += typeInfo.alignment - basePushConstantIndex % typeInfo.alignment;
-                            }
-                            uniformData.index = basePushConstantIndex;
-                            uniformData.pushConstant = true;
-                            int internalPushConstantIndex = basePushConstantIndex;
-                            for(auto& structUniform: structType.attributes())
-                            {
-                                UniformInternalData internalUniformData{};
-                                const auto internalTypeInfo = core::GetTypeInfo(structUniform.type());
-                                if (internalPushConstantIndex % internalTypeInfo.alignment != 0)
-                                {
-                                    internalPushConstantIndex += internalTypeInfo.alignment - internalPushConstantIndex % internalTypeInfo.alignment;
-                                }
-                                internalUniformData.index = internalPushConstantIndex;
-                                internalUniformData.pushConstant = true;
-                                internalPushConstantIndex += typeInfo.size;
-                                uniforms_[fmt::format("{}.{}",name, structUniform.name())] = internalUniformData;
-                            }
-                            basePushConstantIndex += typeInfo.size;
-                            break;
+                            continue;
                         }
+                        const core::TypeInfo typeInfo
+                        {
+                            .size = structType.size(),
+                            .alignment = structType.alignment()
+                        };
+                        if (basePushConstantIndex % typeInfo.alignment != 0)
+                        {
+                            basePushConstantIndex += typeInfo.alignment - basePushConstantIndex % typeInfo.alignment;
+                        }
+                        uniformData.index = basePushConstantIndex;
+                        int internalPushConstantIndex = basePushConstantIndex;
+                        for(auto& structUniform: structType.attributes())
+                        {
+                            UniformInternalData internalUniformData{};
+                            const auto internalTypeInfo = core::GetTypeInfo(structUniform.type());
+                            if (internalPushConstantIndex % internalTypeInfo.alignment != 0)
+                            {
+                                internalPushConstantIndex += internalTypeInfo.alignment - internalPushConstantIndex % internalTypeInfo.alignment;
+                            }
+                            internalUniformData.index = internalPushConstantIndex;
+                            internalUniformData.uniformType = UniformType::PUSH_CONSTANT;
+                            internalPushConstantIndex += internalTypeInfo.size;
+                            uniforms_[fmt::format("{}.{}",name, structUniform.name())] = internalUniformData;
+                        }
+                        basePushConstantIndex += typeInfo.size;
+                        break;
+                        
                     }
                 }
             }
             else
             {
+                VkDescriptorPoolSize poolSize;
                 //TODO uniform buffer data and samplers
+                if(uniform.type() == core::pb::Attribute_Type_SAMPLER2D || uniform.type() == core::pb::Attribute_Type_SAMPLERCUBE)
+                {
+                    //TODO use framebuffer render target
+                    poolSize.type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+                    poolSize.descriptorCount = static_cast<uint32_t>(Engine::MAX_FRAMES_IN_FLIGHT);
+                    
+                    poolSizes.push_back(poolSize);
+                    
+
+                    uniformData.index = imageInfos.size();
+                    uniformData.uniformType = UniformType::SAMPLER;
+                    uniformData.binding = uniform.binding();
+                    uniformDatas.push_back(uniformData);
+
+                    int textureIndex = -1;
+                    for (auto& materialTexture : materialInfo.textures())
+                    {
+                        if (materialTexture.sampler_name() == uniform.name())
+                        {
+                            textureIndex = materialTexture.texture_index();
+                            break;
+                        }
+                    }
+
+                    auto& texture = (scene->GetTexture(textureIndex));
+                    VkDescriptorImageInfo imageInfo{};
+                    imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+                    imageInfo.imageView = texture.imageView;
+                    imageInfo.sampler = texture.sampler;
+                    imageInfos.push_back(imageInfo);
+
+                    continue; //don't put sampler in uniform map
+                }
+                else
+                {
+                    poolSize.type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+                    poolSize.descriptorCount = static_cast<uint32_t>(Engine::MAX_FRAMES_IN_FLIGHT); 
+                    poolSizes.push_back(poolSize);
+                    uniformData.uniformType = UniformType::UBO;
+                    uniformBuffers_.emplace_back();
+
+                    if(uniform.type() != core::pb::Attribute_Type_CUSTOM)
+                    {
+                        const auto typeInfo = core::GetTypeInfo(uniform.type());
+                        if(baseUniformIndex % typeInfo.alignment != 0)
+                        {
+                            baseUniformIndex += typeInfo.alignment - baseUniformIndex % typeInfo.alignment;
+                        }
+                        uniformData.index = baseUniformIndex;
+                        uniformData.size = typeInfo.size;
+                        baseUniformIndex += typeInfo.size;
+                    }
+                    else
+                    {
+                        for(auto& structType: shaderInfo.get().structs())
+                        {
+                            if(structType.name() != uniform.type_name())
+                            {
+                                continue;
+                            }
+                            const core::TypeInfo typeInfo
+                            {
+                                .size = structType.size(),
+                                .alignment = structType.alignment()
+                            };
+                            if (baseUniformIndex % typeInfo.alignment != 0)
+                            {
+                                baseUniformIndex += typeInfo.alignment - baseUniformIndex % typeInfo.alignment;
+                            }
+                            uniformData.index = baseUniformIndex;
+                            uniformData.size = typeInfo.size;
+
+                            int internalUniformIndex = baseUniformIndex;
+                            for (auto& structUniform : structType.attributes())
+                            {
+                                UniformInternalData internalUniformData{};
+                                const auto internalTypeInfo = core::GetTypeInfo(structUniform.type());
+                                if (internalUniformIndex % internalTypeInfo.alignment != 0)
+                                {
+                                    internalUniformIndex += internalTypeInfo.alignment - internalUniformIndex % internalTypeInfo.alignment;
+                                }
+                                internalUniformData.index = internalUniformIndex;
+                                internalUniformData.size = internalTypeInfo.size;
+                                internalUniformData.uniformType = UniformType::UBO;
+                                internalUniformIndex += internalTypeInfo.size;
+                                uniforms_[fmt::format("{}.{}", name, structUniform.name())] = internalUniformData;
+                            }
+                            baseUniformIndex += typeInfo.size;
+                            break;
+                        }
+                    }
+                    uniformDatas.emplace_back(uniformData.index, uniformData.size, UniformType::UBO, uniform.binding());
+
+                }
             }
             uniforms_[name] = uniformData;
         }
     }
+    uniformBuffer_.resize(baseUniformIndex);
     pushConstantBuffer_.resize(basePushConstantIndex);
 
     const auto& driver = GetDriver();
     //Generate descriptor pool
-    VkDescriptorPoolSize poolSize{};
     //TODO count numbers of ubo and samplers
-    poolSize.type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-    poolSize.descriptorCount = static_cast<uint32_t>(Engine::MAX_FRAMES_IN_FLIGHT);
 
     VkDescriptorPoolCreateInfo poolInfo{};
     poolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
-    poolInfo.poolSizeCount = 1;
-    poolInfo.pPoolSizes = &poolSize;
+    poolInfo.poolSizeCount = poolSizes.size();
+    poolInfo.pPoolSizes = poolSizes.empty() ? nullptr : poolSizes.data();
     poolInfo.maxSets = static_cast<uint32_t>(Engine::MAX_FRAMES_IN_FLIGHT);
 
     if (vkCreateDescriptorPool(driver.device, &poolInfo, nullptr, &descriptorPool) != VK_SUCCESS)
@@ -244,11 +374,83 @@ void DrawCommand::GenerateUniforms()
     allocInfo.descriptorPool = descriptorPool;
     allocInfo.descriptorSetCount = static_cast<uint32_t>(Engine::MAX_FRAMES_IN_FLIGHT);
     allocInfo.pSetLayouts = layouts.data();
-
-    descriptorSets.resize(Engine::MAX_FRAMES_IN_FLIGHT);
+    
     if (vkAllocateDescriptorSets(driver.device, &allocInfo, descriptorSets.data()) != VK_SUCCESS) {
-        throw std::runtime_error("failed to allocate descriptor sets!");
+        LogError("Failed to allocate descriptor sets!");
     }
+    auto& engine = GetEngine();
+    for (size_t i = 0; i < Engine::MAX_FRAMES_IN_FLIGHT; i++) 
+    {
+        std::vector<VkWriteDescriptorSet> descriptorWrites{};
+        int uboIndex = 0;
+        for(auto& uniformData : uniformDatas)
+        {
+            if (uniformData.uniformType == UniformType::SAMPLER)
+            {
+                VkWriteDescriptorSet descriptorWrite{};
+                descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+                descriptorWrite.dstSet = descriptorSets[i];
+                descriptorWrite.dstBinding = uniformData.binding;
+                descriptorWrite.dstArrayElement = 0;
+                descriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+                descriptorWrite.descriptorCount = 1;
+                descriptorWrite.pImageInfo = &imageInfos[uniformData.index];
+                descriptorWrites.push_back(descriptorWrite);
+            }
+            else if(uniformData.uniformType == UniformType::UBO)
+            {
+                //allocate buffer
+                auto& ubo = uniformBuffers_[uboIndex];
+                ubo.index = uniformData.index;
+                ubo.size = uniformData.size;
+
+                auto& buffer = ubo.buffers[i];
+                buffer = engine.CreateBuffer(uniformData.size,
+                    VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
+                    VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+
+                //describe buffer
+                VkDescriptorBufferInfo bufferInfo{};
+                bufferInfo.buffer = buffer.buffer;
+                bufferInfo.offset = 0;
+                bufferInfo.range = uniformData.size;
+                //descriptor write
+
+                VkWriteDescriptorSet descriptorWrite{};
+                descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+                descriptorWrite.dstSet = descriptorSets[i];
+                descriptorWrite.dstBinding = uniformData.binding;
+                descriptorWrite.dstArrayElement = 0;
+                descriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+                descriptorWrite.descriptorCount = 1;
+                descriptorWrite.pBufferInfo = &bufferInfo;
+                descriptorWrites.push_back(descriptorWrite);
+                uboIndex++;
+            }
+        }
+
+        vkUpdateDescriptorSets(driver.device,
+            static_cast<uint32_t>(
+                descriptorWrites.size()), 
+            descriptorWrites.data(),
+            0,
+            nullptr);
+    }
+}
+
+void DrawCommand::Destroy()
+{
+    const auto& driver = GetDriver();
+    vkDestroyDescriptorPool(driver.device, descriptorPool, nullptr);
+    const auto& allocator = GetAllocator();
+    for(auto& buffer: uniformBuffers_)
+    {
+        for(int i = 0; i < Engine::MAX_FRAMES_IN_FLIGHT; i++)
+        {
+            vmaDestroyBuffer(allocator, buffer.buffers[i].buffer, buffer.buffers[i].allocation);
+        }
+    }
+    uniformBuffers_.clear();
 }
 
 void DrawCommand::PreDrawBind()
@@ -274,5 +476,26 @@ void DrawCommand::PreDrawBind()
                                &pushConstantBuffer_[pushConstantDataTable[i].index]);
         }
     }
+    //push uniform to buffers
+    const auto& allocator = GetAllocator();
+    const auto currentFrame = GetRenderer().currentFrame;
+    for(auto& ubo : uniformBuffers_)
+    {
+        void* data;
+        vmaMapMemory(allocator, ubo.buffers[currentFrame].allocation, &data);
+        std::memcpy(data, &uniformBuffer_[ubo.index], ubo.size);
+        vmaUnmapMemory(allocator, ubo.buffers[currentFrame].allocation);
+
+    }
+
+    //Bind descriptor sets
+    vkCmdBindDescriptorSets(GetCurrentCommandBuffer(),
+        VK_PIPELINE_BIND_POINT_GRAPHICS, 
+        pipeline.GetLayout(), 
+        0, 
+        1, 
+        &descriptorSets[currentFrame], 
+        0, 
+        nullptr);
 }
 }
