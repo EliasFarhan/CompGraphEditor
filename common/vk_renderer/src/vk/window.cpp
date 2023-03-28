@@ -5,6 +5,8 @@
 #include <fmt/core.h>
 #include <SDL_vulkan.h>
 
+#include "vk/engine.h"
+
 namespace vk
 {
 static Window* instance = nullptr;
@@ -25,13 +27,11 @@ void Window::Begin()
     vkGetPhysicalDeviceProperties(driver_.physicalDevice, &properties);
     driver_.maxAnisotropy = properties.limits.maxSamplerAnisotropy;
     CreateLogicalDevice();
-    CreateSwapChainObjects();
 }
 
 void Window::End()
 {
     LogDebug("Destroy Window");
-    CleanupSwapChain();
     vkDestroyDevice(driver_.device, nullptr);
     if (config_.enable_debug())
     {
@@ -327,13 +327,49 @@ void Window::CreateImageViews()
     }
 }
 
+void Window::CreateDepthResources()
+{
+    const VkFormat depthFormat = FindDepthFormat(driver_.physicalDevice);
+    auto& engine = GetEngine();
+    swapchain_.depthImage = engine.CreateImage(
+        swapchain_.extent.width,
+        swapchain_.extent.height,
+        depthFormat,
+        1,
+        VK_IMAGE_TILING_OPTIMAL,
+        VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT,
+        VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
+        1);
+
+    VkImageViewCreateInfo createInfo{};
+    createInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+    createInfo.image = swapchain_.depthImage.image;
+    createInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
+    createInfo.format = depthFormat;
+    createInfo.components.r = VK_COMPONENT_SWIZZLE_IDENTITY;
+    createInfo.components.g = VK_COMPONENT_SWIZZLE_IDENTITY;
+    createInfo.components.b = VK_COMPONENT_SWIZZLE_IDENTITY;
+    createInfo.components.a = VK_COMPONENT_SWIZZLE_IDENTITY;
+    createInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT;
+    createInfo.subresourceRange.baseMipLevel = 0;
+    createInfo.subresourceRange.levelCount = 1;
+    createInfo.subresourceRange.baseArrayLayer = 0;
+    createInfo.subresourceRange.layerCount = 1;
+    if (vkCreateImageView(driver_.device, &createInfo, nullptr, &swapchain_.depthImageView) != VK_SUCCESS)
+    {
+        LogError("[Error] Failed to create image views!");
+        std::terminate();
+    }
+}
+
 void Window::CleanupSwapChain()
 {
     for (const auto& imageView : swapchain_.imageViews)
     {
         vkDestroyImageView(driver_.device, imageView, nullptr);
     }
-
+    vkDestroyImageView(driver_.device, swapchain_.depthImageView, nullptr);
+    vmaDestroyImage(GetAllocator(), swapchain_.depthImage.image, swapchain_.depthImage.allocation);
     vkDestroySwapchainKHR(driver_.device, swapchain_.swapChain, nullptr);
 }
 
@@ -341,6 +377,7 @@ void Window::CreateSwapChainObjects()
 {
     CreateSwapChain();
     CreateImageViews();
+    CreateDepthResources();
 }
 
 VkExtent2D Window::ChooseSwapExtent(const VkSurfaceCapabilitiesKHR &capabilities) const {

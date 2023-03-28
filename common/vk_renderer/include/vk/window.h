@@ -6,6 +6,8 @@
 #include <vector>
 #include <cstdint>
 
+#include "vk/common.h"
+
 namespace vk
 {
 
@@ -25,6 +27,10 @@ struct Swapchain
     VkSwapchainKHR swapChain;
     std::vector<VkImage> images;
     std::vector<VkImageView> imageViews;
+
+    //Depth resources
+    Image depthImage;
+    VkImageView depthImageView;
 
     VkFormat imageFormat;
     VkExtent2D extent;
@@ -61,6 +67,7 @@ private:
     void CreateSwapChain();
     void CreateImageViews();
 
+    void CreateDepthResources();
 
     VkExtent2D ChooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities) const;
 

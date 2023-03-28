@@ -311,12 +311,15 @@ void Engine::CopyBuffer(const Buffer& srcBuffer, const Buffer& dstBuffer, std::s
 void Engine::Begin()
 {
     window_.Begin();
+
     VmaAllocatorCreateInfo allocatorInfo = {};
     allocatorInfo.vulkanApiVersion = VK_API_VERSION_1_0;
     allocatorInfo.physicalDevice = window_.GetDriver().physicalDevice;
     allocatorInfo.device = window_.GetDriver().device;
     allocatorInfo.instance = window_.GetDriver().instance;
     vmaCreateAllocator(&allocatorInfo, &allocator_);
+
+    window_.CreateSwapChainObjects();
     CreateCommandPool();
     CreateCommandBuffers();
     CreateSyncObjects();
@@ -328,6 +331,7 @@ void Engine::End()
 {
     const auto& driver = GetDriver();
     vkDeviceWaitIdle(driver.device);
+    window_.CleanupSwapChain();
     imGuiManager_.End();
     vkFreeCommandBuffers(driver.device, renderer_.commandPool,
         static_cast<uint32_t>(renderer_.commandBuffers.size()),

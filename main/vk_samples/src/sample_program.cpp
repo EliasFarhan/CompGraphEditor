@@ -279,6 +279,9 @@ core::pb::Scene Scene5()
     pipeline->set_type(core::pb::Pipeline_Type_RASTERIZE);
     pipeline->set_cull_face(core::pb::Pipeline_CullFace_BACK);
     pipeline->set_enable_culling(false);
+    pipeline->set_depth_test_enable(true);
+    pipeline->set_depth_compare_op(core::pb::Pipeline_DepthCompareOp_LESS);
+    pipeline->set_depth_mask(true);
 
     auto* mesh = scene.add_meshes();
     mesh->set_primitve_type(core::pb::Mesh_PrimitveType_CUBE);

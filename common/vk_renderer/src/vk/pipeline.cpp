@@ -316,7 +316,49 @@ bool Pipeline::LoadRaterizePipeline(const core::pb::Pipeline& pipelinePb, Shader
     VkPipelineDepthStencilStateCreateInfo depthStencil{};
     if(pipelinePb.depth_test_enable())
     {
-        //TODO fill data for depth stencil
+        depthStencil.sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO;
+        depthStencil.depthTestEnable = VK_TRUE;
+        depthStencil.depthWriteEnable = pipelinePb.depth_mask() ? VK_TRUE : VK_FALSE;
+        switch(pipelinePb.depth_compare_op())
+        {
+        case core::pb::Pipeline_DepthCompareOp_LESS: 
+            depthStencil.depthCompareOp = VK_COMPARE_OP_LESS;
+            break;
+        case core::pb::Pipeline_DepthCompareOp_LESS_OR_EQUAL: 
+            depthStencil.depthCompareOp = VK_COMPARE_OP_LESS_OR_EQUAL;
+            break;
+        case core::pb::Pipeline_DepthCompareOp_EQUAL: 
+            depthStencil.depthCompareOp = VK_COMPARE_OP_EQUAL;
+            break;
+        case core::pb::Pipeline_DepthCompareOp_GREATER: 
+            depthStencil.depthCompareOp = VK_COMPARE_OP_GREATER;
+            break;
+        case core::pb::Pipeline_DepthCompareOp_NOT_EQUAL: 
+            depthStencil.depthCompareOp = VK_COMPARE_OP_NOT_EQUAL;
+            break;
+        case core::pb::Pipeline_DepthCompareOp_GREATER_OR_EQUAL: 
+            depthStencil.depthCompareOp = VK_COMPARE_OP_GREATER_OR_EQUAL;
+            break;
+        case core::pb::Pipeline_DepthCompareOp_ALWAYS: 
+            depthStencil.depthCompareOp = VK_COMPARE_OP_ALWAYS;
+            break;
+        case core::pb::Pipeline_DepthCompareOp_NEVER: 
+            depthStencil.depthCompareOp = VK_COMPARE_OP_NEVER;
+            break;
+        default:
+            depthStencil.depthCompareOp = VK_COMPARE_OP_LESS;
+            break;
+        }
+        
+        //TODO stencil test
+        depthStencil.depthBoundsTestEnable = VK_FALSE;
+        depthStencil.minDepthBounds = 0.0f; // Optional
+        depthStencil.maxDepthBounds = 1.0f; // Optional
+
+        depthStencil.stencilTestEnable = VK_FALSE;
+        depthStencil.front = {}; // Optional
+        depthStencil.back = {}; // Optional
+
         pipelineInfo.pDepthStencilState = &depthStencil;
     }
     else

@@ -30,9 +30,7 @@ struct Renderer
      * \brief Should be used with imageIndex
      */
     std::vector<VkCommandBuffer> commandBuffers;
-    //Depth resources
-    Image depthImage;
-    VkImageView depthImageView;
+
 };
 
 class Engine final : public core::Engine

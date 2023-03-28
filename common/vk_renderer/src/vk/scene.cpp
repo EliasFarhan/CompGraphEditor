@@ -279,12 +279,23 @@ Scene::ImportStatus Scene::LoadRenderPass(const core::pb::RenderPass& renderPass
     auto& driver = GetDriver();
     auto& swapchain = GetSwapchain();
 
-    std::vector<VkAttachmentDescription> attachments(1);
+    std::vector<VkAttachmentDescription> attachments(2);
     //TODO add the attachments from the framebuffers and the depth stencil
     //Adding the present attachment
     {
-        auto& attachmentDescription = attachments.back();
+        auto& attachmentDescription = attachments[0];
         attachmentDescription.format = swapchain.imageFormat;
+        attachmentDescription.samples = VK_SAMPLE_COUNT_1_BIT;
+        attachmentDescription.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+        attachmentDescription.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+        attachmentDescription.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+        attachmentDescription.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+        attachmentDescription.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+        attachmentDescription.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+    }
+    {
+        auto& attachmentDescription = attachments[1];
+        attachmentDescription.format = FindDepthFormat(driver.physicalDevice);
         attachmentDescription.samples = VK_SAMPLE_COUNT_1_BIT;
         attachmentDescription.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
         attachmentDescription.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
@@ -304,6 +315,8 @@ Scene::ImportStatus Scene::LoadRenderPass(const core::pb::RenderPass& renderPass
     std::vector<VkSubpassDescription> subpasses(renderPassPb.sub_passes_size());
     std::vector<SubpassData> subpassDatas(renderPassPb.sub_passes_size());
     bool hasRenderPassDepth = false;
+
+
     for (int i = 0; i < renderPassPb.sub_passes_size(); i++)
     {
         const auto& subpassPb = renderPassPb.sub_passes(i);
@@ -312,13 +325,31 @@ Scene::ImportStatus Scene::LoadRenderPass(const core::pb::RenderPass& renderPass
         const auto framebufferIndex = subpassPb.framebuffer_index();
         if(framebufferIndex < 0 || framebufferIndex >= static_cast<int>(framebuffers_.size()))
         {
+            bool hasDepth = false;
+            for (auto& command : subpassPb.commands())
+            {
+                if (scene_.pipelines(scene_.materials(command.material_index()).pipeline_index()).depth_test_enable())
+                {
+                    hasDepth = true;
+                    break;
+                }
+            }
+            if (hasDepth)
+            {
+                hasRenderPassDepth = true;
+                auto& depthAttachmentRef = subpassDatas[i].depthAttachmentRef;
+                depthAttachmentRef.attachment = attachments.size() - 1;
+                depthAttachmentRef.layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+                subpasses[i].pDepthStencilAttachment = &subpassDatas[i].depthAttachmentRef;
+            }
             colorAttachmentRefs.resize(1);
             auto& colorAttachementRef = colorAttachmentRefs[0];
-            const auto attachmentIndex = attachments.size()-1; //FIXME color present attachment
+            const auto attachmentIndex = attachments.size() - 2; //FIXME color present attachment
             colorAttachementRef.attachment = attachmentIndex;
             colorAttachementRef.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
             subpasses[i].colorAttachmentCount = colorAttachmentRefs.size();
             subpasses[i].pColorAttachments = colorAttachmentRefs.data();
+
         }
         else
         {
@@ -350,7 +381,6 @@ Scene::ImportStatus Scene::LoadRenderPass(const core::pb::RenderPass& renderPass
         }
 
     }
-
 
     VkSubpassDependency dependency{};
     dependency.srcSubpass = VK_SUBPASS_EXTERNAL;
@@ -389,7 +419,7 @@ Scene::ImportStatus Scene::LoadRenderPass(const core::pb::RenderPass& renderPass
         //TODO add the other color attachments
         std::array<VkImageView, 2> attachments = {
             swapchain.imageViews[i],
-            renderer.depthImageView
+            swapchain.depthImageView
         };
 
         VkFramebufferCreateInfo framebufferInfo{};
