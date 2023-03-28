@@ -9,6 +9,8 @@
 
 #include <string_view>
 #include <string>
+#include <array>
+
 namespace core
 {
 
@@ -16,6 +18,33 @@ class Shader
 {
 
 };
+
+constexpr pb::ShaderType GetTypeFromExtension(std::string_view extension)
+{
+    constexpr std::array<std::string_view, 12> extensions =
+    {
+        ".vert",
+        ".frag",
+        ".comp",
+        ".geom",
+        ".tesc",
+        ".tese",
+        ".rgen",
+        ".rint",
+        ".rahit",
+        ".rchit",
+        ".rmiss",
+        ".rcall"
+    };
+    for(std::size_t i = 0; i < extensions.size(); i++)
+    {
+        if(extension == extensions[i])
+        {
+            return static_cast<pb::ShaderType>(i);
+        }
+    }
+    return pb::SHADER_TYPE_COUNT;
+}
 
 class Pipeline
 {

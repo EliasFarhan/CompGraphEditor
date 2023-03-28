@@ -18,8 +18,10 @@
 
 #include <renderer/framebuffer.h>
 
+#include "gl/buffer.h"
 #include "gl/framebuffer.h"
 #include "gl/pipeline.h"
+#include "renderer/mesh.h"
 
 namespace editor
 {
@@ -46,7 +48,7 @@ void GeneratePreComputeBrdfLUT()
 
     core::pb::Shader shaderInfo;
     shaderInfo.set_path("shaders/pre_compute_brdf.comp");
-    shaderInfo.set_type(core::pb::Shader_Type_COMPUTE);
+    shaderInfo.set_type(core::pb::COMPUTE);
 
     gl::Shader shader;
     shader.LoadShader(shaderInfo);
@@ -118,7 +120,9 @@ void GenerateIrradianceMap(std::string_view path)
         return;
     }
     glCheckError();
-    auto cube = gl::GenerateCube(glm::vec3(2.0f), glm::vec3(0.0f));
+    const auto cubeMesh = core::GenerateCube(glm::vec3(2.0f), glm::vec3(0.0f));
+    gl::VertexBuffer cube{};
+    cube.CreateFromMesh(cubeMesh);
 
     core::pb::FrameBuffer captureFboInfo;
     captureFboInfo.set_name("captureFBO");
@@ -140,14 +144,14 @@ void GenerateIrradianceMap(std::string_view path)
     //from equirectangle to cubemap
     core::pb::Shader cubemapShaderInfo;
     cubemapShaderInfo.set_path("shaders/cubemap.vert");
-    cubemapShaderInfo.set_type(core::pb::Shader_Type_VERTEX);
+    cubemapShaderInfo.set_type(core::pb::VERTEX);
 
     gl::Shader cubemapShader;
     cubemapShader.LoadShader(cubemapShaderInfo);
 
     core::pb::Shader equirectangleToCubemapShaderInfo;
     equirectangleToCubemapShaderInfo.set_path("shaders/equirectangle_to_cubemap.frag");
-    equirectangleToCubemapShaderInfo.set_type(core::pb::Shader_Type_FRAGMENT);
+    equirectangleToCubemapShaderInfo.set_type(core::pb::FRAGMENT);
 
     gl::Shader equirectangleToCubemapShader;
     equirectangleToCubemapShader.LoadShader(equirectangleToCubemapShaderInfo);
@@ -158,7 +162,7 @@ void GenerateIrradianceMap(std::string_view path)
 
     equirectangleToCubemap.Bind();
     equirectangleToCubemap.SetTexture("equirectangularMap", envMap, 0);
-    glBindVertexArray(cube.vao);
+    cube.Bind();
     glCheckError();
     // pbr: set up projection and view matrices for capturing data onto the 6 cubemap face directions
     // ----------------------------------------------------------------------------------------------
@@ -211,7 +215,7 @@ void GenerateIrradianceMap(std::string_view path)
     irradianceFbo.Load(irradianceFboInfo);
 
     core::pb::Shader irradianceConvolutionShaderInfo;
-    irradianceConvolutionShaderInfo.set_type(core::pb::Shader_Type_FRAGMENT);
+    irradianceConvolutionShaderInfo.set_type(core::pb::FRAGMENT);
     irradianceConvolutionShaderInfo.set_path("shaders/irradiance_convolution.frag");
 
     gl::Shader irradianceConvlutionShader;
@@ -223,7 +227,7 @@ void GenerateIrradianceMap(std::string_view path)
     irradianceFbo.Bind();
     irradianceConvolution.Bind();
     irradianceConvolution.SetMat4("projection", captureProjection);
-    glBindVertexArray(cube.vao);
+    cube.Bind();
     irradianceConvolution.SetInt("environmentMap", 0);
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_CUBE_MAP, captureFbo.GetTextureName(envCubemapName));
@@ -286,11 +290,11 @@ void GenerateIrradianceMap(std::string_view path)
 
     core::pb::Shader equirectangleVertShaderInfo;
     equirectangleVertShaderInfo.set_path("shaders/equirectangle.vert");
-    equirectangleVertShaderInfo.set_type(core::pb::Shader_Type_VERTEX);
+    equirectangleVertShaderInfo.set_type(core::pb::VERTEX);
 
     core::pb::Shader equirectangleFragShaderInfo;
     equirectangleFragShaderInfo.set_path("shaders/equirectangle.frag");
-    equirectangleFragShaderInfo.set_type(core::pb::Shader_Type_FRAGMENT);
+    equirectangleFragShaderInfo.set_type(core::pb::FRAGMENT);
 
     gl::Shader equirectangleVertShader;
     equirectangleVertShader.LoadShader(equirectangleVertShaderInfo);
@@ -314,14 +318,15 @@ void GenerateIrradianceMap(std::string_view path)
     equirectangleColorAttachment->mutable_target_size()->set_x(resultW);
     equirectangleColorAttachment->mutable_target_size()->set_y(resultH);
 
-    auto quad = gl::GenerateQuad(glm::vec3(2.0f), glm::vec3(0.0f));
-
+    auto quadMesh = core::GenerateQuad(glm::vec3(2.0f), glm::vec3(0.0f));
+    gl::VertexBuffer quad{};
+    quad.CreateFromMesh(quadMesh);
     gl::Framebuffer equirectangleFbo;
     equirectangleFbo.Load(equirectangleFboInfo);
 
     equirectangleFbo.Bind();
     equirectangle.Bind();
-    glBindVertexArray(quad.vao);
+    quad.Bind();
     glViewport(0, 0, resultW, resultH);
 
     equirectangle.SetInt("irradiance", 0);
@@ -356,8 +361,8 @@ void GenerateIrradianceMap(std::string_view path)
     captureFbo.Destroy();
     irradianceFbo.Destroy();
     glDeleteTextures(1, &envMap);
-    glDeleteVertexArrays(1, &cube.vao);
-    glDeleteVertexArrays(1, &quad.vao);
+    cube.Destroy();
+    quad.Destroy();
     glCheckError();
 }
 
@@ -398,8 +403,9 @@ void GeneratePreFilterEnvMap(std::string_view path)
         return;
     }
     glCheckError();
-    auto cube = gl::GenerateCube(glm::vec3(2.0f), glm::vec3(0.0f));
-
+    auto cubeMesh = core::GenerateCube(glm::vec3(2.0f), glm::vec3(0.0f));
+    gl::VertexBuffer cube{};
+    cube.CreateFromMesh(cubeMesh);
     core::pb::FrameBuffer captureFboInfo;
     captureFboInfo.set_name("captureFBO");
     auto* captureCubemap = captureFboInfo.add_color_attachments();
@@ -420,14 +426,14 @@ void GeneratePreFilterEnvMap(std::string_view path)
     //from equirectangle to cubemap
     core::pb::Shader cubemapShaderInfo;
     cubemapShaderInfo.set_path("shaders/cubemap.vert");
-    cubemapShaderInfo.set_type(core::pb::Shader_Type_VERTEX);
+    cubemapShaderInfo.set_type(core::pb::VERTEX);
 
     gl::Shader cubemapShader;
     cubemapShader.LoadShader(cubemapShaderInfo);
 
     core::pb::Shader equirectangleToCubemapShaderInfo;
     equirectangleToCubemapShaderInfo.set_path("shaders/equirectangle_to_cubemap.frag");
-    equirectangleToCubemapShaderInfo.set_type(core::pb::Shader_Type_FRAGMENT);
+    equirectangleToCubemapShaderInfo.set_type(core::pb::FRAGMENT);
 
     gl::Shader equirectangleToCubemapShader;
     equirectangleToCubemapShader.LoadShader(equirectangleToCubemapShaderInfo);
@@ -438,7 +444,7 @@ void GeneratePreFilterEnvMap(std::string_view path)
 
     equirectangleToCubemap.Bind();
     equirectangleToCubemap.SetTexture("equirectangularMap", envMap, 0);
-    glBindVertexArray(cube.vao);
+    cube.Bind();
     glCheckError();
     // pbr: set up projection and view matrices for capturing data onto the 6 cubemap face directions
     // ----------------------------------------------------------------------------------------------
@@ -473,7 +479,7 @@ void GeneratePreFilterEnvMap(std::string_view path)
     captureFbo.Unbind();
 
     core::pb::Shader preFilterShaderInfo;
-    preFilterShaderInfo.set_type(core::pb::Shader_Type_FRAGMENT);
+    preFilterShaderInfo.set_type(core::pb::FRAGMENT);
     preFilterShaderInfo.set_path("shaders/prefilter.frag");
 
     gl::Shader irradianceConvlutionShader;

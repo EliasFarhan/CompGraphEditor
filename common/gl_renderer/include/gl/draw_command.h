@@ -30,9 +30,7 @@ public:
     void PreDrawBind() override;
 private:
 
-    std::unordered_map<std::string, int> uniformMap_;
     Pipeline* pipeline_ = nullptr;
     Material* material_ = nullptr;
-    int GetUniformLocation(std::string_view uniformName);
 };
 }

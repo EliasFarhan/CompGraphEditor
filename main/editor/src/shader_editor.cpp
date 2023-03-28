@@ -8,6 +8,7 @@
 #include "utils/log.h"
 #include "engine/filesystem.h"
 #include "editor.h"
+#include "renderer/pipeline.h"
 
 #include <fmt/format.h>
 
@@ -30,14 +31,7 @@ void ShaderEditor::AddResource(const Resource& resource)
     shaderInfo.filename = GetFilename(resource.path);
     shaderInfo.resourceId = resource.resourceId;
     shaderInfo.info.set_path(resource.path);
-    if (resource.extension == ".vert")
-    {
-        shaderInfo.info.set_type(core::pb::Shader_Type_VERTEX);
-    }
-    else if (resource.extension == ".frag")
-    {
-        shaderInfo.info.set_type(core::pb::Shader_Type_FRAGMENT);
-    }
+    shaderInfo.info.set_type(core::GetTypeFromExtension(resource.extension));
     shaderInfos_.push_back(shaderInfo);
 }
 void ShaderEditor::RemoveResource(const Resource& resource)
@@ -88,16 +82,46 @@ void ShaderEditor::DrawInspector()
     }
     switch (currentShaderInfo.info.type())
     {
-    case core::pb::Shader_Type_VERTEX:
+    case core::pb::VERTEX:
     {
         ImGui::Text("Type: Vertex Shader");
         break;
     }
-    case core::pb::Shader_Type_FRAGMENT:
+    case core::pb::FRAGMENT:
     {
         ImGui::Text("Type: Fragment Shader");
         break;
     }
+    case core::pb::COMPUTE: 
+        ImGui::Text("Type: Compute Shader");
+        break;
+    case core::pb::GEOMETRY: 
+        ImGui::Text("Type: Geometry Shader");
+        break;
+    case core::pb::TESSELATION_CONTROL: 
+        ImGui::Text("Type: Tesselation Control Shader");
+        break;
+    case core::pb::TESSELATION_EVAL: 
+        ImGui::Text("Type: Tesselation Evaluation Shader");
+        break;
+    case core::pb::RAY_GEN: 
+        ImGui::Text("Type: Ray Generation Shader");
+        break;
+    case core::pb::RAY_INTERSECTION: 
+        ImGui::Text("Type: Ray Intersection Shader");
+        break;
+    case core::pb::RAY_ANY_HIT: 
+        ImGui::Text("Type: Ray Any-Hit Shader");
+        break;
+    case core::pb::RAY_CLOSEST_HIT: 
+        ImGui::Text("Type: Ray Closest-Hit Shader");
+        break;
+    case core::pb::RAY_MISS: 
+        ImGui::Text("Type: Ray Miss Shader");
+        break;
+    case core::pb::RAY_CALL: 
+        ImGui::Text("Type: Ray Callable Shader");
+        break;
     default:
         break;
     }

@@ -20,68 +20,47 @@ DrawCommand::DrawCommand(const core::pb::DrawCommand& drawCommandInfo, int subpa
 
 void DrawCommand::SetFloat(std::string_view uniformName, float f)
 {
-    pipeline_->Bind();
-    glUniform1f(GetUniformLocation(uniformName), f);
-    glCheckError();
+    pipeline_->SetFloat(uniformName, f);
 }
 
 void DrawCommand::SetInt(std::string_view uniformName, int i)
 {
-    pipeline_->Bind();
-    glUniform1i(GetUniformLocation(uniformName), i);
-    glCheckError();
+    pipeline_->SetInt(uniformName, i);
 }
 
 void DrawCommand::SetVec2(std::string_view uniformName, glm::vec2 v)
 {
-    pipeline_->Bind();
-    glUniform2fv(GetUniformLocation(uniformName), 1, &v[0]);
-    glCheckError();
+    pipeline_->SetVec2(uniformName, v);
 }
 
 void DrawCommand::SetVec3(std::string_view uniformName, glm::vec3 v)
 {
-    pipeline_->Bind();
-    glUniform3fv(GetUniformLocation(uniformName), 1, &v[0]);
-    glCheckError();
+    pipeline_->SetVec3(uniformName, v);
 }
 
 void DrawCommand::SetVec4(std::string_view uniformName, glm::vec4 v)
 {
-    pipeline_->Bind();
-    glUniform4fv(GetUniformLocation(uniformName), 1, &v[0]);
-    glCheckError();
+    pipeline_->SetVec4(uniformName, v);
 }
 
 void DrawCommand::SetMat4(std::string_view uniformName, const glm::mat4& mat)
 {
-    pipeline_->Bind();
-    glUniformMatrix4fv(GetUniformLocation(uniformName), 1, GL_FALSE, &mat[0][0]);
-    glCheckError();
+    pipeline_->SetMat4(uniformName, mat);
 }
 
 void DrawCommand::SetTexture(std::string_view uniformName, const Texture& texture, GLenum textureUnit)
 {
-    SetInt(uniformName, textureUnit);
-    glActiveTexture(GL_TEXTURE0 + textureUnit);
-    glBindTexture(texture.target, texture.name);
-    glCheckError();
+    pipeline_->SetTexture(uniformName, texture, textureUnit);
 }
 
 void DrawCommand::SetTexture(std::string_view uniformName, GLuint textureName, GLenum textureUnit)
 {
-    SetInt(uniformName, textureUnit);
-    glActiveTexture(GL_TEXTURE0 + textureUnit);
-    glBindTexture(GL_TEXTURE_2D, textureName);
-    glCheckError();
+    pipeline_->SetTexture(uniformName, textureName, textureUnit);
 }
 
 void DrawCommand::SetCubemap(std::string_view uniformName, GLuint textureName, GLenum textureUnit)
 {
-    SetInt(uniformName, textureUnit);
-    glActiveTexture(GL_TEXTURE0 + textureUnit);
-    glBindTexture(GL_TEXTURE_CUBE_MAP, textureName);
-    glCheckError();
+    pipeline_->SetCubemap(uniformName, textureName, textureUnit);
 }
 
 void DrawCommand::Bind()
@@ -114,27 +93,10 @@ void DrawCommand::Bind()
         if(modelTransform.has_position())
         {
             const auto& translate = modelTransform.position();
-            modelMatrix = glm::translate(modelMatrix, glm::vec3(translate.x(), translate.y(), translate.z()))
+            modelMatrix = glm::translate(modelMatrix, glm::vec3(translate.x(), translate.y(), translate.z()));
         }
         SetMat4("model", modelMatrix);
     }
-}
-
-int DrawCommand::GetUniformLocation(std::string_view uniformName)
-{
-    const auto uniformIt = uniformMap_.find(uniformName.data());
-    GLint uniformLocation;
-    if (uniformIt == uniformMap_.end())
-    {
-        uniformLocation = glGetUniformLocation(pipeline_->GetName(), uniformName.data());
-        glCheckError();
-        uniformMap_[uniformName.data()] = uniformLocation;
-    }
-    else
-    {
-        uniformLocation = uniformIt->second;
-    }
-    return uniformLocation;
 }
 
 void DrawCommand::PreDrawBind()

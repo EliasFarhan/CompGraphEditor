@@ -17,9 +17,9 @@
 #include <glm/ext/matrix_transform.hpp>
 
 #include "pbr_utils.h"
+#include "gl/buffer.h"
 #include "gl/framebuffer.h"
 #include "gl/pipeline.h"
-#include "gl/shape_primitive.h"
 #include "gl/texture.h"
 
 
@@ -393,8 +393,9 @@ void TextureEditor::HdrToKtx(const TextureInfo& textureInfo)
     glCheckError();
 
     const auto targetSize = texH / 2;
-    auto cube = gl::GenerateCube(glm::vec3(2.0f), glm::vec3(0.0f));
-
+    auto cubeMesh = core::GenerateCube(glm::vec3(2.0f), glm::vec3(0.0f));
+    gl::VertexBuffer cube{};
+    cube.CreateFromMesh(cubeMesh);
     core::pb::FrameBuffer captureFboInfo;
     captureFboInfo.set_name("captureFBO");
     auto* captureCubemap = captureFboInfo.add_color_attachments();
@@ -415,14 +416,14 @@ void TextureEditor::HdrToKtx(const TextureInfo& textureInfo)
     //from equirectangle to cubemap
     core::pb::Shader cubemapShaderInfo;
     cubemapShaderInfo.set_path("shaders/cubemap.vert");
-    cubemapShaderInfo.set_type(core::pb::Shader_Type_VERTEX);
+    cubemapShaderInfo.set_type(core::pb::VERTEX);
 
     gl::Shader cubemapShader;
     cubemapShader.LoadShader(cubemapShaderInfo);
 
     core::pb::Shader equirectangleToCubemapShaderInfo;
     equirectangleToCubemapShaderInfo.set_path("shaders/equirectangle_to_cubemap.frag");
-    equirectangleToCubemapShaderInfo.set_type(core::pb::Shader_Type_FRAGMENT);
+    equirectangleToCubemapShaderInfo.set_type(core::pb::FRAGMENT);
 
     gl::Shader equirectangleToCubemapShader;
     equirectangleToCubemapShader.LoadShader(equirectangleToCubemapShaderInfo);
@@ -433,7 +434,7 @@ void TextureEditor::HdrToKtx(const TextureInfo& textureInfo)
 
     equirectangleToCubemap.Bind();
     equirectangleToCubemap.SetTexture("equirectangularMap", envMap, 0);
-    glBindVertexArray(cube.vao);
+    cube.Bind();
     glCheckError();
     // pbr: set up projection and view matrices for capturing data onto the 6 cubemap face directions
     // ----------------------------------------------------------------------------------------------
@@ -525,6 +526,7 @@ void TextureEditor::HdrToKtx(const TextureInfo& textureInfo)
     ktxTextureInfo->info.set_gamma_correction(textureInfo.info.gamma_correction());
     glCheckError();
 
+    cube.Destroy();
     captureFbo.Destroy();
     equirectangleToCubemap.Destroy();
 }

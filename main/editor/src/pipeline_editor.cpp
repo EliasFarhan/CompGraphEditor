@@ -50,7 +50,7 @@ void PipelineEditor::DrawInspector()
         {
             for (auto& shader : shaders)
             {
-                if (shader.info.type() != core::pb::Shader_Type_VERTEX)
+                if (shader.info.type() != core::pb::VERTEX)
                 {
                     continue;
                 }
@@ -69,7 +69,7 @@ void PipelineEditor::DrawInspector()
         {
             for (auto& shader : shaders)
             {
-                if (shader.info.type() != core::pb::Shader_Type_FRAGMENT)
+                if (shader.info.type() != core::pb::FRAGMENT)
                 {
                     continue;
                 }
