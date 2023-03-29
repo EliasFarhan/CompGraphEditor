@@ -373,11 +373,16 @@ message DrawCommand
     Transform model_transform = 11;
 }
 
+message Dependency
+{
+    int32 subpassIndex = 1;
+}
 
 message SubPass
 {
     Color4 clear_color = 1;
     repeated DrawCommand commands = 2;
+    repeated Dependency dependencies = 3;
     int32 framebuffer_index = 4;
 
 }

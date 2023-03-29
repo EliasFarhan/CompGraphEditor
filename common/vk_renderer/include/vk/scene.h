@@ -19,6 +19,12 @@ struct SceneTexture
     core::TextureId textureId = core::INVALID_TEXTURE_ID;
 };
 
+struct RenderPass
+{
+    VkRenderPass renderPass{};
+    std::vector<VkFramebuffer> framebuffers;
+};
+
 class Scene : public core::Scene
 {
 public:
@@ -26,6 +32,7 @@ public:
     void Update(float dt) override;
     void Draw(core::DrawCommand& drawCommand) override;
     Framebuffer& GetFramebuffer(int framebufferIndex) override;
+    Framebuffer& GetFramebuffer(std::string_view framebufferName) ;
     core::SceneMaterial GetMaterial(int materialIndex) override;
     Pipeline& GetPipeline(int index) override;
     VkRenderPass GetCurrentRenderPass() const;
@@ -51,8 +58,7 @@ private:
     std::vector<Shader> shaders_;
     std::vector<DrawCommand> drawCommands_;
     std::vector<SceneTexture> textures_;
-    VkRenderPass renderPass_{};
-    std::vector<VkFramebuffer> vkFramebuffers_;
+    RenderPass renderPass_;
 };
 
 VkRenderPass GetCurrentRenderPass();

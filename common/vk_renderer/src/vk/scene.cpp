@@ -17,11 +17,16 @@ void Scene::UnloadScene()
         vkDestroyShaderModule(driver.device, shader.module, nullptr);
     }
     shaders_.clear();
-    for (const auto& framebuffer : vkFramebuffers_)
+    for(auto& framebuffer: framebuffers_)
+    {
+        framebuffer.Destroy();
+    }
+    framebuffers_.clear();
+    for (const auto& framebuffer : renderPass_.framebuffers)
     {
         vkDestroyFramebuffer(driver.device, framebuffer, nullptr);
     }
-    vkFramebuffers_.clear();
+    renderPass_.framebuffers.clear();
     for(auto& drawCommand : drawCommands_)
     {
         drawCommand.Destroy();
@@ -32,8 +37,8 @@ void Scene::UnloadScene()
         pipeline.Destroy();
     }
     pipelines_.clear();
-    vkDestroyRenderPass(driver.device, renderPass_, nullptr);
-    renderPass_ = VK_NULL_HANDLE;
+    vkDestroyRenderPass(driver.device, renderPass_.renderPass, nullptr);
+    renderPass_.renderPass = VK_NULL_HANDLE;
     auto& textureManager = core::GetTextureManager();
     textureManager.Clear();
     auto& allocator = GetAllocator();
@@ -51,15 +56,46 @@ void Scene::Update(float dt)
     auto& swapchain = GetSwapchain();
     VkRenderPassBeginInfo renderPassInfo{};
     renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
-    renderPassInfo.renderPass = renderPass_;
-    renderPassInfo.framebuffer = vkFramebuffers_[renderer.imageIndex];
+    renderPassInfo.renderPass = renderPass_.renderPass;
+    renderPassInfo.framebuffer = renderPass_.framebuffers[renderer.imageIndex];
     renderPassInfo.renderArea.offset = { 0, 0 };
     renderPassInfo.renderArea.extent = swapchain.extent;
 
     //Fill with subpass clear values
-    std::array<VkClearValue, 2> clearValues{};
-    clearValues[0].color = { 0.0f, 0.0f, 0.0f, 1.0f };
-    clearValues[1].depthStencil = { 1.0f, 0 };
+    std::vector<VkClearValue> clearValues{};
+    for(auto& subpass : scene_.render_pass().sub_passes())
+    {
+        if (subpass.framebuffer_index() == -1)
+        {
+            VkClearValue clearValue;
+            clearValue.color = { 0.0f, 0.0f, 0.0f, 1.0f };
+            clearValues.push_back(clearValue);
+            for(auto& command : subpass.commands())
+            {
+                if(scene_.pipelines(scene_.materials(command.material_index()).pipeline_index()).depth_test_enable())
+                {
+                    clearValue.depthStencil = { 1.0f, 0 };
+                    clearValues.push_back(clearValue);
+                }
+            }
+        }
+        else
+        {
+            auto& framebuffer = scene_.framebuffers(subpass.framebuffer_index());
+            for (auto& target : framebuffer.color_attachments())
+            {
+                VkClearValue clearValue;
+                clearValue.color = { 0.0f, 0.0f, 0.0f, 1.0f };
+                clearValues.push_back(clearValue);
+            }
+            if (framebuffer.has_depth_stencil_attachment())
+            {
+                VkClearValue clearValue;
+                clearValue.depthStencil = { 1.0f, 0 };
+                clearValues.push_back(clearValue);
+            }
+        }
+    }
     renderPassInfo.clearValueCount = clearValues.size();
     renderPassInfo.pClearValues = clearValues.data();
 
@@ -76,9 +112,12 @@ void Scene::Update(float dt)
             const auto& command = subpass.commands(j);
             for (auto* pySystem : pySystems_)
             {
+                auto& drawCommand = static_cast<DrawCommand&>(GetDrawCommand(i, j));
+                drawCommand.PreDrawBind();
                 if (pySystem != nullptr)
                 {
-                    pySystem->Draw(&GetDrawCommand(i, j));
+
+                    pySystem->Draw(&drawCommand);
                 }
             }
         }
@@ -91,6 +130,10 @@ void Scene::Update(float dt)
             auto& drawCommand = static_cast<DrawCommand&>(GetDrawCommand(i, j));
             drawCommand.PreDrawBind();
             Draw(drawCommand);
+        }
+        if(i < scene_.render_pass().sub_passes_size()-1)
+        {
+            vkCmdNextSubpass(renderer.commandBuffers[renderer.imageIndex], VK_SUBPASS_CONTENTS_INLINE);
         }
     }
 
@@ -137,6 +180,14 @@ Framebuffer& Scene::GetFramebuffer(int framebufferIndex)
     return framebuffers_[framebufferIndex];
 }
 
+Framebuffer& Scene::GetFramebuffer(std::string_view framebufferName)
+{
+    return *std::ranges::find_if(framebuffers_, [framebufferName](const auto& framebuffer)
+        {
+            return framebuffer.GetName() == framebufferName;
+        });
+}
+
 core::SceneMaterial Scene::GetMaterial(int materialIndex)
 {
     return {nullptr, nullptr};
@@ -150,7 +201,7 @@ Pipeline& Scene::GetPipeline(int index)
 
 VkRenderPass Scene::GetCurrentRenderPass() const
 {
-    return renderPass_;
+    return renderPass_.renderPass;
 }
 
 const Texture& Scene::GetTexture(int index) const
@@ -187,10 +238,19 @@ Scene::ImportStatus Scene::LoadPipelines(const PbRepeatField<core::pb::Pipeline>
     {
         Pipeline& pipeline = pipelines_[i];
         const auto& pipelinePb = pipelines[i];
-        if(!pipeline.LoadRaterizePipeline(pipelinePb, shaders_[pipelinePb.vertex_shader_index()], shaders_[pipelinePb.fragment_shader_index()]))
+        switch(pipelinePb.type())
         {
-            return ImportStatus::FAILURE;
+        case core::pb::Pipeline_Type_RASTERIZE:
+            if (!pipeline.LoadRaterizePipeline(pipelinePb, shaders_[pipelinePb.vertex_shader_index()], shaders_[pipelinePb.fragment_shader_index()], i))
+            {
+                return ImportStatus::FAILURE;
+            }
+            break;
+        case core::pb::Pipeline_Type_COMPUTE: break;
+        case core::pb::Pipeline_Type_RAYTRACING: break;
+        default: break;
         }
+        
     }
     return ImportStatus::SUCCESS;
 }
@@ -268,9 +328,14 @@ Scene::ImportStatus Scene::LoadMeshes(const PbRepeatField<core::pb::Mesh>& meshe
 
 Scene::ImportStatus Scene::LoadFramebuffers(const PbRepeatField<core::pb::FrameBuffer>& framebuffers)
 {
-    //TODO needs to gather all additional attachments for the render pass generation and the vkframebuffer 
-
-    return ImportStatus::FAILURE;
+    LogDebug("Load Framebuffers");
+    for(const auto& framebufferInfo : framebuffers)
+    {
+        framebuffers_.emplace_back();
+        auto& framebuffer = framebuffers_.back();
+        framebuffer.Load(framebufferInfo);
+    }
+    return ImportStatus::SUCCESS;
 }
 
 Scene::ImportStatus Scene::LoadRenderPass(const core::pb::RenderPass& renderPassPb)
@@ -279,43 +344,27 @@ Scene::ImportStatus Scene::LoadRenderPass(const core::pb::RenderPass& renderPass
     auto& driver = GetDriver();
     auto& swapchain = GetSwapchain();
 
-    std::vector<VkAttachmentDescription> attachments(2);
-    //TODO add the attachments from the framebuffers and the depth stencil
-    //Adding the present attachment
-    {
-        auto& attachmentDescription = attachments[0];
-        attachmentDescription.format = swapchain.imageFormat;
-        attachmentDescription.samples = VK_SAMPLE_COUNT_1_BIT;
-        attachmentDescription.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
-        attachmentDescription.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
-        attachmentDescription.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
-        attachmentDescription.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-        attachmentDescription.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-        attachmentDescription.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
-    }
-    {
-        auto& attachmentDescription = attachments[1];
-        attachmentDescription.format = FindDepthFormat(driver.physicalDevice);
-        attachmentDescription.samples = VK_SAMPLE_COUNT_1_BIT;
-        attachmentDescription.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
-        attachmentDescription.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
-        attachmentDescription.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
-        attachmentDescription.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-        attachmentDescription.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-        attachmentDescription.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
-    }
+    std::vector<VkAttachmentDescription> attachments;
+    std::vector<VkImageView> imageViews;
     
     //Import all subpasses with their attachments refs and dependency
-
     struct SubpassData
     {
         std::vector<VkAttachmentReference> colorAttachmentRefs;
+        std::vector<VkAttachmentReference> inputReferences;
         VkAttachmentReference depthAttachmentRef;
+        bool isBackBuffer = false;
+        bool hasDepth = false;
+    };
+    struct RenderTargetData
+    {
+        std::string framebufferName;
+        std::string attachmentName;
+        int attachmentIndex = -1;
     };
     std::vector<VkSubpassDescription> subpasses(renderPassPb.sub_passes_size());
     std::vector<SubpassData> subpassDatas(renderPassPb.sub_passes_size());
-    bool hasRenderPassDepth = false;
-
+    std::vector<RenderTargetData> renderTargetDatas;
 
     for (int i = 0; i < renderPassPb.sub_passes_size(); i++)
     {
@@ -325,6 +374,9 @@ Scene::ImportStatus Scene::LoadRenderPass(const core::pb::RenderPass& renderPass
         const auto framebufferIndex = subpassPb.framebuffer_index();
         if(framebufferIndex < 0 || framebufferIndex >= static_cast<int>(framebuffers_.size()))
         {
+            //Backbuffer
+            subpassDatas[i].isBackBuffer = true;
+
             bool hasDepth = false;
             for (auto& command : subpassPb.commands())
             {
@@ -334,106 +386,211 @@ Scene::ImportStatus Scene::LoadRenderPass(const core::pb::RenderPass& renderPass
                     break;
                 }
             }
-            if (hasDepth)
-            {
-                hasRenderPassDepth = true;
-                auto& depthAttachmentRef = subpassDatas[i].depthAttachmentRef;
-                depthAttachmentRef.attachment = attachments.size() - 1;
-                depthAttachmentRef.layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
-                subpasses[i].pDepthStencilAttachment = &subpassDatas[i].depthAttachmentRef;
-            }
+            int attachmentIndex = attachments.size();
+            attachments.emplace_back();
+            auto& attachmentDescription = attachments.back();
+            attachmentDescription.format = swapchain.imageFormat;
+            attachmentDescription.samples = VK_SAMPLE_COUNT_1_BIT;
+            attachmentDescription.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+            attachmentDescription.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+            attachmentDescription.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+            attachmentDescription.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+            attachmentDescription.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+            attachmentDescription.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+
             colorAttachmentRefs.resize(1);
             auto& colorAttachementRef = colorAttachmentRefs[0];
-            const auto attachmentIndex = attachments.size() - 2; //FIXME color present attachment
             colorAttachementRef.attachment = attachmentIndex;
             colorAttachementRef.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
             subpasses[i].colorAttachmentCount = colorAttachmentRefs.size();
             subpasses[i].pColorAttachments = colorAttachmentRefs.data();
+            if (hasDepth)
+            {
+                subpassDatas[i].hasDepth;
+                attachmentIndex = attachments.size();
+                attachments.emplace_back();
+                auto& attachmentDescription = attachments.back();
+                attachmentDescription.format = FindDepthFormat(driver.physicalDevice);
+                attachmentDescription.samples = VK_SAMPLE_COUNT_1_BIT;
+                attachmentDescription.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+                attachmentDescription.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+                attachmentDescription.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+                attachmentDescription.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+                attachmentDescription.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+                attachmentDescription.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+                
+                auto& depthAttachmentRef = subpassDatas[i].depthAttachmentRef;
+                depthAttachmentRef.attachment = attachmentIndex;
+                depthAttachmentRef.layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+                subpasses[i].pDepthStencilAttachment = &subpassDatas[i].depthAttachmentRef;
+            }
 
         }
         else
         {
+            
+            //other "framebuffer"
             auto& framebufferPb = scene_.framebuffers(subpassPb.framebuffer_index());
 
             colorAttachmentRefs.resize(framebufferPb.color_attachments_size());
 
+            bool hasDepth = framebufferPb.has_depth_stencil_attachment();
 
-            for (int j = 0; j < colorAttachmentRefs.size(); j++)
+            for (int j = 0; j < framebufferPb.color_attachments_size(); j++)
             {
                 const auto& attachmentRefPb = framebufferPb.color_attachments(j);
+
+                const auto attachmentIndex = attachments.size();
+                attachments.emplace_back();
+                renderTargetDatas.emplace_back(framebufferPb.name(), attachmentRefPb.name(), attachmentIndex);
+
+
+                auto& attachmentDescription = attachments.back();
+                auto& renderTarget = GetFramebuffer(framebufferIndex)
+                    .GetRenderTarget(attachmentRefPb.name());
+                attachmentDescription.format = renderTarget.format;
+                attachmentDescription.samples = VK_SAMPLE_COUNT_1_BIT;
+                attachmentDescription.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+                attachmentDescription.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+                attachmentDescription.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+                attachmentDescription.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+                attachmentDescription.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+                attachmentDescription.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+
+                imageViews.push_back(renderTarget.imageView);
+
                 auto& colorAttachementRef = colorAttachmentRefs[j];
-                const auto attachmentIndex = j; //FIXME global attachment index
                 colorAttachementRef.attachment = attachmentIndex;
                 colorAttachementRef.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
 
             }
+
+
             subpasses[i].colorAttachmentCount = colorAttachmentRefs.size();
             subpasses[i].pColorAttachments = colorAttachmentRefs.data();
 
-            if (framebufferPb.has_depth_stencil_attachment())
+            if (hasDepth)
             {
-                hasRenderPassDepth = true;
+                auto& renderTarget = GetFramebuffer(framebufferIndex)
+                    .GetRenderTarget(framebufferPb.depth_stencil_attachment().name());
+                const auto attachmentIndex = attachments.size(); 
+                attachments.emplace_back();
+                renderTargetDatas.emplace_back(framebufferPb.name(), framebufferPb.depth_stencil_attachment().name(), attachmentIndex);
+
+                auto& attachmentDescription = attachments.back();
+                attachmentDescription.format = renderTarget.format;
+                attachmentDescription.samples = VK_SAMPLE_COUNT_1_BIT;
+                attachmentDescription.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+                attachmentDescription.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+                attachmentDescription.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+                attachmentDescription.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+                attachmentDescription.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+                attachmentDescription.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+
+                imageViews.push_back(renderTarget.imageView);
+
                 auto& depthAttachmentRef = subpassDatas[i].depthAttachmentRef;
-                depthAttachmentRef.attachment = colorAttachmentRefs.size(); //FIXME global attachment index with color and depth combined
+                depthAttachmentRef.attachment = attachmentIndex; 
                 depthAttachmentRef.layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
                 subpasses[i].pDepthStencilAttachment = &subpassDatas[i].depthAttachmentRef;
             }
+
         }
+        //TODO add used attachments (color or depth)
+        std::vector<int> inputAttachmentIndices;
+        for(auto& command: subpassPb.commands())
+        {
+            for(auto& materialTexture: scene_.materials(command.material_index()).textures())
+            {
+                if(materialTexture.framebuffer_name().empty())
+                    continue;
+                auto it = std::ranges::find_if(renderTargetDatas, [&materialTexture](const RenderTargetData& renderTargetData)
+                    {
+                        return renderTargetData.framebufferName == materialTexture.framebuffer_name() &&
+                            renderTargetData.attachmentName == materialTexture.attachment_name();
+                    });
+                if(std::ranges::none_of(inputAttachmentIndices, [&it](int inputAttachment)
+                {
+                        return it->attachmentIndex == inputAttachment;
+                }))
+                {
+                    inputAttachmentIndices.push_back(it->attachmentIndex);
+                }
+            }
+        }
+        subpassDatas[i].inputReferences.reserve(inputAttachmentIndices.size());
+        for(auto& inputAtt : inputAttachmentIndices)
+        {
+            subpassDatas[i].inputReferences.emplace_back(inputAtt, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+        }
+        subpasses[i].inputAttachmentCount = subpassDatas[i].inputReferences.size();
+        subpasses[i].pInputAttachments = subpassDatas[i].inputReferences.data();
 
     }
-
-    VkSubpassDependency dependency{};
-    dependency.srcSubpass = VK_SUBPASS_EXTERNAL;
-    dependency.dstSubpass = 0;
-    dependency.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT |
-        VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
-    dependency.srcAccessMask = 0;
-    dependency.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT |
-        VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
-    dependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
-
+    std::vector<VkSubpassDependency> dependencies;
+    {
+        VkSubpassDependency dependency{};
+        dependency.srcSubpass = VK_SUBPASS_EXTERNAL;
+        dependency.dstSubpass = 0;
+        dependency.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+        dependency.srcAccessMask = 0;
+        dependency.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+        dependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+        dependencies.push_back(dependency);
+    }
+    for(int i = 1; i < renderPassPb.sub_passes_size(); i++)
+    {
+        //Waiting for the previous subpass to finish
+        VkSubpassDependency dependency{};
+        dependency.srcSubpass = i-1;
+        dependency.dstSubpass = i;
+        dependency.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT;
+        dependency.srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+        dependency.dstStageMask = VK_PIPELINE_STAGE_VERTEX_SHADER_BIT | 
+            VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT; //TODO add compute if subpass is compute or raytrace, and geometry if enable and tesselation if enable
+        dependency.dstAccessMask = VK_ACCESS_INPUT_ATTACHMENT_READ_BIT;
+        dependency.dependencyFlags = VK_DEPENDENCY_BY_REGION_BIT;
+        dependencies.push_back(dependency);
+    }
 
     // Generate the renderpass
     VkRenderPass renderPass;
     VkRenderPassCreateInfo renderPassInfo{};
     renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
-    renderPassInfo.attachmentCount = hasRenderPassDepth ? attachments.size() : 1;
+    renderPassInfo.attachmentCount = attachments.size();
     renderPassInfo.pAttachments = attachments.data();
     renderPassInfo.subpassCount = subpasses.size();
     renderPassInfo.pSubpasses = subpasses.data();
-    //TODO use proper dependencies
-    renderPassInfo.dependencyCount = 1;
-    renderPassInfo.pDependencies = &dependency;
+    renderPassInfo.dependencyCount = dependencies.size();
+    renderPassInfo.pDependencies = dependencies.data();
 
     if (const auto result = vkCreateRenderPass(driver.device, &renderPassInfo, nullptr, &renderPass); result != VK_SUCCESS)
     {
         LogError("Failed to create render pass!");
         return ImportStatus::FAILURE;
     }
-    renderPass_ = renderPass;
-    //TODO Generate the vkframebuffer
+    renderPass_.renderPass = renderPass;
+    //TODO Generate the VkFramebuffer holding all imageview
     auto& renderer = GetRenderer();
-    vkFramebuffers_.resize(swapchain.imageViews.size());
+    renderPass_.framebuffers.resize(swapchain.imageViews.size());
     for (size_t i = 0; i < swapchain.imageViews.size(); i++)
     {
-        //TODO add the other color attachments
-        std::array<VkImageView, 2> attachments = {
-            swapchain.imageViews[i],
-            swapchain.depthImageView
-        };
-
+        auto imageViewsTmp = imageViews;
+        imageViewsTmp.push_back(swapchain.imageViews[i]);
+        if(subpassDatas.back().hasDepth)
+        {
+            imageViewsTmp.push_back(swapchain.depthImageView);
+        }
         VkFramebufferCreateInfo framebufferInfo{};
         framebufferInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
         framebufferInfo.renderPass = renderPass;
-        framebufferInfo.attachmentCount = hasRenderPassDepth ?
-            static_cast<uint32_t>(attachments.size()) :
-            1;
-        framebufferInfo.pAttachments = attachments.data();
+        framebufferInfo.attachmentCount = imageViewsTmp.size();
+        framebufferInfo.pAttachments = imageViewsTmp.data();
         framebufferInfo.width = swapchain.extent.width;
         framebufferInfo.height = swapchain.extent.height;
         framebufferInfo.layers = 1;
         if (vkCreateFramebuffer(driver.device, &framebufferInfo, nullptr,
-            &vkFramebuffers_[i]) != VK_SUCCESS)
+            &renderPass_.framebuffers[i]) != VK_SUCCESS)
         {
             LogError("Failed to create framebuffer!");
             return ImportStatus::FAILURE;

@@ -6,7 +6,7 @@
 
 namespace vk
 {
-bool Pipeline::LoadRaterizePipeline(const core::pb::Pipeline& pipelinePb, Shader& vertexShader, Shader& fragmentShader)
+bool Pipeline::LoadRaterizePipeline(const core::pb::Pipeline& pipelinePb, Shader& vertexShader, Shader& fragmentShader, int pipelineIndex)
 {
     auto* scene = core::GetCurrentScene();
     const auto& sceneInfo = scene->GetInfo();
@@ -377,7 +377,28 @@ bool Pipeline::LoadRaterizePipeline(const core::pb::Pipeline& pipelinePb, Shader
     pipelineInfo.pDynamicState = nullptr; // Optional
     pipelineInfo.layout = pipelineLayout;
     pipelineInfo.renderPass = renderPass;
-    pipelineInfo.subpass = 0;
+    int subpassIndex = -1;
+    for(int i = 0; i < sceneInfo.render_pass().sub_passes_size(); i++)
+    {
+        const auto& subpass = sceneInfo.render_pass().sub_passes(i);
+        for(auto& command : subpass.commands())
+        {
+            if(sceneInfo.materials(command.material_index()).pipeline_index() == pipelineIndex)
+            {
+                if (subpassIndex != -1 && subpassIndex != i)
+                {
+                    LogError("Using the pipeline in two subpasses");
+                }
+                subpassIndex = i;
+            }
+        }
+    }
+    if(subpassIndex == -1)
+    {
+        LogError("No subpass found for the pipeline");
+        return false;
+    }
+    pipelineInfo.subpass = subpassIndex;
     pipelineInfo.basePipelineHandle = VK_NULL_HANDLE; // Optional
     pipelineInfo.basePipelineIndex = -1; // Optional
 

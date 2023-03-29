@@ -247,10 +247,9 @@ void DrawCommand::GenerateUniforms()
             else
             {
                 VkDescriptorPoolSize poolSize;
-                //TODO uniform buffer data and samplers
                 if(uniform.type() == core::pb::Attribute_Type_SAMPLER2D || uniform.type() == core::pb::Attribute_Type_SAMPLERCUBE)
                 {
-                    //TODO use framebuffer render target
+                    
                     poolSize.type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
                     poolSize.descriptorCount = static_cast<uint32_t>(Engine::MAX_FRAMES_IN_FLIGHT);
                     
@@ -263,22 +262,45 @@ void DrawCommand::GenerateUniforms()
                     uniformDatas.push_back(uniformData);
 
                     int textureIndex = -1;
+                    std::string_view framebufferName;
+                    std::string_view attachmentName;
+                    
                     for (auto& materialTexture : materialInfo.textures())
                     {
                         if (materialTexture.sampler_name() == uniform.name())
                         {
-                            textureIndex = materialTexture.texture_index();
+                            if(!materialTexture.framebuffer_name().empty() && !materialTexture.attachment_name().empty())
+                            {
+                                framebufferName = materialTexture.framebuffer_name();
+                                attachmentName = materialTexture.attachment_name();
+                            }
+                            else
+                            {
+                                textureIndex = materialTexture.texture_index();
+                            }
                             break;
                         }
                     }
-
-                    auto& texture = (scene->GetTexture(textureIndex));
-                    VkDescriptorImageInfo imageInfo{};
-                    imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-                    imageInfo.imageView = texture.imageView;
-                    imageInfo.sampler = texture.sampler;
-                    imageInfos.push_back(imageInfo);
-
+                    if (textureIndex != -1)
+                    {
+                        auto& texture = (scene->GetTexture(textureIndex));
+                        VkDescriptorImageInfo imageInfo{};
+                        imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+                        imageInfo.imageView = texture.imageView;
+                        imageInfo.sampler = texture.sampler;
+                        imageInfos.push_back(imageInfo);
+                    }
+                    else
+                    {
+                        //use framebuffer render target
+                        VkDescriptorImageInfo imageInfo{};
+                        imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+                        auto& framebuffer = scene->GetFramebuffer(framebufferName);
+                        auto& renderTarget = framebuffer.GetRenderTarget(attachmentName);
+                        imageInfo.imageView = renderTarget.imageView;
+                        imageInfo.sampler = renderTarget.sampler;
+                        imageInfos.push_back(imageInfo);
+                    }
                     continue; //don't put sampler in uniform map
                 }
                 else
@@ -351,7 +373,6 @@ void DrawCommand::GenerateUniforms()
 
     const auto& driver = GetDriver();
     //Generate descriptor pool
-    //TODO count numbers of ubo and samplers
 
     VkDescriptorPoolCreateInfo poolInfo{};
     poolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
@@ -455,7 +476,8 @@ void DrawCommand::Destroy()
 
 void DrawCommand::PreDrawBind()
 {
-    auto* scene = core::GetCurrentScene();
+    auto& engine = GetEngine();
+    auto* scene = static_cast<Scene*>(core::GetCurrentScene());
     const auto& sceneInfo = scene->GetInfo();
     const auto& materialInfo = sceneInfo.materials(drawCommandInfo_.get().material_index());
     const auto& pipeline = static_cast<const Pipeline&>(scene->GetPipeline(materialInfo.pipeline_index()));
@@ -487,7 +509,6 @@ void DrawCommand::PreDrawBind()
         vmaUnmapMemory(allocator, ubo.buffers[currentFrame].allocation);
 
     }
-
     //Bind descriptor sets
     vkCmdBindDescriptorSets(GetCurrentCommandBuffer(),
         VK_PIPELINE_BIND_POINT_GRAPHICS, 

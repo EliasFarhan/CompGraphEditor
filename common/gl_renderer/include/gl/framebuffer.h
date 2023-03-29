@@ -25,7 +25,7 @@ public:
     void Resize(glm::uvec2 windowSize);
     void Destroy();
     static void Unbind();
-    void Load(const core::pb::FrameBuffer& framebufferPb);
+    void Load(const core::pb::FrameBuffer& framebufferPb) override;
     GLuint GetTextureName(std::string_view textureName);
     [[nodiscard]] std::string_view GetName() const { return framebufferName_; }
 private:
