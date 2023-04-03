@@ -103,6 +103,8 @@ constexpr TypeInfo GetTypeInfo(pb::Attribute_Type attributeType)
         info.size = 64;
         info.alignment = 16;
         break;
+    default:
+        break;
     }
     return info;
 }

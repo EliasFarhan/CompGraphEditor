@@ -361,7 +361,7 @@ void DrawCommand::GenerateUniforms()
                             break;
                         }
                     }
-                    uniformDatas.emplace_back(uniformData.index, uniformData.size, UniformType::UBO, uniform.binding());
+                    uniformDatas.push_back({uniformData.index, uniformData.size, UniformType::UBO, uniform.binding()});
 
                 }
             }

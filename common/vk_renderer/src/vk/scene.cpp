@@ -406,7 +406,7 @@ Scene::ImportStatus Scene::LoadRenderPass(const core::pb::RenderPass& renderPass
             subpasses[i].pColorAttachments = colorAttachmentRefs.data();
             if (hasDepth)
             {
-                subpassDatas[i].hasDepth;
+                subpassDatas[i].hasDepth = true;
                 attachmentIndex = attachments.size();
                 attachments.emplace_back();
                 auto& attachmentDescription = attachments.back();
@@ -442,7 +442,9 @@ Scene::ImportStatus Scene::LoadRenderPass(const core::pb::RenderPass& renderPass
 
                 const auto attachmentIndex = attachments.size();
                 attachments.emplace_back();
-                renderTargetDatas.emplace_back(framebufferPb.name(), attachmentRefPb.name(), attachmentIndex);
+                renderTargetDatas.push_back({framebufferPb.name(),
+                                             attachmentRefPb.name(),
+                                             static_cast<int>(attachmentIndex)});
 
 
                 auto& attachmentDescription = attachments.back();
@@ -475,7 +477,9 @@ Scene::ImportStatus Scene::LoadRenderPass(const core::pb::RenderPass& renderPass
                     .GetRenderTarget(framebufferPb.depth_stencil_attachment().name());
                 const auto attachmentIndex = attachments.size(); 
                 attachments.emplace_back();
-                renderTargetDatas.emplace_back(framebufferPb.name(), framebufferPb.depth_stencil_attachment().name(), attachmentIndex);
+                renderTargetDatas.push_back({framebufferPb.name(),
+                                             framebufferPb.depth_stencil_attachment().name(),
+                                             static_cast<int>(attachmentIndex)});
 
                 auto& attachmentDescription = attachments.back();
                 attachmentDescription.format = renderTarget.format;
@@ -521,7 +525,7 @@ Scene::ImportStatus Scene::LoadRenderPass(const core::pb::RenderPass& renderPass
         subpassDatas[i].inputReferences.reserve(inputAttachmentIndices.size());
         for(auto& inputAtt : inputAttachmentIndices)
         {
-            subpassDatas[i].inputReferences.emplace_back(inputAtt, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+            subpassDatas[i].inputReferences.push_back({static_cast<std::uint32_t>(inputAtt), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL});
         }
         subpasses[i].inputAttachmentCount = subpassDatas[i].inputReferences.size();
         subpasses[i].pInputAttachments = subpassDatas[i].inputReferences.data();
