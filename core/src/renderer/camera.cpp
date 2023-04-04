@@ -10,6 +10,17 @@ glm::mat4 Camera::GetView() const
     return glm::lookAt(position, position + direction, up);
 }
 
+glm::mat4 Camera::GetProjection() const
+{
+    switch(projectionType)
+    {
+    case ProjectionType::ORTHOGRAPHIC: return glm::ortho(-aspect*orthographicHalfHeight, aspect*orthographicHalfHeight, -orthographicHalfHeight, orthographicHalfHeight, near, far);
+    case ProjectionType::PERSPECTIVE: return glm::perspective(fovY, aspect, near, far);
+    default: break;
+    }
+    return glm::mat4(1.0f);
+}
+
 void CameraSystem::Begin()
 {
 

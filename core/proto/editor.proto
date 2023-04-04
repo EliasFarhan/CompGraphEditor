@@ -120,9 +120,10 @@ message EditorScene
     repeated EditorModel models = 11;
     repeated core.pb.FrameBuffer framebuffers = 12;
     repeated string cubemap_textures_side_paths = 13;
-    //used by editor
     string render_pass_path = 9;
     repeated string py_system_paths = 10;
+    //Used to filter files not used by the scene
+    repeated string resources = 15;
     
     core.pb.Scene scene = 14;
 }

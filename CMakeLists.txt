@@ -1,8 +1,10 @@
 cmake_minimum_required (VERSION 3.18)
-project(CompGraphEditor)
+project(Neko2)
 
 set (CMAKE_CXX_STANDARD 20)
 set (CMAKE_CXX_STANDARD_REQUIRED ON)
+
+set_property( GLOBAL PROPERTY USE_FOLDERS ON)
 
 include(cmake/data.cmake)
 include(cmake/proto.cmake)
@@ -18,6 +20,8 @@ find_package(Ktx CONFIG REQUIRED)
 find_package(assimp CONFIG REQUIRED)
 find_package(argh CONFIG REQUIRED)
 find_package(nlohmann_json CONFIG REQUIRED)
+find_package(spirv_cross_core CONFIG REQUIRED)
+find_package(spirv_cross_reflect CONFIG REQUIRED)
 
 add_subdirectory(external/pybind11)
 option(ENABLE_PROFILER "Enable Tracy Profiling" OFF)

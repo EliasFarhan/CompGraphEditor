@@ -38,4 +38,7 @@ target_include_directories(editor PRIVATE include/)
 target_link_libraries(editor PRIVATE CommonGL nlohmann_json::nlohmann_json)
 
 add_dependencies(editor editor_scripts)
+
+set_target_properties (editor PROPERTIES FOLDER Main)
+set_target_properties (editor_scripts PROPERTIES FOLDER Main)
 #set_target_properties(editor PROPERTIES UNITY_BUILD ON)

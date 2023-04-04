@@ -263,13 +263,27 @@ PYBIND11_EMBEDDED_MODULE(core, m)
         .value("RETURN", SDLK_RETURN)
     .export_values()
         ;
-
+    py::enum_<core::Camera::ProjectionType>(m, "ProjectionType")
+        .value("PERSPECTIVE", core::Camera::ProjectionType::PERSPECTIVE)
+        .value("ORTHOGRAPHIC", core::Camera::ProjectionType::ORTHOGRAPHIC)
+        .value("NONE", core::Camera::ProjectionType::NONE)
+        .export_values();
     py::class_<core::Camera>(m, "Camera")
+        .def(py::init<>())
         .def_readwrite("position", &core::Camera::position, py::return_value_policy::reference)
         .def_readwrite("direction", &core::Camera::direction, py::return_value_policy::reference)
         .def_readwrite("up", &core::Camera::up, py::return_value_policy::reference)
+        .def_readwrite("near", &core::Camera::near, py::return_value_policy::reference)
+        .def_readwrite("far", &core::Camera::far, py::return_value_policy::reference)
+        .def_readwrite("fov", &core::Camera::fovY, py::return_value_policy::reference)
+        .def_readwrite("aspect", &core::Camera::aspect, py::return_value_policy::reference)
+        .def_readwrite("orthographicSize", &core::Camera::orthographicHalfHeight, py::return_value_policy::reference)
+        .def_readwrite("projection_type", &core::Camera::projectionType, py::return_value_policy::reference)
         .def("get_view", &core::Camera::GetView)
-        .def_property_readonly("view", &core::Camera::GetView);
+        .def("get_projection", &core::Camera::GetProjection)
+        .def_property_readonly("view", &core::Camera::GetView)
+        .def_property_readonly("projection", &core::Camera::GetProjection)
+    ;
 
     py::class_<core::Pipeline>(m, "Pipeline")
             .def("get_name", &core::Pipeline::GetPipelineName)

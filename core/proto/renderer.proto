@@ -160,6 +160,7 @@ message Shader
     repeated Attribute out_attributes = 4;
     repeated Attribute uniforms = 5;
     repeated CustomStruct structs = 6;
+    bool is_vulkan = 7;
 }
 
 message Pipeline
@@ -292,6 +293,7 @@ message Texture
     bool generate_mipmaps = 4;
     TextureType type = 5;
     bool gamma_correction = 6;
+    int32 channel_count = 7;
 }
 
 message Cubemap

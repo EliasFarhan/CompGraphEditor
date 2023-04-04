@@ -18,8 +18,12 @@ function(copydata main_folder exe_name)
         get_filename_component(PATH_NAME ${DATA} DIRECTORY)
         get_filename_component(EXTENSION ${DATA} EXT)
         file(RELATIVE_PATH PATH_NAME "${main_folder}" ${PATH_NAME})
-        #MESSAGE("Data PATH: ${PATH_NAME} NAME: ${FILE_NAME}")
+        #MESSAGE("Data PATH: ${PATH_NAME} NAME: ${FILE_NAME} EXTENSION: ${EXTENSION}")
         set(DATA_OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/${PATH_NAME}/${FILE_NAME}")
+		
+		if("${EXTENSION}" STREQUAL ".py")
+			source_group("Script Files\\${RELATIVE_PATH}" FILES "${DATA}")
+		endif()
         #MESSAGE("Data OUT PATH: ${DATA_OUTPUT}")
         add_custom_command(
                 OUTPUT ${DATA_OUTPUT}

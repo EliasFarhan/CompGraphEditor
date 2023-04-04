@@ -52,7 +52,11 @@ def analyze_shader(shader_path):
     extension = pathlib.Path(shader_path).suffix
     if extension == '.comp':
         compute = True
-    if not compute:
+    raytracing = False
+    raytracing_extensions = [".rgen", ".rmiss", "rchit", "rint", ".rahit", ".rcall"]
+    if extension in raytracing_extensions:
+        raytracing = True
+    if not compute and not raytracing:
         with open(shader_path, 'r') as shader_file:
             reading_struct = False
             lines = shader_file.readlines()

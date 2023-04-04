@@ -5,3 +5,4 @@ target_include_directories(gl_player PRIVATE include/ ${PHYSFS_INCLUDE_DIR})
 target_link_libraries(gl_player PRIVATE CommonGL ${PHYSFS_LIBRARY})
 
 set_target_properties(gl_player PROPERTIES UNITY_BUILD ON)
+set_target_properties (gl_player PROPERTIES FOLDER Main)

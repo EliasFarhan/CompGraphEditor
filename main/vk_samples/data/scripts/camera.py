@@ -35,7 +35,7 @@ class Camera(core.System):
         self.camera.direction = core.Vec3(rotate_x*rotate_y*core.Vec4(self.camera.direction, 1.0))
 
         self.camera.position += (horizontal*direction.x+self.camera.direction*direction.y)*self.speed*dt
-        
+
     def end(self):
         pass
 
