@@ -160,7 +160,6 @@ message Shader
     repeated Attribute out_attributes = 4;
     repeated Attribute uniforms = 5;
     repeated CustomStruct structs = 6;
-    bool is_vulkan = 7;
 }
 
 message Pipeline
@@ -414,4 +413,5 @@ message Scene
     repeated string model_paths = 11;
     repeated FrameBuffer framebuffers = 12;
     repeated string cubemap_textures_side_paths = 13;
+    bool is_vulkan = 14;
 }

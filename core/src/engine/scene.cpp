@@ -11,6 +11,8 @@
 
 #include <SDL.h>
 #include <fmt/format.h>
+
+
 namespace core
 {
 
@@ -79,7 +81,7 @@ void Scene::LoadScene(PyManager &pyManager)
     }
 }
 
-void Scene::SetScene(const pb::Scene &scene)
+void Scene::SetScene(const pb::Scene& scene)
 {
     scene_ = scene;
 }

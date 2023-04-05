@@ -7,64 +7,35 @@
 namespace editor
 {
 
-void ResourceManager::CheckDataFolder()
+void ResourceManager::CheckDataFolder(const PbRepeatField<std::string>& paths)
 {
     auto& filesystem = core::FilesystemLocator::get();
     // Remove deleted file
-    std::vector <fs::path> currentResources;
-    auto fileIt = resources_.begin();
-    while(fileIt != resources_.end())
+    for(auto& path : paths)
     {
-        if(!filesystem.IsRegularFile(fileIt->path))
+        if(!filesystem.IsRegularFile(path))
         {
-            RemoveResource(*fileIt);
-            fileIt = resources_.erase(fileIt);
+            RemoveResource(path);
         }
         else
         {
-            currentResources.push_back(fileIt->path);
-            ++fileIt;
-        }
-    }
-    std::function<void(std::string_view)> recursiveIterateFile = [this, &filesystem, &recursiveIterateFile, &currentResources]
-        (std::string_view directoryPath)
-    {
-        const fs::path dir = directoryPath;
-        for(const auto& entry : fs::directory_iterator(dir))
-        {
-            auto path = entry.path();
-            if(filesystem.IsDirectory(path.string()))
+            auto it = std::ranges::find_if(resources_, [&path](const Resource& resource)
+                {
+                    return fs::equivalent(resource.path, path);
+                });
+            if(it != resources_.end())
             {
-                recursiveIterateFile(path.string());
+                if (it->lastTimeWrite < GetLastTimeWrite(path))
+                {
+                    UpdateExistingResource(*it);
+                }
             }
             else
             {
-                bool newResource = true;
-                for(auto& currentResource : currentResources)
-                {
-                    if(fs::equivalent(currentResource, path))
-                    {
-                        auto it = std::ranges::find_if(resources_, [&path](const Resource& resource)
-                            {
-                                return fs::equivalent(resource.path,path);
-                            });
-                        if (it->lastTimeWrite < GetLastTimeWrite(path.string()))
-                        {
-                            UpdateExistingResource(*it);
-                        }
-                        newResource = false;
-                        break;
-                    }
-                }
-                if(newResource)
-                {
-                    AddResource(path.string());
-                }
+                AddResource(path);
             }
         }
-    };
-
-    recursiveIterateFile(dataFolder);
+    }
 }
 
 ResourceId ResourceManager::FindResourceByPath(std::string_view path) const
@@ -150,6 +121,12 @@ void ResourceManager::UpdateExistingResource(const Resource &resource)
         resourceChange->UpdateExistingResource(resource);
     }
 }
+
+void ResourceManager::Clear()
+{
+    resources_.clear();
+}
+
 void ResourceManager::RegisterResourceChange(ResourceChangeInterface *resourceChange)
 {
     resourceChangeInterfaces_.push_back(resourceChange);

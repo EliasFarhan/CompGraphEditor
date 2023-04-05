@@ -34,13 +34,13 @@ void Editor::Begin()
     editorSystems_[static_cast<std::size_t>(EditorType::PIPELINE)] = std::make_unique<PipelineEditor>();
     editorSystems_[static_cast<std::size_t>(EditorType::MATERIAL)] = std::make_unique<MaterialEditor>();
     editorSystems_[static_cast<std::size_t>(EditorType::MESH)] = std::make_unique<MeshEditor>();
-    editorSystems_[static_cast<std::size_t>(EditorType::RENDER_PASS)] = std::make_unique<RenderPassEditor>();
     editorSystems_[static_cast<std::size_t>(EditorType::COMMAND)] = std::make_unique<CommandEditor>();
-    editorSystems_[static_cast<std::size_t>(EditorType::SCENE)] = std::make_unique<SceneEditor>();
     editorSystems_[static_cast<std::size_t>(EditorType::SCRIPT)] = std::make_unique<ScriptEditor>();
     editorSystems_[static_cast<std::size_t>(EditorType::TEXTURE)] = std::make_unique<TextureEditor>();
     editorSystems_[static_cast<std::size_t>(EditorType::MODEL)] = std::make_unique<ModelEditor>();
     editorSystems_[static_cast<std::size_t>(EditorType::FRAMEBUFFER)] = std::make_unique<FramebufferEditor>();
+    editorSystems_[static_cast<std::size_t>(EditorType::RENDER_PASS)] = std::make_unique<RenderPassEditor>();
+    editorSystems_[static_cast<std::size_t>(EditorType::SCENE)] = std::make_unique<SceneEditor>();
     
     resourceManager_.RegisterResourceChange(this);
     py::initialize_interpreter();
@@ -48,11 +48,6 @@ void Editor::Begin()
     if (!filesystem.IsDirectory(ResourceManager::dataFolder))
     {
         CreateNewDirectory(ResourceManager::dataFolder);
-    }
-    else
-    {
-        resourceManager_.CheckDataFolder();
-        
     }
     for (const auto& editorSystem : editorSystems_)
     {
@@ -83,7 +78,7 @@ void Editor::OnGui()
     ImGui::SetNextWindowPos(ImVec2(windowSize.x * 0.2f, 0), ImGuiCond_FirstUseEver);
     ImGui::SetNextWindowSize(ImVec2(windowSize.x * 0.6f, windowSize.y), ImGuiCond_FirstUseEver);
     //ImGui::Begin("Center View", nullptr, ImGuiWindowFlags_NoTitleBar);
-    //DrawMenuBar();
+
     DrawCenterView();
     //ImGui::End();
     
@@ -134,9 +129,13 @@ void Editor::DrawMenuBar()
     {
         if (ImGui::BeginMenu("File"))
         {
-            if (ImGui::MenuItem("Open"))
+            if(ImGui::MenuItem("New Scene"))
             {
-                OpenFileBrowserDialog({});
+                OpenMenuCreateNewFile(EditorType::SCENE);
+            }
+            if (ImGui::MenuItem("Open Scene"))
+            {
+                OpenFileBrowserDialog(editorSystems_[static_cast<int>(EditorType::SCENE)]->GetExtensions());
             }
             if(ImGui::MenuItem("Save"))
             {
@@ -146,6 +145,7 @@ void Editor::DrawMenuBar()
         }
         if (ImGui::BeginMenu("Window"))
         {
+            //TODO put editor list
             ImGui::EndMenu();
         }
         ImGui::EndMainMenuBar();
@@ -322,6 +322,7 @@ bool Editor::UpdateCreateNewFile()
 void Editor::DrawCenterView()
 {
     ImGui::Begin("Center View");
+    DrawMenuBar();
     if (currentFocusedSystem_ != EditorType::LENGTH)
     {
         auto* editorSystem = editorSystems_[static_cast<int>(currentFocusedSystem_)].get();
@@ -393,8 +394,10 @@ void Editor::OnEvent(SDL_Event& event)
         {
         case SDL_WINDOWEVENT_FOCUS_GAINED:
         {
-            resourceManager_.CheckDataFolder();
-
+            auto* sceneInfo = GetSceneEditor()->GetCurrentSceneInfo();
+            if (sceneInfo == nullptr)
+                break;
+            resourceManager_.CheckDataFolder(sceneInfo->info.resources());
             break;
         }
         default:break;

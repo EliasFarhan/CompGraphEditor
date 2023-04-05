@@ -2,6 +2,8 @@ file(GLOB_RECURSE CORE_FILES src/*.cpp include/*.h)
 add_library(Core STATIC ${CORE_FILES})
 target_include_directories(Core PUBLIC include/ ${STB_INCLUDE_DIRS} ${Python3_INCLUDE_DIRS})
 generate_proto(Core)
+
+set_target_properties (CoreProto PROPERTIES FOLDER Core)
 target_link_libraries(Core PUBLIC glm::glm SDL2::SDL2 SDL2::SDL2main imgui::imgui 
     pybind11::embed ${Python3_LIBRARIES} spdlog::spdlog KTX::ktx assimp::assimp)
 

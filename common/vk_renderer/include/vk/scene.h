@@ -40,6 +40,7 @@ public:
     core::DrawCommand& GetDrawCommand(int subPassIndex, int drawCommandIndex) override;
     const std::vector<VertexBuffer>& GetVertexBuffers() const { return vertexBuffers_; }
 
+    void OnEvent(SDL_Event& event) override;
 protected:
     ImportStatus LoadShaders(const PbRepeatField<core::pb::Shader>& shadersPb) override;
     ImportStatus LoadPipelines(const PbRepeatField<core::pb::Pipeline>& pipelines) override;
@@ -51,6 +52,7 @@ protected:
     ImportStatus LoadRenderPass(const core::pb::RenderPass& renderPass) override;
     ImportStatus LoadDrawCommands(const core::pb::RenderPass &renderPass) override;
 private:
+    void ResizeWindow();
     std::vector<Pipeline> pipelines_;
     std::vector<Framebuffer> framebuffers_;
     std::vector<core::Mesh> meshes_;

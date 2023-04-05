@@ -31,8 +31,11 @@ public:
     void ReloadId() override;
     void Delete() override;
     [[nodiscard]] std::span<const std::string_view> GetExtensions() const override;
+    SceneInfo* GetCurrentSceneInfo() { return currentIndex_ >= sceneInfos_.size() ? nullptr : &sceneInfos_[currentIndex_]; }
 private:
     std::vector<SceneInfo> sceneInfos_;
     std::size_t currentIndex_ = -1;
 };
+
+SceneEditor* GetSceneEditor();
 }

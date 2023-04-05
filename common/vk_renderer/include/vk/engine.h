@@ -21,10 +21,6 @@ struct Renderer
     std::vector<VkFence> imagesInFlight;
     std::size_t currentFrame = 0;
     std::uint32_t imageIndex = 0;
-    /**
-     * \brief Should be used with imageIndex
-     */
-    std::vector<VkFramebuffer> framebuffers;
     VkCommandPool commandPool;
     /**
      * \brief Should be used with imageIndex

@@ -631,4 +631,10 @@ std::span<const std::string_view> SceneEditor::GetExtensions() const
     static constexpr std::array<std::string_view, 1> extensions = { ".scene" };
     return std::span{ extensions };
 }
+
+SceneEditor* GetSceneEditor()
+{
+    const auto* editor = Editor::GetInstance();
+    return static_cast<SceneEditor*>(editor->GetEditorSystem(EditorType::SCENE));
+}
 }

@@ -9,6 +9,7 @@
 #include "resource.h"
 #include "resource_manager.h"
 #include "editor_system.h"
+#include "proto/renderer.pb.h"
 
 #include <memory>
 
@@ -50,8 +51,7 @@ private:
 
 
     EditorSystem* FindEditorSystem(std::string_view path) const;
-
-    core::pb::Scene scene_;
+    
     ResourceManager resourceManager_;
     ImGui::FileBrowser fileDialog_;
     std::vector<std::unique_ptr<EditorSystem>> editorSystems_;

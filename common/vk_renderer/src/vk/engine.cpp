@@ -5,6 +5,7 @@
 #include "utils/log.h"
 #include "vk/utils.h"
 
+#include "proto/config.pb.h"
 #include <fmt/format.h>
 
 namespace vk
@@ -350,9 +351,12 @@ void Engine::End()
     window_.End();
 }
 
-void Engine::ResizeWindow(glm::uvec2 uvec2)
+void Engine::ResizeWindow(glm::uvec2 newSize)
 {
-
+    const auto& driver = GetDriver();
+    vkDeviceWaitIdle(driver.device);
+    window_.CleanupSwapChain();
+    window_.CreateSwapChainObjects();
 }
 
 void Engine::PreUpdate()

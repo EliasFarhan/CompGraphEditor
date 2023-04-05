@@ -41,7 +41,7 @@ void Engine::Begin()
 
     SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
     SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 8);
-    const auto windowSize = glm::ivec2(config_.windowsize().x(), config_.windowsize().y());
+    const auto windowSize = glm::ivec2(config_.window_size().x(), config_.window_size().y());
     window_ = SDL_CreateWindow(
         config_.window_name().c_str(),
         SDL_WINDOWPOS_UNDEFINED,

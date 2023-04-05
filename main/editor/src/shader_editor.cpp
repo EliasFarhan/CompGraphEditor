@@ -25,7 +25,6 @@ namespace editor
 
 void ShaderEditor::AddResource(const Resource& resource)
 {
-
     ShaderInfo shaderInfo{};
     shaderInfo.compiledCorrectly = AnalyzeShader(resource.path, shaderInfo.info);
     shaderInfo.filename = GetFilename(resource.path);

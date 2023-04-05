@@ -210,6 +210,27 @@ const Texture& Scene::GetTexture(int index) const
     return textureManager.GetTexture(textures_[index].textureId);
 }
 
+void Scene::OnEvent(SDL_Event& event)
+{
+    core::Scene::OnEvent(event);
+    switch (event.type)
+    {
+    case SDL_WINDOWEVENT:
+    {
+        switch (event.window.type)
+        {
+        case SDL_WINDOWEVENT_RESIZED:
+            ResizeWindow();
+            break;
+        default: break;
+        }
+        break;
+    }
+    default: break;
+    }
+    
+}
+
 Scene::ImportStatus Scene::LoadShaders(const PbRepeatField<core::pb::Shader>& shadersPb)
 {
     LogDebug("Load Shaders");
@@ -500,7 +521,6 @@ Scene::ImportStatus Scene::LoadRenderPass(const core::pb::RenderPass& renderPass
             }
 
         }
-        //TODO add used attachments (color or depth)
         std::vector<int> inputAttachmentIndices;
         for(auto& command: subpassPb.commands())
         {
@@ -508,12 +528,12 @@ Scene::ImportStatus Scene::LoadRenderPass(const core::pb::RenderPass& renderPass
             {
                 if(materialTexture.framebuffer_name().empty())
                     continue;
-                auto it = std::ranges::find_if(renderTargetDatas, [&materialTexture](const RenderTargetData& renderTargetData)
+                auto it = std::ranges::find_if(renderTargetDatas, [&materialTexture](const auto& renderTargetData)
                     {
                         return renderTargetData.framebufferName == materialTexture.framebuffer_name() &&
                             renderTargetData.attachmentName == materialTexture.attachment_name();
                     });
-                if(std::ranges::none_of(inputAttachmentIndices, [&it](int inputAttachment)
+                if(std::ranges::none_of(inputAttachmentIndices, [&it](auto inputAttachment)
                 {
                         return it->attachmentIndex == inputAttachment;
                 }))
@@ -633,6 +653,57 @@ Scene::ImportStatus Scene::LoadDrawCommands(const core::pb::RenderPass& renderPa
         }
     }
     return Scene::ImportStatus::SUCCESS;
+}
+
+void Scene::ResizeWindow()
+{
+    auto& driver = GetDriver();
+    //TODO reload pipelines, renderpass, commands, framebuffers
+    //Destroy resize dependent objects
+    for (auto& framebuffer : framebuffers_)
+    {
+        framebuffer.Destroy();
+    }
+    framebuffers_.clear();
+    for (const auto& framebuffer : renderPass_.framebuffers)
+    {
+        vkDestroyFramebuffer(driver.device, framebuffer, nullptr);
+    }
+    renderPass_.framebuffers.clear();
+    for (auto& drawCommand : drawCommands_)
+    {
+        drawCommand.Destroy();
+    }
+    drawCommands_.clear();
+    for (auto& pipeline : pipelines_)
+    {
+        pipeline.Destroy();
+    }
+    pipelines_.clear();
+    vkDestroyRenderPass(driver.device, renderPass_.renderPass, nullptr);
+    renderPass_.renderPass = VK_NULL_HANDLE;
+
+    //Recreate them
+    const auto framebuffers = scene_.framebuffers();
+    if (LoadFramebuffers(framebuffers) != ImportStatus::SUCCESS)
+    {
+        LogError("Could not recreate framebuffers");
+    }
+    const auto& renderPass = scene_.render_pass();
+    if (LoadRenderPass(renderPass) != ImportStatus::SUCCESS)
+    {
+        LogError("Count not recreate render pass");
+    }
+    const auto pipelines = scene_.pipelines();
+    if (LoadPipelines(pipelines) != ImportStatus::SUCCESS)
+    {
+        LogError("Could not recreate pipelines");
+    }
+
+    if (LoadDrawCommands(renderPass) != ImportStatus::SUCCESS)
+    {
+        LogError("Could not recreate draw commands");
+    }
 }
 
 VkRenderPass GetCurrentRenderPass()

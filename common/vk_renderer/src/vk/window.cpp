@@ -53,8 +53,8 @@ void Window::CreateWindow() {
             config_.window_name().c_str(),
             SDL_WINDOWPOS_UNDEFINED,
             SDL_WINDOWPOS_UNDEFINED,
-            config_.windowsize().x(),
-            config_.windowsize().y(),
+            config_.window_size().x(),
+            config_.window_size().y(),
             windowFlags
     );
     if(!window_)
@@ -364,6 +364,7 @@ void Window::CreateDepthResources()
 
 void Window::CleanupSwapChain()
 {
+    LogDebug("Cleanup Swapchain");
     for (const auto& imageView : swapchain_.imageViews)
     {
         vkDestroyImageView(driver_.device, imageView, nullptr);

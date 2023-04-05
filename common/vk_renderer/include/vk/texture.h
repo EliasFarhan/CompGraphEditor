@@ -1,5 +1,6 @@
 #pragma once
 
+#include "proto/renderer.pb.h"
 #include "vk/common.h"
 #include "renderer/texture.h"
 

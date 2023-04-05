@@ -78,7 +78,7 @@ void Engine::Run()
                     newWindowSize.x = event.window.data1;
                     newWindowSize.y = event.window.data2;
                     ResizeWindow(newWindowSize);
-                    auto* windowSize = config_.mutable_windowsize();
+                    auto* windowSize = config_.mutable_window_size();
                     windowSize->set_x(newWindowSize.x);
                     windowSize->set_y(newWindowSize.y);
                     break;
@@ -172,7 +172,7 @@ Engine::Engine()
     {
         config_.set_vertical_sync(true);
         config_.set_framerate_limit(0);
-        pb::Vec2i *windowSize = config_.mutable_windowsize();
+        pb::Vec2i *windowSize = config_.mutable_window_size();
         windowSize->set_x(1280);
         windowSize->set_y(720);
         config_.set_window_name("CompGraphEditor");
@@ -186,7 +186,7 @@ void Engine::SetWindowName(std::string_view windowName)
 }
 glm::uvec2 Engine::GetWindowSize() const
 {
-    return {config_.windowsize().x(), config_.windowsize().y()};
+    return {config_.window_size().x(), config_.window_size().y()};
 }
 
 glm::uvec2 GetWindowSize()
