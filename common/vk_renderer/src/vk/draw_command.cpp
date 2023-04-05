@@ -208,40 +208,56 @@ void DrawCommand::GenerateUniforms()
                 }
                 else
                 {
-                    for(auto& structType: shaderInfo.get().structs())
+
+                    uniformData.index = basePushConstantIndex;
+                    std::function<int(std::string_view, std::string_view, int)> analyzeStruct = [&shaderInfo, &analyzeStruct, this]
+                    (std::string_view typeName, std::string_view baseName, int basePushConstantIndex)
                     {
-                        if (structType.name() != uniform.type_name())
+                        for (auto& structType : shaderInfo.get().structs())
                         {
-                            continue;
-                        }
-                        const core::TypeInfo typeInfo
-                        {
-                            .size = structType.size(),
-                            .alignment = structType.alignment()
-                        };
-                        if (basePushConstantIndex % typeInfo.alignment != 0)
-                        {
-                            basePushConstantIndex += typeInfo.alignment - basePushConstantIndex % typeInfo.alignment;
-                        }
-                        uniformData.index = basePushConstantIndex;
-                        int internalPushConstantIndex = basePushConstantIndex;
-                        for(auto& structUniform: structType.attributes())
-                        {
-                            UniformInternalData internalUniformData{};
-                            const auto internalTypeInfo = core::GetTypeInfo(structUniform.type());
-                            if (internalPushConstantIndex % internalTypeInfo.alignment != 0)
+                            if (structType.name() != typeName)
                             {
-                                internalPushConstantIndex += internalTypeInfo.alignment - internalPushConstantIndex % internalTypeInfo.alignment;
+                                continue;
                             }
-                            internalUniformData.index = internalPushConstantIndex;
-                            internalUniformData.uniformType = UniformType::PUSH_CONSTANT;
-                            internalPushConstantIndex += internalTypeInfo.size;
-                            uniforms_[fmt::format("{}.{}",name, structUniform.name())] = internalUniformData;
+                            const core::TypeInfo typeInfo
+                            {
+                                .size = structType.size(),
+                                .alignment = structType.alignment()
+                            };
+                            if (basePushConstantIndex % typeInfo.alignment != 0)
+                            {
+                                basePushConstantIndex += typeInfo.alignment - basePushConstantIndex % typeInfo.alignment;
+                            }
+                            int internalPushConstantIndex = basePushConstantIndex;
+                            for (auto& structUniform : structType.attributes())
+                            {
+                                UniformInternalData internalUniformData{};
+                                if (structUniform.type() != core::pb::Attribute_Type_CUSTOM)
+                                {
+                                    const auto internalTypeInfo = core::GetTypeInfo(structUniform.type());
+                                    if (internalPushConstantIndex % internalTypeInfo.alignment != 0)
+                                    {
+                                        internalPushConstantIndex += internalTypeInfo.alignment - internalPushConstantIndex % internalTypeInfo.alignment;
+                                    }
+                                    internalUniformData.index = internalPushConstantIndex;
+                                    internalUniformData.uniformType = UniformType::PUSH_CONSTANT;
+                                    internalPushConstantIndex += internalTypeInfo.size;
+                                    uniforms_[fmt::format("{}.{}", baseName, structUniform.name())] = internalUniformData;
+                                }
+                                else
+                                {
+                                    internalPushConstantIndex = analyzeStruct(structUniform.type_name(), 
+                                        fmt::format("{}.{}", baseName, 
+                                            structUniform.name()), 
+                                        internalPushConstantIndex);
+                                }
+                            }
+                            basePushConstantIndex += typeInfo.size;
+                            break;
                         }
-                        basePushConstantIndex += typeInfo.size;
-                        break;
-                        
-                    }
+                        return basePushConstantIndex;
+                    };
+                    basePushConstantIndex = analyzeStruct(uniform.type_name(), uniform.name(), basePushConstantIndex);
                 }
             }
             else
@@ -389,6 +405,10 @@ void DrawCommand::GenerateUniforms()
     //Allocate descriptor sets
 
     Pipeline& pipeline = static_cast<Pipeline&>(scene->GetPipeline(materialInfo.pipeline_index()));
+    if(pipeline.GetDescriptorSetLayout() == nullptr)
+    {
+        return;
+    }
     std::vector<VkDescriptorSetLayout> layouts(Engine::MAX_FRAMES_IN_FLIGHT, pipeline.GetDescriptorSetLayout());
     VkDescriptorSetAllocateInfo allocInfo{};
     allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
@@ -509,6 +529,8 @@ void DrawCommand::PreDrawBind()
         vmaUnmapMemory(allocator, ubo.buffers[currentFrame].allocation);
 
     }
+    if (descriptorSets[0] == nullptr)
+        return;
     //Bind descriptor sets
     vkCmdBindDescriptorSets(GetCurrentCommandBuffer(),
         VK_PIPELINE_BIND_POINT_GRAPHICS, 

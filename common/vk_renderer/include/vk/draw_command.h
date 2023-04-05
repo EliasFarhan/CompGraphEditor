@@ -61,7 +61,7 @@ private:
     std::vector<std::uint8_t> uniformBuffer_;
     std::unordered_map<std::string, UniformInternalData> uniforms_;
     std::vector<UniformBufferObject> uniformBuffers_;
-    std::array<VkDescriptorSet, Engine::MAX_FRAMES_IN_FLIGHT> descriptorSets;
+    std::array<VkDescriptorSet, Engine::MAX_FRAMES_IN_FLIGHT> descriptorSets{};
     VkDescriptorPool descriptorPool;
 };
 }

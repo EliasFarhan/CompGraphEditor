@@ -65,7 +65,7 @@ void Scene::Update(float dt)
     std::vector<VkClearValue> clearValues{};
     for(auto& subpass : scene_.render_pass().sub_passes())
     {
-        if (subpass.framebuffer_index() == -1)
+        if (subpass.framebuffer_index() == -1 || subpass.framebuffer_index() >= scene_.framebuffers_size())
         {
             VkClearValue clearValue;
             clearValue.color = { 0.0f, 0.0f, 0.0f, 1.0f };
@@ -217,7 +217,7 @@ void Scene::OnEvent(SDL_Event& event)
     {
     case SDL_WINDOWEVENT:
     {
-        switch (event.window.type)
+        switch (event.window.event)
         {
         case SDL_WINDOWEVENT_RESIZED:
             ResizeWindow();
@@ -296,12 +296,20 @@ Scene::ImportStatus Scene::LoadMaterials(const PbRepeatField<core::pb::Material>
 
 Scene::ImportStatus Scene::LoadModels(const PbRepeatField<std::string>& models)
 {
-    return ImportStatus::FAILURE;
+    auto& modelManager = core::GetModelManager();
+    const auto modelsSize = models.size();
+    for (int i = 0; i < modelsSize; i++)
+    {
+        modelIndices_.push_back(modelManager.ImportModel(models.Get(i)));
+    }
+
+    return ImportStatus::SUCCESS;
 }
 
 Scene::ImportStatus Scene::LoadMeshes(const PbRepeatField<core::pb::Mesh>& meshes)
 {
     LogDebug("Load Meshes");
+    auto& modelManager = core::GetModelManager();
     const auto meshesSize = meshes.size();
     for (int i = 0; i < meshesSize; i++)
     {
@@ -329,15 +337,18 @@ Scene::ImportStatus Scene::LoadMeshes(const PbRepeatField<core::pb::Mesh>& meshe
             break;
         }
         case core::pb::Mesh_PrimitveType_SPHERE:
+            //TODO implement sphere
             break;
         case core::pb::Mesh_PrimitveType_NONE:
         {
             vertexBuffers_.emplace_back();
-            //vertexBuffers_.back() = CreateVertexBufferFromMesh(mesh);;
             break;
         }
         case core::pb::Mesh_PrimitveType_MODEL:
         {
+            const auto& mesh = modelManager.GetModel(modelIndices_[meshInfo.model_index()]).GetMesh(meshInfo.mesh_name());
+            vertexBuffers_.emplace_back();
+            vertexBuffers_.back() = CreateVertexBufferFromMesh(mesh);
             break;
         }
         default:
@@ -528,7 +539,8 @@ Scene::ImportStatus Scene::LoadRenderPass(const core::pb::RenderPass& renderPass
             {
                 if(materialTexture.framebuffer_name().empty())
                     continue;
-                auto it = std::ranges::find_if(renderTargetDatas, [&materialTexture](const auto& renderTargetData)
+                auto it = std::ranges::find_if(renderTargetDatas, 
+                    [&materialTexture](const auto& renderTargetData)
                     {
                         return renderTargetData.framebufferName == materialTexture.framebuffer_name() &&
                             renderTargetData.attachmentName == materialTexture.attachment_name();
@@ -594,7 +606,6 @@ Scene::ImportStatus Scene::LoadRenderPass(const core::pb::RenderPass& renderPass
         return ImportStatus::FAILURE;
     }
     renderPass_.renderPass = renderPass;
-    //TODO Generate the VkFramebuffer holding all imageview
     auto& renderer = GetRenderer();
     renderPass_.framebuffers.resize(swapchain.imageViews.size());
     for (size_t i = 0; i < swapchain.imageViews.size(); i++)

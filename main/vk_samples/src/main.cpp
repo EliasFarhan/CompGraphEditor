@@ -14,10 +14,10 @@ int main(int argc, char** argv)
     core::FilesystemLocator::provide(&filesystem);
     vk::Engine engine;
 
-    gpr5300::HelloVulkanProgram triangleProgram;
-    engine.RegisterSystem(&triangleProgram);
-    engine.RegisterOnGuiInterface(&triangleProgram);
-    engine.RegisterEventObserver(&triangleProgram);
+    gpr5300::HelloVulkanProgram vulkanProgram;
+    engine.RegisterSystem(&vulkanProgram);
+    engine.RegisterOnGuiInterface(&vulkanProgram);
+    engine.RegisterEventObserver(&vulkanProgram);
 
     engine.Run();
 

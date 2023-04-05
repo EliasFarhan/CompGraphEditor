@@ -3,6 +3,7 @@
 #include "engine/system.h"
 #include "gl/scene.h"
 #include "engine/engine.h"
+#include "proto/renderer.pb.h"
 
 namespace gpr5300
 {

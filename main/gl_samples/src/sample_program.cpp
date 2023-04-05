@@ -305,6 +305,8 @@ core::pb::Scene Scene7()
     vertexShader->set_type(core::pb::VERTEX);
     vertexShader->set_path("data/shaders/scene07/rock.vert");
 
+
+
     core::pb::Shader *fragmentShader = scene.add_shaders();
     fragmentShader->set_type(core::pb::FRAGMENT);
     fragmentShader->set_path("data/shaders/scene07/rock.frag");

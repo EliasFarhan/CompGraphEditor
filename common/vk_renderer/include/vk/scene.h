@@ -61,6 +61,7 @@ private:
     std::vector<DrawCommand> drawCommands_;
     std::vector<SceneTexture> textures_;
     RenderPass renderPass_;
+    std::vector<core::ModelIndex> modelIndices_;
 };
 
 VkRenderPass GetCurrentRenderPass();
