@@ -6,19 +6,48 @@
 
 namespace vk
 {
-bool Pipeline::LoadRaterizePipeline(const core::pb::Pipeline& pipelinePb, Shader& vertexShader, Shader& fragmentShader, int pipelineIndex)
+bool Pipeline::LoadRaterizePipeline(const core::pb::Pipeline& pipelinePb,
+                                    Shader& vertexShader,
+                                    Shader& fragmentShader,
+                                    int pipelineIndex,
+                                    std::optional < std::reference_wrapper<Shader> > geometryShader,
+                                    std::optional < std::reference_wrapper<Shader> > tesselationControlShader,
+                                    std::optional < std::reference_wrapper<Shader> > tesselationEvalShader)
 {
     auto* scene = core::GetCurrentScene();
     const auto& sceneInfo = scene->GetInfo();
     auto& swapchain = GetSwapchain();
     auto& driver = GetDriver();
-    std::array<VkShaderModule, 2> shaderModules{ {vertexShader.module, fragmentShader.module} };
-    std::array<VkPipelineShaderStageCreateInfo, 2> shaderStages{
+    std::vector<VkPipelineShaderStageCreateInfo> shaderStages{
         {
             {.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,.stage = vertexShader.stage, .module = vertexShader.module,.pName = "main"},
             {.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,.stage = fragmentShader.stage, .module = fragmentShader.module,.pName = "main"}
         } };
-    
+    if(geometryShader)
+    {
+        shaderStages.push_back({ 
+            .sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
+            .stage = geometryShader.value().get().stage,
+            .module = geometryShader.value().get().module,
+            .pName = "main" });
+    }
+    if(tesselationControlShader)
+    {
+        shaderStages.push_back({ 
+            .sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
+            .stage = tesselationControlShader.value().get().stage,
+            .module = tesselationControlShader.value().get().module,
+            .pName = "main" });
+
+    }
+    if(tesselationEvalShader)
+    {
+        shaderStages.push_back({ 
+            .sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
+            .stage = tesselationEvalShader.value().get().stage,
+            .module = tesselationEvalShader.value().get().module,
+            .pName = "main" });
+    }
     
     VkVertexInputBindingDescription vertexInputBindingDescription{};
     vertexInputBindingDescription.binding = 0;
@@ -98,15 +127,12 @@ bool Pipeline::LoadRaterizePipeline(const core::pb::Pipeline& pipelinePb, Shader
         switch (pipelinePb.cull_face())
         {
         case core::pb::Pipeline_CullFace_BACK:
-
             rasterizer.cullMode = VK_CULL_MODE_BACK_BIT;
             break;
         case core::pb::Pipeline_CullFace_FRONT:
-
             rasterizer.cullMode = VK_CULL_MODE_FRONT_BIT;
             break;
         case core::pb::Pipeline_CullFace_FRONT_AND_BACK:
-
             rasterizer.cullMode = VK_CULL_MODE_FRONT_AND_BACK;
             break;
         default: break;
@@ -415,6 +441,18 @@ bool Pipeline::LoadRaterizePipeline(const core::pb::Pipeline& pipelinePb, Shader
 
 bool Pipeline::LoadComputePipeline(const core::pb::Pipeline& pipelinePb, Shader& computeShader)
 {
+    return false;
+}
+
+bool Pipeline::LoadRaytracingPipeline(const core::pb::Pipeline& pipelinePb, 
+    Shader& rayGenShader, 
+    Shader& missHitShader,
+    Shader& closestHitShader, 
+    int pipelineIndex, 
+    std::optional<std::reference_wrapper<Shader>> anyHitShader,
+    std::optional<std::reference_wrapper<Shader>> intersectionShadder)
+{
+    //TODO gather all scene meshes to put in BLAS, put them all in the TLAS
     return false;
 }
 

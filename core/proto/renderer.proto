@@ -267,7 +267,11 @@ message Pipeline
     string name = 30;
     int32 tess_control_shader_index = 31;
     int32 tess_eval_shader_index = 32;
-
+    int32 ray_gen_shader_index = 33;
+    int32 miss_hit_shader_index = 34;
+    int32 closest_hit_shader_index = 35;
+    int32 any_hit_shader_index = 36;
+    int32 intersection_hit_shader_index = 37;
 }
 
 

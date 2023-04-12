@@ -72,12 +72,32 @@ Scene::ImportStatus Scene::LoadPipelines(
         switch (pipelinePb.type())
         {
         case core::pb::Pipeline_Type_RASTERIZE:
-            pipelines_[i].LoadRasterizePipeline(shaders_[pipelinePb.vertex_shader_index()],
-                shaders_[pipelinePb.fragment_shader_index()]);
+        {
+            auto getShader = [this](const int index, core::pb::ShaderType type)->std::optional<std::reference_wrapper<Shader>>
+            {
+                if( index != -1 || scene_.shaders(index).type() == type)
+                {
+                    return shaders_[index];
+                }
+                return std::nullopt;
+            };
+
+            pipelines_[i].LoadRasterizePipeline(
+            shaders_[pipelinePb.vertex_shader_index()],
+            shaders_[pipelinePb.fragment_shader_index()],
+                getShader(pipelinePb.geometry_shader_index(), core::pb::GEOMETRY),
+                getShader(pipelinePb.tess_control_shader_index(), core::pb::TESSELATION_CONTROL),
+                getShader(pipelinePb.tess_eval_shader_index(), core::pb::TESSELATION_EVAL)
+            );
+
             break;
+        }
         case core::pb::Pipeline_Type_COMPUTE:
             pipelines_[i].LoadComputePipeline(shaders_[pipelinePb.compute_shader_index()]);
             break;
+        case core::pb::Pipeline_Type_RAYTRACING:
+            LogError("Can not use raytracing pipeline in OpenGL");
+            return ImportStatus::FAILURE;
         default:
             return ImportStatus::FAILURE;
         }

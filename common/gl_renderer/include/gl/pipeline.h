@@ -10,6 +10,8 @@
 #include <glm/vec4.hpp>
 #include <glm/ext/matrix_float4x4.hpp>
 
+#include <optional>
+
 
 namespace gl
 {
@@ -32,7 +34,11 @@ public:
     GLuint GetName() const { return name; }
     static void Unbind();
 
-    void LoadRasterizePipeline(const Shader& vertex, const Shader& fragment);
+    void LoadRasterizePipeline(const Shader& vertex, 
+        const Shader& fragment,
+        std::optional<std::reference_wrapper<Shader>> geometryShader = std::nullopt,
+        std::optional<std::reference_wrapper<Shader>> tesselationControlShader = std::nullopt,
+        std::optional<std::reference_wrapper<Shader>> tesselationEvalShader = std::nullopt);
     void LoadComputePipeline(const Shader& compute);
 
     void Destroy();

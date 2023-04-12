@@ -5,6 +5,8 @@
 
 #include <vulkan/vulkan.h>
 
+#include <optional>
+
 namespace vk
 {
 
@@ -23,8 +25,22 @@ struct PushConstantData
 class Pipeline final : public core::Pipeline
 {
 public:
-    bool LoadRaterizePipeline(const core::pb::Pipeline& pipelinePb, Shader& vertexShader, Shader& fragmentShader, int pipelineIndex);
-    bool LoadComputePipeline(const core::pb::Pipeline& pipelinePb, Shader& computeShader);
+    bool LoadRaterizePipeline(const core::pb::Pipeline& pipelinePb,
+                              Shader& vertexShader,
+                              Shader& fragmentShader,
+                              int pipelineIndex,
+        std::optional < std::reference_wrapper<Shader> > geometryShader = std::nullopt,
+        std::optional < std::reference_wrapper<Shader> > tesselationControlShader = std::nullopt,
+        std::optional < std::reference_wrapper<Shader> > tesselationEvalShader = std::nullopt);
+    bool LoadComputePipeline(const core::pb::Pipeline& pipelinePb, 
+        Shader& computeShader);
+    bool LoadRaytracingPipeline(const core::pb::Pipeline& pipelinePb,
+        Shader& rayGenShader,
+        Shader& missHitShader,
+        Shader& closestHitShader,
+        int pipelineIndex, 
+        std::optional < std::reference_wrapper<Shader> > anyHitShader = std::nullopt,
+        std::optional < std::reference_wrapper<Shader> > intersectionShadder = std::nullopt);
     void Bind() override;
     void Destroy() const;
     [[nodiscard]] VkPipelineLayout GetLayout() const { return pipelineLayout; }

@@ -9,7 +9,7 @@ namespace gl
 
 struct MaterialTexture
 {
-    core::TextureId textureId;
+    core::TextureId textureId = core::INVALID_TEXTURE_ID;
     std::string uniformSamplerName;
     std::string attachmentName;
     std::string framebufferName;

@@ -262,11 +262,28 @@ Scene::ImportStatus Scene::LoadPipelines(const PbRepeatField<core::pb::Pipeline>
         switch(pipelinePb.type())
         {
         case core::pb::Pipeline_Type_RASTERIZE:
-            if (!pipeline.LoadRaterizePipeline(pipelinePb, shaders_[pipelinePb.vertex_shader_index()], shaders_[pipelinePb.fragment_shader_index()], i))
+        {
+            auto getShader = [this](const int index, core::pb::ShaderType type)->std::optional<std::reference_wrapper<Shader>>
+            {
+                if (index != -1 || scene_.shaders(index).type() == type)
+                {
+                    return shaders_[index];
+                }
+                return std::nullopt;
+            };
+
+            if (!pipeline.LoadRaterizePipeline(pipelinePb,
+                shaders_[pipelinePb.vertex_shader_index()],
+                shaders_[pipelinePb.fragment_shader_index()],
+                i,
+                getShader(pipelinePb.geometry_shader_index(), core::pb::GEOMETRY),
+                getShader(pipelinePb.tess_control_shader_index(), core::pb::TESSELATION_CONTROL),
+                getShader(pipelinePb.tess_eval_shader_index(), core::pb::TESSELATION_EVAL)))
             {
                 return ImportStatus::FAILURE;
             }
             break;
+        }
         case core::pb::Pipeline_Type_COMPUTE: break;
         case core::pb::Pipeline_Type_RAYTRACING: break;
         default: break;
@@ -669,7 +686,6 @@ Scene::ImportStatus Scene::LoadDrawCommands(const core::pb::RenderPass& renderPa
 void Scene::ResizeWindow()
 {
     auto& driver = GetDriver();
-    //TODO reload pipelines, renderpass, commands, framebuffers
     //Destroy resize dependent objects
     for (auto& framebuffer : framebuffers_)
     {

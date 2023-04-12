@@ -110,11 +110,28 @@ void Pipeline::Unbind()
     currentBindedPipeline = 0;
 }
 
-void Pipeline::LoadRasterizePipeline(const Shader &vertex, const Shader &fragment)
+void Pipeline::LoadRasterizePipeline(
+    const Shader &vertex, 
+    const Shader &fragment,
+    std::optional<std::reference_wrapper<Shader>> geometryShader,
+    std::optional<std::reference_wrapper<Shader>> tesselationControlShader,
+    std::optional<std::reference_wrapper<Shader>> tesselationEvalShader)
 {
     const GLuint program = glCreateProgram();
     glAttachShader(program, vertex.name);
     glAttachShader(program, fragment.name);
+    if(geometryShader)
+    {
+        glAttachShader(program, geometryShader.value().get().name);
+    }
+    if(tesselationControlShader)
+    {
+        glAttachShader(program, tesselationControlShader.value().get().name);
+    }
+    if(tesselationEvalShader)
+    {
+        glAttachShader(program, tesselationEvalShader.value().get().name);
+    }
 
     glLinkProgram(program);
     //Check if shader program was linked correctly
