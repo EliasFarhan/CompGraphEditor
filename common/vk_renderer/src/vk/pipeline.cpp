@@ -444,13 +444,13 @@ bool Pipeline::LoadComputePipeline(const core::pb::Pipeline& pipelinePb, Shader&
     return false;
 }
 
-bool Pipeline::LoadRaytracingPipeline(const core::pb::Pipeline& pipelinePb, 
-    Shader& rayGenShader, 
-    Shader& missHitShader,
-    Shader& closestHitShader, 
-    int pipelineIndex, 
-    std::optional<std::reference_wrapper<Shader>> anyHitShader,
-    std::optional<std::reference_wrapper<Shader>> intersectionShadder)
+bool Pipeline::LoadRaytracingPipeline(const core::pb::Pipeline& pipelinePb,
+                                      const core::pb::RaytracingPipeline raytracingPipelinePb,
+                                      Shader& rayGenShader,
+                                      Shader& missHitShader,
+                                      Shader& closestHitShader,
+                                      int pipelineIndex,
+                                      std::optional<std::reference_wrapper<Shader>> anyHitShader, std::optional<std::reference_wrapper<Shader>> intersectionShadder)
 {
     //TODO gather all scene meshes to put in BLAS, put them all in the TLAS
     return false;

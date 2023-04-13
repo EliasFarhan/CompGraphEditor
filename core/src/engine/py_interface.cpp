@@ -60,7 +60,9 @@ PYBIND11_EMBEDDED_MODULE(core, m)
             return scene->GetMeshName(drawCommand.GetMeshIndex());
         })
         .def_property_readonly("subpass_index", &core::DrawCommand::GetSubpassIndex)
-        .def_property_readonly("mesh_name", &core::DrawCommand::GetName);
+        .def_property_readonly("mesh_name", &core::DrawCommand::GetName)
+        .def_readwrite("model_matrix", &core::DrawCommand::modelTransformMatrix)
+    ;
 
 
     py::class_<core::SceneSubPass>(m, "SubPass")
@@ -289,6 +291,12 @@ PYBIND11_EMBEDDED_MODULE(core, m)
             .def("get_name", &core::Pipeline::GetPipelineName)
             .def_property_readonly("name", &core::Pipeline::GetPipelineName);
 
+    py::class_<core::ModelTransformMatrix>(m, "ModelTransformMatrix")
+        .def_property("translate", &core::ModelTransformMatrix::GetTranslate, &core::ModelTransformMatrix::SetTranslate)
+        .def_property("scale", &core::ModelTransformMatrix::GetScale, &core::ModelTransformMatrix::SetScale)
+        .def_property("rotation", &core::ModelTransformMatrix::GetRotation, &core::ModelTransformMatrix::SetRotation)
+        .def_property_readonly("transform", &core::ModelTransformMatrix::GetModelTransformMatrix)
+        ;
 
 }
 

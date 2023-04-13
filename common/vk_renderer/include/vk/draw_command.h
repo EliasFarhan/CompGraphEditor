@@ -10,7 +10,6 @@ namespace vk
 {
 
 
-
 class DrawCommand : public core::DrawCommand
 {
 public:
@@ -65,3 +64,5 @@ private:
     VkDescriptorPool descriptorPool;
 };
 }
+
+

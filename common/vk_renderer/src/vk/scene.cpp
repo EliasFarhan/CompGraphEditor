@@ -259,18 +259,19 @@ Scene::ImportStatus Scene::LoadPipelines(const PbRepeatField<core::pb::Pipeline>
     {
         Pipeline& pipeline = pipelines_[i];
         const auto& pipelinePb = pipelines[i];
+        auto getShader = [this](const int index, core::pb::ShaderType type)->std::optional<std::reference_wrapper<Shader>>
+        {
+            if (index != -1 || scene_.shaders(index).type() == type)
+            {
+                return shaders_[index];
+            }
+            return std::nullopt;
+        };
         switch(pipelinePb.type())
         {
         case core::pb::Pipeline_Type_RASTERIZE:
         {
-            auto getShader = [this](const int index, core::pb::ShaderType type)->std::optional<std::reference_wrapper<Shader>>
-            {
-                if (index != -1 || scene_.shaders(index).type() == type)
-                {
-                    return shaders_[index];
-                }
-                return std::nullopt;
-            };
+            
 
             if (!pipeline.LoadRaterizePipeline(pipelinePb,
                 shaders_[pipelinePb.vertex_shader_index()],
@@ -285,7 +286,22 @@ Scene::ImportStatus Scene::LoadPipelines(const PbRepeatField<core::pb::Pipeline>
             break;
         }
         case core::pb::Pipeline_Type_COMPUTE: break;
-        case core::pb::Pipeline_Type_RAYTRACING: break;
+        case core::pb::Pipeline_Type_RAYTRACING:
+        {
+            const auto& raytracingPipelinePb = scene_.raytracing_pipelines(pipelinePb.raytracing_pipeline_index());
+            if (!pipeline.LoadRaytracingPipeline(pipelinePb,
+                raytracingPipelinePb,
+                shaders_[raytracingPipelinePb.ray_gen_shader_index()],
+                shaders_[raytracingPipelinePb.miss_hit_shader_index()],
+                shaders_[raytracingPipelinePb.closest_hit_shader_index()],
+                i,
+                getShader(raytracingPipelinePb.any_hit_shader_index(), core::pb::RAY_ANY_HIT),
+                getShader(raytracingPipelinePb.intersection_hit_shader_index(), core::pb::RAY_INTERSECTION)))
+            {
+                return ImportStatus::FAILURE;
+            }
+            break;
+        }
         default: break;
         }
         

@@ -6,6 +6,7 @@
 #include <glm/vec3.hpp>
 #include <glm/vec4.hpp>
 #include <glm/mat4x4.hpp>
+#include <glm/gtx/euler_angles.hpp>
 
 #include <string_view>
 #include <string>
@@ -13,11 +14,72 @@
 
 namespace core
 {
+
+class ModelTransformMatrix
+{
+public:
+    glm::mat4 GetModelTransformMatrix() const
+    {
+        glm::mat4 transform = glm::orientate4(rotation_);
+        transform = glm::scale(transform, scale_);
+        transform = glm::translate(transform, translate_);
+        return transform;
+    }
+    constexpr glm::vec3 GetTranslate() const
+    {
+        return translate_;
+    }
+    constexpr void SetTranslate(glm::vec3 translate)
+    {
+        translate_ = translate;
+    }
+    constexpr glm::vec3 GetScale() const
+    {
+        return scale_;
+    }
+    constexpr void SetScale(glm::vec3 scale)
+    {
+        scale_ = scale;
+    }
+    constexpr glm::vec3 GetRotation() const
+    {
+        return rotation_;
+    }
+    constexpr void SetRotation(glm::vec3 rotation)
+    {
+        rotation_ = rotation;
+    }
+private:
+    glm::vec3 translate_{ 0.0f };
+    glm::vec3 scale_{ 1.0f };
+    glm::vec3 rotation_{ 0.0f };
+};
     
 class DrawCommand
 {
 public:
-    DrawCommand(const pb::DrawCommand& drawCommandInfo, int subpassIndex): drawCommandInfo_(drawCommandInfo), subPassIndex_(subpassIndex){}
+    DrawCommand(const pb::DrawCommand& drawCommandInfo, int subpassIndex): drawCommandInfo_(drawCommandInfo), subPassIndex_(subpassIndex)
+    {
+        if(drawCommandInfo.has_model_transform())
+        {
+            const auto& modelMatrix = drawCommandInfo.model_transform();
+            if(modelMatrix.has_position())
+            {
+                const auto& translate = modelMatrix.position();
+                modelTransformMatrix.SetTranslate({translate.x(), translate.y(), translate.z()});
+            }
+            if(modelMatrix.has_scale())
+            {
+                const auto& scale = modelMatrix.scale();
+                modelTransformMatrix.SetScale({scale.x(), scale.y(), scale.z()});
+            }
+            if(modelMatrix.has_euler_angles())
+            {
+                const auto& rotation = modelMatrix.euler_angles();
+                modelTransformMatrix.SetRotation({rotation.x(), rotation.y(), rotation.z()});
+            }
+        }
+    }
     virtual ~DrawCommand() = default;
     
     //Uniform functions
@@ -43,7 +105,11 @@ public:
      * @brief PreDrawBind is a method that bind transform and apply all deferred changes before drawing
      */
     virtual void PreDrawBind() = 0;
+
+    ModelTransformMatrix modelTransformMatrix;
+
 protected:
+
     std::reference_wrapper<const pb::DrawCommand> drawCommandInfo_;
     int subPassIndex_ = -1;
 };

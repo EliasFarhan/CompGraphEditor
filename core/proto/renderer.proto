@@ -267,13 +267,19 @@ message Pipeline
     string name = 30;
     int32 tess_control_shader_index = 31;
     int32 tess_eval_shader_index = 32;
-    int32 ray_gen_shader_index = 33;
-    int32 miss_hit_shader_index = 34;
-    int32 closest_hit_shader_index = 35;
-    int32 any_hit_shader_index = 36;
-    int32 intersection_hit_shader_index = 37;
+    int32 raytracing_pipeline_index = 33;
 }
 
+message RaytracingPipeline
+{
+    int32 ray_gen_shader_index = 1;
+    int32 miss_hit_shader_index = 2;
+    int32 closest_hit_shader_index = 3;
+    int32 any_hit_shader_index = 4;
+    int32 intersection_hit_shader_index = 5;
+    repeated DrawCommand rasterizer_draw_commands = 6;
+    uint32 max_recursion_depth = 7;
+}
 
 message Texture
 {
@@ -418,4 +424,5 @@ message Scene
     repeated FrameBuffer framebuffers = 12;
     repeated string cubemap_textures_side_paths = 13;
     bool is_vulkan = 14;
+    repeated RaytracingPipeline raytracing_pipelines = 15;
 }

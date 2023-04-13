@@ -20,6 +20,23 @@ static SceneManager* sceneManagerInstance = nullptr;
 
 void Scene::LoadScene(PyManager &pyManager)
 {
+
+    const auto textures = scene_.textures();
+    if (LoadTextures(textures) != ImportStatus::SUCCESS)
+    {
+        LogError("Could not import textures");
+    }
+    const auto models = scene_.model_paths();
+    if (LoadModels(models) != ImportStatus::SUCCESS)
+    {
+        LogError("Could not import models");
+    }
+
+    const auto meshes = scene_.meshes();
+    if (LoadMeshes(meshes) != ImportStatus::SUCCESS)
+    {
+        LogError("Could not import meshes");
+    }
     const auto framebuffers = scene_.framebuffers();
     if (LoadFramebuffers(framebuffers) != ImportStatus::SUCCESS)
     {
@@ -41,11 +58,6 @@ void Scene::LoadScene(PyManager &pyManager)
         LogError("Could not import pipelines");
     }
     
-    const auto textures = scene_.textures();
-    if(LoadTextures(textures) != ImportStatus::SUCCESS)
-    {
-        LogError("Could not import textures");
-    }
 
     const auto materials = scene_.materials();
     if(LoadMaterials(materials) != ImportStatus::SUCCESS)
@@ -58,17 +70,7 @@ void Scene::LoadScene(PyManager &pyManager)
         LogError("Could not import draw commands");
     }
 
-    const auto models = scene_.model_paths();
-    if(LoadModels(models) != ImportStatus::SUCCESS)
-    {
-        LogError("Could not import models");
-    }
     
-    const auto meshes = scene_.meshes();
-    if(LoadMeshes(meshes) != ImportStatus::SUCCESS)
-    {
-        LogError("Could not import meshes");
-    }
 
 
     const auto pySystemSize = scene_.py_systems_size();
