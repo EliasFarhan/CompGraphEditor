@@ -1,6 +1,6 @@
 #pragma once
 
-#include "engine/py_interface.h"
+#include "engine/system.h"
 
 #include <glm/vec3.hpp>
 #include <glm/mat4x4.hpp>
@@ -35,6 +35,7 @@ struct Camera
 class CameraSystem final : public Script
 {
 public:
+    CameraSystem();
     void Begin() override;
     void Draw(DrawCommand* drawCommand) override;
     void OnKeyDown(SDL_Keycode keycode) override;
@@ -49,7 +50,7 @@ public:
 private:
     Camera camera_{};
     glm::vec2 mouseMotion_{};
-    std::array<bool, 4> keys_;
+    std::array<bool, 4> keys_{};
 
 };
 

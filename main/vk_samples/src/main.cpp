@@ -6,6 +6,7 @@
 
 #include <SDL_main.h>
 
+#include "py_interface.h"
 #include "sample_program.h"
 
 int main(int argc, char** argv)
@@ -13,6 +14,7 @@ int main(int argc, char** argv)
     core::DefaultFilesystem filesystem;
     core::FilesystemLocator::provide(&filesystem);
     vk::Engine engine;
+    core::PyManager pyManager;
 
     gpr5300::HelloVulkanProgram vulkanProgram;
     engine.RegisterSystem(&vulkanProgram);

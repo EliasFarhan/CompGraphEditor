@@ -1,12 +1,10 @@
-#include "engine/py_interface.h"
-
+#include "py_interface.h"
+#include "engine/system.h"
+#include "engine/scene.h"
 #include "renderer/pipeline.h"
+#include "engine/filesystem.h"
 #include "renderer/draw_command.h"
 #include "renderer/framebuffer.h"
-#include "engine/filesystem.h"
-#include "engine/scene.h"
-#include "engine/engine.h"
-#include "utils/log.h"
 
 #include <pybind11/pybind11.h>
 #include <pybind11/embed.h>
@@ -17,7 +15,8 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <fmt/format.h>
 
-#include "renderer/material.h"
+
+
 
 
 PYBIND11_EMBEDDED_MODULE(core, m)
@@ -300,27 +299,34 @@ PYBIND11_EMBEDDED_MODULE(core, m)
 
 }
 
+
+
 namespace core
 {
-
+PyManager::PyManager()
+{
+    ScriptLoaderLocator::provide(this);
+}
 
 void PyManager::Begin()
 {
+    if(initialized)
+    {
+        LogError("Python Script Loader should not be initiliazed");
+        std::terminate();
+    }
     py::initialize_interpreter();
-    //
+    initialized = true;
 }
 
-void PyManager::Update(float dt)
-{
-    for(auto& object : pySystems_)
-    {
-        auto& system = object.cast<Script&>();
-        system.Update(dt);
-    }
-}
 
 void PyManager::End()
 {
+    if (!initialized)
+    {
+        LogError("Python Script Loader should be initiliazed");
+        std::terminate();
+    }
     for(auto& object : pySystems_)
     {
         auto& system = object.cast<Script&>();
@@ -328,6 +334,7 @@ void PyManager::End()
     }
     pySystems_.clear();
     py::finalize_interpreter();
+    initialized = false;
 }
 
 Script* PyManager::LoadScript(std::string_view path, std::string_view module, std::string_view className)

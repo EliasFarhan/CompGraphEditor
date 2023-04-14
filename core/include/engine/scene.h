@@ -56,7 +56,7 @@ private:
 class Scene : public OnEventInterface
 {
 public:
-    void LoadScene(PyManager& pyManager);
+    void LoadScene();
     virtual void UnloadScene() = 0;
     void SetScene(const pb::Scene &scene);
     virtual void Update(float dt) = 0;
@@ -99,7 +99,7 @@ protected:
     virtual ImportStatus LoadRenderPass(const pb::RenderPass& renderPass) = 0;
 
     pb::Scene scene_;
-    std::vector<Script*> pySystems_;
+    std::vector<Script*> scripts_;
     
     Camera camera_;
 };
@@ -116,7 +116,6 @@ public:
     void OnEvent(SDL_Event& event) override;
 private:
     Scene* currentScene_ = nullptr;
-    PyManager pyManager_;
 };
 
 Scene* GetCurrentScene();

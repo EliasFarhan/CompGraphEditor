@@ -6,7 +6,7 @@
 
 namespace vk
 {
-bool Pipeline::LoadRaterizePipeline(const core::pb::Pipeline& pipelinePb,
+bool Pipeline::LoadRasterizePipeline(const core::pb::Pipeline& pipelinePb,
                                     Shader& vertexShader,
                                     Shader& fragmentShader,
                                     int pipelineIndex,

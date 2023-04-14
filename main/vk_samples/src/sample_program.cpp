@@ -152,7 +152,7 @@ core::pb::Scene Scene3()
     drawCommand->set_automatic_draw(false);
 
 
-    auto* pySystem = scene.add_py_systems();
+    auto* pySystem = scene.add_systems();
     pySystem->set_class_("UniformSystem");
     pySystem->set_module("data.scripts.03_uniform");
     pySystem->set_path("data/scripts/03_uniform.py");
@@ -313,7 +313,7 @@ core::pb::Scene Scene5()
     texture->set_path("data/textures/container.jpg");
     texture->set_filter_mode(core::pb::Texture_FilteringMode_LINEAR);
 
-    auto* pySystem = scene.add_py_systems();
+    auto* pySystem = scene.add_systems();
     pySystem->set_class_("UniformSystem");
     pySystem->set_module("data.scripts.05_ubo");
     pySystem->set_path("data/scripts/05_ubo.py");
@@ -459,12 +459,12 @@ core::pb::Scene Scene6()
     scale->set_x(2.0f);
     scale->set_y(2.0f);
     scale->set_z(2.0f);
-    auto* cameraPySystem = scene.add_py_systems();
+    auto* cameraPySystem = scene.add_systems();
     cameraPySystem->set_path("data/scripts/camera.py");
     cameraPySystem->set_class_("Camera");
     cameraPySystem->set_module("data.scripts.camera");
 
-    auto* scenePySystem = scene.add_py_systems();
+    auto* scenePySystem = scene.add_systems();
     scenePySystem->set_path("data/scripts/06_subpasses.py");
     scenePySystem->set_class_("SubpassSystem");
     scenePySystem->set_module("data.scripts.06_subpasses");
@@ -561,12 +561,12 @@ core::pb::Scene Scene07()
     drawCommand->set_mode(core::pb::DrawCommand_Mode_TRIANGLES);
     drawCommand->set_automatic_draw(false);
 
-    auto* cameraPySystem = scene.add_py_systems();
+    auto* cameraPySystem = scene.add_systems();
     cameraPySystem->set_path("data/scripts/camera.py");
     cameraPySystem->set_class_("Camera");
     cameraPySystem->set_module("data.scripts.camera");
 
-    auto* scenePySystem = scene.add_py_systems();
+    auto* scenePySystem = scene.add_systems();
     scenePySystem->set_path("data/scripts/07_model.py");
     scenePySystem->set_class_("Scene07");
     scenePySystem->set_module("data.scripts.07_model");

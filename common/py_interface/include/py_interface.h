@@ -1,14 +1,8 @@
 #pragma once
-
+#include <pybind11/pybind11.h>
 
 #include "engine/system.h"
 #include "utils/log.h"
-
-
-#include <SDL_keycode.h>
-#include <glm/vec2.hpp>
-
-#include <pybind11/pybind11.h>
 
 #include "renderer/draw_command.h"
 
@@ -17,18 +11,8 @@ namespace py = pybind11;
 
 namespace core
 {
-class DrawCommand;
 
-class Script : public System
-{
-public:
-    virtual void Draw(DrawCommand* sceneDrawCommand) {}
-    virtual void OnKeyDown(SDL_Keycode keycode) {}
-    virtual void OnKeyUp(SDL_Keycode keycode){}
-    virtual void OnMouseMotion(glm::vec2 mouseMotion){}
-    virtual void OnMouseButtonDown(int mouseButton){}
-    virtual void OnMouseButtonUp(int mouseButton){}
-};
+class DrawCommand;
 
 class PySystem : public Script
 {
@@ -156,17 +140,16 @@ public:
     }
 };
 
-class PyManager : public System
+class PyManager : public ScriptLoaderInterface
 {
 public:
+    PyManager();
     void Begin() override;
-
-    void Update(float dt) override;
-
     void End() override;
-
-    Script* LoadScript(std::string_view path, std::string_view module, std::string_view className);
+    Script* LoadScript(std::string_view path, std::string_view module, std::string_view className) override;
 private:
     std::vector<py::object> pySystems_;
+    bool initialized = false;
 };
-}
+
+} // namespace core

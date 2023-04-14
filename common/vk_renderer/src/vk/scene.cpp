@@ -6,6 +6,7 @@
 #include "vk/pipeline.h"
 
 #include "renderer/draw_command.h"
+#include "utils/log.h"
 
 namespace vk
 {
@@ -52,6 +53,7 @@ void Scene::UnloadScene()
 
 void Scene::Update(float dt)
 {
+    core::Scene::Update(dt);
     auto& renderer = GetRenderer();
     auto& swapchain = GetSwapchain();
     VkRenderPassBeginInfo renderPassInfo{};
@@ -110,14 +112,13 @@ void Scene::Update(float dt)
         for (int j = 0; j < commandSize; j++)
         {
             const auto& command = subpass.commands(j);
-            for (auto* pySystem : pySystems_)
+            for (auto* script : scripts_)
             {
                 auto& drawCommand = static_cast<DrawCommand&>(GetDrawCommand(i, j));
                 drawCommand.PreDrawBind();
-                if (pySystem != nullptr)
+                if (script != nullptr)
                 {
-
-                    pySystem->Draw(&drawCommand);
+                    script->Draw(&drawCommand);
                 }
             }
         }
@@ -261,7 +262,7 @@ Scene::ImportStatus Scene::LoadPipelines(const PbRepeatField<core::pb::Pipeline>
         const auto& pipelinePb = pipelines[i];
         auto getShader = [this](const int index, core::pb::ShaderType type)->std::optional<std::reference_wrapper<Shader>>
         {
-            if (index != -1 || scene_.shaders(index).type() == type)
+            if (index != -1 && scene_.shaders(index).type() == type)
             {
                 return shaders_[index];
             }
@@ -271,9 +272,7 @@ Scene::ImportStatus Scene::LoadPipelines(const PbRepeatField<core::pb::Pipeline>
         {
         case core::pb::Pipeline_Type_RASTERIZE:
         {
-            
-
-            if (!pipeline.LoadRaterizePipeline(pipelinePb,
+            if (!pipeline.LoadRasterizePipeline(pipelinePb,
                 shaders_[pipelinePb.vertex_shader_index()],
                 shaders_[pipelinePb.fragment_shader_index()],
                 i,

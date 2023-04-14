@@ -2,6 +2,7 @@
 #include "engine/engine.h"
 #include "engine/filesystem.h"
 #include "editor.h"
+#include "py_interface.h"
 #include "gl/engine.h"
 #include "utils/log.h"
 
@@ -12,6 +13,8 @@ int main(int argc, char** argv)
     core::FilesystemLocator::provide(&filesystem);
     gl::Engine engine;
     engine.SetWindowName("CompGraph Editor");
+
+    core::PyManager pyManager;
 
     editor::Editor editor;
     engine.RegisterSystem(&editor);

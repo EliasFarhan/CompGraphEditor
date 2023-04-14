@@ -1,5 +1,8 @@
 #include "renderer/camera.h"
+#include "renderer/draw_command.h"
 #include <numbers>
+#include <glm/ext/matrix_clip_space.hpp>
+#include <glm/ext/matrix_transform.hpp>
 
 const float PI = std::numbers::pi_v<float>;
 
@@ -19,6 +22,11 @@ glm::mat4 Camera::GetProjection() const
     default: break;
     }
     return glm::mat4(1.0f);
+}
+
+CameraSystem::CameraSystem()
+{
+    name_ = "CameraSystem";
 }
 
 void CameraSystem::Begin()

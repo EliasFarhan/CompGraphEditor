@@ -126,7 +126,7 @@ core::pb::Scene Scene3()
     drawCommand->set_mode(core::pb::DrawCommand_Mode_TRIANGLES);
     drawCommand->set_automatic_draw(false);
 
-    auto* pySystem = scene.add_py_systems();
+    auto* pySystem = scene.add_systems();
     pySystem->set_class_("Scene03");
     pySystem->set_module("data.scripts.scene03");
     pySystem->set_path("data/scripts/scene03.py");
@@ -290,7 +290,7 @@ core::pb::Scene Scene6()
     drawCommand->set_mode(core::pb::DrawCommand_Mode_TRIANGLES);
     drawCommand->set_automatic_draw(false);
 
-    auto* pySystem = scene.add_py_systems();
+    auto* pySystem = scene.add_systems();
     pySystem->set_class_("Scene06");
     pySystem->set_module("data.scripts.scene06");
     pySystem->set_path("data/scripts/scene06.py");
@@ -357,12 +357,12 @@ core::pb::Scene Scene7()
     drawCommand->set_mode(core::pb::DrawCommand_Mode_TRIANGLES);
     drawCommand->set_automatic_draw(false);
 
-    auto* cameraPySystem = scene.add_py_systems();
+    auto* cameraPySystem = scene.add_systems();
     cameraPySystem->set_path("data/scripts/camera.py");
     cameraPySystem->set_class_("Camera");
     cameraPySystem->set_module("data.scripts.camera");
 
-    auto* scenePySystem = scene.add_py_systems();
+    auto* scenePySystem = scene.add_systems();
     scenePySystem->set_path("data/scripts/scene07.py");
     scenePySystem->set_class_("Scene07");
     scenePySystem->set_module("data.scripts.scene07");
@@ -465,12 +465,12 @@ core::pb::Scene Scene8()
     scale->set_x(2.0f);
     scale->set_y(2.0f);
     scale->set_z(2.0f);
-    auto* cameraPySystem = scene.add_py_systems();
+    auto* cameraPySystem = scene.add_systems();
     cameraPySystem->set_path("data/scripts/camera.py");
     cameraPySystem->set_class_("Camera");
     cameraPySystem->set_module("data.scripts.camera");
 
-    auto* scenePySystem = scene.add_py_systems();
+    auto* scenePySystem = scene.add_systems();
     scenePySystem->set_path("data/scripts/scene08.py");
     scenePySystem->set_class_("Scene08");
     scenePySystem->set_module("data.scripts.scene08");
@@ -566,12 +566,12 @@ core::pb::Scene Scene9()
     auto* cubemap = scene.add_textures();
     cubemap->set_path("data/textures/skybox/skybox.cube");
 
-    auto* cameraPySystem = scene.add_py_systems();
+    auto* cameraPySystem = scene.add_systems();
     cameraPySystem->set_path("data/scripts/camera.py");
     cameraPySystem->set_class_("Camera");
     cameraPySystem->set_module("data.scripts.camera");
 
-    auto* scenePySystem = scene.add_py_systems();
+    auto* scenePySystem = scene.add_systems();
     scenePySystem->set_path("data/scripts/scene09.py");
     scenePySystem->set_class_("Scene09");
     scenePySystem->set_module("data.scripts.scene09");

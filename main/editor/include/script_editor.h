@@ -8,7 +8,7 @@ namespace editor
     {
         std::string filename;
         ResourceId resourceId;
-        core::pb::PySystem info;
+        core::pb::System info;
         std::vector<std::string> classesInScript;
 
     };

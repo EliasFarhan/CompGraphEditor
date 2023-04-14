@@ -1,5 +1,6 @@
 #include "player.h"
 #include "player_filesystem.h"
+#include "py_interface.h"
 #include "engine/engine.h"
 #include "gl/engine.h"
 
@@ -9,6 +10,7 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char** argv)
     physFilesystem.Begin();
     core::FilesystemLocator::provide(&physFilesystem);
 
+    core::PyManager pyManager;
     gpr5300::Player player;
     gl::Engine engine;
     engine.RegisterOnGuiInterface(&player);

@@ -7,7 +7,6 @@
 #include "renderer/pipeline.h"
 #include "renderer/framebuffer.h"
 #include "renderer/model.h"
-#include "engine/py_interface.h"
 
 #include <SDL.h>
 #include <fmt/format.h>
@@ -18,9 +17,8 @@ namespace core
 
 static SceneManager* sceneManagerInstance = nullptr;
 
-void Scene::LoadScene(PyManager &pyManager)
+void Scene::LoadScene()
 {
-
     const auto textures = scene_.textures();
     if (LoadTextures(textures) != ImportStatus::SUCCESS)
     {
@@ -73,13 +71,16 @@ void Scene::LoadScene(PyManager &pyManager)
     
 
 
-    const auto pySystemSize = scene_.py_systems_size();
-    pySystems_.clear();
-    pySystems_.reserve(pySystemSize);
-    for(int i = 0; i < pySystemSize; i++)
+    const auto systemSize = scene_.systems_size();
+    scripts_.clear();
+    scripts_.reserve(systemSize);
+
+    auto& scriptLoader = ScriptLoaderLocator::get();
+
+    for(int i = 0; i < systemSize; i++)
     {
-        const auto& pySystem = scene_.py_systems(i);
-        pySystems_.push_back(pyManager.LoadScript(pySystem.path(), pySystem.module(), pySystem.class_()));
+        const auto& pySystem = scene_.systems(i);
+        scripts_.push_back(scriptLoader.LoadScript(pySystem.path(), pySystem.module(), pySystem.class_()));
     }
 }
 
@@ -90,7 +91,13 @@ void Scene::SetScene(const pb::Scene& scene)
 
 void Scene::Update(float dt)
 {
-    
+    for(auto* script : scripts_)
+    {
+        if(script != nullptr)
+        {
+            script->Update(dt);
+        }
+    }
 }
 
 int Scene::GetMeshCount() const
@@ -104,7 +111,7 @@ void Scene::OnEvent(SDL_Event& event)
     {
     case SDL_KEYDOWN:
     {
-        for (auto* script : pySystems_)
+        for (auto* script : scripts_)
         {
             if (script != nullptr)
             {
@@ -115,7 +122,7 @@ void Scene::OnEvent(SDL_Event& event)
     }
     case SDL_KEYUP:
     {
-        for (auto* script : pySystems_)
+        for (auto* script : scripts_)
         {
             if (script != nullptr)
             {
@@ -127,7 +134,7 @@ void Scene::OnEvent(SDL_Event& event)
     case SDL_MOUSEMOTION:
     {
         const glm::vec2 mouseMotion(event.motion.xrel, event.motion.yrel);
-        for (auto* script : pySystems_)
+        for (auto* script : scripts_)
         {
             if (script != nullptr)
             {
@@ -173,14 +180,15 @@ void SceneManager::Begin()
 
 void SceneManager::LoadScene(Scene *scene)
 {
+    auto& scriptLoader = ScriptLoaderLocator::get();
     if (currentScene_ != nullptr)
     {
         currentScene_->UnloadScene();
-        pyManager_.End();
+        scriptLoader.End();
     }
-    pyManager_.Begin();
+    scriptLoader.Begin();
     currentScene_ = scene;
-    scene->LoadScene(pyManager_);
+    scene->LoadScene();
 }
 
 void SceneManager::End()
@@ -189,7 +197,7 @@ void SceneManager::End()
     {
         currentScene_->UnloadScene();
         currentScene_ = nullptr;
-        pyManager_.End();
+        ScriptLoaderLocator::get().End();
     }
 }
 
@@ -210,7 +218,6 @@ void SceneManager::Update(float dt)
 {
     if (currentScene_ == nullptr)
         return;
-    pyManager_.Update(dt);
     currentScene_->Update(dt);
 }
 

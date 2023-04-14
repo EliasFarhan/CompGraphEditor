@@ -116,7 +116,7 @@ void SceneEditor::DrawInspector()
     {
         const auto& pySystemPath = currentScene.info.py_system_paths(i);
         std::string name = fmt::format("Script: {}", i);
-        const ScriptInfo* pySystem = nullptr;
+        const ScriptInfo* scriptInfo = nullptr;
         ResourceId pySystemId = INVALID_RESOURCE_ID;
         if (!pySystemPath.empty())
         {
@@ -127,8 +127,8 @@ void SceneEditor::DrawInspector()
             }
             else
             {
-                pySystem = scriptEditor->GetScriptInfo(pySystemId);
-                name = fmt::format("Script: {}.{}", pySystem->info.module(), pySystem->info.class_());
+                scriptInfo = scriptEditor->GetScriptInfo(pySystemId);
+                name = fmt::format("Script: {}.{}", scriptInfo->info.module(), scriptInfo->info.class_());
             }
         }
         bool visible = true;
@@ -137,7 +137,7 @@ void SceneEditor::DrawInspector()
             const auto& pySystems = scriptEditor->GetScriptInfos();
             const auto scriptsId = fmt::format("script {} combo", i);
             ImGui::PushID(scriptsId.c_str());
-            if (ImGui::BeginCombo("Available Scripts", pySystem ? pySystem->info.class_().c_str() : "Missing script"))
+            if (ImGui::BeginCombo("Available Scripts", scriptInfo ? scriptInfo->info.class_().c_str() : "Missing script"))
             {
                 for (auto& pySystemInfo : pySystems)
                 {
@@ -530,7 +530,7 @@ bool SceneEditor::ExportScene() const
         const auto pySystemId = resourceManager.FindResourceByPath(pySystemPath);
         const auto* pySystemInfo = scriptEditor->GetScriptInfo(pySystemId);
 
-        *exportScene.add_py_systems() = pySystemInfo->info;
+        *exportScene.add_systems() = pySystemInfo->info;
     }
     constexpr std::string_view exportScenePath = "root.scene";
     //Write scene
@@ -552,10 +552,10 @@ bool SceneEditor::ExportScene() const
     }
     sceneJson["shaders"] = shaderPaths;
     std::vector<std::string> scriptPaths;
-    scriptPaths.reserve(exportScene.py_systems_size());
-    for (int i = 0; i < exportScene.py_systems_size(); i++)
+    scriptPaths.reserve(exportScene.systems_size());
+    for (int i = 0; i < exportScene.systems_size(); i++)
     {
-        scriptPaths.push_back(fs::path(exportScene.py_systems(i).path(), std::filesystem::path::generic_format).string());
+        scriptPaths.push_back(fs::path(exportScene.systems(i).path(), std::filesystem::path::generic_format).string());
     }
     sceneJson["scripts"] = scriptPaths;
     std::vector<std::string> texturePaths;

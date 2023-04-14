@@ -116,7 +116,7 @@ message EditorScene
     repeated EditorMesh meshes = 5;
     repeated core.pb.Texture textures = 6;
     repeated EditorMaterial materials = 7;
-    repeated core.pb.PySystem py_systems = 8;
+    repeated core.pb.System systems = 8;
     repeated EditorModel models = 11;
     repeated core.pb.FrameBuffer framebuffers = 12;
     repeated string cubemap_textures_side_paths = 13;

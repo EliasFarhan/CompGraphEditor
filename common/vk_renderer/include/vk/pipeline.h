@@ -25,7 +25,7 @@ struct PushConstantData
 class Pipeline final : public core::Pipeline
 {
 public:
-    bool LoadRaterizePipeline(const core::pb::Pipeline& pipelinePb,
+    bool LoadRasterizePipeline(const core::pb::Pipeline& pipelinePb,
                               Shader& vertexShader,
                               Shader& fragmentShader,
                               int pipelineIndex,

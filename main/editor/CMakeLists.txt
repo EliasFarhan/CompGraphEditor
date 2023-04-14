@@ -35,7 +35,7 @@ file(GLOB_RECURSE EDITOR_SRC src/*.cpp include/*.h)
 add_executable(editor ${EDITOR_SRC} ${SCRIPT_FILES})
 
 target_include_directories(editor PRIVATE include/)
-target_link_libraries(editor PRIVATE CommonGL nlohmann_json::nlohmann_json)
+target_link_libraries(editor PRIVATE CommonGL nlohmann_json::nlohmann_json CommonPy)
 
 add_dependencies(editor editor_scripts)
 

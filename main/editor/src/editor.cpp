@@ -8,6 +8,7 @@
 #include <fmt/format.h>
 #include "engine/filesystem.h"
 #include "editor_filesystem.h"
+#include "py_interface.h"
 
 #include "imnodes.h"
 #include "pipeline_editor.h"

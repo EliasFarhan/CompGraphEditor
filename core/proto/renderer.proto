@@ -403,7 +403,7 @@ message RenderPass
     repeated SubPass sub_passes = 1;
 }
 
-message PySystem
+message System
 {
     string module = 1;
     string class = 2;
@@ -419,7 +419,7 @@ message Scene
     repeated Mesh meshes = 5;
     repeated Texture textures = 6;
     repeated Material materials = 7;
-    repeated PySystem py_systems = 8;
+    repeated System systems = 8;
     repeated string model_paths = 11;
     repeated FrameBuffer framebuffers = 12;
     repeated string cubemap_textures_side_paths = 13;

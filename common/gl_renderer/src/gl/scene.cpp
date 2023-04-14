@@ -75,7 +75,7 @@ Scene::ImportStatus Scene::LoadPipelines(
         {
             auto getShader = [this](const int index, core::pb::ShaderType type)->std::optional<std::reference_wrapper<Shader>>
             {
-                if( index != -1 || scene_.shaders(index).type() == type)
+                if( index != -1 && scene_.shaders(index).type() == type)
                 {
                     return shaders_[index];
                 }
@@ -261,9 +261,11 @@ Scene::ImportStatus Scene::LoadMaterials(const PbRepeatField<core::pb::Material>
 
     void Scene::Update(float dt)
     {
+
 #ifdef TRACY_ENABLE
         ZoneScoped;
 #endif
+        core::Scene::Update(dt);
         glCheckError();
         const auto subPassSize = scene_.render_pass().sub_passes_size();
         for (int i = 0; i < subPassSize; i++)
@@ -298,12 +300,11 @@ Scene::ImportStatus Scene::LoadMaterials(const PbRepeatField<core::pb::Material>
             const auto commandSize = subPass.commands_size();
             for (int j = 0; j < commandSize; j++)
             {
-                const auto& command = subPass.commands(j);
-                for (auto* pySystem : pySystems_)
+                for (auto* script : scripts_)
                 {
-                    if (pySystem != nullptr)
+                    if (script != nullptr)
                     {
-                        pySystem->Draw(&GetDrawCommand(i, j));
+                        script->Draw(&GetDrawCommand(i, j));
                     }
                 }
             }
