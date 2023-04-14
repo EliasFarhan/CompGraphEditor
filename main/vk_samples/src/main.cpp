@@ -15,6 +15,7 @@ int main(int argc, char** argv)
     core::FilesystemLocator::provide(&filesystem);
     vk::Engine engine;
     core::PyManager pyManager;
+    core::ImportNativeScript();
 
     gpr5300::HelloVulkanProgram vulkanProgram;
     engine.RegisterSystem(&vulkanProgram);

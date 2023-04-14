@@ -11,6 +11,7 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char** argv)
     core::FilesystemLocator::provide(&physFilesystem);
 
     core::PyManager pyManager;
+    core::ImportNativeScript();
     gpr5300::Player player;
     gl::Engine engine;
     engine.RegisterOnGuiInterface(&player);

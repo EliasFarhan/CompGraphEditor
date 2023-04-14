@@ -1,7 +1,7 @@
 #pragma once
 #include <pybind11/pybind11.h>
 
-#include "engine/system.h"
+#include "engine/script.h"
 #include "utils/log.h"
 
 #include "renderer/draw_command.h"
@@ -140,7 +140,7 @@ public:
     }
 };
 
-class PyManager : public ScriptLoaderInterface
+class PyManager final : public MinimalScriptLoader
 {
 public:
     PyManager();

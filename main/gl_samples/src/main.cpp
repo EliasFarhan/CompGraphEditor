@@ -12,6 +12,7 @@ int main([[maybe_unused]]int argc, [[maybe_unused]] char** argv)
     core::FilesystemLocator::provide(&filesystem);
     gl::Engine engine;
     core::PyManager pyManager;
+    core::ImportNativeScript();
 
     gpr5300::SampleBrowserProgram triangleProgram;
     engine.RegisterSystem(&triangleProgram);

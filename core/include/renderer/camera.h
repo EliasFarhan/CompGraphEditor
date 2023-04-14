@@ -1,9 +1,10 @@
 #pragma once
 
-#include "engine/system.h"
 
 #include <glm/vec3.hpp>
 #include <glm/mat4x4.hpp>
+
+#include "engine/script.h"
 
 
 namespace core
@@ -35,7 +36,6 @@ struct Camera
 class CameraSystem final : public Script
 {
 public:
-    CameraSystem();
     void Begin() override;
     void Draw(DrawCommand* drawCommand) override;
     void OnKeyDown(SDL_Keycode keycode) override;
@@ -45,13 +45,14 @@ public:
     void Update(float dt) override;
 
     void End() override;
-    Camera& GetCamera() {return camera_;}
-    [[nodiscard]] const Camera& GetCamera() const {return camera_;}
+
+    Camera camera{};
 private:
-    Camera camera_{};
     glm::vec2 mouseMotion_{};
     std::array<bool, 4> keys_{};
 
 };
+
+CameraSystem* GetCameraSystem();
 
 } // namespace core

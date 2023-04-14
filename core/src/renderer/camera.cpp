@@ -24,14 +24,16 @@ glm::mat4 Camera::GetProjection() const
     return glm::mat4(1.0f);
 }
 
-CameraSystem::CameraSystem()
+
+static CameraSystem* cameraSystem = nullptr;
+CameraSystem* GetCameraSystem()
 {
-    name_ = "CameraSystem";
+    return cameraSystem;
 }
 
 void CameraSystem::Begin()
 {
-
+    cameraSystem = this;
 }
 
 void CameraSystem::Update(float dt)
@@ -53,25 +55,28 @@ void CameraSystem::Update(float dt)
     {
         direction -= glm::vec3(0,1,0);
     }
-    const auto horizontal = glm::normalize(glm::cross(camera_.up, camera_.direction));
-    const auto vertical = glm::cross(horizontal, camera_.direction);
+    const auto horizontal = glm::normalize(glm::cross(camera.up, camera.direction));
+    const auto vertical = glm::cross(horizontal, camera.direction);
     const auto windowSize = GetWindowSize();
-    const auto rotateX = glm::rotate(glm::mat4(1.0), mouseMotion_.x*PI, vertical);
-    const auto rotateY = glm::rotate(glm::mat4(1.0), mouseMotion_.y*PI, horizontal);
+    const auto rotateX = glm::rotate(glm::mat4(1.0), mouseMotion_.x*PI/static_cast<float>(windowSize.x), vertical);
+    const auto rotateY = glm::rotate(glm::mat4(1.0), mouseMotion_.y*PI/static_cast<float>(windowSize.y), horizontal);
     mouseMotion_ = {};
-    camera_.direction = glm::vec3(rotateX*rotateY*glm::vec4(camera_.direction, 1.0));
-    camera_.position += (horizontal*direction.x+camera_.direction*direction.y)*dt;
+    camera.direction = glm::vec3(rotateX*rotateY*glm::vec4(camera.direction, 1.0));
+    camera.position += (horizontal*direction.x+camera.direction*direction.y)*dt;
+
+    //Updating the scene camera
+    auto* scene = GetCurrentScene();
+    scene->GetCamera() = camera;
 }
 
 void CameraSystem::End()
 {
-
+    camera = {};
 }
+
 
 void CameraSystem::Draw(DrawCommand* drawCommand)
 {
-    drawCommand->SetMat4("view", 
-            glm::lookAt(camera_.position, camera_.position + camera_.direction, camera_.up));
     
 }
 

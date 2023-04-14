@@ -296,6 +296,13 @@ PYBIND11_EMBEDDED_MODULE(core, m)
         .def_property("rotation", &core::ModelTransformMatrix::GetRotation, &core::ModelTransformMatrix::SetRotation)
         .def_property_readonly("transform", &core::ModelTransformMatrix::GetModelTransformMatrix)
         ;
+    py::class_<core::CameraSystem>(m, "CameraSystem")
+        .def_readwrite("camera", 
+            &core::CameraSystem::camera,
+            py::return_value_policy::reference);
+    m.def("get_camera_system", []() {
+        return core::GetCameraSystem();
+        }, py::return_value_policy::reference);
 
 }
 
@@ -339,6 +346,11 @@ void PyManager::End()
 
 Script* PyManager::LoadScript(std::string_view path, std::string_view module, std::string_view className)
 {
+    auto* nativeScript = MinimalScriptLoader::LoadScript(path, module, className);
+    if(nativeScript != nullptr)
+    {
+        return nativeScript;
+    }
     const auto& filesystem = FilesystemLocator::get();
     if(!filesystem.FileExists(path))
     {

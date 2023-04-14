@@ -359,8 +359,8 @@ core::pb::Scene Scene7()
 
     auto* cameraPySystem = scene.add_systems();
     cameraPySystem->set_path("data/scripts/camera.py");
-    cameraPySystem->set_class_("Camera");
-    cameraPySystem->set_module("data.scripts.camera");
+    cameraPySystem->set_class_("CameraSystem");
+    cameraPySystem->set_module("cppmodule");
 
     auto* scenePySystem = scene.add_systems();
     scenePySystem->set_path("data/scripts/scene07.py");
@@ -467,8 +467,8 @@ core::pb::Scene Scene8()
     scale->set_z(2.0f);
     auto* cameraPySystem = scene.add_systems();
     cameraPySystem->set_path("data/scripts/camera.py");
-    cameraPySystem->set_class_("Camera");
-    cameraPySystem->set_module("data.scripts.camera");
+    cameraPySystem->set_class_("CameraSystem");
+    cameraPySystem->set_module("cppmodule");
 
     auto* scenePySystem = scene.add_systems();
     scenePySystem->set_path("data/scripts/scene08.py");
@@ -568,8 +568,8 @@ core::pb::Scene Scene9()
 
     auto* cameraPySystem = scene.add_systems();
     cameraPySystem->set_path("data/scripts/camera.py");
-    cameraPySystem->set_class_("Camera");
-    cameraPySystem->set_module("data.scripts.camera");
+    cameraPySystem->set_class_("CameraSystem");
+    cameraPySystem->set_module("cppmodule");
 
     auto* scenePySystem = scene.add_systems();
     scenePySystem->set_path("data/scripts/scene09.py");
