@@ -462,7 +462,7 @@ core::pb::Scene Scene6()
     auto* cameraPySystem = scene.add_systems();
     cameraPySystem->set_path("data/scripts/camera.py");
     cameraPySystem->set_class_("CameraSystem");
-    cameraPySystem->set_module(core::nativeModuleName);
+    cameraPySystem->set_module(core::nativeModuleName.data());
 
     auto* scenePySystem = scene.add_systems();
     scenePySystem->set_path("data/scripts/06_subpasses.py");
@@ -564,7 +564,7 @@ core::pb::Scene Scene07()
     auto* cameraPySystem = scene.add_systems();
     cameraPySystem->set_path("data/scripts/camera.py");
     cameraPySystem->set_class_("CameraSystem");
-    cameraPySystem->set_module(core::nativeModuleName);
+    cameraPySystem->set_module(core::nativeModuleName.data());
 
     auto* scenePySystem = scene.add_systems();
     scenePySystem->set_path("data/scripts/07_model.py");
