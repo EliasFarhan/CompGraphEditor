@@ -1,6 +1,5 @@
 #include "command_editor.h"
 
-#include <fstream>
 #include <imgui.h>
 #include <fmt/format.h>
 
@@ -10,6 +9,9 @@
 #include "render_pass_editor.h"
 #include "engine/filesystem.h"
 #include "utils/log.h"
+
+#include <array>
+#include <fstream>
 
 namespace editor
 {
@@ -119,6 +121,58 @@ void CommandEditor::DrawInspector()
     if(ImGui::Checkbox("Automatic Draw", &automaticDraw))
     {
         currentCommand.info.mutable_draw_command()->set_automatic_draw(automaticDraw);
+    }
+
+    //Model matrix
+    core::pb::Transform* transform = nullptr;
+    if(currentCommand.info.draw_command().has_model_transform())
+    {
+        transform = currentCommand.info.mutable_draw_command()->mutable_model_transform();
+    }
+
+    if(transform == nullptr)
+    {
+        if(ImGui::Button("Add Model Transform Matrix"))
+        {
+            transform = currentCommand.info.mutable_draw_command()->mutable_model_transform();
+            auto* position = transform->mutable_position();
+            auto* scale = transform->mutable_scale();
+            scale->set_x(1.0f);
+            scale->set_y(1.0f);
+            scale->set_z(1.0f);
+            auto* eulerAngles = transform->mutable_euler_angles();
+        }
+    }
+    else
+    {
+        auto* position = transform->mutable_position();
+        std::array<float, 3> positionTmp = { {position->x(), position->y(), position->z()} };
+        if(ImGui::InputFloat3("Position", positionTmp.data()))
+        {
+            position->set_x(positionTmp[0]);
+            position->set_y(positionTmp[1]);
+            position->set_z(positionTmp[2]);
+        }
+        auto* scale = transform->mutable_scale();
+        std::array<float, 3> scaleTmp = { {scale->x(), scale->y(), scale->z()} };
+        if(ImGui::InputFloat3("Scale", scaleTmp.data()))
+        {
+            scale->set_x(scaleTmp[0]);
+            scale->set_y(scaleTmp[1]);
+            scale->set_z(scaleTmp[2]);
+        }
+        auto* eulerAngles = transform->mutable_euler_angles();
+        std::array<float, 3> eulerAnglesTmp = { {eulerAngles->x(), eulerAngles->y(), eulerAngles->z()} };
+        if(ImGui::InputFloat3("Euler Angles", eulerAnglesTmp.data()))
+        {
+            eulerAngles->set_x(eulerAnglesTmp[0]);
+            eulerAngles->set_y(eulerAnglesTmp[1]);
+            eulerAngles->set_z(eulerAnglesTmp[2]);
+        }
+        if(ImGui::Button("Remove Model Transform Matrix"))
+        {
+            currentCommand.info.mutable_draw_command()->release_model_transform();
+        }
     }
 
     UpdateMeshInCommand(currentIndex_);
