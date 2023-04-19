@@ -28,11 +28,21 @@ using json = nlohmann::json;
 
 namespace editor
 {
+void SceneEditor::ImportResource(std::string_view path)
+{
+    //TODO Only copy scene if in another folder
+    
+    auto* editor = Editor::GetInstance();
+    auto& resourceManager = editor->GetResourceManager();
+    resourceManager.AddResource(path);
+    
+}
+
 void SceneEditor::AddResource(const Resource& resource)
 {
-    SceneInfo commandInfo{};
-    commandInfo.resourceId = resource.resourceId;
-    commandInfo.filename = GetFilename(resource.path);
+    SceneInfo sceneInfo{};
+    sceneInfo.resourceId = resource.resourceId;
+    sceneInfo.filename = GetFilename(resource.path);
 
     const auto extension = GetFileExtension(resource.path);
     if (extension == ".scene")
@@ -44,14 +54,26 @@ void SceneEditor::AddResource(const Resource& resource)
             return;
         }
         std::ifstream fileIn(resource.path, std::ios::binary);
-        if (!commandInfo.info.ParseFromIstream(&fileIn))
+        if (!sceneInfo.info.ParseFromIstream(&fileIn))
         {
             LogWarning(fmt::format("Could not open protobuf file: {}", resource.path));
             return;
         }
     }
-    commandInfo.path = resource.path;
-    sceneInfos_.push_back(commandInfo);
+    sceneInfo.path = resource.path;
+    sceneInfos_.push_back(sceneInfo);
+
+    currentIndex_ = 0;
+
+    auto* editor = Editor::GetInstance();
+    auto& resourceManager = editor->GetResourceManager();
+    
+
+    for(const auto& resourcePath: sceneInfo.info.resources())
+    {
+        resourceManager.AddResource(resourcePath);
+    }
+
 }
 
 void SceneEditor::RemoveResource(const Resource& resource)
@@ -209,7 +231,8 @@ bool SceneEditor::DrawContentList(bool unfocus)
 
 std::string_view SceneEditor::GetSubFolder()
 {
-    return "scenes/";
+    //No subfolder for scenes, as each scene has their own data folder
+    return "";
 }
 
 EditorType SceneEditor::GetEditorType()

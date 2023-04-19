@@ -18,6 +18,7 @@
 #include "command_editor.h"
 #include "material_editor.h"
 #include "pipeline_editor.h"
+#include "scene_editor.h"
 
 using json = nlohmann::json;
 namespace py = pybind11;
@@ -280,7 +281,9 @@ void ModelEditor::ImportResource(std::string_view path)
         LogError("Could not parse oobj info from script");
     }
     const auto srcFolder = GetFolder(path);
-    const auto dstFolder = fmt::format("{}{}{}/", ResourceManager::dataFolder, GetSubFolder(), GetFilename(path, false));
+
+    const auto& sceneName = GetSceneEditor()->GetCurrentSceneInfo()->info.name();
+    const auto dstFolder = fmt::format("{}{}/{}{}/", ResourceManager::dataFolder, sceneName, GetSubFolder(), GetFilename(path, false));
     auto* editor = Editor::GetInstance();
     auto& resourceManager = editor->GetResourceManager();
     CreateNewDirectory(dstFolder);

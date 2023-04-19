@@ -19,6 +19,7 @@ struct SceneInfo
 class SceneEditor final : public EditorSystem
 {
 public:
+    void ImportResource(std::string_view path) override;
     void AddResource(const Resource& resource) override;
     void RemoveResource(const Resource& resource) override;
     void UpdateExistingResource(const Resource& resource) override;
@@ -32,6 +33,7 @@ public:
     void Delete() override;
     [[nodiscard]] std::span<const std::string_view> GetExtensions() const override;
     SceneInfo* GetCurrentSceneInfo() { return currentIndex_ >= sceneInfos_.size() ? nullptr : &sceneInfos_[currentIndex_]; }
+    void SetCurrentScene() { currentIndex_ = 0; }
 private:
     std::vector<SceneInfo> sceneInfos_;
     std::size_t currentIndex_ = -1;

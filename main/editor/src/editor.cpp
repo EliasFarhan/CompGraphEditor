@@ -50,16 +50,7 @@ void Editor::Begin()
     {
         CreateNewDirectory(ResourceManager::dataFolder);
     }
-    for (const auto& editorSystem : editorSystems_)
-    {
-        if (!editorSystem)
-            continue;
-        const auto subFolder = fmt::format("{}{}", ResourceManager::dataFolder, editorSystem->GetSubFolder());
-        if (!filesystem.IsDirectory(subFolder))
-            CreateNewDirectory(subFolder);
 
-        editorSystem->ReloadId();
-    }
 }
 
 Editor::Editor()
@@ -126,13 +117,14 @@ void Editor::SaveProject() const
 
 void Editor::DrawMenuBar()
 {
+    bool createNewFile = false;
     if (ImGui::BeginMainMenuBar())
     {
         if (ImGui::BeginMenu("File"))
         {
             if(ImGui::MenuItem("New Scene"))
             {
-                OpenMenuCreateNewFile(EditorType::SCENE);
+                createNewFile = true;
             }
             if (ImGui::MenuItem("Open Scene"))
             {
@@ -150,6 +142,14 @@ void Editor::DrawMenuBar()
             ImGui::EndMenu();
         }
         ImGui::EndMainMenuBar();
+    }
+    if(createNewFile)
+    {
+        OpenMenuCreateNewFile(EditorType::SCENE);
+    }
+    if(UpdateCreateNewFile())
+    {
+        
     }
 }
 
@@ -203,8 +203,25 @@ void Editor::CreateNewFile(std::string_view path, EditorType type)
     case EditorType::SCENE:
     {
         core::pb::Scene emptyScene;
+        emptyScene.set_name(GetFilename(path, false));
+        CreateNewDirectory(GetFolder(path));
         filesystem.WriteString(path, emptyScene.SerializeAsString());
         resourceManager_.AddResource(path);
+        auto* sceneEditor = static_cast<SceneEditor*>(GetEditorSystem(EditorType::SCENE));
+        sceneEditor->SetCurrentScene();
+        for (const auto& editorSystem : editorSystems_)
+        {
+            if (!editorSystem && editorSystem->GetEditorType() != EditorType::SCENE)
+                continue;
+            const auto subFolder = fmt::format("{}{}/{}", 
+                ResourceManager::dataFolder, 
+                sceneEditor->GetCurrentSceneInfo()->info.name(), 
+                editorSystem->GetSubFolder());
+            if (!filesystem.IsDirectory(subFolder))
+                CreateNewDirectory(subFolder);
+
+            editorSystem->ReloadId();
+        }
         break;
     }
     case EditorType::RENDER_PASS:
@@ -256,6 +273,7 @@ bool Editor::UpdateCreateNewFile()
         const auto& filesystem = core::FilesystemLocator::get();
         auto* editorSystem = editorSystems_[static_cast<int>(currentCreateFileSystem_)].get();
         const auto extensions = editorSystem->GetExtensions();
+        auto* sceneEditor = static_cast<SceneEditor*>(GetEditorSystem(EditorType::SCENE));
 
         ImGui::InputText("Filename", &newCreateFilename_);
         std::string actualFilename = newCreateFilename_;
@@ -291,8 +309,18 @@ bool Editor::UpdateCreateNewFile()
                 actualFilename += extensions[0];
             }
         }
-        const auto path = fmt::format("{}{}{}", 
-            ResourceManager::dataFolder, 
+        if(sceneEditor->GetCurrentSceneInfo() == nullptr)
+        {
+            if (currentCreateFileSystem_ != EditorType::SCENE)
+            {
+                ImGui::TextColored(ImVec4(1, 0, 0, 1), "Create or open a new scene before anything!");
+                ImGui::EndPopup();
+                return false;
+            }
+        }
+        const auto path = fmt::format("{}{}/{}{}", 
+            ResourceManager::dataFolder,
+            sceneEditor->GetCurrentSceneInfo() ? sceneEditor->GetCurrentSceneInfo()->info.name() : newCreateFilename_,
             editorSystem->GetSubFolder(), 
             actualFilename);
         
@@ -410,6 +438,11 @@ void Editor::OnEvent(SDL_Event& event)
         const Uint8* state = SDL_GetKeyboardState(nullptr);
         switch (event.key.keysym.sym)
         {
+        case SDLK_n:
+        {
+                //TODO create a new scene prompt
+            break;
+        }
         case SDLK_s:
         {
             
@@ -602,7 +635,7 @@ void Editor::DrawEditorContent()
         }
         ImGui::TreePop();
     }
-
+    
     open = ImGui::TreeNode("Scenes");
     if (ImGui::BeginPopupContextItem())
     {
