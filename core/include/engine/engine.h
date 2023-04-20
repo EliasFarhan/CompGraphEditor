@@ -67,5 +67,7 @@ glm::uvec2 GetWindowSize();
 
 TextureManager& GetTextureManager();
 ModelManager& GetModelManager();
+
+void SetWindowName(std::string_view windowName);
 } // namespace core
 

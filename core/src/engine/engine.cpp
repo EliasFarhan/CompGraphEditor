@@ -183,6 +183,10 @@ Engine::Engine()
 void Engine::SetWindowName(std::string_view windowName)
 {
     config_.set_window_name(windowName.data());
+    if(window_ != nullptr)
+    {
+        SDL_SetWindowTitle(window_, windowName.data());
+    }
 }
 glm::uvec2 Engine::GetWindowSize() const
 {
@@ -201,5 +205,10 @@ TextureManager& GetTextureManager()
 ModelManager& GetModelManager()
 {
     return instance->GetModelManager();
+}
+
+void SetWindowName(std::string_view windowName)
+{
+    instance->SetWindowName(windowName);
 }
 }

@@ -31,10 +31,10 @@ add_custom_target(editor_scripts
 
 find_package(nlohmann_json CONFIG REQUIRED)
 
-file(GLOB_RECURSE EDITOR_SRC src/*.cpp include/*.h)
-add_executable(editor ${EDITOR_SRC} ${SCRIPT_FILES})
+file(GLOB_RECURSE EDITOR_SRC src/editor/*.cpp include/editor/*.h)
+add_executable(editor ${EDITOR_SRC} ${SCRIPT_FILES} main/editor_main.cpp)
 
-target_include_directories(editor PRIVATE include/)
+target_include_directories(editor PRIVATE include/editor/)
 target_link_libraries(editor PRIVATE CommonGL nlohmann_json::nlohmann_json CommonPy)
 
 add_dependencies(editor editor_scripts)
@@ -42,3 +42,14 @@ add_dependencies(editor editor_scripts)
 set_target_properties (editor PROPERTIES FOLDER Main)
 set_target_properties (editor_scripts PROPERTIES FOLDER Main)
 #set_target_properties(editor PROPERTIES UNITY_BUILD ON)
+
+#gl player
+
+file(GLOB_RECURSE PLAYER_SRC src/gl_player/*.cpp include/gl_player/*.h)
+find_package(PhysFS REQUIRED)
+add_executable(gl_player ${PLAYER_SRC} main/gl_player_main.cpp)
+target_include_directories(gl_player PRIVATE include/gl_player/ ${PHYSFS_INCLUDE_DIR})
+target_link_libraries(gl_player PRIVATE CommonGL ${PHYSFS_LIBRARY}  CommonPy argh)
+
+set_target_properties(gl_player PROPERTIES UNITY_BUILD ON)
+set_target_properties (gl_player PROPERTIES FOLDER Main)
