@@ -232,9 +232,9 @@ int main([[maybe_unused]] int argc, char** argv)
         outputFile["uniforms"] = uniforms;
 
         json structs = json::array();
-        for (auto& val : structMap | std::views::values)
+        for (auto& val : structMap)
         {
-            structs.push_back(val);
+            structs.push_back(val.second);
         }
 
         outputFile["structs"] = structs;

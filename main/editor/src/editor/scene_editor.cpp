@@ -44,6 +44,8 @@ void ExecuteGlPlayer(std::string_view scenePkg)
         command = fmt::format(".\\Debug\\{} {}", executable.generic_string(), scenePkg);
 #endif
     }
+#else
+    command = fmt::format("./gl_player {}", scenePkg);
 #endif
     if(command.empty())
     {
@@ -256,7 +258,7 @@ bool SceneEditor::DrawContentList(bool unfocus)
         }
         if (ImGui::BeginPopupContextItem())
         {
-            if (ImGui::Button("Export Scene"))
+            if (ImGui::Button("Export Scene & Play"))
             {
                 currentIndex_ = i;
                 wasFocused = true;
