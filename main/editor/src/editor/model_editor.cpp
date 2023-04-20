@@ -221,6 +221,13 @@ void ModelEditor::ReloadId()
 
 void ModelEditor::Delete()
 {
+    if (currentIndex_ >= modelInfos_.size())
+    {
+        return;
+    }
+    auto* editor = Editor::GetInstance();
+    auto& resourceManager = editor->GetResourceManager();
+    resourceManager.RemoveResource(modelInfos_[currentIndex_].path, true);
 }
 
 std::span<const std::string_view> ModelEditor::GetExtensions() const
