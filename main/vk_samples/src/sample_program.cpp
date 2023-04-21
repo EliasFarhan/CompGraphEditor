@@ -576,7 +576,7 @@ core::pb::Scene Scene07()
 
 void HelloVulkanProgram::Begin() 
 {
-    scene_.SetScene(Scene07());
+    scene_.SetScene(Scene1());
 
     sceneManager_.LoadScene(&scene_);
 }

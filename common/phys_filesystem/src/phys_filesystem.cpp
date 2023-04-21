@@ -1,4 +1,4 @@
-#include "player_filesystem.h"
+#include "phys_filesystem.h"
 
 #include <physfs.h>
 #include <fmt/format.h>
@@ -8,7 +8,7 @@
 
 namespace fs = std::filesystem;
 
-namespace gpr5300
+namespace core
 {
     PhysFilesystem::PhysFilesystem(const char* argv0) : argv0_(argv0)
     {

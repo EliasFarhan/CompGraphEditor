@@ -45,11 +45,27 @@ set_target_properties (editor_scripts PROPERTIES FOLDER Main)
 
 #gl player
 
-file(GLOB_RECURSE PLAYER_SRC src/gl_player/*.cpp include/gl_player/*.h)
-find_package(PhysFS REQUIRED)
-add_executable(gl_player ${PLAYER_SRC} main/gl_player_main.cpp)
-target_include_directories(gl_player PRIVATE include/gl_player/ ${PHYSFS_INCLUDE_DIR})
-target_link_libraries(gl_player PRIVATE CommonGL ${PHYSFS_LIBRARY}  CommonPy argh)
+file(GLOB_RECURSE GL_PLAYER_SRC src/gl_player/*.cpp include/gl_player/*.h)
+
+add_executable(gl_player ${GL_PLAYER_SRC} main/gl_player_main.cpp)
+target_include_directories(gl_player PRIVATE include/gl_player/)
+target_link_libraries(gl_player PRIVATE CommonGL CommonPy argh PhysFilesystem)
 
 set_target_properties(gl_player PROPERTIES UNITY_BUILD ON)
 set_target_properties (gl_player PROPERTIES FOLDER Main)
+
+#vk player
+
+file(GLOB_RECURSE VK_PLAYER_SRC src/vk_player/*.cpp include/vk_player/*.h)
+
+add_executable(vk_player ${VK_PLAYER_SRC} main/vk_player_main.cpp)
+target_include_directories(vk_player PRIVATE include/vk_player/)
+target_link_libraries(vk_player PRIVATE CommonVK CommonPy argh PhysFilesystem)
+
+set_target_properties(vk_player PROPERTIES UNITY_BUILD ON)
+set_target_properties (vk_player PROPERTIES FOLDER Main)
+
+#vk shader analyzer
+add_executable(vk_shader_analyze main/vk_shader_analyze.cpp)
+target_link_libraries(vk_shader_analyze argh nlohmann_json::nlohmann_json CommonVK spirv-cross-core spirv-cross-reflect)
+set_target_properties (vk_shader_analyze PROPERTIES FOLDER Main/Utils)

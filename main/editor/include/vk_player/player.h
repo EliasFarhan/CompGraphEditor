@@ -1,10 +1,11 @@
 #pragma once
 #include "engine/engine.h"
 #include "engine/scene.h"
-#include "gl/scene.h"
+#include "vk/scene.h"
 
-namespace gl
+namespace vk
 {
+
 
 class Player : public core::OnGuiInterface, public core::System, public core::OnEventInterface
 {
@@ -20,7 +21,7 @@ private:
     core::SceneManager sceneManager_;
     std::vector<std::string> scenePaths_;
     bool sceneLoaded_ = false;
-    gl::Scene playerScene_;
+    vk::Scene playerScene_;
 };
 
-} // namespace gpr5300
+}

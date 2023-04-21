@@ -12,6 +12,19 @@ else:
     program = 'glslangValidator'
 
 
+if platform.system() == 'Windows':
+    vk_shader_program = ".\\vk_shader_analyze.exe"
+    if not os.path.exists(vk_shader_program):
+        debug_shader_program = ".\\Debug\\vk_shader_analyze.exe"
+        if os.path.exists(debug_shader_program):
+            vk_shader_program = debug_shader_program
+        else:
+            vk_shader_program = ".\\Release\\vk_shader_analyze.exe"
+else:
+    vk_shader_program = "./vk_shader_analyze"
+
+
+
 def analyze_struct(struct_txt: str):
     #get struct name
     begin_index = struct_txt.find("struct")
@@ -32,9 +45,31 @@ def analyze_struct(struct_txt: str):
         attributes.append({"type": line_split[0], "name": line_split[1]})
     return {"name": struct_name, "attributes": attributes}
 
+def analyze_vk_shader(shader_path):
+    """Analyze Vulkan Shader"""
+    meta_content = {}
+    status = subprocess.run([program, "-V", shader_path, "-o", shader_path+".spv"], capture_output=True, text=True)
+    meta_content["stdout"] = status.stdout
+    meta_content["stderr"] = status.stderr
+    meta_content["returncode"] = status.returncode
+    if status.returncode != 0:
+        return json.dumps(meta_content)
+    
+    #execute the vulkan shader analyzer
+    analyzer_status = subprocess.run([vk_shader_program, shader_path+".spv"], capture_output=True, text=True)
+    meta_content["stderr"] = analyzer_status.stderr
+    meta_content["returncode"] = analyzer_status.returncode
+    if analyzer_status.returncode != 0:
+        return json.dumps(meta_content)
+    output = json.loads(analyzer_status.stdout)
+    meta_content["inputs"] = output["inputs"]
+    meta_content["outputs"] = output["outputs"]
+    meta_content["uniforms"] = output["uniforms"]
+    meta_content["structs"] = output["structs"]
+    return json.dumps(meta_content)
 
 def analyze_shader(shader_path):
-
+    """Analyze OpenGL shader"""
     meta_content = {}
     status = subprocess.run([program, shader_path], capture_output=True, text=True)
     meta_content["stdout"] = status.stdout

@@ -29,11 +29,12 @@ using json = nlohmann::json;
 namespace editor
 {
 
-void ExecuteGlPlayer(std::string_view scenePkg)
+void ExecutePlayer(std::string_view scenePkg)
 {
-    std::string command;
+    std::string baseName = GetSceneEditor()->IsVulkanScene() ? "vk_player" : "gl_player";
+    std::string command; 
 #ifdef _MSC_VER
-    fs::path executable = "gl_player.exe";
+    fs::path executable = fmt::format("{}.exe", baseName);
     if (fs::exists(executable))
     {
         command = fmt::format("{} {}", executable.generic_string(), scenePkg);
@@ -45,7 +46,7 @@ void ExecuteGlPlayer(std::string_view scenePkg)
 #endif
     }
 #else
-    command = fmt::format("./gl_player {}", scenePkg);
+    command = fmt::format("./{} {}", baseName, scenePkg);
 #endif
     if(command.empty())
     {
@@ -667,7 +668,7 @@ bool SceneEditor::ExportScene() const
         return false;
     }
     RemoveFile(exportScenePath);
-    ExecuteGlPlayer(pkgSceneName);
+    ExecutePlayer(pkgSceneName);
     return true;
 }
 

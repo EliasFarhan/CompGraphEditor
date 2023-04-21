@@ -1,15 +1,14 @@
-#include "player.h"
-#include "phys_filesystem.h"
-#include "py_interface.h"
-#include "engine/engine.h"
-#include "gl/engine.h"
-
 
 #include <argh.h>
 
-int main([[maybe_unused]] int argc, [[maybe_unused]] char** argv)
+#include "phys_filesystem.h"
+#include "player.h"
+#include "py_interface.h"
+#include "engine/script.h"
+#include "vk/engine.h"
+
+int main([[maybe_unused]]int argc, char** argv)
 {
-    
     core::PhysFilesystem physFilesystem(argv[0]);
     physFilesystem.Begin();
     core::FilesystemLocator::provide(&physFilesystem);
@@ -18,12 +17,16 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char** argv)
 
     core::PyManager pyManager;
     core::ImportNativeScript();
-    gl::Player player;
+    vk::Player player;
     if (cmdl.size() == 2)
     {
         player.SetScene(cmdl[1]);
     }
-    gl::Engine engine;
+    else
+    {
+        return EXIT_FAILURE;
+    }
+    vk::Engine engine;
     engine.RegisterOnGuiInterface(&player);
     engine.RegisterSystem(&player);
     engine.RegisterEventObserver(&player);

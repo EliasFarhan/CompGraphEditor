@@ -15,6 +15,8 @@
 #include <pybind11/embed.h>
 #include <pybind11/pybind11.h>
 
+#include "scene_editor.h"
+
 namespace py = pybind11;
 
 // for convenience
@@ -29,7 +31,7 @@ void ShaderEditor::AddResource(const Resource& resource)
     shaderInfo.compiledCorrectly = AnalyzeShader(resource.path, shaderInfo.info);
     shaderInfo.filename = GetFilename(resource.path);
     shaderInfo.resourceId = resource.resourceId;
-    shaderInfo.info.set_path(resource.path);
+    shaderInfo.info.set_path(fmt::format("{}.spv", resource.path));
     shaderInfo.info.set_type(core::GetTypeFromExtension(resource.extension));
     shaderInfos_.push_back(shaderInfo);
 }
@@ -272,18 +274,49 @@ void ShaderEditor::Clear()
 
 bool ShaderEditor::AnalyzeShader(std::string_view path, core::pb::Shader& shaderInfo) const
 {
-    py::function analyzeShaderFunc = py::module_::import("scripts.shader_parser").attr("analyze_shader");
+    json shaderJson;
+    if(GetSceneEditor()->IsVulkanScene())
+    {
+        py::function analyzeShaderFunc = py::module_::import("scripts.shader_parser").attr("analyze_vk_shader");
+        try {
+            std::string result = static_cast<py::str>(analyzeShaderFunc(path));
+            shaderJson = json::parse(result);
+            int returnCode = shaderJson["returncode"].get<int>();
+            if (returnCode != 0)
+            {
+                LogDebug(shaderJson["stdout"].get<std::string>());
+                LogError(shaderJson["stderr"].get<std::string>());
+                return false;
+            }
+        }
+        catch (py::error_already_set& e)
+        {
+            LogError(fmt::format("Analyze shader failed for file: {}\n{}", path, e.what()));
+        }
+        
+    }
+    else
+    {
+        py::function analyzeShaderFunc = py::module_::import("scripts.shader_parser").attr("analyze_shader");
+        try
+        {
+            std::string result = static_cast<py::str>(analyzeShaderFunc(path));
+            shaderJson = json::parse(result);
+            int returnCode = shaderJson["returncode"].get<int>();
+            if (returnCode != 0)
+            {
+                LogDebug(shaderJson["stdout"].get<std::string>());
+                LogError(shaderJson["stderr"].get<std::string>());
+                return false;
+            }
+        }
+        catch (py::error_already_set& e)
+        {
+            LogError(fmt::format("Analyze shader failed for file: {}\n{}", path, e.what()));
+        }
+    }
     try
     {
-        std::string result = static_cast<py::str>(analyzeShaderFunc(path));
-        //LogDebug(fmt::format("Loading shader: {} with content:\n{}", path, result));
-        auto shaderJson = json::parse(result);
-        int returnCode = shaderJson["returncode"].get<int>();
-        if(returnCode != 0)
-        {
-            LogError(shaderJson["stdout"].get<std::string>());
-            return false;
-        }
         auto uniformsJson = shaderJson["uniforms"];
         shaderInfo.mutable_uniforms()->Clear();
         for(auto& uniformJson : uniformsJson)

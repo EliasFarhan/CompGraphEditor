@@ -1,7 +1,7 @@
 #pragma once
 #include "engine/filesystem.h"
 
-namespace gpr5300
+namespace core
 {
 
     class PhysFilesystem final : public core::FilesystemInterface
