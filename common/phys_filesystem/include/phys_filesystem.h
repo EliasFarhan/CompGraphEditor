@@ -1,6 +1,8 @@
 #pragma once
 #include "engine/filesystem.h"
 
+#include <string>
+
 namespace core
 {
 

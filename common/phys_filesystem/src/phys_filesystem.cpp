@@ -5,6 +5,7 @@
 
 #include "utils/log.h"
 #include <filesystem>
+#include <algorithm>
 
 namespace fs = std::filesystem;
 
