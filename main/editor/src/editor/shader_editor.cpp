@@ -31,7 +31,7 @@ void ShaderEditor::AddResource(const Resource& resource)
     shaderInfo.compiledCorrectly = AnalyzeShader(resource.path, shaderInfo.info);
     shaderInfo.filename = GetFilename(resource.path);
     shaderInfo.resourceId = resource.resourceId;
-    shaderInfo.info.set_path(fmt::format("{}.spv", resource.path));
+    shaderInfo.info.set_path(resource.path);
     shaderInfo.info.set_type(core::GetTypeFromExtension(resource.extension));
     shaderInfos_.push_back(shaderInfo);
 }

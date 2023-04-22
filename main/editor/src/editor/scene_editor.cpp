@@ -263,7 +263,7 @@ bool SceneEditor::DrawContentList(bool unfocus)
             {
                 currentIndex_ = i;
                 wasFocused = true;
-                if(ExportScene())
+                if(ExportAndPlayScene())
                 {
                     LogDebug("Successfully export scene!");
                 }
@@ -298,7 +298,7 @@ void SceneEditor::Save()
     }
 }
 
-bool SceneEditor::ExportScene() const
+bool SceneEditor::ExportAndPlayScene() const
 {
     if (currentIndex_ >= sceneInfos_.size())
     {
@@ -504,6 +504,7 @@ bool SceneEditor::ExportScene() const
                         const auto vertexShaderIndex = exportScene.shaders_size();
                         auto* newVertexShader = exportScene.add_shaders();
                         *newVertexShader = vertexShader->info;
+                        newVertexShader->set_path(vertexShader->info.path() + ".spv");
                         resourceIndexMap[vertexShader->resourceId] = vertexShaderIndex;
                         newPipeline->set_vertex_shader_index(vertexShaderIndex);
                     }
@@ -524,12 +525,13 @@ bool SceneEditor::ExportScene() const
                         const auto fragmentShaderIndex = exportScene.shaders_size();
                         auto* newFragmentShader = exportScene.add_shaders();
                         *newFragmentShader = fragmentShader->info;
-                        resourceIndexMap[vertexShader->resourceId] = fragmentShaderIndex;
+                        newFragmentShader->set_path(fragmentShader->info.path() + ".spv");
+                        resourceIndexMap[fragmentShader->resourceId] = fragmentShaderIndex;
                         newPipeline->set_fragment_shader_index(fragmentShaderIndex);
                     }
                     else
                     {
-                        newPipeline->set_fragment_shader_index(vertexShaderIt->second);
+                        newPipeline->set_fragment_shader_index(fragmentShaderIt->second);
                     }
 
                     //TODO check comp/geom shaders to get index

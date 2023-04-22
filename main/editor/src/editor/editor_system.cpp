@@ -22,6 +22,7 @@ void EditorSystem::ImportResource(std::string_view path)
         auto* editor = Editor::GetInstance();
         auto& resourceManager = editor->GetResourceManager();
         resourceManager.AddResource(dstPath);
+        GetSceneEditor()->AddResource(*resourceManager.GetResource(resourceManager.FindResourceByPath(dstPath)));
     }
 }
 }

@@ -150,7 +150,7 @@ void Scene::Draw(core::DrawCommand& drawCommand)
     pipeline.Bind();
     const auto meshIndex = drawCommand.GetMeshIndex();
     VkDeviceSize offsets[] = { 0 };
-    if (meshIndex != -1)
+    if (meshIndex != -1 && scene_.meshes(meshIndex).primitve_type() != core::pb::Mesh_PrimitveType_NONE)
     {
         const auto& vertexBuffer = vertexBuffers_[meshIndex];
         vkCmdBindVertexBuffers(renderer.commandBuffers[renderer.imageIndex], 0, 1, &vertexBuffer.vertexBuffer.buffer, offsets);

@@ -28,7 +28,7 @@ public:
     std::string_view GetSubFolder() override;
     EditorType GetEditorType() override;
     void Save() override;
-    bool ExportScene() const;
+    bool ExportAndPlayScene() const;
     void ReloadId() override;
     void Delete() override;
     [[nodiscard]] std::span<const std::string_view> GetExtensions() const override;

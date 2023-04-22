@@ -134,6 +134,15 @@ void Editor::DrawMenuBar()
             {
                 SaveProject();
             }
+            if(ImGui::MenuItem("Export & Play"))
+            {
+                auto* sceneEditor = GetSceneEditor();
+                auto* sceneInfo = sceneEditor->GetCurrentSceneInfo();
+                if(sceneInfo != nullptr)
+                {
+                    sceneEditor->ExportAndPlayScene();
+                }
+            }
             ImGui::EndMenu();
         }
         if (ImGui::BeginMenu("Window"))
@@ -275,6 +284,12 @@ void Editor::CreateNewFile(std::string_view path, EditorType type)
     }
     default: 
         break;
+    }
+
+    auto* sceneEditor = GetSceneEditor();
+    if(type != EditorType::SCENE)
+    {
+        sceneEditor->AddResource(*resourceManager_.GetResource(resourceManager_.FindResourceByPath(path)));
     }
 }
 
@@ -496,7 +511,8 @@ void Editor::OnEvent(SDL_Event& event)
             }
             break;
         }
-        default:break;
+        default:
+            break;
         }
 
         break;
@@ -515,7 +531,7 @@ void Editor::LoadFileIntoEditor(std::string_view path)
         return;
     }
     auto* sceneEditor = GetSceneEditor();
-    bool isScene = sceneEditor->CheckExtensions(GetFileExtension(path));
+    const bool isScene = sceneEditor->CheckExtensions(GetFileExtension(path));
     if(isScene)
     {
         //Opening a new scene means closing the current scene
@@ -540,7 +556,7 @@ void Editor::LoadFileIntoEditor(std::string_view path)
             return;
         }
     }
-
+    
     editorSystem->ImportResource(path);
     if(isScene)
     {
@@ -848,11 +864,6 @@ void Editor::AddResource(const Resource& resource)
     EditorSystem* editorSystem = FindEditorSystem(resource.path);
     if (editorSystem == nullptr)
         return;
-    auto* sceneEditor = GetSceneEditor();
-    if(!sceneEditor->CheckExtensions(resource.extension))
-    {
-        sceneEditor->AddResource(resource);
-    }
     editorSystem->AddResource(resource);
 }
 
@@ -862,7 +873,7 @@ void Editor::RemoveResource(const Resource& resource)
     if (editorSystem == nullptr)
         return;
     auto* sceneEditor = GetSceneEditor();
-    if (!sceneEditor->CheckExtensions(resource.extension))
+    if (sceneEditor->CheckExtensions(resource.extension))
     {
         sceneEditor->RemoveResource(resource);
     }

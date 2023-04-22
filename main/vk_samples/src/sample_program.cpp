@@ -30,6 +30,9 @@ core::pb::Scene Scene1()
     auto* material = scene.add_materials();
     material->set_pipeline_index(0);
 
+    auto* mesh = scene.add_meshes();
+    mesh->set_primitve_type(core::pb::Mesh_PrimitveType_NONE);
+
     auto* renderPass = scene.mutable_render_pass();
     auto* subPass = renderPass->add_sub_passes();
     auto* clearColor = subPass->mutable_clear_color();
@@ -41,7 +44,7 @@ core::pb::Scene Scene1()
     auto* drawCommand = subPass->add_commands();
     drawCommand->set_material_index(0);
     drawCommand->set_count(3);
-    drawCommand->set_mesh_index(-1);
+    drawCommand->set_mesh_index(0);
     drawCommand->set_draw_elements(false);
     drawCommand->set_mode(core::pb::DrawCommand_Mode_TRIANGLES);
     drawCommand->set_automatic_draw(true);

@@ -122,7 +122,7 @@ void DrawCommand::Bind()
 
     VkDeviceSize offsets[] = { 0 };
     const auto meshIndex = GetMeshIndex();
-    if (meshIndex != -1)
+    if (meshIndex != -1 && sceneInfo.meshes(meshIndex).primitve_type() != core::pb::Mesh_PrimitveType_NONE)
     {
         auto& renderer = GetRenderer();
         const auto& vertexBuffer = scene->GetVertexBuffers()[meshIndex];
