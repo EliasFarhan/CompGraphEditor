@@ -45,7 +45,7 @@ void Model::LoadMaterials(const aiScene* scene)
         {
             const auto textureType = static_cast<aiTextureType>(j);
             aiString textureName;
-            if(material->GetTextureCount(textureType)>0)
+            if(material->GetTextureCount(textureType) > 0)
             {
 
                 const auto returnStatus = material->GetTexture(textureType, 0, &textureName);
@@ -108,6 +108,11 @@ void Model::LoadMesh(const aiMesh* aiMesh)
 
 }
 
+ModelManager::ModelManager()
+{
+    importer_.SetIOHandler(new IOSystem());
+}
+
 ModelIndex ModelManager::ImportModel(std::string_view modelPath)
 {
 
@@ -122,14 +127,15 @@ ModelIndex ModelManager::ImportModel(std::string_view modelPath)
     }
 
     const auto& filesystem = core::FilesystemLocator::get();
-    const auto modelFile = filesystem.LoadFile(modelPath);
-    if (modelFile.data == nullptr)
+    const auto exists = filesystem.FileExists(modelPath);
+    if (!exists)
     {
-        LogError(fmt::format("Could not open: {}", modelPath));
+        LogError(fmt::format("Could not find: {}", modelPath));
         return INVALID_MODEL_INDEX;
     }
-    const auto* scene = importer_.ReadFileFromMemory(modelFile.data, modelFile.length, 
+    const auto* scene = importer_.ReadFile(modelPath.data(),
         aiProcess_CalcTangentSpace | aiProcess_Triangulate | aiProcess_GenNormals);
+    
     if(scene == nullptr)
     {
         LogError(fmt::format("Could not import scene, with error: {}", importer_.GetErrorString()));

@@ -59,6 +59,7 @@ protected:
 class ModelManager final
 {
 public:
+    ModelManager();
     ModelIndex ImportModel(std::string_view modelPath);
     [[nodiscard]] Model& GetModel(ModelIndex index) { return models_[index.index]; }
     [[nodiscard]] const Model& GetModel(ModelIndex index) const { return models_[index.index]; }

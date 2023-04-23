@@ -1,8 +1,14 @@
 #pragma once
 
+
+#include <assimp/IOSystem.hpp>
+#include <assimp/IOStream.hpp>
+
 #include "utils/locator.h"
 #include <cassert>
 #include <string_view>
+
+#include "renderer/buffer.h"
 
 
 namespace core
@@ -85,5 +91,31 @@ public:
 
 using FilesystemLocator = Locator<FilesystemInterface, NullFilesystem>;
 
+/**
+ * \brief IOSystem is our own implementation for Assimp IO handling using our own filesystem
+ */
+class IOSystem : public Assimp::IOSystem
+{
+public:
+    bool Exists(const char* pFile) const override;
+    char getOsSeparator() const override;
+    Assimp::IOStream* Open(const char* pFile, const char* pMode) override;
+    void Close(Assimp::IOStream* pFile) override;
+};
+
+class IOStream : public Assimp::IOStream
+{
+public:
+    IOStream(BufferFile&& bufferFile);
+    size_t Read(void* pvBuffer, size_t pSize, size_t pCount) override;
+    size_t Write(const void* pvBuffer, size_t pSize, size_t pCount) override;
+    aiReturn Seek(size_t pOffset, aiOrigin pOrigin) override;
+    size_t Tell() const override;
+    size_t FileSize() const override;
+    void Flush() override;
+private:
+    BufferFile bufferFile_{};
+    std::size_t cursorIndex_ = 0;
+};
 
 } // namespace core

@@ -66,4 +66,79 @@ void DefaultFilesystem::WriteString(std::string_view path, std::string_view cont
     outFile << content;
 }
 
+bool IOSystem::Exists(const char* pFile) const
+{
+    const auto& filesystem = FilesystemLocator::get();
+    return filesystem.FileExists(pFile);
+}
+
+char IOSystem::getOsSeparator() const
+{
+    return '/';
+}
+
+Assimp::IOStream* IOSystem::Open(const char* pFile, const char* pMode)
+{
+    const auto& filesystem = FilesystemLocator::get();
+
+    return new IOStream(filesystem.LoadFile(pFile));
+}
+
+void IOSystem::Close(Assimp::IOStream* pFile)
+{
+    delete pFile;
+}
+
+IOStream::IOStream(BufferFile&& bufferFile): bufferFile_(std::move(bufferFile))
+{
+}
+
+size_t IOStream::Read(void* pvBuffer, size_t pSize, size_t pCount)
+{
+    const auto totalReadSize = pSize * pCount;
+    auto readSize = totalReadSize;
+    if(totalReadSize > bufferFile_.length - cursorIndex_)
+    {
+        readSize = bufferFile_.length - cursorIndex_;
+    }
+    std::memcpy(pvBuffer, bufferFile_.data + cursorIndex_, readSize);
+    return readSize;
+}
+
+size_t IOStream::Write(const void* pvBuffer, size_t pSize, size_t pCount)
+{
+    return {};
+}
+
+aiReturn IOStream::Seek(size_t pOffset, aiOrigin pOrigin)
+{
+    switch (pOrigin)
+    {
+    case aiOrigin_SET: 
+        cursorIndex_ = pOffset;
+        break;
+    case aiOrigin_CUR: 
+        cursorIndex_ += pOffset;
+        break;
+    case aiOrigin_END: 
+        cursorIndex_ = bufferFile_.length - pOffset;
+        break;
+    default: ;
+    }
+    return aiReturn_SUCCESS;
+}
+
+size_t IOStream::Tell() const
+{
+    return cursorIndex_;
+}
+
+size_t IOStream::FileSize() const
+{
+    return bufferFile_.length;
+}
+
+void IOStream::Flush()
+{
+}
 }

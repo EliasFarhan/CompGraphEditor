@@ -276,6 +276,7 @@ void ModelEditor::ImportResource(std::string_view path)
         auto mtlList = materialsJson["materials"];
         for(auto& mtlPath: mtlList)
         {
+            LogDebug(fmt::format("Material file: {} in obj file: {}", mtlPath, path));
             mtlFiles.push_back(mtlPath);
         }
     }
@@ -285,12 +286,16 @@ void ModelEditor::ImportResource(std::string_view path)
     }
     catch(json::parse_error& e)
     {
-        LogError("Could not parse oobj info from script");
+        LogError("Could not parse obj info from script");
     }
     const auto srcFolder = GetFolder(path);
 
     const auto& sceneName = GetSceneEditor()->GetCurrentSceneInfo()->info.name();
-    const auto dstFolder = fmt::format("{}{}/{}{}/", ResourceManager::dataFolder, sceneName, GetSubFolder(), GetFilename(path, false));
+    const auto dstFolder = fmt::format("{}{}/{}{}/", 
+        ResourceManager::dataFolder, 
+        sceneName, 
+        GetSubFolder(), 
+        GetFilename(path, false));
     auto* editor = Editor::GetInstance();
     auto& resourceManager = editor->GetResourceManager();
     CreateNewDirectory(dstFolder);

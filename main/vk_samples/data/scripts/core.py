@@ -239,7 +239,6 @@ class Mat4:
 class Pipeline:
     def __init__(self) -> None:
         self.name = ""
-
    
     def get_name(self) ->str:
         return ""
