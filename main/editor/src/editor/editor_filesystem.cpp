@@ -22,11 +22,11 @@ std::string GetFilename(std::string_view path, bool withExtension)
     const fs::path p = path;
     return withExtension?p.filename().string() : p.stem().string();
 }
-bool CopyFileFromTo(std::string_view srcPath, std::string_view dstPath)
+bool CopyFileFromTo(std::string_view srcPath, std::string_view dstPath, bool forceOverwrite)
 {
     try
     {
-        fs::copy(srcPath, dstPath);
+        fs::copy(srcPath, dstPath, forceOverwrite?fs::copy_options::overwrite_existing:fs::copy_options::skip_existing);
     }
     catch (fs::filesystem_error& e)
     {

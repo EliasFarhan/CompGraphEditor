@@ -107,7 +107,6 @@ void SceneEditor::AddResource(const Resource& resource)
         resourceManager.AddResource(resourcePath);
     }
     core::SetWindowName(fmt::format("Neko2 Editor - {}", sceneInfo.info.name()));
-
 }
 
 void SceneEditor::RemoveResource(const Resource& resource)

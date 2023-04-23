@@ -240,7 +240,10 @@ void Editor::CreateNewFile(std::string_view path, EditorType type)
                 editorSystem->GetSubFolder());
             if (!filesystem.IsDirectory(subFolder))
                 CreateNewDirectory(subFolder);
-
+            if(editorSystem->GetEditorType() == EditorType::SCRIPT)
+            {
+                CopyFileFromTo("scripts/core.py", fmt::format("{}/core.py", subFolder), true);
+            }
             editorSystem->ReloadId();
         }
         break;
@@ -560,6 +563,7 @@ void Editor::LoadFileIntoEditor(std::string_view path)
     editorSystem->ImportResource(path);
     if(isScene)
     {
+        CopyFileFromTo("scripts/core.py", fmt::format("data/{}/scripts/core.py", sceneEditor->GetCurrentSceneInfo()->info.name()));
         for(auto& tmp: editorSystems_)
         {
             if(tmp)
@@ -573,7 +577,7 @@ void Editor::LoadFileIntoEditor(std::string_view path)
 
 void Editor::DrawEditorContent()
 {
-    bool hasScene = GetSceneEditor()->GetCurrentSceneInfo() != nullptr;
+    const bool hasScene = GetSceneEditor()->GetCurrentSceneInfo() != nullptr;
 
     ImGui::Begin("Editor Content");
     if (!hasScene)
