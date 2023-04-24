@@ -438,9 +438,11 @@ void ModelEditor::GenerateMaterialsAndCommands(int commandIndex)
     auto* commandEditor = dynamic_cast<CommandEditor*>(editor->GetEditorSystem(EditorType::COMMAND));
     const auto* pipeline = pipelineEditor->GetPipeline(drawCommand.pipelineId);
     auto pipelineName = GetFilename(pipeline->path, false);
+
     drawCommandInfo->mutable_material_paths()->Reserve(currentModelInfo.info.materials_size());
     drawCommand.materialIds.clear();
     drawCommand.drawCommandIds.clear();
+
     for (int modelMaterialIndex = 0; modelMaterialIndex < currentModelInfo.info.materials_size(); modelMaterialIndex++)
     {
         auto& modelMaterial = currentModelInfo.info.materials(modelMaterialIndex);
@@ -470,7 +472,9 @@ void ModelEditor::GenerateMaterialsAndCommands(int commandIndex)
         {
             auto* materialTexture = material->info.mutable_textures(materialTextureIndex);
             if (materialTexture->texture_type() == core::pb::NONE)
+            {
                 continue;
+            }
             for (int modelMaterialTextureIndex = 0; modelMaterialTextureIndex < modelMaterial.texture_indices_size(); modelMaterialTextureIndex++)
             {
                 auto& modelTexture = currentModelInfo.info.textures(modelMaterial.texture_indices(modelMaterialTextureIndex));

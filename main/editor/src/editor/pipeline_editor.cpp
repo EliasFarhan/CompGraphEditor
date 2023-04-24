@@ -325,24 +325,7 @@ void PipelineEditor::DrawInspector()
             }
         }
         ImGui::Separator();
-        static constexpr std::array<std::string_view, 15> textureTypesTxt =
-        {
-                "NONE",
-                "AMBIENT",
-                "DIFFUSE",
-                "SPECULAR",
-                "SPECULAR_HIGHLIGHT",
-                "BUMP",
-                "DISPLACEMENT",
-                "ALPHA",
-                "REFLECTION",
-                "ROUGHNESS",
-                "METALLIC",
-                "SHEEN",
-                "EMISSIVE",
-                "NORMAL",
-                "AO"
-        };
+
 
         if(ImGui::BeginTable("Samplers Table", 2))
         {
@@ -355,11 +338,12 @@ void PipelineEditor::DrawInspector()
                 ImGui::TableSetColumnIndex(1);
                 const auto comboId = fmt::format("Sampler Texture Type {}", i);
                 ImGui::PushID(comboId.data());
-                if(ImGui::BeginCombo("Texture Type", textureTypesTxt[static_cast<int>(sampler->type())].data()))
+                auto textureTypeTxt = aiTextureTypeToString(static_cast<aiTextureType>(sampler->type()));
+                if(ImGui::BeginCombo("Texture Type", textureTypeTxt))
                 {
-                    for(std::size_t j = 0; j < textureTypesTxt.size(); j++)
+                    for(std::size_t j = 0; j < core::pb::TextureType::LENGTH; j++)
                     {
-                        if(ImGui::Selectable(textureTypesTxt[j].data(), j == sampler->type()))
+                        if(ImGui::Selectable(aiTextureTypeToString(static_cast<aiTextureType>(j)), j == sampler->type()))
                         {
                             sampler->set_type(static_cast<core::pb::TextureType>(j));
                             auto* materialEditor = editor->GetEditorSystem(EditorType::MATERIAL);
