@@ -398,13 +398,14 @@ bool SceneEditor::ExportAndPlayScene() const
                 const auto materialIndex = exportScene.materials_size();
                 auto* newMaterial = exportScene.add_materials();
                 *newMaterial = material->info.material();
+                newMaterial->clear_textures();
                 resourceIndexMap[material->resourceId] = materialIndex;
 
                 //list textures
-                for(int textureIndex = 0; textureIndex < newMaterial->textures_size(); textureIndex++)
+                for(int textureIndex = 0; textureIndex < material->info.textures_size(); textureIndex++)
                 {
                     const auto& editorMaterialTexture = material->info.textures(textureIndex);
-                    auto* materialTexture = newMaterial->mutable_textures(textureIndex);
+                    auto* materialTexture = newMaterial->add_textures();
                     if(editorMaterialTexture.texture_name().empty() && editorMaterialTexture.material_texture().attachment_name().empty())
                     {
                         LogWarning(fmt::format(

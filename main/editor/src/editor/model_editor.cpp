@@ -545,7 +545,7 @@ void ModelEditor::ReloadDrawCommands(std::size_t modelIndex)
     {
         auto& drawCommand = modelInfo.drawCommands[i];
         auto& drawCommandInfo = modelInfo.info.draw_commands(i);
-        if(drawCommand.materialIds.size() != modelInfo.info.materials_size())
+        if(drawCommand.materialIds.size() < modelInfo.info.materials_size())
         {
             drawCommand.materialIds.resize(modelInfo.info.materials_size(), INVALID_RESOURCE_ID);
         }
