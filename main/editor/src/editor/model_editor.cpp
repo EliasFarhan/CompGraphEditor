@@ -349,6 +349,9 @@ void ModelEditor::ImportResource(std::string_view path)
             auto* textureEditor = dynamic_cast<TextureEditor*>(editor->GetEditorSystem(EditorType::TEXTURE));
             auto* texture = textureEditor->GetTexture(textureId);
             texture->info.set_type(textureType);
+
+            auto* sceneEditor = GetSceneEditor();
+            sceneEditor->AddResource(*resourceManager.GetResource(textureId));
         }
         material->add_texture_indices(index);
     };
@@ -389,7 +392,7 @@ void ModelEditor::ImportResource(std::string_view path)
     }
 
 
-    for(std::string_view mtlPath: mtlFiles)
+    for (std::string_view mtlPath : mtlFiles)
     {
         auto mtlSrcPath = fmt::format("{}/{}", srcFolder, GetFilename(mtlPath));
         auto mtlDstPath = fmt::format("{}{}", dstFolder, GetFilename(mtlPath));
@@ -397,13 +400,20 @@ void ModelEditor::ImportResource(std::string_view path)
         *newModel.add_mtl_paths() = mtlDstPath;
     }
 
+    auto* sceneEditor = GetSceneEditor();
+
     CopyFileFromTo(path, modelDstPath);
     resourceManager.AddResource(modelDstPath);
+    sceneEditor->AddResource(*resourceManager.GetResource(resourceManager.FindResourceByPath(modelDstPath)));
+
     newModel.set_model_path(modelDstPath);
 
     auto modelInfoPath = fmt::format("{}{}.model", dstFolder, GetFilename(path, false));
     filesystem.WriteString(modelInfoPath, newModel.SerializeAsString());
     resourceManager.AddResource(modelInfoPath);
+    sceneEditor->AddResource(*resourceManager.GetResource(resourceManager.FindResourceByPath(modelInfoPath)));
+
+
 
 }
 
@@ -422,6 +432,7 @@ void ModelEditor::GenerateMaterialsAndCommands(int commandIndex)
     const auto baseDir = GetFolder(currentModelInfo.path);
     auto* editor = Editor::GetInstance();
     auto& resourceManager = editor->GetResourceManager();
+    auto* sceneEditor = GetSceneEditor();
     const auto* pipelineEditor = dynamic_cast<PipelineEditor*>(editor->GetEditorSystem(EditorType::PIPELINE));
     auto* materialEditor = dynamic_cast<MaterialEditor*>(editor->GetEditorSystem(EditorType::MATERIAL));
     auto* commandEditor = dynamic_cast<CommandEditor*>(editor->GetEditorSystem(EditorType::COMMAND));
@@ -445,6 +456,7 @@ void ModelEditor::GenerateMaterialsAndCommands(int commandIndex)
             editor->CreateNewFile(materialPath, EditorType::MATERIAL);
             drawCommandInfo->set_material_paths(modelMaterialIndex, materialPath);
             materialId = resourceManager.FindResourceByPath(materialPath);
+            sceneEditor->AddResource(*resourceManager.GetResource(materialId));
         }
         drawCommand.materialIds.push_back(materialId);
         auto* material = materialEditor->GetMaterial(materialId);
@@ -488,14 +500,15 @@ void ModelEditor::GenerateMaterialsAndCommands(int commandIndex)
             editor->CreateNewFile(commandPath, EditorType::COMMAND);
             drawCommandInfo->set_draw_command_paths(meshIndex, commandPath);
             commandId = resourceManager.FindResourceByPath(commandPath);
+            sceneEditor->AddResource(*resourceManager.GetResource(commandId));
         }
         drawCommand.drawCommandIds.push_back(commandId);
         auto* command = commandEditor->GetCommand(commandId);
 
         auto modelMaterialName = modelMesh.material_name();
         auto materialPath = fmt::format("{}/{}_{}.mat", baseDir, modelMaterialName, pipelineName);
-        auto materialId = resourceManager.FindResourceByPath(materialPath);
-        auto meshId = resourceManager.FindResourceByPath(modelMesh.mesh_path());
+        const auto materialId = resourceManager.FindResourceByPath(materialPath);
+        const auto meshId = resourceManager.FindResourceByPath(modelMesh.mesh_path());
 
         command->info.set_mesh_path(modelMesh.mesh_path());
         command->info.set_material_path(materialPath);

@@ -70,7 +70,10 @@ void DrawCommand::Bind()
     for (std::size_t textureIndex = 0; textureIndex < material_->textures.size(); textureIndex++)
     {
         if (material_->textures[textureIndex].textureId == core::INVALID_TEXTURE_ID)
+        {
+            LogWarning(fmt::format("Invalid texture for material {}", material_->name));
             continue;
+        }
         SetTexture(
             material_->textures[textureIndex].uniformSamplerName,
             textureManager.GetTexture(material_->textures[textureIndex].textureId),

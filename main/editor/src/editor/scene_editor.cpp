@@ -71,7 +71,11 @@ void SceneEditor::AddResource(const Resource& resource)
     if (!CheckExtensions(resource.extension))
     {
         //Adding a resource to the list
-        GetCurrentSceneInfo()->info.add_resources(resource.path);
+        auto* sceneInfo = GetCurrentSceneInfo();
+        if (std::ranges::none_of(sceneInfo->info.resources(), [&resource](const auto& path) {return path == resource.path; }))
+        {
+            GetCurrentSceneInfo()->info.add_resources(resource.path);
+        }
         return;
     }
     SceneInfo sceneInfo{};
@@ -104,7 +108,10 @@ void SceneEditor::AddResource(const Resource& resource)
     
     for(const auto& resourcePath: sceneInfo.info.resources())
     {
-        resourceManager.AddResource(resourcePath);
+        if (resourceManager.FindResourceByPath(resourcePath) == INVALID_RESOURCE_ID)
+        {
+            resourceManager.AddResource(resourcePath);
+        }
     }
     core::SetWindowName(fmt::format("Neko2 Editor - {}", sceneInfo.info.name()));
 }
@@ -236,9 +243,6 @@ void SceneEditor::DrawInspector()
     {
         currentScene.info.add_py_system_paths();
     }
-    
-
-
 }
 
 bool SceneEditor::DrawContentList(bool unfocus)
@@ -503,7 +507,7 @@ bool SceneEditor::ExportAndPlayScene() const
                         const auto vertexShaderIndex = exportScene.shaders_size();
                         auto* newVertexShader = exportScene.add_shaders();
                         *newVertexShader = vertexShader->info;
-                        newVertexShader->set_path(vertexShader->info.path() + ".spv");
+                        newVertexShader->set_path(IsVulkanScene()?vertexShader->info.path() + ".spv": vertexShader->info.path());
                         resourceIndexMap[vertexShader->resourceId] = vertexShaderIndex;
                         newPipeline->set_vertex_shader_index(vertexShaderIndex);
                     }
@@ -524,7 +528,7 @@ bool SceneEditor::ExportAndPlayScene() const
                         const auto fragmentShaderIndex = exportScene.shaders_size();
                         auto* newFragmentShader = exportScene.add_shaders();
                         *newFragmentShader = fragmentShader->info;
-                        newFragmentShader->set_path(fragmentShader->info.path() + ".spv");
+                        newFragmentShader->set_path(IsVulkanScene() ? fragmentShader->info.path() + ".spv" : fragmentShader->info.path());
                         resourceIndexMap[fragmentShader->resourceId] = fragmentShaderIndex;
                         newPipeline->set_fragment_shader_index(fragmentShaderIndex);
                     }
