@@ -69,6 +69,12 @@ core::pb::Scene Scene2()
     pipeline->set_type(core::pb::Pipeline_Type_RASTERIZE);
     pipeline->set_cull_face(core::pb::Pipeline_CullFace_BACK);
     pipeline->set_enable_culling(false);
+    auto* posInput = pipeline->add_in_vertex_attributes();
+    posInput->set_name("pos");
+    posInput->set_binding(0);
+    posInput->set_stage(core::pb::VERTEX);
+    posInput->set_type(core::pb::Attribute_Type_VEC3);
+    posInput->set_type_name("vec3");
 
     auto* mesh = scene.add_meshes();
     mesh->set_primitve_type(core::pb::Mesh_PrimitveType_QUAD);
@@ -131,6 +137,13 @@ core::pb::Scene Scene3()
     pipeline->set_cull_face(core::pb::Pipeline_CullFace_BACK);
     pipeline->set_enable_culling(false);
 
+    auto* posInput = pipeline->add_in_vertex_attributes();
+    posInput->set_name("pos");
+    posInput->set_binding(0);
+    posInput->set_stage(core::pb::VERTEX);
+    posInput->set_type(core::pb::Attribute_Type_VEC3);
+    posInput->set_type_name("vec3");
+
     auto* mesh = scene.add_meshes();
     mesh->set_primitve_type(core::pb::Mesh_PrimitveType_QUAD);
     mesh->set_mesh_name("Quad");
@@ -188,6 +201,18 @@ core::pb::Scene Scene4()
     pipeline->set_type(core::pb::Pipeline_Type_RASTERIZE);
     pipeline->set_cull_face(core::pb::Pipeline_CullFace_BACK);
     pipeline->set_enable_culling(false);
+    auto* posInput = pipeline->add_in_vertex_attributes();
+    posInput->set_name("pos");
+    posInput->set_binding(0);
+    posInput->set_stage(core::pb::VERTEX);
+    posInput->set_type(core::pb::Attribute_Type_VEC3);
+    posInput->set_type_name("vec3");
+    auto* texCoords = pipeline->add_in_vertex_attributes();
+    texCoords->set_name("texCoords");
+    texCoords->set_binding(0);
+    texCoords->set_stage(core::pb::VERTEX);
+    texCoords->set_type(core::pb::Attribute_Type_VEC2);
+    texCoords->set_type_name("vec2");
 
     auto* mesh = scene.add_meshes();
     mesh->set_primitve_type(core::pb::Mesh_PrimitveType_QUAD);
@@ -285,6 +310,19 @@ core::pb::Scene Scene5()
     pipeline->set_depth_test_enable(true);
     pipeline->set_depth_compare_op(core::pb::Pipeline_DepthCompareOp_LESS);
     pipeline->set_depth_mask(true);
+
+    auto* posInput = pipeline->add_in_vertex_attributes();
+    posInput->set_name("pos");
+    posInput->set_binding(0);
+    posInput->set_stage(core::pb::VERTEX);
+    posInput->set_type(core::pb::Attribute_Type_VEC3);
+    posInput->set_type_name("vec3");
+    auto* texCoords = pipeline->add_in_vertex_attributes();
+    texCoords->set_name("texCoords");
+    texCoords->set_binding(0);
+    texCoords->set_stage(core::pb::VERTEX);
+    texCoords->set_type(core::pb::Attribute_Type_VEC2);
+    texCoords->set_type_name("vec2");
 
     auto* mesh = scene.add_meshes();
     mesh->set_primitve_type(core::pb::Mesh_PrimitveType_CUBE);
@@ -388,12 +426,38 @@ core::pb::Scene Scene6()
     pipeline->set_depth_test_enable(true);
     pipeline->set_depth_mask(true);
     pipeline->set_depth_compare_op(core::pb::Pipeline_DepthCompareOp_LESS);
-
+    {
+        auto* posInput = pipeline->add_in_vertex_attributes();
+        posInput->set_name("pos");
+        posInput->set_binding(0);
+        posInput->set_stage(core::pb::VERTEX);
+        posInput->set_type(core::pb::Attribute_Type_VEC3);
+        posInput->set_type_name("vec3");
+        auto* texCoords = pipeline->add_in_vertex_attributes();
+        texCoords->set_name("texCoords");
+        texCoords->set_binding(0);
+        texCoords->set_stage(core::pb::VERTEX);
+        texCoords->set_type(core::pb::Attribute_Type_VEC2);
+        texCoords->set_type_name("vec2");
+    }
     auto* postProcessPipeline = scene.add_pipelines();
     postProcessPipeline->set_type(core::pb::Pipeline_Type_RASTERIZE);
     postProcessPipeline->set_vertex_shader_index(2);
     postProcessPipeline->set_fragment_shader_index(3);
-
+    {
+        auto* posInput = postProcessPipeline->add_in_vertex_attributes();
+        posInput->set_name("pos");
+        posInput->set_binding(0);
+        posInput->set_stage(core::pb::VERTEX);
+        posInput->set_type(core::pb::Attribute_Type_VEC3);
+        posInput->set_type_name("vec3");
+        auto* texCoords = postProcessPipeline->add_in_vertex_attributes();
+        texCoords->set_name("texCoords");
+        texCoords->set_binding(0);
+        texCoords->set_stage(core::pb::VERTEX);
+        texCoords->set_type(core::pb::Attribute_Type_VEC2);
+        texCoords->set_type_name("vec2");
+    }
 
     auto* defaultMaterial = scene.add_materials();
     defaultMaterial->set_pipeline_index(0);
@@ -525,6 +589,19 @@ core::pb::Scene Scene07()
     pipeline->set_depth_test_enable(true);
     pipeline->set_depth_compare_op(core::pb::Pipeline_DepthCompareOp_LESS);
     pipeline->set_depth_mask(true);
+    auto* posInput = pipeline->add_in_vertex_attributes();
+    posInput->set_name("pos");
+    posInput->set_binding(0);
+    posInput->set_stage(core::pb::VERTEX);
+    posInput->set_type(core::pb::Attribute_Type_VEC3);
+    posInput->set_type_name("vec3");
+    auto* texCoords = pipeline->add_in_vertex_attributes();
+    texCoords->set_name("texCoords");
+    texCoords->set_binding(0);
+    texCoords->set_stage(core::pb::VERTEX);
+    texCoords->set_type(core::pb::Attribute_Type_VEC2);
+    texCoords->set_type_name("vec2");
+
 
     auto* material = scene.add_materials();
     material->set_pipeline_index(0);
@@ -579,7 +656,7 @@ core::pb::Scene Scene07()
 
 void HelloVulkanProgram::Begin() 
 {
-    scene_.SetScene(Scene1());
+    scene_.SetScene(Scene07());
 
     sceneManager_.LoadScene(&scene_);
 }

@@ -37,6 +37,16 @@ constexpr std::array<const char*, 1> deviceExtensions =
         {
                 VK_KHR_SWAPCHAIN_EXTENSION_NAME
         };
+constexpr std::array raytracingDeviceExtensions =
+{
+    VK_KHR_ACCELERATION_STRUCTURE_EXTENSION_NAME,
+    VK_KHR_RAY_TRACING_PIPELINE_EXTENSION_NAME,
+    VK_KHR_BUFFER_DEVICE_ADDRESS_EXTENSION_NAME,
+    VK_KHR_DEFERRED_HOST_OPERATIONS_EXTENSION_NAME,
+    VK_EXT_DESCRIPTOR_INDEXING_EXTENSION_NAME,
+    VK_KHR_SPIRV_1_4_EXTENSION_NAME,
+    VK_KHR_SHADER_FLOAT_CONTROLS_EXTENSION_NAME
+};
 
 bool CheckValidationLayerSupport();
 void PopulateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT& createInfo);
@@ -60,6 +70,7 @@ VkFormat FindDepthFormat(VkPhysicalDevice physicalDevice);
 VkImageView CreateImageView(VkDevice device, VkImage image, VkFormat format, VkImageAspectFlags aspectFlags);
 std::optional<VkShaderModule> CreateShaderModule(const core::BufferFile& bufferFile, VkDevice device);
 
+bool CheckRaytracingExtensionSupport(VkPhysicalDevice device);
 
 template<typename T>
 T GetFuncPointer(VkInstance instance, std::string_view name)

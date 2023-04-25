@@ -53,7 +53,8 @@ bool Pipeline::LoadRasterizePipeline(const core::pb::Pipeline& pipelinePb,
     vertexInputBindingDescription.binding = 0;
     vertexInputBindingDescription.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
     vertexInputBindingDescription.stride = sizeof(core::Vertex);
-    
+
+
     std::array<VkVertexInputAttributeDescription, 5> vertexAttributeDescriptors;
     auto& positionAttribute = vertexAttributeDescriptors[0];
     positionAttribute.format = VK_FORMAT_R32G32B32_SFLOAT;
@@ -87,9 +88,9 @@ bool Pipeline::LoadRasterizePipeline(const core::pb::Pipeline& pipelinePb,
 
     VkPipelineVertexInputStateCreateInfo vertexInputInfo{};
     vertexInputInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
-    vertexInputInfo.vertexBindingDescriptionCount =  1;
-    vertexInputInfo.pVertexBindingDescriptions = &vertexInputBindingDescription;
-    vertexInputInfo.vertexAttributeDescriptionCount = vertexAttributeDescriptors.size();
+    vertexInputInfo.vertexBindingDescriptionCount = pipelinePb.in_vertex_attributes_size() == 0 ? 0:1;
+    vertexInputInfo.pVertexBindingDescriptions = pipelinePb.in_vertex_attributes_size() == 0 ? VK_NULL_HANDLE : &vertexInputBindingDescription;
+    vertexInputInfo.vertexAttributeDescriptionCount = pipelinePb.in_vertex_attributes_size();
     vertexInputInfo.pVertexAttributeDescriptions =  vertexAttributeDescriptors.data(); // Optional
 
     VkPipelineInputAssemblyStateCreateInfo inputAssembly{};
@@ -218,7 +219,6 @@ bool Pipeline::LoadRasterizePipeline(const core::pb::Pipeline& pipelinePb,
     }
     int basePushConstantIndex = 0;
     std::vector<VkPushConstantRange> pushConstantRanges{};
-    //TODO descriptor set layout for uniform buffer and sampler
     std::vector<VkDescriptorSetLayoutBinding > descriptorSetLayoutBindings;
 
     for(auto& shader: shaderInfo)
@@ -338,7 +338,6 @@ bool Pipeline::LoadRasterizePipeline(const core::pb::Pipeline& pipelinePb,
     auto renderPass = GetCurrentRenderPass();
 
     VkGraphicsPipelineCreateInfo pipelineInfo{};
-    //TODO manage depth stencil if any
     VkPipelineDepthStencilStateCreateInfo depthStencil{};
     if(pipelinePb.depth_test_enable())
     {

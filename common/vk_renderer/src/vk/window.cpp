@@ -76,7 +76,7 @@ void Window::CreateInstance()
     appInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
     appInfo.pApplicationName = config_.window_name().c_str();
     appInfo.applicationVersion = VK_MAKE_VERSION(1, 0, 0);
-    appInfo.pEngineName = "GPR5300 engine";
+    appInfo.pEngineName = "Neko2 engine";
     appInfo.engineVersion = VK_MAKE_VERSION(1, 0, 0);
     appInfo.apiVersion = GetVulkanVersion();
 
@@ -192,9 +192,17 @@ void Window::CreateLogicalDevice() {
     createInfo.queueCreateInfoCount = static_cast<std::uint32_t>(queueCreateInfos.size());
 
     createInfo.pEnabledFeatures = &deviceFeatures;
-
-    createInfo.enabledExtensionCount = static_cast<std::uint32_t>(deviceExtensions.size());
-    createInfo.ppEnabledExtensionNames = deviceExtensions.data();
+    std::vector allDeviceExtensions(deviceExtensions.cbegin(), deviceExtensions.cend());
+    if(CheckRaytracingExtensionSupport(driver_.physicalDevice))
+    {
+        LogDebug("Adding Raytracing Device Extensions");
+        allDeviceExtensions.insert(
+            allDeviceExtensions.end(), 
+            raytracingDeviceExtensions.cbegin(), 
+            raytracingDeviceExtensions.cend());
+    }
+    createInfo.enabledExtensionCount = static_cast<std::uint32_t>(allDeviceExtensions.size());
+    createInfo.ppEnabledExtensionNames = allDeviceExtensions.data();
 
     if (config_.enable_debug())
     {
@@ -215,7 +223,8 @@ void Window::CreateLogicalDevice() {
     vkGetDeviceQueue(driver_.device, indices.presentFamily.value(), 0, &driver_.presentQueue);
 }
 
-void Window::CreateSurface() {
+void Window::CreateSurface()
+{
     LogDebug("Creating Surface");
     if (!SDL_Vulkan_CreateSurface(window_, driver_.instance, &driver_.surface))
     {

@@ -148,6 +148,23 @@ QueueFamilyIndices FindQueueFamilies(VkPhysicalDevice device, VkSurfaceKHR surfa
     return indices;
 }
 
+bool CheckRaytracingExtensionSupport(VkPhysicalDevice device)
+{
+    uint32_t extensionCount;
+    vkEnumerateDeviceExtensionProperties(device, nullptr, &extensionCount, nullptr);
+
+    std::vector<VkExtensionProperties> availableExtensions(extensionCount);
+    vkEnumerateDeviceExtensionProperties(device, nullptr, &extensionCount, availableExtensions.data());
+
+    std::set<std::string> raytracingExtensions(raytracingDeviceExtensions.cbegin(), raytracingDeviceExtensions.cend());
+
+    for (const auto& extension : availableExtensions)
+    {
+        raytracingExtensions.erase(extension.extensionName);
+    }
+
+    return raytracingExtensions.empty();
+}
 
 bool CheckDeviceExtensionSupport(VkPhysicalDevice device)
 {
@@ -169,6 +186,7 @@ bool CheckDeviceExtensionSupport(VkPhysicalDevice device)
 
     return requiredExtensions.empty();
 }
+
 
 
 SwapChainSupportDetails QuerySwapChainSupport(VkPhysicalDevice device, VkSurfaceKHR surface)
@@ -243,7 +261,10 @@ int RateDeviceSuitability(VkPhysicalDevice device, VkSurfaceKHR surface)
     {
         score += 1000;
     }
-
+    if(CheckRaytracingExtensionSupport(device))
+    {
+        score += 500;
+    }
     // Maximum possible size of textures affects graphics quality
     score += deviceProperties.limits.maxImageDimension2D;
 
