@@ -17,6 +17,14 @@ static Engine* instance = nullptr;
 Engine::Engine() : window_(config_)
 {
     instance = this;
+    const auto& fileSystem = core::FilesystemLocator::get();
+
+    if (!fileSystem.IsRegularFile(configFilename))
+    {
+        config_.set_major_version(1);
+        config_.set_minor_version(2);
+        config_.set_es(false);
+    }
 }
 
 VkCommandBuffer Engine::BeginSingleTimeCommands()
@@ -295,6 +303,17 @@ void Engine::CopyImageFromBuffer(const Buffer& srcBuffer, const Image& image, in
     EndSingleTimeCommands(commandBuffer);
 }
 
+void Engine::SetVersion(int major, int minor)
+{
+    config_.set_major_version(major);
+    config_.set_minor_version(minor);
+}
+
+std::uint32_t Engine::GetVulkanVersion() const
+{
+    return VK_MAKE_API_VERSION(0, config_.major_version(), config_.minor_version(), 0);
+}
+
 void Engine::CopyBuffer(const Buffer& srcBuffer, const Buffer& dstBuffer, std::size_t bufferSize)
 {
     VkCommandBuffer commandBuffer = BeginSingleTimeCommands();
@@ -314,7 +333,7 @@ void Engine::Begin()
     window_.Begin();
 
     VmaAllocatorCreateInfo allocatorInfo = {};
-    allocatorInfo.vulkanApiVersion = VK_API_VERSION_1_0;
+    allocatorInfo.vulkanApiVersion = GetVulkanVersion();
     allocatorInfo.physicalDevice = window_.GetDriver().physicalDevice;
     allocatorInfo.device = window_.GetDriver().device;
     allocatorInfo.instance = window_.GetDriver().instance;
@@ -557,5 +576,10 @@ Engine& GetEngine()
 VmaAllocator& GetAllocator()
 {
     return instance->GetAllocator();
+}
+
+std::uint32_t GetVulkanVersion()
+{
+    return instance->GetVulkanVersion();
 }
 }

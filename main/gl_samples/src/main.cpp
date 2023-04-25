@@ -1,3 +1,5 @@
+#include <argh.h>
+
 #include "gl/engine.h"
 #include "sample_program.h"
 
@@ -6,11 +8,17 @@
 
 #include "py_interface.h"
 
-int main([[maybe_unused]]int argc, [[maybe_unused]] char** argv)
+int main([[maybe_unused]]int argc, char** argv)
 {
+    argh::parser cmdl(argv);
     core::DefaultFilesystem filesystem;
     core::FilesystemLocator::provide(&filesystem);
     gl::Engine engine;
+    int major = 0, minor = 0;
+    if ((cmdl({ "-M", "--major" }) >> major) && (cmdl({ "-m", "--minor" }) >> minor))
+    {
+        engine.SetVersion(major, minor, cmdl[{ "-es", "--es" }]);
+    }
     core::PyManager pyManager;
     core::ImportNativeScript();
 

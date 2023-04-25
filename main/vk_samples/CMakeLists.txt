@@ -5,7 +5,7 @@ copydata(${CMAKE_CURRENT_SOURCE_DIR} vk_samples)
 checkvkshaders(${CMAKE_CURRENT_SOURCE_DIR} vk_samples)
 
 target_include_directories(vk_samples PRIVATE include/)
-target_link_libraries(vk_samples PRIVATE Core CommonVK CommonPy)
+target_link_libraries(vk_samples PRIVATE Core CommonVK CommonPy argh)
 set_target_properties(vk_samples PROPERTIES UNITY_BUILD ON)
 set_target_properties (vk_samples PROPERTIES FOLDER Main)
 set_target_properties (vk_samples_DATA PROPERTIES FOLDER Main)

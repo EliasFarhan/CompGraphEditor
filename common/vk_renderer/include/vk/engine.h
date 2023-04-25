@@ -51,6 +51,10 @@ public:
     VmaAllocator& GetAllocator() { return allocator_; }
     void CopyBuffer(const Buffer& srcBuffer, const Buffer& dstBuffer, std::size_t bufferSize);
     void CopyImageFromBuffer(const Buffer& srcBuffer, const Image& image, int width, int height, int layerCount);
+
+    void SetVersion(int major, int minor);
+    std::uint32_t GetVulkanVersion() const;
+
 protected:
     void Begin() override;
     void End() override;
@@ -73,7 +77,7 @@ private:
     TextureManager textureManager_;
     Renderer renderer_;
     ImGuiManager imGuiManager_{};
-    VmaAllocator allocator_;
+    VmaAllocator allocator_{};
 
 };
 
@@ -81,5 +85,6 @@ Renderer& GetRenderer();
 Window& GetWindow();
 Engine& GetEngine();
 VmaAllocator& GetAllocator();
+std::uint32_t GetVulkanVersion();
 
 }

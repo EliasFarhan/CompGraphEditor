@@ -9,7 +9,6 @@
 
 int main([[maybe_unused]] int argc, [[maybe_unused]] char** argv)
 {
-    
     core::PhysFilesystem physFilesystem(argv[0]);
     physFilesystem.Begin();
     core::FilesystemLocator::provide(&physFilesystem);
@@ -24,6 +23,11 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char** argv)
         player.SetScene(cmdl[1]);
     }
     gl::Engine engine;
+    int major = 0, minor = 0;
+    if (cmdl({ "-M", "--major" }) >> major && cmdl({ "-m", "--minor" }) >> minor)
+    {
+        engine.SetVersion(major, minor, cmdl[{ "-es", "--es" }]);
+    }
     engine.RegisterOnGuiInterface(&player);
     engine.RegisterSystem(&player);
     engine.RegisterEventObserver(&player);

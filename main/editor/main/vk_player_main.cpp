@@ -27,6 +27,11 @@ int main([[maybe_unused]]int argc, char** argv)
         return EXIT_FAILURE;
     }
     vk::Engine engine;
+    int major = 0, minor = 0;
+    if (cmdl({ "-M", "--major" }) >> major && cmdl({ "-m", "--minor" }) >> minor)
+    {
+        engine.SetVersion(major, minor);
+    }
     engine.RegisterOnGuiInterface(&player);
     engine.RegisterSystem(&player);
     engine.RegisterEventObserver(&player);

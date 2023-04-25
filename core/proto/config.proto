@@ -12,4 +12,7 @@ message Config
     bool fullscreen = 4;
     bool vertical_sync = 5;
     bool enable_debug = 6;
+    int32 major_version = 7;
+    int32 minor_version = 8;
+    bool es = 9;
 }

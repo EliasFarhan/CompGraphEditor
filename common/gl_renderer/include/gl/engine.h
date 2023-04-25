@@ -9,7 +9,9 @@ namespace gl
 class Engine: public core::Engine
 {
 public:
+    Engine();
     TextureManager& GetTextureManager() override;
+    void SetVersion(int major, int minor, bool es);
 protected:
     void Begin() override;
     void End() override;

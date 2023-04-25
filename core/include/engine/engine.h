@@ -55,12 +55,13 @@ protected:
 
     SDL_Window* window_ = nullptr;
     pb::Config config_;
+protected:
+    inline static constexpr std::string_view configFilename = "config.bin";
 private:
     core::ModelManager modelManager_;
     std::vector<System*> systems_;
     std::vector<OnEventInterface*> onEventInterfaces;
     std::vector<OnGuiInterface*> imguiDrawInterfaces;
-    inline static constexpr std::string_view configFilename = "config.bin";
 }; 
 
 glm::uvec2 GetWindowSize();

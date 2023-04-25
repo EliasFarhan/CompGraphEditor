@@ -8,6 +8,7 @@
 #include <imgui_impl_opengl3.h>
 #include <glm/vec2.hpp>
 
+#include "engine/filesystem.h"
 #include "gl/debug.h"
 
 #ifdef TRACY_ENABLE
@@ -16,9 +17,28 @@
 
 namespace gl
 {
+Engine::Engine() 
+{
+    const auto& fileSystem = core::FilesystemLocator::get();
+
+    if (!fileSystem.IsRegularFile(configFilename))
+    {
+        config_.set_major_version(4);
+        config_.set_minor_version(5);
+        config_.set_es(false);
+    }
+}
+
 gl::TextureManager& Engine::GetTextureManager()
 {
     return textureManager_;
+}
+
+void Engine::SetVersion(int major, int minor, bool es)
+{
+    config_.set_major_version(major);
+    config_.set_minor_version(minor);
+    config_.set_es(es);
 }
 
 void Engine::Begin()
@@ -29,15 +49,10 @@ void Engine::Begin()
 #endif
     SDL_Init(SDL_INIT_VIDEO | SDL_INIT_GAMECONTROLLER);
     // Set our OpenGL version.
-#if true
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 4);
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 6);
-#else
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_ES);
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 1);
-#endif
+
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, config_.es()? SDL_GL_CONTEXT_PROFILE_ES:SDL_GL_CONTEXT_PROFILE_CORE);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, config_.major_version());
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, config_.minor_version());
 
     SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
     SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 8);
