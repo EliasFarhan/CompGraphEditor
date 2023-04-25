@@ -1,11 +1,11 @@
 #include "vk/window.h"
 #include "vk/utils.h"
 #include "utils/log.h"
+#include "vk/engine.h"
 
 #include <fmt/core.h>
 #include <SDL_vulkan.h>
 
-#include "vk/engine.h"
 
 namespace vk
 {
@@ -66,6 +66,12 @@ void Window::CreateWindow() {
 
 void Window::CreateInstance()
 {
+    if(volkInitialize() != VK_SUCCESS)
+    {
+        LogError("Could not initialize volk!");
+        std::terminate();
+    }
+
     LogDebug("Creating Instance");
     if (config_.enable_debug() && !CheckValidationLayerSupport())
     {
@@ -145,6 +151,7 @@ void Window::CreateInstance()
         LogError("Failed to create instance!\n");
         std::terminate();
     }
+    volkLoadInstance(driver_.instance);
 
 }
 
@@ -221,6 +228,7 @@ void Window::CreateLogicalDevice() {
     }
     vkGetDeviceQueue(driver_.device, indices.graphicsFamily.value(), 0, &driver_.graphicsQueue);
     vkGetDeviceQueue(driver_.device, indices.presentFamily.value(), 0, &driver_.presentQueue);
+    volkLoadDevice(driver_.device);
 }
 
 void Window::CreateSurface()

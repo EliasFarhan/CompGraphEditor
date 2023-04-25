@@ -1,6 +1,6 @@
 #pragma once
 #include "proto/config.pb.h"
-#include <vulkan/vulkan.h>
+#include <volk.h>
 #include <SDL.h>
 
 #include <vector>

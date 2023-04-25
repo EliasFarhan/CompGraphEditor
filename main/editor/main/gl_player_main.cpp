@@ -28,6 +28,7 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char** argv)
     {
         engine.SetVersion(major, minor, cmdl[{ "-es", "--es" }]);
     }
+    engine.SetWindowName("OpenGL Scene Player");
     engine.RegisterOnGuiInterface(&player);
     engine.RegisterSystem(&player);
     engine.RegisterEventObserver(&player);

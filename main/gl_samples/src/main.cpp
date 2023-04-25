@@ -23,6 +23,7 @@ int main([[maybe_unused]]int argc, char** argv)
     {
         LogWarning(fmt::format("Major {}, minor: {}", cmdl({ "-M", "--major" }).str(), cmdl({ "-m", "--minor" }).str()));
     }
+    engine.SetWindowName("OpenGL Samples");
     core::PyManager pyManager;
     core::ImportNativeScript();
 

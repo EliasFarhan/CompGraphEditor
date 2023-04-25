@@ -670,8 +670,6 @@ void HelloVulkanProgram::End()
 }
 void HelloVulkanProgram::OnGui()
 {
-    ImGui::Begin("Hello Vulkan");
-    ImGui::End();
 }
 
 void HelloVulkanProgram::OnEvent(SDL_Event& event)

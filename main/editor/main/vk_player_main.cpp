@@ -32,6 +32,8 @@ int main([[maybe_unused]]int argc, char** argv)
     {
         engine.SetVersion(major, minor);
     }
+    engine.DisableImGui();
+    engine.SetWindowName("Vulkan Scene Player");
     engine.RegisterOnGuiInterface(&player);
     engine.RegisterSystem(&player);
     engine.RegisterEventObserver(&player);

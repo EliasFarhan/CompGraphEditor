@@ -95,7 +95,10 @@ void Engine::Run()
             {
                 eventInterface->OnEvent(event);
             }
-            ImGui_ImplSDL2_ProcessEvent(&event);
+            if (!config_.no_imgui())
+            {
+                ImGui_ImplSDL2_ProcessEvent(&event);
+            }
         }
 
         PreUpdate();
@@ -153,6 +156,12 @@ void Engine::RegisterSystem(System* system)
 {
     systems_.push_back(system);
 }
+
+void Engine::DisableImGui()
+{
+    config_.set_no_imgui(true);
+}
+
 Engine::Engine()
 {
 

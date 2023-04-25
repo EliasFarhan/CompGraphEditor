@@ -331,12 +331,30 @@ void Engine::CopyBuffer(const Buffer& srcBuffer, const Buffer& dstBuffer, std::s
 void Engine::Begin()
 {
     window_.Begin();
-
+    VmaVulkanFunctions vmaVulkanFunctions{};
+    vmaVulkanFunctions.vkAllocateMemory = vkAllocateMemory;
+    vmaVulkanFunctions.vkBindBufferMemory = vkBindBufferMemory;
+    vmaVulkanFunctions.vkBindImageMemory = vkBindImageMemory;
+    vmaVulkanFunctions.vkCreateBuffer = vkCreateBuffer;
+    vmaVulkanFunctions.vkCreateImage = vkCreateImage;
+    vmaVulkanFunctions.vkDestroyBuffer = vkDestroyBuffer;
+    vmaVulkanFunctions.vkDestroyImage = vkDestroyImage;
+    vmaVulkanFunctions.vkFlushMappedMemoryRanges = vkFlushMappedMemoryRanges;
+    vmaVulkanFunctions.vkFreeMemory = vkFreeMemory;
+    vmaVulkanFunctions.vkGetBufferMemoryRequirements = vkGetBufferMemoryRequirements;
+    vmaVulkanFunctions.vkGetImageMemoryRequirements = vkGetImageMemoryRequirements;
+    vmaVulkanFunctions.vkGetPhysicalDeviceMemoryProperties = vkGetPhysicalDeviceMemoryProperties;
+    vmaVulkanFunctions.vkGetPhysicalDeviceProperties = vkGetPhysicalDeviceProperties;
+    vmaVulkanFunctions.vkInvalidateMappedMemoryRanges = vkInvalidateMappedMemoryRanges;
+    vmaVulkanFunctions.vkMapMemory = vkMapMemory;
+    vmaVulkanFunctions.vkUnmapMemory = vkUnmapMemory;
+    vmaVulkanFunctions.vkCmdCopyBuffer = vkCmdCopyBuffer;
     VmaAllocatorCreateInfo allocatorInfo = {};
     allocatorInfo.vulkanApiVersion = GetVulkanVersion();
     allocatorInfo.physicalDevice = window_.GetDriver().physicalDevice;
     allocatorInfo.device = window_.GetDriver().device;
     allocatorInfo.instance = window_.GetDriver().instance;
+    allocatorInfo.pVulkanFunctions = &vmaVulkanFunctions;
     vmaCreateAllocator(&allocatorInfo, &allocator_);
 
     window_.CreateSwapChainObjects();
@@ -344,7 +362,7 @@ void Engine::Begin()
     CreateCommandBuffers();
     CreateSyncObjects();
     core::Engine::Begin();
-    imGuiManager_.Begin();
+    //imGuiManager_.Begin();
 }
 
 void Engine::End()
@@ -352,7 +370,7 @@ void Engine::End()
     const auto& driver = GetDriver();
     vkDeviceWaitIdle(driver.device);
     window_.CleanupSwapChain();
-    imGuiManager_.End();
+    //imGuiManager_.End();
     vkFreeCommandBuffers(driver.device, renderer_.commandPool,
         static_cast<uint32_t>(renderer_.commandBuffers.size()),
         renderer_.commandBuffers.data());
@@ -418,12 +436,12 @@ void Engine::PreUpdate()
 
 void Engine::PreImGuiDraw()
 {
-    imGuiManager_.PreImGuiDraw();
+    //imGuiManager_.PreImGuiDraw();
 }
 
 void Engine::PostImGuiDraw()
 {
-    imGuiManager_.PostImGuiDraw();
+    //imGuiManager_.PostImGuiDraw();
 }
 
 void Engine::SwapWindow()

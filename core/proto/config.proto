@@ -15,4 +15,5 @@ message Config
     int32 major_version = 7;
     int32 minor_version = 8;
     bool es = 9;
+    bool no_imgui = 10;
 }

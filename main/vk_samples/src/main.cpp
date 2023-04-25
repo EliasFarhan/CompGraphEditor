@@ -22,6 +22,8 @@ int main([[maybe_unused]] int argc, char** argv)
     {
         engine.SetVersion(major, minor);
     }
+    engine.DisableImGui();
+    engine.SetWindowName("Vulkan Samples");
     core::PyManager pyManager;
     core::ImportNativeScript();
 

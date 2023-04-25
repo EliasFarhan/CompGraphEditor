@@ -76,7 +76,7 @@ private:
     Window window_;
     TextureManager textureManager_;
     Renderer renderer_;
-    ImGuiManager imGuiManager_{};
+    //ImGuiManager imGuiManager_{};
     VmaAllocator allocator_{};
 
 };

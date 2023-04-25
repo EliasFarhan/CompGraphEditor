@@ -26,7 +26,7 @@ void ImGuiManager::Begin()
 
     InitDescriptorPool();
 
-    const auto& driver = window.GetDriver();
+    auto& driver = window.GetDriver();
     const auto& swapchain = window.GetSwapChain();
     ImGui_ImplVulkan_InitInfo initInfo{};
     initInfo.Instance = driver.instance;
@@ -40,7 +40,9 @@ void ImGuiManager::Begin()
     initInfo.Subpass = 0;
     
     const auto& renderPass = GetCurrentRenderPass();
-
+    ImGui_ImplVulkan_LoadFunctions([](const char* function_name, void* vulkan_instance) {
+        return vkGetInstanceProcAddr(*(reinterpret_cast<VkInstance*>(vulkan_instance)), function_name);
+        }, &driver.instance);
     ImGui_ImplVulkan_Init(&initInfo, renderPass);
 
     UploadFontAtlas();

@@ -39,6 +39,7 @@ public:
     void RegisterOnGuiInterface(OnGuiInterface* imguiDrawInterface);
     void RegisterSystem(System* system);
 
+    void DisableImGui();
 
     void SetWindowName(std::string_view windowName);
     glm::uvec2 GetWindowSize() const;
