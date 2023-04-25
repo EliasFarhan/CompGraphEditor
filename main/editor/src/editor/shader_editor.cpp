@@ -255,12 +255,19 @@ void ShaderEditor::Delete()
 
 std::span<const std::string_view> ShaderEditor::GetExtensions() const
 {
-    static constexpr std::array<std::string_view, 4> extensions
+    static constexpr std::array<std::string_view, 11> extensions
     {
         ".vert",
         ".frag",
         ".comp",
-        ".geom"
+        ".geom",
+        ".tesc",
+        ".tese",
+        ".rchit",
+        ".rahit",
+        ".rgen",
+        ".rmiss",
+        ".rint"
     };
     return extensions;
 }

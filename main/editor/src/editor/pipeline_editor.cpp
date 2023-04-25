@@ -38,6 +38,8 @@ void PipelineEditor::DrawInspector()
         currentPipelineInfo.info.mutable_pipeline()->set_type(static_cast<core::pb::Pipeline_Type>(index));
     }
 
+    const auto* shaderEditor = dynamic_cast<ShaderEditor*>(editor->GetEditorSystem(EditorType::SHADER));
+    const auto& shaders = shaderEditor->GetShaders();
     //Rasterizer pipeline
     if (currentPipelineInfo.info.pipeline().type() == core::pb::Pipeline_Type_RASTERIZE)
     {
@@ -46,8 +48,6 @@ void PipelineEditor::DrawInspector()
         {
             ImGui::TextColored(ImVec4(1, 0, 0, 1), "Pipeline is not completed (require at Vertex and Fragment shader)");
         }
-        const auto* shaderEditor = dynamic_cast<ShaderEditor*>(editor->GetEditorSystem(EditorType::SHADER));
-        const auto& shaders = shaderEditor->GetShaders();
         const auto* vertexShader = shaderEditor->GetShader(currentPipelineInfo.vertexShaderId);
         if (ImGui::BeginCombo("Vertex Shader", vertexShader ? vertexShader->filename.data() : "No vertex shader"))
         {
@@ -85,7 +85,60 @@ void PipelineEditor::DrawInspector()
             }
             ImGui::EndCombo();
         }
-
+        const auto* geometryShader = shaderEditor->GetShader(currentPipelineInfo.geometryShaderId);
+        if (ImGui::BeginCombo("Geometry Shader", geometryShader ? geometryShader->filename.data() : "No Geometry shader"))
+        {
+            for (auto& shader : shaders)
+            {
+                if (shader.info.type() != core::pb::GEOMETRY)
+                {
+                    continue;
+                }
+                if (ImGui::Selectable(shader.filename.c_str(), shader.resourceId == currentPipelineInfo.geometryShaderId))
+                {
+                    currentPipelineInfo.geometryShaderId = shader.resourceId;
+                    currentPipelineInfo.info.set_geometry_shader_path(shader.info.path());
+                    ReloadPipeline(currentIndex_);
+                }
+            }
+            ImGui::EndCombo();
+        }
+        const auto* tessControlShader = shaderEditor->GetShader(currentPipelineInfo.tessControlShaderId);
+        if (ImGui::BeginCombo("Tesselation Control Shader", tessControlShader ? tessControlShader->filename.data() : "No Tesselation Control shader"))
+        {
+            for (auto& shader : shaders)
+            {
+                if (shader.info.type() != core::pb::TESSELATION_CONTROL)
+                {
+                    continue;
+                }
+                if (ImGui::Selectable(shader.filename.c_str(), shader.resourceId == currentPipelineInfo.tessControlShaderId))
+                {
+                    currentPipelineInfo.tessControlShaderId = shader.resourceId;
+                    currentPipelineInfo.info.set_tess_control_shader_path(shader.info.path());
+                    ReloadPipeline(currentIndex_);
+                }
+            }
+            ImGui::EndCombo();
+        }
+        const auto* tessEvalShader = shaderEditor->GetShader(currentPipelineInfo.tessEvalShaderId);
+        if (ImGui::BeginCombo("Tesselation Evaluation Shader", tessEvalShader ? tessEvalShader->filename.data() : "No Tesselation Evaluation shader"))
+        {
+            for (auto& shader : shaders)
+            {
+                if (shader.info.type() != core::pb::TESSELATION_EVAL)
+                {
+                    continue;
+                }
+                if (ImGui::Selectable(shader.filename.c_str(), shader.resourceId == currentPipelineInfo.tessEvalShaderId))
+                {
+                    currentPipelineInfo.tessEvalShaderId = shader.resourceId;
+                    currentPipelineInfo.info.set_tess_eval_shader_path(shader.info.path());
+                    ReloadPipeline(currentIndex_);
+                }
+            }
+            ImGui::EndCombo();
+        }
         ImGui::Separator();
         bool depthTesting = currentPipelineInfo.info.pipeline().depth_test_enable();
         if(ImGui::Checkbox("Depth Testing", &depthTesting))
@@ -389,7 +442,24 @@ void PipelineEditor::DrawInspector()
     }
     else if(currentPipelineInfo.info.pipeline().type() == core::pb::Pipeline_Type_COMPUTE)
     {
-        
+        const auto* computeShader = shaderEditor->GetShader(currentPipelineInfo.computeShaderId);
+        if (ImGui::BeginCombo("Compute Shader", computeShader ? computeShader->filename.data() : "No Compute shader"))
+        {
+            for (auto& shader : shaders)
+            {
+                if (shader.info.type() != core::pb::COMPUTE)
+                {
+                    continue;
+                }
+                if (ImGui::Selectable(shader.filename.c_str(), shader.resourceId == currentPipelineInfo.computeShaderId))
+                {
+                    currentPipelineInfo.geometryShaderId = shader.resourceId;
+                    currentPipelineInfo.info.set_compute_shader_path(shader.info.path());
+                    ReloadPipeline(currentIndex_);
+                }
+            }
+            ImGui::EndCombo();
+        }
     }
 }
 bool PipelineEditor::DrawContentList(bool unfocus)

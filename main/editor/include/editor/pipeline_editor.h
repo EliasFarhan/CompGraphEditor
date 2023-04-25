@@ -13,6 +13,10 @@ struct PipelineInfo
     ResourceId resourceId = INVALID_RESOURCE_ID;
     ResourceId vertexShaderId = INVALID_RESOURCE_ID;
     ResourceId fragmentShaderId = INVALID_RESOURCE_ID;
+    ResourceId geometryShaderId = INVALID_RESOURCE_ID;
+    ResourceId computeShaderId = INVALID_RESOURCE_ID;
+    ResourceId tessControlShaderId = INVALID_RESOURCE_ID;
+    ResourceId tessEvalShaderId = INVALID_RESOURCE_ID;
 };
 
 class PipelineEditor final : public EditorSystem

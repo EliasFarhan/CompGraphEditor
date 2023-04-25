@@ -315,6 +315,7 @@ bool SceneEditor::ExportAndPlayScene() const
         LogWarning("Could not export no scene selected");
         return false;
     }
+    bool isVulkan = IsVulkanScene();
     auto* editor = Editor::GetInstance();
     const auto& resourceManager = editor->GetResourceManager();
     const auto* renderPassEditor = dynamic_cast<RenderPassEditor*>(editor->GetEditorSystem(EditorType::RENDER_PASS));
@@ -503,49 +504,47 @@ bool SceneEditor::ExportAndPlayScene() const
                     *newPipeline = pipeline->info.pipeline();
                     resourceIndexMap[pipeline->resourceId] = pipelineIndex;
 
-                    if(pipeline->vertexShaderId == INVALID_RESOURCE_ID)
+                    const auto shaderExportFunc = [&resourceIndexMap, &exportScene, &shaderEditor, isVulkan](ResourceId shaderId)
+                    {
+                        if (shaderId == INVALID_RESOURCE_ID)
+                        {
+                            return -1;
+                        }
+                        const auto* shader = shaderEditor->GetShader(shaderId);
+                        const auto shaderIt = resourceIndexMap.find(shaderId);
+                        if (shaderIt == resourceIndexMap.end())
+                        {
+                            const auto shaderIndex = exportScene.shaders_size();
+                            auto* newShader = exportScene.add_shaders();
+                            *newShader = shader->info;
+                            newShader->set_path(isVulkan ? shader->info.path() + ".spv" : shader->info.path());
+                            resourceIndexMap[shader->resourceId] = shaderIndex;
+                            return shaderIndex;
+                        }
+                        else
+                        {
+                            return shaderIt->second;
+                        }
+                    };
+
+                    int vertexShaderIndex = shaderExportFunc(pipeline->vertexShaderId);
+                    if(vertexShaderIndex == -1)
                     {
                         LogWarning(fmt::format("Could not export scene, missing vertex shader in pipeline. Pipeline: {}", pipeline->path));
                         return false;
                     }
-                    const auto* vertexShader = shaderEditor->GetShader(pipeline->vertexShaderId);
-                    auto vertexShaderIt = resourceIndexMap.find(pipeline->vertexShaderId);
-                    if(vertexShaderIt == resourceIndexMap.end())
-                    {
-                        const auto vertexShaderIndex = exportScene.shaders_size();
-                        auto* newVertexShader = exportScene.add_shaders();
-                        *newVertexShader = vertexShader->info;
-                        newVertexShader->set_path(IsVulkanScene()?vertexShader->info.path() + ".spv": vertexShader->info.path());
-                        resourceIndexMap[vertexShader->resourceId] = vertexShaderIndex;
-                        newPipeline->set_vertex_shader_index(vertexShaderIndex);
-                    }
-                    else
-                    {
-                        newPipeline->set_vertex_shader_index(vertexShaderIt->second);
-                    }
+                    newPipeline->set_vertex_shader_index(vertexShaderIndex);
 
-                    if (pipeline->fragmentShaderId == INVALID_RESOURCE_ID)
+                    int fragmentShaderIndex = shaderExportFunc(pipeline->fragmentShaderId);
+                    if(fragmentShaderIndex == -1)
                     {
                         LogWarning(fmt::format("Could not export scene, missing fragment shader in pipeline. Pipeline: {}", pipeline->path));
                         return false;
                     }
-                    const auto* fragmentShader = shaderEditor->GetShader(pipeline->fragmentShaderId);
-                    auto fragmentShaderIt = resourceIndexMap.find(pipeline->fragmentShaderId);
-                    if (fragmentShaderIt == resourceIndexMap.end())
-                    {
-                        const auto fragmentShaderIndex = exportScene.shaders_size();
-                        auto* newFragmentShader = exportScene.add_shaders();
-                        *newFragmentShader = fragmentShader->info;
-                        newFragmentShader->set_path(IsVulkanScene() ? fragmentShader->info.path() + ".spv" : fragmentShader->info.path());
-                        resourceIndexMap[fragmentShader->resourceId] = fragmentShaderIndex;
-                        newPipeline->set_fragment_shader_index(fragmentShaderIndex);
-                    }
-                    else
-                    {
-                        newPipeline->set_fragment_shader_index(fragmentShaderIt->second);
-                    }
-
-                    //TODO check comp/geom shaders to get index
+                    newPipeline->set_vertex_shader_index(fragmentShaderIndex);
+                    newPipeline->set_geometry_shader_index(shaderExportFunc(pipeline->geometryShaderId));
+                    newPipeline->set_tess_control_shader_index(shaderExportFunc(pipeline->tessControlShaderId));
+                    newPipeline->set_tess_eval_shader_index(shaderExportFunc(pipeline->tessEvalShaderId));
 
                     newMaterial->set_pipeline_index(pipelineIndex);
                 }

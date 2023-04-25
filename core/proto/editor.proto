@@ -7,7 +7,8 @@ import "proto/renderer.proto";
 message EditorPipeline
 {
     core.pb.Pipeline pipeline = 1;
-
+    string tess_control_shader_path = 2;
+    string tess_eval_shader_path = 3;
     string vertex_shader_path = 8;// Used by the editor
     string fragment_shader_path = 9;// Used by the editor
     string compute_shader_path = 10;// Used by the editor
