@@ -203,7 +203,7 @@ int main([[maybe_unused]] int argc, char** argv)
                 analyzeStruct( ubo.base_type_id);
             }
             const auto attributeType = GetAttributeType(type.basetype, type.vecsize, type.columns);
-            uniformJson["name"] = ubo.name;
+            uniformJson["name"] = compiler.get_name(ubo.id);
             uniformJson["type"] = attributeType;
             uniformJson["type_name"] = attributeType == core::pb::Attribute_Type_CUSTOM ? compiler.get_fallback_name(ubo.base_type_id) :
                 GetAttributeTypeName(attributeType);

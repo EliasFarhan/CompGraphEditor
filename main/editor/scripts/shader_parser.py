@@ -58,15 +58,30 @@ def analyze_vk_shader(shader_path):
     #execute the vulkan shader analyzer
     analyzer_status = subprocess.run([vk_shader_program, shader_path+".spv"], capture_output=True, text=True)
     meta_content["stderr"] = analyzer_status.stderr
+    meta_content["stdout"] = analyzer_status.stdout
     meta_content["returncode"] = analyzer_status.returncode
     if analyzer_status.returncode != 0:
         return json.dumps(meta_content)
+
+    print(analyzer_status.stdout)
     output = json.loads(analyzer_status.stdout)
-    meta_content["inputs"] = output["inputs"]
-    meta_content["outputs"] = output["outputs"]
-    meta_content["uniforms"] = output["uniforms"]
+    meta_content["in_attributes"] = output["inputs"]
+    meta_content["out_attributes"] = output["outputs"]
+    uniforms = output["uniforms"]
     meta_content["structs"] = output["structs"]
-    return json.dumps(meta_content)
+
+    new_uniforms = []
+    for uniform in uniforms:
+        for struct in meta_content["structs"]:
+            if uniform["type_name"] == struct["name"]:
+                for attrib in struct["attributes"]:
+                    new_uniforms.append({"type_name": attrib["type_name"], "name": "{}.{}".format(uniform["name"], attrib["name"])})
+    new_uniforms.extend(uniforms)
+    meta_content["uniforms"] = new_uniforms
+
+    json_output = json.dumps(meta_content)
+    print(json_output)
+    return json_output
 
 def analyze_shader(shader_path):
     """Analyze OpenGL shader"""
@@ -108,7 +123,7 @@ def analyze_shader(shader_path):
                         structs.append(analyze_struct(struct_txt))
 
                 if "uniform" in split_line:
-                    uniform_obj = {"type": split_line[1], "name": split_line[2]}
+                    uniform_obj = {"type_name": split_line[1], "name": split_line[2]}
                     uniforms.append(uniform_obj)
                 if "in" in split_line and not compute:
                     comment_index = len(split_line)
@@ -117,7 +132,7 @@ def analyze_shader(shader_path):
                     index = split_line.index('in')
                     if index > comment_index:
                         continue
-                    in_variable = {"type": split_line[index + 1], "name": split_line[index + 2]}
+                    in_variable = {"type_name": split_line[index + 1], "name": split_line[index + 2]}
                     in_attributes.append(in_variable)
                 if "out" in split_line and not compute:
                     comment_index = len(split_line)
@@ -127,7 +142,7 @@ def analyze_shader(shader_path):
                     if index > comment_index:
                         continue
                     index = split_line.index('out')
-                    out_variable = {"type": split_line[index + 1], "name": split_line[index + 2]}
+                    out_variable = {"type_name": split_line[index + 1], "name": split_line[index + 2]}
                     out_attributes.append(out_variable)
                 if "struct" in origin_line:
                     reading_struct = True
@@ -136,9 +151,9 @@ def analyze_shader(shader_path):
     new_uniforms = []
     for uniform in uniforms:
         for struct in structs:
-            if uniform["type"] == struct["name"]:
+            if uniform["type_name"] == struct["name"]:
                 for attrib in struct["attributes"]:
-                    new_uniforms.append({"type": attrib["type"], "name": "{}.{}".format(uniform["name"], attrib["name"])})
+                    new_uniforms.append({"type_name": attrib["type_name"], "name": "{}.{}".format(uniform["name"], attrib["name"])})
     uniforms.extend(new_uniforms)
     meta_content["uniforms"] = uniforms
     meta_content["in_attributes"] = in_attributes

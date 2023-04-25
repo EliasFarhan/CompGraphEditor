@@ -281,41 +281,26 @@ void ShaderEditor::Clear()
 
 bool ShaderEditor::AnalyzeShader(std::string_view path, core::pb::Shader& shaderInfo) const
 {
+    std::string result;
     json shaderJson;
     if(GetSceneEditor()->IsVulkanScene())
     {
         py::function analyzeShaderFunc = py::module_::import("scripts.shader_parser").attr("analyze_vk_shader");
-        try {
-            std::string result = static_cast<py::str>(analyzeShaderFunc(path));
-            shaderJson = json::parse(result);
-            int returnCode = shaderJson["returncode"].get<int>();
-            if (returnCode != 0)
-            {
-                LogDebug(shaderJson["stdout"].get<std::string>());
-                LogError(shaderJson["stderr"].get<std::string>());
-                return false;
-            }
+        try 
+        {
+            result = static_cast<py::str>(analyzeShaderFunc(path.data()));
         }
         catch (py::error_already_set& e)
         {
             LogError(fmt::format("Analyze shader failed for file: {}\n{}", path, e.what()));
         }
-        
     }
     else
     {
         py::function analyzeShaderFunc = py::module_::import("scripts.shader_parser").attr("analyze_shader");
         try
         {
-            std::string result = static_cast<py::str>(analyzeShaderFunc(path));
-            shaderJson = json::parse(result);
-            int returnCode = shaderJson["returncode"].get<int>();
-            if (returnCode != 0)
-            {
-                LogDebug(shaderJson["stdout"].get<std::string>());
-                LogError(shaderJson["stderr"].get<std::string>());
-                return false;
-            }
+            result = static_cast<py::str>(analyzeShaderFunc(path));
         }
         catch (py::error_already_set& e)
         {
@@ -324,12 +309,21 @@ bool ShaderEditor::AnalyzeShader(std::string_view path, core::pb::Shader& shader
     }
     try
     {
+        LogDebug(result);
+        shaderJson = json::parse(result);
+        int returnCode = shaderJson["returncode"].get<int>();
+        if (returnCode != 0)
+        {
+            LogDebug(shaderJson["stdout"].get<std::string>());
+            LogError(shaderJson["stderr"].get<std::string>());
+            return false;
+        }
         auto uniformsJson = shaderJson["uniforms"];
         shaderInfo.mutable_uniforms()->Clear();
         for(auto& uniformJson : uniformsJson)
         {
             auto uniformName = uniformJson["name"].get<std::string>();
-            auto typeName = uniformJson["type"].get<std::string>();
+            auto typeName = uniformJson["type_name"].get<std::string>();
             auto type = GetType(typeName);
             auto* newUniformInfo = shaderInfo.add_uniforms();
             newUniformInfo->set_name(uniformName);
@@ -341,7 +335,7 @@ bool ShaderEditor::AnalyzeShader(std::string_view path, core::pb::Shader& shader
         for(auto& inAttributeJson : inAttributesJson)
         {
             auto inAttributeName = inAttributeJson["name"].get<std::string>();
-            auto typeName = inAttributeJson["type"].get<std::string>();
+            auto typeName = inAttributeJson["type_name"].get<std::string>();
             auto type = GetType(typeName);
             auto* newInAttribute = shaderInfo.add_in_attributes();
             newInAttribute->set_name(inAttributeName);
@@ -353,7 +347,7 @@ bool ShaderEditor::AnalyzeShader(std::string_view path, core::pb::Shader& shader
         for(auto& outAttributeJson : outAttributesJson)
         {
             auto outAttributeName = outAttributeJson["name"].get<std::string>();
-            auto typeName = outAttributeJson["type"].get<std::string>();
+            auto typeName = outAttributeJson["type_name"].get<std::string>();
             auto type = GetType(typeName);
             auto* newOutAttribute = shaderInfo.add_out_attributes();
             newOutAttribute->set_name(outAttributeName);
@@ -362,13 +356,9 @@ bool ShaderEditor::AnalyzeShader(std::string_view path, core::pb::Shader& shader
         }
         return true;
     }
-    catch (py::error_already_set& e)
+    catch (json::exception& e)
     {
-        LogError(fmt::format("Analyze shader failed for file: {}\n{}", path, e.what()));
-    }
-    catch (json::parse_error& e)
-    {
-        LogError(fmt::format("Could not parse shader info from script\n{}", e.what()));
+        LogError(fmt::format("Could not parse shader info from script\n{}\n{}", e.what(), result));
     }
     return false;
 }
