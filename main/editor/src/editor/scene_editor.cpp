@@ -22,6 +22,7 @@
 #include "texture_editor.h"
 #include "model_editor.h"
 #include "framebuffer_editor.h"
+#include "gl/engine.h"
 
 namespace py = pybind11;
 using json = nlohmann::json;
@@ -31,7 +32,8 @@ namespace editor
 
 void ExecutePlayer(std::string_view scenePkg)
 {
-    std::string baseName = GetSceneEditor()->IsVulkanScene() ? "vk_player" : "gl_player";
+    const bool isVulkan = GetSceneEditor()->IsVulkanScene();
+    std::string baseName = isVulkan ? "vk_player" : "gl_player";
     std::string command; 
 #ifdef _MSC_VER
     fs::path executable = fmt::format("{}.exe", baseName);
@@ -48,6 +50,11 @@ void ExecutePlayer(std::string_view scenePkg)
 #else
     command = fmt::format("./{} {}", baseName, scenePkg);
 #endif
+    if(!isVulkan)
+    {
+        const auto glVersion = gl::GetGlVersion();
+        command = fmt::format("{} --major={} --minor={} {}", command, glVersion.major, glVersion.minor, glVersion.es ? "--es" : "");
+    }
     if(command.empty())
     {
         return;

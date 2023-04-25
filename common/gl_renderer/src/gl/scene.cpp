@@ -211,7 +211,7 @@ Scene::ImportStatus Scene::LoadMaterials(const PbRepeatField<core::pb::Material>
             }
         }
 
-        glCreateVertexArrays(1, &emptyMeshVao_);
+        glGenVertexArrays(1, &emptyMeshVao_);
 
         return ImportStatus::SUCCESS;
     }

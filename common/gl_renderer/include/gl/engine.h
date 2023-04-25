@@ -5,13 +5,19 @@
 
 namespace gl
 {
-
+struct GlVersion
+{
+    int major{};
+    int minor{};
+    bool es{};
+};
 class Engine: public core::Engine
 {
 public:
     Engine();
     TextureManager& GetTextureManager() override;
     void SetVersion(int major, int minor, bool es);
+    GlVersion GetGlVersion() const;
 protected:
     void Begin() override;
     void End() override;
@@ -25,4 +31,7 @@ private:
     TextureManager textureManager_;
 
 };
+
+GlVersion GetGlVersion();
+
 }

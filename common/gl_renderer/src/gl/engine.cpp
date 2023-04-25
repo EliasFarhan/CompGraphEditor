@@ -17,8 +17,10 @@
 
 namespace gl
 {
+static Engine* instance = nullptr;
 Engine::Engine() 
 {
+    instance = this;
     const auto& fileSystem = core::FilesystemLocator::get();
 
     if (!fileSystem.IsRegularFile(configFilename))
@@ -39,6 +41,11 @@ void Engine::SetVersion(int major, int minor, bool es)
     config_.set_major_version(major);
     config_.set_minor_version(minor);
     config_.set_es(es);
+}
+
+GlVersion Engine::GetGlVersion() const
+{
+    return { config_.major_version(), config_.minor_version(), config_.es() };
 }
 
 void Engine::Begin()
@@ -152,5 +159,10 @@ void Engine::SwapWindow()
 #endif
     SDL_GL_SwapWindow(window_);
     glCheckError();
+}
+
+GlVersion GetGlVersion()
+{
+    return instance->GetGlVersion();
 }
 } // namespace gl

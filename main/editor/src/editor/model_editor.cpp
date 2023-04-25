@@ -556,6 +556,10 @@ void ModelEditor::ReloadDrawCommands(std::size_t modelIndex)
 
         for(int j = 0; j < drawCommandInfo.material_paths_size(); j++)
         {
+            if (j >= drawCommand.materialIds.size())
+            {
+                break;
+            }
             if(drawCommand.materialIds[j] == INVALID_RESOURCE_ID)
             {
                 drawCommand.materialIds[j] = resourceManager.FindResourceByPath(drawCommandInfo.material_paths(j));
