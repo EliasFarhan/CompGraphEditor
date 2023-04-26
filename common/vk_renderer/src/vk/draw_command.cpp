@@ -174,6 +174,8 @@ void DrawCommand::GenerateUniforms()
     for(std::size_t i = 0; i < shaderIndices.size(); i++)
     {
         const auto shaderIndex = shaderIndices[i];
+        if(shaderIndex == -1)
+            continue;
         auto& shader = sceneInfo.shaders(shaderIndex);
         if(shader.type() == static_cast<core::pb::ShaderType>(i))
         {

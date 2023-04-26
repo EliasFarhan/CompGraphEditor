@@ -211,6 +211,8 @@ bool Pipeline::LoadRasterizePipeline(const core::pb::Pipeline& pipelinePb,
     for(std::size_t i = 0; i < shaderIndices.size(); i++)
     {
         auto shaderIndex = shaderIndices[i];
+        if(shaderIndex == -1)
+            continue;
         auto& shader = sceneInfo.shaders(shaderIndex);
         if(shader.type() == shaderTypes[i])
         {

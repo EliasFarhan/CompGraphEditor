@@ -359,7 +359,7 @@ void Engine::Begin()
     vmaVulkanFunctions.vkGetDeviceImageMemoryRequirements = vkGetDeviceImageMemoryRequirements;
 
     VmaAllocatorCreateInfo allocatorInfo = {};
-    allocatorInfo.vulkanApiVersion = GetVulkanVersion();
+    allocatorInfo.vulkanApiVersion = VK_MAKE_API_VERSION(0,1,0,0);
     allocatorInfo.physicalDevice = window_.GetDriver().physicalDevice;
     allocatorInfo.device = window_.GetDriver().device;
     allocatorInfo.instance = window_.GetDriver().instance;
