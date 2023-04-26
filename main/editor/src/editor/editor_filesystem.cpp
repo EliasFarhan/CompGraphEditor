@@ -15,7 +15,7 @@ std::string GetFileExtension(std::string_view path)
 fs::file_time_type GetLastTimeWrite(std::string_view path)
 {
     const fs::path p = path;
-    return last_write_time(p);
+    return fs::exists(p)?last_write_time(p): fs::file_time_type{};
 }
 std::string GetFilename(std::string_view path, bool withExtension)
 {

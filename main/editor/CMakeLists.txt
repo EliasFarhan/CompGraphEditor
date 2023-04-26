@@ -61,7 +61,6 @@ file(GLOB_RECURSE VK_PLAYER_SRC src/vk_player/*.cpp include/vk_player/*.h)
 add_executable(vk_player ${VK_PLAYER_SRC} main/vk_player_main.cpp)
 target_include_directories(vk_player PRIVATE include/vk_player/)
 target_link_libraries(vk_player PRIVATE CommonVK CommonPy argh PhysFilesystem)
-
 set_target_properties(vk_player PROPERTIES UNITY_BUILD ON)
 set_target_properties (vk_player PROPERTIES FOLDER Main)
 

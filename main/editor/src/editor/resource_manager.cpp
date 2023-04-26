@@ -1,8 +1,11 @@
+#include "resource_manager.h"
+#include "engine/filesystem.h"
+#include "utils/log.h"
+
+#include <fmt/format.h>
 #include <unordered_set>
 #include <functional>
 #include <algorithm>
-#include "resource_manager.h"
-#include "engine/filesystem.h"
 
 namespace editor
 {
@@ -85,6 +88,12 @@ void ResourceManager::RemoveResource(const Resource &resource)
 }
 void ResourceManager::AddResource(std::string_view path)
 {
+    const auto& filesystem = core::FilesystemLocator::get();
+    if(!filesystem.FileExists(path))
+    {
+        LogWarning(fmt::format("Adding unexisting resource: {}", path));
+        return;
+    }
     Resource newResource{};
     newResource.path = path;
     newResource.extension = GetFileExtension(path);

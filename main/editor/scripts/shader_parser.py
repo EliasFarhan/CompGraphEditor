@@ -45,6 +45,7 @@ def analyze_struct(struct_txt: str):
         attributes.append({"type": line_split[0], "name": line_split[1]})
     return {"name": struct_name, "attributes": attributes}
 
+
 def analyze_vk_shader(shader_path):
     """Analyze Vulkan Shader"""
     meta_content = {}

@@ -349,12 +349,22 @@ void Engine::Begin()
     vmaVulkanFunctions.vkMapMemory = vkMapMemory;
     vmaVulkanFunctions.vkUnmapMemory = vkUnmapMemory;
     vmaVulkanFunctions.vkCmdCopyBuffer = vkCmdCopyBuffer;
+
+    vmaVulkanFunctions.vkGetBufferMemoryRequirements2KHR = vkGetBufferMemoryRequirements2KHR;
+    vmaVulkanFunctions.vkGetImageMemoryRequirements2KHR = vkGetImageMemoryRequirements2KHR;
+    vmaVulkanFunctions.vkBindBufferMemory2KHR = vkBindBufferMemory2KHR;
+    vmaVulkanFunctions.vkBindImageMemory2KHR = vkBindImageMemory2KHR;
+    vmaVulkanFunctions.vkGetPhysicalDeviceMemoryProperties2KHR = vkGetPhysicalDeviceMemoryProperties2KHR;
+    vmaVulkanFunctions.vkGetDeviceBufferMemoryRequirements = vkGetDeviceBufferMemoryRequirements;
+    vmaVulkanFunctions.vkGetDeviceImageMemoryRequirements = vkGetDeviceImageMemoryRequirements;
+
     VmaAllocatorCreateInfo allocatorInfo = {};
     allocatorInfo.vulkanApiVersion = GetVulkanVersion();
     allocatorInfo.physicalDevice = window_.GetDriver().physicalDevice;
     allocatorInfo.device = window_.GetDriver().device;
     allocatorInfo.instance = window_.GetDriver().instance;
     allocatorInfo.pVulkanFunctions = &vmaVulkanFunctions;
+    
     vmaCreateAllocator(&allocatorInfo, &allocator_);
 
     window_.CreateSwapChainObjects();

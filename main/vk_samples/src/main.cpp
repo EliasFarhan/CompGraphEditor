@@ -29,7 +29,6 @@ int main([[maybe_unused]] int argc, char** argv)
 
     gpr5300::HelloVulkanProgram vulkanProgram;
     engine.RegisterSystem(&vulkanProgram);
-    engine.RegisterOnGuiInterface(&vulkanProgram);
     engine.RegisterEventObserver(&vulkanProgram);
 
     engine.Run();

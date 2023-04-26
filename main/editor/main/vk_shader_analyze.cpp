@@ -50,8 +50,8 @@ constexpr core::pb::Attribute_Type GetAttributeType(spirv_cross::SPIRType::BaseT
     case spirv_cross::SPIRType::Double: break;
     case spirv_cross::SPIRType::Struct: break;
     case spirv_cross::SPIRType::Image: break;
-    case spirv_cross::SPIRType::SampledImage: break;
-    case spirv_cross::SPIRType::Sampler: break;
+    case spirv_cross::SPIRType::SampledImage: return core::pb::Attribute_Type_SAMPLER2D;
+    case spirv_cross::SPIRType::Sampler: return core::pb::Attribute_Type_SAMPLER2D;
     case spirv_cross::SPIRType::AccelerationStructure: break;
     case spirv_cross::SPIRType::RayQuery: break;
     case spirv_cross::SPIRType::ControlPointArray: break;
@@ -134,12 +134,9 @@ int main([[maybe_unused]] int argc, char** argv)
             outputs.push_back(outputJson);
         }
         outputFile["outputs"] = outputs;
+        
 
-        for (auto& sampledImage : shaderResources.sampled_images)
-        {
-            LogDebug(fmt::format("Sampled Image: {}", sampledImage.name));
-        }
-
+        
         std::unordered_map<std::string, json> structMap;
 
         std::function<void(spirv_cross::TypeID)> analyzeStruct = [&structMap, &compiler, &analyzeStruct](spirv_cross::TypeID typeId)
@@ -227,6 +224,19 @@ int main([[maybe_unused]] int argc, char** argv)
             uniformJson["push_constant"] = true;
             uniformJson["binding"] = -1;
             uniforms.push_back(uniformJson);
+        }
+        for (auto& sampledImage : shaderResources.sampled_images)
+        {
+            json samplerUniformJson;
+
+            const auto& type = compiler.get_type(sampledImage.base_type_id);
+            const auto attribType = GetAttributeType(type.basetype, type.vecsize, type.columns);
+            samplerUniformJson["name"] = compiler.get_name(sampledImage.id);
+            samplerUniformJson["type"] = attribType;
+            samplerUniformJson["type_name"] = GetAttributeTypeName(attribType);
+            samplerUniformJson["binding"] = compiler.get_decoration(sampledImage.id, spv::DecorationBinding);
+            samplerUniformJson["push_constant"] = false;
+            uniforms.push_back(samplerUniformJson);
         }
 
         outputFile["uniforms"] = uniforms;
