@@ -19,7 +19,7 @@
 
 
 
-PYBIND11_EMBEDDED_MODULE(core, m)
+PYBIND11_EMBEDDED_MODULE(neko2, m)
 {
     py::class_<core::Script, core::PySystem>(m, "System")
         .def(py::init())

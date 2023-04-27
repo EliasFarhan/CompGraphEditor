@@ -242,7 +242,7 @@ void Editor::CreateNewFile(std::string_view path, EditorType type)
                 CreateNewDirectory(subFolder);
             if(editorSystem->GetEditorType() == EditorType::SCRIPT)
             {
-                CopyFileFromTo("scripts/core.py", fmt::format("{}/core.py", subFolder), true);
+                CopyFileFromTo("scripts/neko2.py", fmt::format("{}/neko2.py", subFolder), true);
             }
             editorSystem->ReloadId();
         }
@@ -563,7 +563,7 @@ void Editor::LoadFileIntoEditor(std::string_view path)
     editorSystem->ImportResource(path);
     if(isScene)
     {
-        CopyFileFromTo("scripts/core.py", fmt::format("data/{}/scripts/core.py", sceneEditor->GetCurrentSceneInfo()->info.name()));
+        CopyFileFromTo("scripts/neko2.py", fmt::format("data/{}/scripts/neko2.py", sceneEditor->GetCurrentSceneInfo()->info.name()));
         for(auto& tmp: editorSystems_)
         {
             if(tmp)

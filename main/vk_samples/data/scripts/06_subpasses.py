@@ -1,8 +1,8 @@
-import core
+from neko2 import *
 import math
 
 
-class SubpassSystem(core.System):
+class SubpassSystem(System):
 
     def begin(self):
         self.t = 0.0
@@ -10,12 +10,12 @@ class SubpassSystem(core.System):
     def update(self, dt):
         self.t += dt
 
-    def draw(self, draw_command: core.DrawCommand):
+    def draw(self, draw_command: DrawCommand):
         if draw_command.name == "CubeCommand":
             draw_command.bind()
-            draw_command.set_mat4("ubo.model", core.Mat4(1.0))
-            draw_command.set_mat4("ubo.view", core.get_scene().get_camera().view)
-            draw_command.set_mat4("ubo.projection", core.Mat4.perspective(math.radians(45), core.get_aspect(), 0.1,
+            draw_command.set_mat4("ubo.model", Mat4(1.0))
+            draw_command.set_mat4("ubo.view", get_scene().get_camera().view)
+            draw_command.set_mat4("ubo.projection", Mat4.perspective(math.radians(45), get_aspect(), 0.1,
                                                                           100.0))
             draw_command.draw()
 
