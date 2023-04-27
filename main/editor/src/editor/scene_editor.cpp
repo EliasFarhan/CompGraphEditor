@@ -414,7 +414,8 @@ bool SceneEditor::ExportAndPlayScene() const
                 {
                     const auto& editorMaterialTexture = material->info.textures(textureIndex);
                     auto* materialTexture = newMaterial->add_textures();
-                    if(editorMaterialTexture.texture_name().empty() && editorMaterialTexture.material_texture().attachment_name().empty())
+                    if(editorMaterialTexture.texture_name().empty() && 
+                        editorMaterialTexture.material_texture().attachment_name().empty())
                     {
                         LogWarning(fmt::format(
                             "Could not export, missing texture/attachment in material sampler. Material: {} Sampler: {}", 
@@ -422,7 +423,8 @@ bool SceneEditor::ExportAndPlayScene() const
                         materialTexture->set_texture_index(-1);
                         return false;
                     }
-                    else if (editorMaterialTexture.material_texture().attachment_name().empty())
+
+                    if (editorMaterialTexture.material_texture().attachment_name().empty())
                     {
                         auto textureId = resourceManager.FindResourceByPath(editorMaterialTexture.texture_name());
                         if (textureId == INVALID_RESOURCE_ID)
@@ -455,6 +457,7 @@ bool SceneEditor::ExportAndPlayScene() const
                         {
                             materialTexture->set_texture_index(textureIt->second);
                         }
+                        materialTexture->set_sampler_name(editorMaterialTexture.material_texture().sampler_name());
                     }
                     else //framebuffer attachment for sampler
                     {
@@ -467,6 +470,8 @@ bool SceneEditor::ExportAndPlayScene() const
                                 {
                                     if(!colorAttachment.rbo() && colorAttachment.name() == editorMaterialTexture.material_texture().attachment_name())
                                     {
+                                        materialTexture->set_attachment_name(editorMaterialTexture.material_texture().attachment_name());
+                                        materialTexture->set_framebuffer_name(editorMaterialTexture.material_texture().framebuffer_name());
                                         isValid = true;
                                     }
                                 }
@@ -474,6 +479,8 @@ bool SceneEditor::ExportAndPlayScene() const
                                 {
                                     if(framebufferPb.depth_stencil_attachment().name() == editorMaterialTexture.material_texture().attachment_name())
                                     {
+                                        materialTexture->set_attachment_name(editorMaterialTexture.material_texture().attachment_name());
+                                        materialTexture->set_framebuffer_name(editorMaterialTexture.material_texture().framebuffer_name());
                                         isValid = true;
                                     }
                                 }
@@ -541,7 +548,7 @@ bool SceneEditor::ExportAndPlayScene() const
                         LogWarning(fmt::format("Could not export scene, missing fragment shader in pipeline. Pipeline: {}", pipeline->path));
                         return false;
                     }
-                    newPipeline->set_vertex_shader_index(fragmentShaderIndex);
+                    newPipeline->set_fragment_shader_index(fragmentShaderIndex);
                     newPipeline->set_geometry_shader_index(shaderExportFunc(pipeline->geometryShaderId));
                     newPipeline->set_tess_control_shader_index(shaderExportFunc(pipeline->tessControlShaderId));
                     newPipeline->set_tess_eval_shader_index(shaderExportFunc(pipeline->tessEvalShaderId));

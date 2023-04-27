@@ -275,7 +275,8 @@ bool Pipeline::LoadRasterizePipeline(const core::pb::Pipeline& pipelinePb,
             else
             {
                 VkDescriptorSetLayoutBinding layoutBinding{};
-                if(uniform.type() == core::pb::Attribute_Type_SAMPLER2D || uniform.type() == core::pb::Attribute_Type_SAMPLERCUBE)
+                if(uniform.type() == core::pb::Attribute_Type_SAMPLER2D || 
+                    uniform.type() == core::pb::Attribute_Type_SAMPLERCUBE)
                 {
                     //sampler
                     layoutBinding.binding = uniform.binding();

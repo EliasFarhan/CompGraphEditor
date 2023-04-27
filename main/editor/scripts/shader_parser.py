@@ -67,18 +67,9 @@ def analyze_vk_shader(shader_path):
     print(analyzer_status.stdout)
     output = json.loads(analyzer_status.stdout)
     meta_content["in_attributes"] = output["inputs"]
-    meta_content["out_attributes"] = output["outputs"]
-    uniforms = output["uniforms"]
+    meta_content["out_attributes"] = output["outputs"] 
     meta_content["structs"] = output["structs"]
-
-    new_uniforms = []
-    for uniform in uniforms:
-        for struct in meta_content["structs"]:
-            if uniform["type_name"] == struct["name"]:
-                for attrib in struct["attributes"]:
-                    new_uniforms.append({"type_name": attrib["type_name"], "name": "{}.{}".format(uniform["name"], attrib["name"])})
-    new_uniforms.extend(uniforms)
-    meta_content["uniforms"] = new_uniforms
+    meta_content["uniforms"] = output["uniforms"]
 
     json_output = json.dumps(meta_content)
     print(json_output)

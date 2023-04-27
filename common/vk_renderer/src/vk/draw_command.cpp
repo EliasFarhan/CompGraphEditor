@@ -265,7 +265,8 @@ void DrawCommand::GenerateUniforms()
             else
             {
                 VkDescriptorPoolSize poolSize;
-                if(uniform.type() == core::pb::Attribute_Type_SAMPLER2D || uniform.type() == core::pb::Attribute_Type_SAMPLERCUBE)
+                if(uniform.type() == core::pb::Attribute_Type_SAMPLER2D || 
+                    uniform.type() == core::pb::Attribute_Type_SAMPLERCUBE)
                 {
                     
                     poolSize.type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
@@ -285,6 +286,7 @@ void DrawCommand::GenerateUniforms()
                     
                     for (auto& materialTexture : materialInfo.textures())
                     {
+                        LogDebug(fmt::format("Material Sampler Name: {} Shader Uniform Name: {}", materialTexture.sampler_name(), uniform.name()));
                         if (materialTexture.sampler_name() == uniform.name())
                         {
                             if(!materialTexture.framebuffer_name().empty() && !materialTexture.attachment_name().empty())
