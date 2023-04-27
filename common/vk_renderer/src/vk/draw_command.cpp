@@ -427,6 +427,9 @@ void DrawCommand::GenerateUniforms()
     for (size_t i = 0; i < Engine::MAX_FRAMES_IN_FLIGHT; i++) 
     {
         std::vector<VkWriteDescriptorSet> descriptorWrites{};
+
+        std::vector<VkDescriptorBufferInfo> bufferInfos{};
+        bufferInfos.reserve(uniformDatas.size());
         int uboIndex = 0;
         for(auto& uniformData : uniformDatas)
         {
@@ -455,7 +458,8 @@ void DrawCommand::GenerateUniforms()
                     VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
 
                 //describe buffer
-                VkDescriptorBufferInfo bufferInfo{};
+                bufferInfos.emplace_back();
+                auto& bufferInfo = bufferInfos.back();
                 bufferInfo.buffer = buffer.buffer;
                 bufferInfo.offset = 0;
                 bufferInfo.range = uniformData.size;

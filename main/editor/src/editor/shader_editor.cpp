@@ -28,11 +28,11 @@ namespace editor
 void ShaderEditor::AddResource(const Resource& resource)
 {
     ShaderInfo shaderInfo{};
+    shaderInfo.info.set_type(core::GetTypeFromExtension(resource.extension));
     shaderInfo.compiledCorrectly = AnalyzeShader(resource.path, shaderInfo.info);
     shaderInfo.filename = GetFilename(resource.path);
     shaderInfo.resourceId = resource.resourceId;
     shaderInfo.info.set_path(resource.path);
-    shaderInfo.info.set_type(core::GetTypeFromExtension(resource.extension));
     shaderInfos_.push_back(shaderInfo);
 }
 void ShaderEditor::RemoveResource(const Resource& resource)
@@ -132,7 +132,7 @@ void ShaderEditor::DrawInspector()
         for(int i = 0; i < currentShaderInfo.info.uniforms_size(); i++)
         {
             const auto& uniformInfo = currentShaderInfo.info.uniforms(i);
-            const auto text = fmt::format("Name: {} Type: {}", uniformInfo.name(), uniformInfo.type_name());
+            const auto text = fmt::format("Name: {} Type: {} Binding: {}", uniformInfo.name(), uniformInfo.type_name(), uniformInfo.binding());
             ImGui::Selectable(text.c_str(), false);
         }
         ImGui::EndListBox();
@@ -155,6 +155,16 @@ void ShaderEditor::DrawInspector()
         {
             const auto& outAttributeInfo = currentShaderInfo.info.out_attributes(i);
             const auto text = fmt::format("Name: {} Type: {}", outAttributeInfo.name(), outAttributeInfo.type_name());
+            ImGui::Selectable(text.c_str(), false);
+        }
+        ImGui::EndListBox();
+    }
+    if (ImGui::BeginListBox("Structs"))
+    {
+        for (int i = 0; i < currentShaderInfo.info.structs_size(); i++)
+        {
+            const auto& structInfo = currentShaderInfo.info.structs(i);
+            const auto text = fmt::format("Name: {} Size: {} Alignment: {}", structInfo.name(), structInfo.size(), structInfo.alignment());
             ImGui::Selectable(text.c_str(), false);
         }
         ImGui::EndListBox();
@@ -324,11 +334,15 @@ bool ShaderEditor::AnalyzeShader(std::string_view path, core::pb::Shader& shader
         {
             auto uniformName = uniformJson["name"].get<std::string>();
             auto typeName = uniformJson["type_name"].get<std::string>();
+            const auto binding = uniformJson["binding"].get<int>();
             auto type = GetType(typeName);
             auto* newUniformInfo = shaderInfo.add_uniforms();
             newUniformInfo->set_name(uniformName);
             newUniformInfo->set_type(type);
             newUniformInfo->set_type_name(typeName);
+            newUniformInfo->set_binding(binding);
+            newUniformInfo->set_stage(shaderInfo.type());
+            
         }
         shaderInfo.mutable_in_attributes()->Clear();
         auto inAttributesJson = shaderJson["in_attributes"];
@@ -343,7 +357,7 @@ bool ShaderEditor::AnalyzeShader(std::string_view path, core::pb::Shader& shader
             newInAttribute->set_type_name(typeName);
         }
         shaderInfo.mutable_out_attributes()->Clear();
-        auto outAttributesJson = shaderJson["out_attributes"];
+        auto& outAttributesJson = shaderJson["out_attributes"];
         for(auto& outAttributeJson : outAttributesJson)
         {
             auto outAttributeName = outAttributeJson["name"].get<std::string>();
@@ -353,6 +367,18 @@ bool ShaderEditor::AnalyzeShader(std::string_view path, core::pb::Shader& shader
             newOutAttribute->set_name(outAttributeName);
             newOutAttribute->set_type(type);
             newOutAttribute->set_type_name(typeName);
+        }
+        auto& structsJson = shaderJson["structs"];
+        for(auto& structJson: structsJson)
+        {
+            auto structName = structJson["name"].get<std::string>();
+            const auto size = structJson["size"].get<int>();
+            const auto alignment = structJson["alignment"].get<int>();
+
+            auto* newStruct = shaderInfo.add_structs();
+            newStruct->set_name(structName);
+            newStruct->set_size(size);
+            newStruct->set_alignment(alignment);
         }
         return true;
     }
