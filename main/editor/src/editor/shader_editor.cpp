@@ -379,6 +379,16 @@ bool ShaderEditor::AnalyzeShader(std::string_view path, core::pb::Shader& shader
             newStruct->set_name(structName);
             newStruct->set_size(size);
             newStruct->set_alignment(alignment);
+            for(auto& structAttributeJson: structJson["attributes"])
+            {
+                auto* attribute = newStruct->add_attributes();
+                attribute->set_name(structAttributeJson["name"].get<std::string>());
+                attribute->set_stage(shaderInfo.type());
+                auto typeName = structAttributeJson["type_name"].get<std::string>();
+                auto type = GetType(typeName);
+                attribute->set_type_name(typeName);
+                attribute->set_type(type);
+            }
         }
         return true;
     }
