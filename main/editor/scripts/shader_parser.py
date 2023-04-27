@@ -25,26 +25,6 @@ else:
 
 
 
-def analyze_struct(struct_txt: str):
-    #get struct name
-    begin_index = struct_txt.find("struct")
-    end_index = struct_txt.find("{")
-    struct_name = struct_txt[begin_index+6:end_index]
-    struct_name = re.sub(r'[^a-zA-Z0-9]', '', struct_name)
-
-    struct_content = struct_txt[end_index+1:struct_txt.find("}")]
-    struct_content = re.sub(r'[^a-zA-Z0-9 ;]', '', struct_content)
-    struct_lines = list(filter(None, struct_content.split(";")))
-    attributes = []
-    for line in struct_lines:
-        if len(line) == 0:
-            continue
-        line_split = list(filter(None, line.split(" ")))
-        if len(line_split) < 2:
-            continue
-        attributes.append({"type": line_split[0], "name": line_split[1]})
-    return {"name": struct_name, "attributes": attributes}
-
 
 def analyze_vk_shader(shader_path):
     """Analyze Vulkan Shader"""
@@ -75,6 +55,28 @@ def analyze_vk_shader(shader_path):
     print(json_output)
     return json_output
 
+
+def analyze_struct(struct_txt: str):
+    #get struct name
+    begin_index = struct_txt.find("struct")
+    end_index = struct_txt.find("{")
+    struct_name = struct_txt[begin_index+6:end_index]
+    struct_name = re.sub(r'[^a-zA-Z0-9]', '', struct_name)
+
+    struct_content = struct_txt[end_index+1:struct_txt.find("}")]
+    struct_content = re.sub(r'[^a-zA-Z0-9 ;]', '', struct_content)
+    struct_lines = list(filter(None, struct_content.split(";")))
+    attributes = []
+    for line in struct_lines:
+        if len(line) == 0:
+            continue
+        line_split = list(filter(None, line.split(" ")))
+        if len(line_split) < 2:
+            continue
+        attributes.append({"type": line_split[0], "name": line_split[1]})
+    return {"name": struct_name, "attributes": attributes}
+
+
 def analyze_shader(shader_path):
     """Analyze OpenGL shader"""
     meta_content = {}
@@ -84,7 +86,6 @@ def analyze_shader(shader_path):
     meta_content["returncode"] = status.returncode
     if status.returncode != 0:
         return json.dumps(meta_content)
-
 
     uniforms = []
     in_attributes = []
@@ -145,7 +146,8 @@ def analyze_shader(shader_path):
         for struct in structs:
             if uniform["type_name"] == struct["name"]:
                 for attrib in struct["attributes"]:
-                    new_uniforms.append({"type_name": attrib["type_name"], "name": "{}.{}".format(uniform["name"], attrib["name"])})
+                    new_uniforms.append({"type_name": attrib["type_name"], "name": "{}.{}".format(uniform["name"],
+                                                                                                  attrib["name"])})
     uniforms.extend(new_uniforms)
     meta_content["uniforms"] = uniforms
     meta_content["in_attributes"] = in_attributes
@@ -153,3 +155,7 @@ def analyze_shader(shader_path):
     meta_content["structs"] = structs
     
     return json.dumps(meta_content)
+
+
+def analyze_gl_shader(path: str):
+    pass

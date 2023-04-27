@@ -36,6 +36,7 @@ public:
     void Delete() override;
     [[nodiscard]] std::span<const std::string_view> GetExtensions() const override;
     void Clear() override;
+    void DrawCenterView() override;
 private:
     void ReloadPipeline(int index);
     std::vector<PipelineInfo> pipelineInfos_;

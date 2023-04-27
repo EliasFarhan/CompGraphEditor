@@ -8,6 +8,8 @@
 #include <imgui_stdlib.h>
 #include <fstream>
 
+#include "imnodes.h"
+
 namespace editor
 {
     
@@ -635,6 +637,137 @@ void PipelineEditor::Clear()
 {
     pipelineInfos_.clear();
     currentIndex_ = -1;
+}
+
+void PipelineEditor::DrawCenterView()
+{
+    if(currentIndex_ >= pipelineInfos_.size())
+        return;
+    auto& currentPipeline = pipelineInfos_[currentIndex_];
+    const auto& resourceManager = GetResourceManager();
+    const auto* shaderEditor = dynamic_cast<ShaderEditor*>(Editor::GetInstance()->GetEditorSystem(EditorType::SHADER));
+    
+    ImNodes::BeginNodeEditor();
+
+    std::vector<std::pair<int, int>> links;
+    switch(currentPipeline.info.pipeline().type())
+    {
+    case core::pb::Pipeline_Type_RASTERIZE:
+    {
+
+        constexpr int vertexInputBaseIndex = 100;
+        constexpr int vertexOutputBaseIndex = 300;
+        constexpr int uniformsBaseIndex = 200;
+
+        ImNodes::BeginNode(-1);
+        ImNodes::BeginNodeTitleBar();
+        ImGui::TextUnformatted("Vertex Inputs");
+        ImNodes::EndNodeTitleBar();
+        for (int i = 0; i < currentPipeline.info.pipeline().in_vertex_attributes_size(); i++)
+        {
+
+            ImNodes::BeginOutputAttribute(vertexInputBaseIndex + i + 1);
+            const auto& vertexInput = currentPipeline.info.pipeline().in_vertex_attributes(i);
+            ImGui::Text("%s %s", vertexInput.type_name().c_str(), vertexInput.name().c_str());
+            ImNodes::EndOutputAttribute();
+            links.emplace_back(vertexInputBaseIndex, vertexInputBaseIndex + i + 1);
+        }
+        ImNodes::EndNode();
+
+
+        ImNodes::SetNodeGridSpacePos(-1, {0,400});
+
+        //Vertex Shader Node
+        ImNodes::BeginNode(0);
+        ImNodes::BeginNodeTitleBar();
+        ImGui::TextUnformatted("Vertex Shader");
+        ImNodes::EndNodeTitleBar();
+        ImNodes::BeginInputAttribute(vertexInputBaseIndex);
+        ImGui::TextUnformatted("Vertex Inputs");
+        ImNodes::EndInputAttribute();
+        ImNodes::BeginInputAttribute(uniformsBaseIndex);
+        ImGui::TextUnformatted("Uniforms");
+        ImNodes::EndInputAttribute();
+
+        if(!currentPipeline.info.vertex_shader_path().empty())
+        {
+            ImGui::TextUnformatted("Outputs");
+            const auto* vertexShaderInfo = shaderEditor->GetShader(resourceManager.FindResourceByPath(currentPipeline.info.vertex_shader_path()));
+            for (int i = 0; i < vertexShaderInfo->info.out_attributes_size(); i++)
+            {
+                const auto& vertexOutput = vertexShaderInfo->info.out_attributes(i);
+                ImNodes::BeginOutputAttribute(vertexOutputBaseIndex + i + 1);
+                ImGui::Text("%s %s", vertexOutput.type_name().c_str(),
+                    vertexOutput.name().c_str());
+                ImNodes::EndOutputAttribute();
+                links.emplace_back(vertexOutputBaseIndex, vertexOutputBaseIndex + i + 1);
+            }
+        }
+        ImNodes::EndNode();
+
+        ImNodes::SetNodeGridSpacePos(0, { 200.0f,200 });
+
+        ImNodes::BeginNode(1);
+        ImNodes::BeginNodeTitleBar();
+        ImGui::TextUnformatted("Fragment Shader");
+        ImNodes::EndNodeTitleBar();
+        ImNodes::BeginInputAttribute(vertexOutputBaseIndex);
+        ImGui::TextUnformatted("Inputs");
+        ImNodes::EndInputAttribute();
+        ImNodes::BeginInputAttribute(uniformsBaseIndex+1);
+        ImGui::TextUnformatted("Uniforms");
+        ImNodes::EndInputAttribute();
+        ImNodes::EndNode();
+
+        ImNodes::SetNodeGridSpacePos(1, { 400.0f,200 });
+        
+
+        ImNodes::BeginNode(-2);
+        ImNodes::BeginNodeTitleBar();
+        ImGui::TextUnformatted("Uniforms");
+        ImNodes::EndNodeTitleBar();
+        for (int i = 0; i < currentPipeline.info.pipeline().uniforms_size(); i++)
+        {
+            const int uniformIndex = uniformsBaseIndex + i + 5;
+            ImNodes::BeginOutputAttribute(uniformIndex);
+            const auto& uniform = currentPipeline.info.pipeline().uniforms(i);
+            ImGui::Text("%s %s", uniform.type_name().c_str(), uniform.name().c_str());
+            ImNodes::EndOutputAttribute();
+            int shaderIndex = uniformsBaseIndex;
+            switch(currentPipeline.info.pipeline().uniforms(i).stage())
+            {
+            case core::pb::VERTEX: break;
+            case core::pb::FRAGMENT: shaderIndex += 1; break;
+            case core::pb::GEOMETRY: shaderIndex += 2; break;
+            case core::pb::TESSELATION_CONTROL: shaderIndex += 3; break;
+            case core::pb::TESSELATION_EVAL: shaderIndex += 4; break;
+            default: break;
+            }
+            links.emplace_back(shaderIndex, uniformIndex);
+        }
+
+        ImNodes::EndNode();
+
+        ImNodes::SetNodeGridSpacePos(-2, { 0.0f,100.0f });
+
+        //TODO add geometry shader node if shader exists
+        //TODO add tesselation control shader node if shader exists
+        //TODO add tesselation eval shader node if shader exists
+        
+
+        for(std::size_t i = 0; i < links.size(); i++)
+        {
+            ImNodes::Link(i, links[i].first, links[i].second);
+        }
+        break;
+    }
+    case core::pb::Pipeline_Type_COMPUTE: break;
+    case core::pb::Pipeline_Type_RAYTRACING: break;
+    default: ;
+    }
+    
+
+    ImNodes::EndNodeEditor();
 }
 
 void PipelineEditor::ReloadPipeline(int index)
