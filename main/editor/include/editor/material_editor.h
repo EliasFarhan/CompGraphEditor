@@ -24,6 +24,8 @@ public:
 
     bool DrawContentList(bool unfocus) override;
 
+    void DrawCenterView() override;
+
     std::string_view GetSubFolder() override;
 
     EditorType GetEditorType() override;

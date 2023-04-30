@@ -23,7 +23,7 @@ Engine::Engine()
     instance = this;
     const auto& fileSystem = core::FilesystemLocator::get();
 
-    if (!fileSystem.IsRegularFile(configFilename))
+    if (config_.major_version() == 0)
     {
         config_.set_major_version(4);
         config_.set_minor_version(5);

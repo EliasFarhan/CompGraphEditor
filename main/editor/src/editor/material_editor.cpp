@@ -10,6 +10,8 @@
 #include <fmt/format.h>
 #include <fstream>
 
+#include "imnodes.h"
+
 namespace editor
 {
     
@@ -161,6 +163,115 @@ bool MaterialEditor::DrawContentList(bool unfocus) {
         }
     }
     return wasFocused;
+}
+
+void MaterialEditor::DrawCenterView()
+{
+    if (currentIndex_ >= materialInfos_.size())
+        return;
+    const auto* editor = Editor::GetInstance();
+    const auto* pipelineEditor = dynamic_cast<PipelineEditor*>(editor->GetEditorSystem(EditorType::PIPELINE));
+    const auto& resourceManager = editor->GetResourceManager();
+
+    auto& currentMaterial = materialInfos_[currentIndex_];
+
+    const auto textureBaseIndex = 100;
+    const auto uniformsBaseIndex = 200;
+    const int samplerBaseIndex = 300;
+
+    std::vector<std::pair<int, int>> links;
+    links.reserve(currentMaterial.info.textures_size() + currentMaterial.info.material().uniforms_size());
+
+    ImNodes::BeginNodeEditor();
+
+    ImNodes::BeginNode(0);
+    ImNodes::BeginNodeTitleBar();
+    ImGui::TextUnformatted("Textures");
+    ImNodes::EndNodeTitleBar();
+    for(int i = 0; i < currentMaterial.info.textures_size(); i++)
+    {
+        const auto& materialTexture = currentMaterial.info.textures(i);
+        ImNodes::BeginOutputAttribute(textureBaseIndex+i);
+        auto textureName = GetFileExtension(materialTexture.texture_name());
+        const auto textureType = aiTextureTypeToString(static_cast<aiTextureType>(materialTexture.texture_type()));
+        ImGui::Text("%s %s", textureName.c_str(), textureType);
+        ImNodes::EndOutputAttribute();
+    }
+    ImNodes::EndNode();
+
+    ImNodes::SetNodeGridSpacePos(0, { 0,400 });
+
+    ImNodes::BeginNode(1);
+    
+    ImNodes::BeginNodeTitleBar();
+    
+    ImGui::TextUnformatted(currentMaterial.pipelineId != INVALID_RESOURCE_ID ?"Uniforms" : "Missing Pipeline Id");
+    ImNodes::EndNodeTitleBar();
+    if (currentMaterial.pipelineId != INVALID_RESOURCE_ID)
+    {
+        const auto* pipeline = pipelineEditor->GetPipeline(currentMaterial.pipelineId);
+        for (int i = 0; i < pipeline->info.pipeline().uniforms_size(); i++)
+        {
+            const auto& uniform = pipeline->info.pipeline().uniforms(i);
+            if (uniform.type() == core::pb::Attribute_Type_SAMPLER2D || uniform.type() == core::pb::Attribute_Type_SAMPLERCUBE)
+                continue;
+            ImNodes::BeginOutputAttribute(uniformsBaseIndex + i);
+            ImGui::Text("%s %s", uniform.type_name().c_str(), uniform.name().c_str());
+            ImNodes::EndOutputAttribute();
+            links.emplace_back(0, uniformsBaseIndex + i);
+
+        }
+    }
+    ImNodes::EndNode();
+    ImNodes::SetNodeGridSpacePos(1, { 0,200 });
+
+    ImNodes::BeginNode(2);
+    ImNodes::BeginNodeTitleBar();
+    ImGui::TextUnformatted("Material");
+    ImNodes::EndNodeTitleBar();
+    ImNodes::BeginInputAttribute(0);
+    ImGui::TextUnformatted("Uniforms");
+    ImNodes::EndInputAttribute();
+    if (currentMaterial.pipelineId != INVALID_RESOURCE_ID)
+    {
+        const auto* pipeline = pipelineEditor->GetPipeline(currentMaterial.pipelineId);
+
+        ImGui::TextUnformatted("Samplers:");
+        for (int i = 0; i < pipeline->info.pipeline().uniforms_size(); i++)
+        {
+            const auto& uniform = pipeline->info.pipeline().uniforms(i);
+
+            if (uniform.type() != core::pb::Attribute_Type_SAMPLER2D &&
+                uniform.type() != core::pb::Attribute_Type_SAMPLERCUBE)
+                continue;
+            ImNodes::BeginInputAttribute(samplerBaseIndex + i);
+            auto it = std::ranges::find_if(currentMaterial.info.textures(), [&uniform](const auto& materialTexture)
+                {
+                    return materialTexture.material_texture().sampler_name() == uniform.name();
+                });
+            if (it == currentMaterial.info.textures().cend())
+            {
+                //TODO add combo menu to select texture
+                ImGui::TextColored({ 1,0,0,1 }, "Missing texture");
+            }
+            else
+            {
+                ImGui::Text("%s", uniform.name().c_str());
+                links.emplace_back(samplerBaseIndex + i, textureBaseIndex + std::distance(currentMaterial.info.textures().cbegin(), it));
+            }
+            ImNodes::EndInputAttribute();
+
+        }
+    }
+    ImNodes::EndNode();
+
+    ImNodes::SetNodeGridSpacePos(2, { 200,300 });
+
+    for (std::size_t i = 0; i < links.size(); i++)
+    {
+        ImNodes::Link(i, links[i].first, links[i].second);
+    }
+    ImNodes::EndNodeEditor();
 }
 
 std::string_view MaterialEditor::GetSubFolder() {
