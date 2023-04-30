@@ -199,7 +199,7 @@ void MaterialEditor::DrawCenterView()
     }
     ImNodes::EndNode();
 
-    ImNodes::SetNodeGridSpacePos(0, { 0,400 });
+    ImNodes::SetNodeGridSpacePos(0, { 50,50 });
 
     ImNodes::BeginNode(1);
     
@@ -223,7 +223,7 @@ void MaterialEditor::DrawCenterView()
         }
     }
     ImNodes::EndNode();
-    ImNodes::SetNodeGridSpacePos(1, { 0,200 });
+    ImNodes::SetNodeGridSpacePos(1, { 50,250 });
 
     ImNodes::BeginNode(2);
     ImNodes::BeginNodeTitleBar();
@@ -257,7 +257,9 @@ void MaterialEditor::DrawCenterView()
             else
             {
                 ImGui::Text("%s", uniform.name().c_str());
-                links.emplace_back(samplerBaseIndex + i, textureBaseIndex + std::distance(currentMaterial.info.textures().cbegin(), it));
+                links.emplace_back(
+                    samplerBaseIndex + i, 
+                    textureBaseIndex + static_cast<int>(std::distance(currentMaterial.info.textures().cbegin(), it)));
             }
             ImNodes::EndInputAttribute();
 
@@ -265,7 +267,7 @@ void MaterialEditor::DrawCenterView()
     }
     ImNodes::EndNode();
 
-    ImNodes::SetNodeGridSpacePos(2, { 200,300 });
+    ImNodes::SetNodeGridSpacePos(2, { 200,150 });
 
     for (std::size_t i = 0; i < links.size(); i++)
     {

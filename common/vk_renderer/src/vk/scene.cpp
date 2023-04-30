@@ -157,6 +157,19 @@ void Scene::Draw(core::DrawCommand& drawCommand)
         vkCmdBindIndexBuffer(renderer.commandBuffers[renderer.imageIndex], vertexBuffer.indexBuffer.buffer, 0, VK_INDEX_TYPE_UINT32);
 
     }
+    switch(drawCommand.GetInfo().mode())
+    {
+    case core::pb::DrawCommand_Mode_TRIANGLES:
+        vkCmdSetPrimitiveTopology(renderer.commandBuffers[renderer.imageIndex],
+            VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST);
+        break;
+    case core::pb::DrawCommand_Mode_TRIANGLE_STRIP:
+        vkCmdSetPrimitiveTopology(renderer.commandBuffers[renderer.imageIndex],
+            VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP);
+        break;
+    default: 
+        break;
+    }
     if (drawCommand.GetInfo().draw_elements())
     {
         vkCmdDrawIndexed(renderer.commandBuffers[renderer.imageIndex],
@@ -369,8 +382,16 @@ Scene::ImportStatus Scene::LoadMeshes(const PbRepeatField<core::pb::Mesh>& meshe
             break;
         }
         case core::pb::Mesh_PrimitveType_SPHERE:
-            //TODO implement sphere
+        {
+            const glm::vec3 scale = meshInfo.has_scale() ? glm::vec3{ meshInfo.scale().x(), meshInfo.scale().y(), meshInfo.scale().z() } : glm::vec3(1.0f);
+            const glm::vec3 offset{ meshInfo.offset().x(), meshInfo.offset().y(), meshInfo.offset().z() };
+
+            const auto mesh = core::GenerateSphere(scale.x, offset);
+            vertexBuffers_.emplace_back();
+            vertexBuffers_.back() = CreateVertexBufferFromMesh(mesh);
+
             break;
+        }
         case core::pb::Mesh_PrimitveType_NONE:
         {
             vertexBuffers_.emplace_back();

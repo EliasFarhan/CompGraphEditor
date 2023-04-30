@@ -271,7 +271,7 @@ void Editor::CreateNewFile(std::string_view path, EditorType type)
     }
     case EditorType::SCRIPT: 
     {
-        filesystem.WriteString(path, "import gpr5300\n");
+        filesystem.WriteString(path, "from neko2 import *\n");
         resourceManager_.AddResource(path);
         break;
     }

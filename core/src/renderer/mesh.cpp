@@ -129,7 +129,70 @@ Mesh GenerateCube(glm::vec3 scale, glm::vec3 offset)
 }
 Mesh GenerateSphere(float scale, glm::vec3 offset)
 {
-    return {};
+    constexpr std::size_t segment = sphereSegments;
+    Mesh mesh{};
+    mesh.name = "sphere";
+    
+    mesh.vertices.reserve((segment + 1) * (segment + 1));
+    mesh.indices.reserve(2*mesh.vertices.capacity());
+    for (unsigned int y = 0; y <= segment; ++y)
+    {
+        for (unsigned int x = 0; x <= segment; ++x)
+        {
+            float xSegment = static_cast<float>(x) / static_cast<float>(segment);
+            float ySegment = static_cast<float>(y) / static_cast<float>(segment);
+            float xPos = std::cos(xSegment * 2.0f * PI) * std::sin(ySegment * PI);
+            float yPos = std::cos(ySegment * PI);
+            float zPos = std::sin(xSegment * 2.0f * PI) * std::sin(ySegment * PI);
+
+            mesh.vertices.push_back(
+                {
+                    { xPos, yPos, zPos },
+                    { xSegment, ySegment },
+                    {xPos, yPos, zPos}});
+            
+        }
+    }
+
+    bool oddRow = false;
+    for (unsigned int y = 0; y < segment; ++y)
+    {
+        if (!oddRow) // even rows: y == 0, y == 2; and so on
+        {
+            for (unsigned int x = 0; x <= segment; ++x)
+            {
+                mesh.indices.push_back(y * (segment + 1) + x);
+                mesh.indices.push_back((y + 1) * (segment + 1) + x);
+            }
+        }
+        else
+        {
+            for (int x = segment; x >= 0; --x)
+            {
+                mesh.indices.push_back((y + 1) * (segment + 1) + x);
+                mesh.indices.push_back(y * (segment + 1) + x);
+            }
+        }
+        oddRow = !oddRow;
+    }
+    std::size_t indexCount_ = mesh.indices.size();
+    for (size_t i = 0; i < indexCount_ - 2; i++)
+    {
+        const glm::vec3 edge1 = mesh.vertices[mesh.indices[i + 1]].position - mesh.vertices[mesh.indices[i]].position;
+        const glm::vec3 edge2 = mesh.vertices[mesh.indices[i + 2]].position - mesh.vertices[mesh.indices[i]].position;
+        const glm::vec2 deltaUV1 = mesh.vertices[mesh.indices[i + 1]].texCoords - mesh.vertices[mesh.indices[i]].texCoords;
+        const glm::vec2 deltaUV2 = mesh.vertices[mesh.indices[i + 2]].texCoords - mesh.vertices[mesh.indices[i]].texCoords;
+
+        const float f = 1.0f / (deltaUV1.x * deltaUV2.y - deltaUV2.x * deltaUV1.y);
+        mesh.vertices[mesh.indices[i]].tangent.x = f * (deltaUV2.y * edge1.x - deltaUV1.y * edge2.x);
+        mesh.vertices[mesh.indices[i]].tangent.y = f * (deltaUV2.y * edge1.y - deltaUV1.y * edge2.y);
+        mesh.vertices[mesh.indices[i]].tangent.z = f * (deltaUV2.y * edge1.z - deltaUV1.y * edge2.z);
+
+        mesh.vertices[mesh.indices[i]].bitangent.x = f * (-deltaUV2.x * edge1.x + deltaUV1.x * edge2.x);
+        mesh.vertices[mesh.indices[i]].bitangent.y = f * (-deltaUV2.x * edge1.y + deltaUV1.x * edge2.y);
+        mesh.vertices[mesh.indices[i]].bitangent.z = f * (-deltaUV2.x * edge1.z + deltaUV1.x * edge2.z);
+    }
+    return mesh;
 }
 
 } // namespace core

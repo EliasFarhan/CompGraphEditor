@@ -323,6 +323,13 @@ void CommandEditor::UpdateMeshInCommand(int index)
             currentCommand.info.mutable_draw_command()->set_count(36);
             break;
         }
+        case core::pb::Mesh_PrimitveType_SPHERE:
+        {
+            currentCommand.info.mutable_draw_command()->set_draw_elements(true);
+            currentCommand.info.mutable_draw_command()->set_count(core::sphereIndices);
+            currentCommand.info.mutable_draw_command()->set_mode(core::pb::DrawCommand_Mode_TRIANGLE_STRIP);
+            break;
+        }
         default: break;
         }
     }

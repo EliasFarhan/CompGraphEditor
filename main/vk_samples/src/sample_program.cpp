@@ -507,6 +507,15 @@ core::pb::Scene Scene6()
     cubeCommand->set_mesh_index(0);
     cubeCommand->set_name("CubeCommand");
 
+    auto* sphereCommand = firstPass->add_commands();
+    sphereCommand->set_count(core::sphereIndices);
+    sphereCommand->set_automatic_draw(false);
+    sphereCommand->set_draw_elements(true);
+    sphereCommand->set_mode(core::pb::DrawCommand_Mode_TRIANGLE_STRIP);
+    sphereCommand->set_material_index(0);
+    sphereCommand->set_mesh_index(2);
+    sphereCommand->set_name("SphereCommand");
+
     auto* postProcessPass = renderPass->add_sub_passes();
     postProcessPass->set_framebuffer_index(-1);
     auto* postProcessCommand = postProcessPass->add_commands();
@@ -522,6 +531,10 @@ core::pb::Scene Scene6()
 
     auto* quadMesh = scene.add_meshes();
     quadMesh->set_primitve_type(core::pb::Mesh_PrimitveType_QUAD);
+
+    auto* sphereMesh = scene.add_meshes();
+    sphereMesh->set_primitve_type(core::pb::Mesh_PrimitveType_SPHERE);
+
     auto* scale = quadMesh->mutable_scale();
     scale->set_x(2.0f);
     scale->set_y(2.0f);
@@ -656,7 +669,7 @@ core::pb::Scene Scene07()
 
 void HelloVulkanProgram::Begin() 
 {
-    scene_.SetScene(Scene07());
+    scene_.SetScene(Scene6());
 
     sceneManager_.LoadScene(&scene_);
 }

@@ -675,7 +675,7 @@ void PipelineEditor::DrawCenterView()
         ImNodes::EndNode();
 
 
-        ImNodes::SetNodeGridSpacePos(-1, {0,400});
+        ImNodes::SetNodeGridSpacePos(-1, {50,250});
 
         //Vertex Shader Node
         ImNodes::BeginNode(0);
@@ -705,7 +705,7 @@ void PipelineEditor::DrawCenterView()
         }
         ImNodes::EndNode();
 
-        ImNodes::SetNodeGridSpacePos(0, { 200.0f,200 });
+        ImNodes::SetNodeGridSpacePos(0, { 250.0f,150 });
 
         ImNodes::BeginNode(1);
         ImNodes::BeginNodeTitleBar();
@@ -719,7 +719,7 @@ void PipelineEditor::DrawCenterView()
         ImNodes::EndInputAttribute();
         ImNodes::EndNode();
 
-        ImNodes::SetNodeGridSpacePos(1, { 400.0f,200 });
+        ImNodes::SetNodeGridSpacePos(1, { 450.0f,150 });
         
 
         ImNodes::BeginNode(-2);
@@ -748,7 +748,7 @@ void PipelineEditor::DrawCenterView()
 
         ImNodes::EndNode();
 
-        ImNodes::SetNodeGridSpacePos(-2, { 0.0f,100.0f });
+        ImNodes::SetNodeGridSpacePos(-2, { 50.0f,50.0f });
 
         //TODO add geometry shader node if shader exists
         //TODO add tesselation control shader node if shader exists

@@ -192,7 +192,15 @@ Scene::ImportStatus Scene::LoadMaterials(const PbRepeatField<core::pb::Material>
                     break;
                 }
                 case core::pb::Mesh_PrimitveType_SPHERE:
+                {
+                    const glm::vec3 scale = meshInfo.has_scale() ? glm::vec3{ meshInfo.scale().x(), meshInfo.scale().y(), meshInfo.scale().z() } : glm::vec3(1.0f);
+                    const glm::vec3 offset{ meshInfo.offset().x(), meshInfo.offset().y(), meshInfo.offset().z() };
+
+                    const auto mesh = core::GenerateSphere(scale.x, offset);
+                    vertexBuffers_.emplace_back();
+                    vertexBuffers_.back().CreateFromMesh(mesh);
                     break;
+                }
                 case core::pb::Mesh_PrimitveType_NONE:
                 {
                     vertexBuffers_.emplace_back();
@@ -442,6 +450,9 @@ Scene::ImportStatus Scene::LoadMaterials(const PbRepeatField<core::pb::Material>
         {
             case core::pb::DrawCommand_Mode_TRIANGLES:
                 mode = GL_TRIANGLES;
+                break;
+            case core::pb::DrawCommand_Mode_TRIANGLE_STRIP:
+                mode = GL_TRIANGLE_STRIP;
                 break;
             default:
                 break;

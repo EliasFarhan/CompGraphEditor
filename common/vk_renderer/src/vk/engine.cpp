@@ -19,10 +19,12 @@ Engine::Engine() : window_(config_)
     instance = this;
     const auto& fileSystem = core::FilesystemLocator::get();
 
-    if (!fileSystem.IsRegularFile(configFilename))
+    if (!fileSystem.IsRegularFile(configFilename) || 
+        config_.major_version() == 0 || 
+        config_.minor_version() < 3)
     {
         config_.set_major_version(1);
-        config_.set_minor_version(2);
+        config_.set_minor_version(3);
         config_.set_es(false);
     }
 }

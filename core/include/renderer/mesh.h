@@ -34,6 +34,8 @@ struct Mesh
 
 Mesh GenerateQuad(glm::vec3 scale, glm::vec3 offset);
 Mesh GenerateCube(glm::vec3 scale, glm::vec3 offset);
+constexpr std::size_t sphereSegments = 100;
+constexpr std::size_t sphereIndices = 2*(sphereSegments+1)*(sphereSegments);
 Mesh GenerateSphere(float scale, glm::vec3 offset);
 
 } // namespace core
