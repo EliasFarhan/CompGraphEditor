@@ -173,11 +173,11 @@ void MaterialEditor::DrawCenterView()
     const auto* pipelineEditor = dynamic_cast<PipelineEditor*>(editor->GetEditorSystem(EditorType::PIPELINE));
     const auto& resourceManager = editor->GetResourceManager();
 
-    auto& currentMaterial = materialInfos_[currentIndex_];
+    const auto& currentMaterial = materialInfos_[currentIndex_];
 
-    const auto textureBaseIndex = 100;
-    const auto uniformsBaseIndex = 200;
-    const int samplerBaseIndex = 300;
+    constexpr auto textureBaseIndex = 100;
+    constexpr auto uniformsBaseIndex = 200;
+    constexpr int samplerBaseIndex = 300;
 
     std::vector<std::pair<int, int>> links;
     links.reserve(currentMaterial.info.textures_size() + currentMaterial.info.material().uniforms_size());
@@ -192,7 +192,7 @@ void MaterialEditor::DrawCenterView()
     {
         const auto& materialTexture = currentMaterial.info.textures(i);
         ImNodes::BeginOutputAttribute(textureBaseIndex+i);
-        auto textureName = GetFileExtension(materialTexture.texture_name());
+        auto textureName = GetFilename(materialTexture.texture_name());
         const auto textureType = aiTextureTypeToString(static_cast<aiTextureType>(materialTexture.texture_type()));
         ImGui::Text("%s %s", textureName.c_str(), textureType);
         ImNodes::EndOutputAttribute();

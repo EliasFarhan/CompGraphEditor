@@ -456,6 +456,9 @@ void Editor::OnEvent(SDL_Event& event)
 {
     switch (event.type)
     {
+    case SDL_QUIT:
+        SaveProject();
+        break;
     case SDL_WINDOWEVENT:
     {
         switch (event.window.event)

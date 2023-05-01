@@ -79,8 +79,16 @@ void MeshEditor::DrawInspector()
             ImGui::EndCombo();
         }
         if(currentMesh.info.mesh().primitve_type() == core::pb::Mesh_PrimitveType_QUAD ||
-            currentMesh.info.mesh().primitve_type() == core::pb::Mesh_PrimitveType_CUBE)
+            currentMesh.info.mesh().primitve_type() == core::pb::Mesh_PrimitveType_CUBE ||
+            currentMesh.info.mesh().primitve_type() == core::pb::Mesh_PrimitveType_SPHERE)
         {
+            if(!currentMesh.info.mesh().has_scale())
+            {
+                auto* scale = currentMesh.info.mutable_mesh()->mutable_scale();
+                scale->set_x(1.0f);
+                scale->set_y(1.0f);
+                scale->set_z(1.0f);
+            }
             auto* scale = currentMesh.info.mutable_mesh()->mutable_scale();
             std::array scaleInput{ scale->x(), scale->y(), scale->z() };
             if(ImGui::InputFloat3("Scale", scaleInput.data()))

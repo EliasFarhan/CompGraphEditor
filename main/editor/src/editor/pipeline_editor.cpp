@@ -143,9 +143,11 @@ void PipelineEditor::DrawInspector()
         }
         ImGui::Separator();
         bool depthTesting = currentPipelineInfo.info.pipeline().depth_test_enable();
+
         if(ImGui::Checkbox("Depth Testing", &depthTesting))
         {
             currentPipelineInfo.info.mutable_pipeline()->set_depth_test_enable(depthTesting);
+            currentPipelineInfo.info.mutable_pipeline()->set_depth_mask(true);
         }
         if(depthTesting)
         {
