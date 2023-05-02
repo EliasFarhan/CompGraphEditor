@@ -486,9 +486,9 @@ core::pb::Scene Scene6()
     auto* depth = framebuffer->mutable_depth_stencil_attachment();
     depth->set_format(core::pb::RenderTarget_Format_DEPTH_STENCIL);
     depth->set_size_type(core::pb::RenderTarget_Size_WINDOW_SIZE);
-    depth->set_format_size(core::pb::RenderTarget_FormatSize_SIZE_24);
+    depth->set_format_size(core::pb::RenderTarget_FormatSize_SIZE_32);
     depth->set_rbo(true);
-    depth->set_type(core::pb::RenderTarget_Type_UNSIGNED);
+    depth->set_type(core::pb::RenderTarget_Type_FLOAT);
     depth->set_name("DepthRBO");
 
     auto* modelTexture = scene.add_textures();
