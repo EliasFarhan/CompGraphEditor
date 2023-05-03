@@ -378,12 +378,6 @@ class DrawCommand:
         """Set a named uniform Mat4 value"""
         pass
 
-    def set_texture(self, uniform_name: str, texture_name: int, texture_unit: int):
-        pass
-
-    def set_cubemap(self, uniform_name: str, texture_name: int, texture_unit: int):
-        pass
-
     def bind(self):
         """Bind all textures from the material, bind the pipeline and the mesh.
         To be used before setting uniforms and drawing."""

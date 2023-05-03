@@ -21,6 +21,7 @@ public:
     void SetVec3(std::string_view uniformName, glm::vec3 v) override;
     void SetVec4(std::string_view uniformName, glm::vec4 v) override;
     void SetMat4(std::string_view uniformName, const glm::mat4& mat) override;
+    void SetAngle(std::string_view uniformName, core::Radian angle) override;
 
     void SetTexture(std::string_view uniformName, const Texture& texture, GLenum textureUnit);
     void SetTexture(std::string_view uniformName, GLuint textureName, GLenum textureUnit);

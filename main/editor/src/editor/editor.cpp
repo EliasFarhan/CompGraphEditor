@@ -685,6 +685,29 @@ void Editor::DrawEditorContent()
         ImGui::TreePop();
     }
 
+    open = ImGui::TreeNode("Draw Commands");
+    if (ImGui::BeginPopupContextItem())
+    {
+        if (ImGui::Button("Create New Draw Command"))
+        {
+            OpenMenuCreateNewFile(EditorType::COMMAND);
+        }
+        if (UpdateCreateNewFile())
+        {
+            ImGui::CloseCurrentPopup();
+        }
+        ImGui::EndPopup();
+    }
+    if (open)
+    {
+        if (editorSystems_[static_cast<int>(EditorType::COMMAND)]
+            ->DrawContentList(currentFocusedSystem_ != EditorType::COMMAND))
+        {
+            currentFocusedSystem_ = EditorType::COMMAND;
+        }
+        ImGui::TreePop();
+    }
+
     open = ImGui::TreeNode("Render Passes");
     if (ImGui::BeginPopupContextItem())
     {
@@ -708,28 +731,7 @@ void Editor::DrawEditorContent()
         ImGui::TreePop();
     }
 
-    open = ImGui::TreeNode("Commands");
-    if (ImGui::BeginPopupContextItem())
-    {
-        if (ImGui::Button("Create New Command"))
-        {
-            OpenMenuCreateNewFile(EditorType::COMMAND);
-        }
-        if (UpdateCreateNewFile())
-        {
-            ImGui::CloseCurrentPopup();
-        }
-        ImGui::EndPopup();
-    }
-    if (open)
-    {
-        if (editorSystems_[static_cast<int>(EditorType::COMMAND)]
-            ->DrawContentList(currentFocusedSystem_ != EditorType::COMMAND))
-        {
-            currentFocusedSystem_ = EditorType::COMMAND;
-        }
-        ImGui::TreePop();
-    }
+    
     
     open = ImGui::TreeNode("Scenes");
     if (ImGui::BeginPopupContextItem())

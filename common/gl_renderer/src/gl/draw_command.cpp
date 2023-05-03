@@ -48,6 +48,11 @@ void DrawCommand::SetMat4(std::string_view uniformName, const glm::mat4& mat)
     pipeline_->SetMat4(uniformName, mat);
 }
 
+void DrawCommand::SetAngle(std::string_view uniformName, core::Radian angle)
+{
+    pipeline_->SetFloat(uniformName, angle.value());
+}
+
 void DrawCommand::SetTexture(std::string_view uniformName, const Texture& texture, GLenum textureUnit)
 {
     pipeline_->SetTexture(uniformName, texture, textureUnit);

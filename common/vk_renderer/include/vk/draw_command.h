@@ -26,6 +26,8 @@ public:
 
     void SetMat4(std::string_view uniformName, const glm::mat4 &mat) override;
 
+    void SetAngle(std::string_view uniformName, core::Radian angle) override;
+
     void Bind() override;
 
     void PreDrawBind() override;

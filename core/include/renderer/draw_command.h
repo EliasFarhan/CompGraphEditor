@@ -11,6 +11,8 @@
 #include <string_view>
 #include <string>
 
+#include "maths/angle.h"
+
 
 namespace core
 {
@@ -94,6 +96,8 @@ public:
     virtual void SetVec4(std::string_view uniformName, glm::vec4 v) = 0;
 
     virtual void SetMat4(std::string_view uniformName, const glm::mat4& mat) = 0;
+
+    virtual void SetAngle(std::string_view uniformName, Radian angle) = 0;
 
     [[nodiscard]] std::string_view GetName() const{ return drawCommandInfo_.get().name();}
     int GetMaterialIndex() const { return drawCommandInfo_.get().material_index(); }

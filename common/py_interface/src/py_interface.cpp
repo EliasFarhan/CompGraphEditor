@@ -15,12 +15,20 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <fmt/format.h>
 
-
-
+#include "maths/angle.h"
 
 
 PYBIND11_EMBEDDED_MODULE(neko2, m)
 {
+    py::class_<core::Radian>(m, "Radian")
+        .def(py::init())
+        .def(py::init<float>())
+        .def(py::self + py::self)
+        .def(py::self += py::self)
+        .def(py::self - py::self)
+        .def(-py::self)
+        .def(py::self -= py::self);
+        
     py::class_<core::Script, core::PySystem>(m, "System")
         .def(py::init())
         .def("begin", &core::Script::Begin)

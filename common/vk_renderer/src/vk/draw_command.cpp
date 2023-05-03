@@ -111,6 +111,22 @@ void DrawCommand::SetMat4(std::string_view uniformName, const glm::mat4& mat)
     
 }
 
+void DrawCommand::SetAngle(std::string_view uniformName, core::Radian angle)
+{
+    const auto& uniformData = uniforms_[uniformName.data()];
+
+    core::Radian* ptr = nullptr;
+    if (uniformData.uniformType == UniformType::PUSH_CONSTANT)
+    {
+        ptr = reinterpret_cast<core::Radian*>(&pushConstantBuffer_[uniformData.index]);
+    }
+    else if (uniformData.uniformType == UniformType::UBO)
+    {
+        ptr = reinterpret_cast<core::Radian*>(&uniformBuffer_[uniformData.index]);
+    }
+    *ptr = angle;
+}
+
 void DrawCommand::Bind()
 {
     auto* scene = static_cast<Scene*>(core::GetCurrentScene());
