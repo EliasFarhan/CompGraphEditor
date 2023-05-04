@@ -45,7 +45,7 @@ private:
     static void DrawLogWindow();
     void UpdateFileDialog();
     void LoadFileIntoEditor(std::string_view path);
-
+    void RecursiveSceneFileReload();
     void OpenFileBrowserDialog(std::span<const std::string_view> extensions);
 
 

@@ -250,6 +250,15 @@ void SceneEditor::DrawInspector()
     {
         currentScene.info.add_py_system_paths();
     }
+    if (ImGui::BeginListBox("Editor Scene Resources"))
+    {
+        for (int i = 0; i < currentScene.info.resources_size(); i++)
+        {
+            auto& resource = currentScene.info.resources(i);
+            ImGui::Selectable(resource.c_str(), false);
+        }
+        ImGui::EndListBox();
+    }
 }
 
 bool SceneEditor::DrawContentList(bool unfocus)

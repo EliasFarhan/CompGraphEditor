@@ -23,6 +23,10 @@
 #include "framebuffer_editor.h"
 #include "pbr_utils.h"
 
+
+#include <filesystem>
+namespace fs = std::filesystem;
+
 namespace editor
 {
 
@@ -465,10 +469,11 @@ void Editor::OnEvent(SDL_Event& event)
         {
         case SDL_WINDOWEVENT_FOCUS_GAINED:
         {
-            auto* sceneInfo = GetSceneEditor()->GetCurrentSceneInfo();
+            const auto* sceneInfo = GetSceneEditor()->GetCurrentSceneInfo();
             if (sceneInfo == nullptr)
                 break;
             resourceManager_.CheckDataFolder(sceneInfo->info.resources());
+            RecursiveSceneFileReload();
             break;
         }
         default:break;
@@ -574,8 +579,50 @@ void Editor::LoadFileIntoEditor(std::string_view path)
                 tmp->ReloadId();
             }
         }
+
+        RecursiveSceneFileReload();
     }
 
+}
+
+void Editor::RecursiveSceneFileReload()
+{
+    auto* sceneEditor = GetSceneEditor();
+    auto* sceneInfo = sceneEditor->GetCurrentSceneInfo();
+    if (sceneInfo == nullptr)
+        return;
+    const auto sceneFolder = GetFolder(sceneInfo->path);
+    //recursive search file
+    std::function<void(std::string_view)> recursiveSearch = [&recursiveSearch, &sceneInfo, this](std::string_view folder)
+    {
+        const fs::path folderPath = folder;
+        for (const auto& entry : fs::directory_iterator(folderPath))
+        {
+            const auto& folderContentPath = entry.path();
+            if (fs::is_directory(folderContentPath))
+            {
+                recursiveSearch(folderContentPath.string());
+            }
+            else
+            {
+                if(folderContentPath.extension() == ".scene" || folderContentPath.extension() == ".pkg")
+                    continue;
+                const auto filePath = folderContentPath.string();
+                if (std::ranges::none_of(sceneInfo->info.resources(),
+                    [&folderContentPath, &filePath](const auto& path)
+                    {
+                        if (!fs::exists(path))
+                            return false;
+                        return fs::equivalent(filePath, path);
+                    }))
+                {
+                    sceneInfo->info.add_resources(filePath);
+                    resourceManager_.AddResource(filePath);
+                }
+            }
+        }
+    };
+    recursiveSearch(sceneFolder);
 }
 
 void Editor::DrawEditorContent()
