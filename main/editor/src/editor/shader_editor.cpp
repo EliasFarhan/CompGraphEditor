@@ -307,7 +307,7 @@ bool ShaderEditor::AnalyzeShader(std::string_view path, core::pb::Shader& shader
     }
     else
     {
-        py::function analyzeShaderFunc = py::module_::import("scripts.shader_parser").attr("analyze_shader");
+        py::function analyzeShaderFunc = py::module_::import("scripts.shader_parser").attr("analyze_gl_shader");
         try
         {
             result = static_cast<py::str>(analyzeShaderFunc(path));

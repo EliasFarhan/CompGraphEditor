@@ -5,9 +5,12 @@ layout(location = 1) in vec2 aTexCoord;
 
 out vec2 TexCoord;
 
-uniform mat4 model; //model matrix
-uniform mat4 view; // view matrix
-uniform mat4 projection; //projection matrix
+uniform uniforms
+{
+    mat4 model;
+    mat4 view;
+    mat4 projection;
+};
 
 void main()
 {
