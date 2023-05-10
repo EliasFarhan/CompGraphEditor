@@ -20,25 +20,6 @@
 
 PYBIND11_EMBEDDED_MODULE(neko2, m)
 {
-    py::class_<core::Radian>(m, "Radian")
-        .def(py::init())
-        .def(py::init<float>())
-        .def(py::init<core::Degree>())
-        .def(py::self + py::self)
-        .def(py::self += py::self)
-        .def(py::self - py::self)
-        .def(-py::self)
-        .def(py::self -= py::self);
-
-    py::class_<core::Degree>(m, "Degree")
-        .def(py::init())
-        .def(py::init<float>())
-        .def(py::init<core::Radian>())
-        .def(py::self + py::self)
-        .def(py::self += py::self)
-        .def(py::self - py::self)
-        .def(-py::self)
-        .def(py::self -= py::self);
 
     py::class_<core::Script, core::PySystem>(m, "System")
         .def(py::init())
@@ -211,11 +192,11 @@ PYBIND11_EMBEDDED_MODULE(neko2, m)
         .def(float() * py::self)
         .def("translate", [](const glm::mat4& mat, glm::vec3 v) {return glm::translate(mat, v); })
         .def("scale", [](const glm::mat4& mat, glm::vec3 v) {return glm::scale(mat, v); })
-        .def("rotate", [](const glm::mat4& mat, core::Radian radian, glm::vec3 v) {return glm::rotate(mat, radian.value(), v); })
+        .def("rotate", [](const glm::mat4& mat, float radian, glm::vec3 v) {return glm::rotate(mat, radian, v); })
         .def("inverse", [](const glm::mat4& mat) { return glm::inverse(mat); })
         .def("transpose", [](const glm::mat4& mat) { return glm::transpose(mat); })
         .def_static("view", [](glm::vec3 eye, glm::vec3 center, glm::vec3 up) {return glm::lookAt(eye, center, up); })
-        .def_static("perspective", [](core::Radian fovRadian, float aspect, float near, float far) {return glm::perspective(fovRadian.value(), aspect, near, far); })
+        .def_static("perspective", [](float fovRadian, float aspect, float near, float far) {return glm::perspective(fovRadian, aspect, near, far); })
     ;
 
     m.def("get_scene", [](){

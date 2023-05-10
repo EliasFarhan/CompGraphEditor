@@ -203,15 +203,22 @@ void SceneEditor::DrawInspector()
         ResourceId pySystemId = INVALID_RESOURCE_ID;
         if (!pySystemPath.empty())
         {
-            pySystemId = resourceManager.FindResourceByPath(pySystemPath);
-            if (pySystemId == INVALID_RESOURCE_ID)
+            if (!std::ranges::any_of(core::GetNativeScriptClassNames(), [&pySystemPath](const auto nativeScript) {return nativeScript == pySystemPath; }))
             {
-                currentScene.info.mutable_py_system_paths(i)->clear();
+                pySystemId = resourceManager.FindResourceByPath(pySystemPath);
+                if (pySystemId == INVALID_RESOURCE_ID)
+                {
+                    currentScene.info.mutable_py_system_paths(i)->clear();
+                }
+                else
+                {
+                    scriptInfo = scriptEditor->GetScriptInfo(pySystemId);
+                    name = fmt::format("Script: {}.{}", scriptInfo->info.module(), scriptInfo->info.class_());
+                }
             }
             else
             {
-                scriptInfo = scriptEditor->GetScriptInfo(pySystemId);
-                name = fmt::format("Script: {}.{}", scriptInfo->info.module(), scriptInfo->info.class_());
+                name = fmt::format("Script: {}.{}", core::nativeModuleName, pySystemPath);
             }
         }
         bool visible = true;
@@ -220,14 +227,26 @@ void SceneEditor::DrawInspector()
             const auto& pySystems = scriptEditor->GetScriptInfos();
             const auto scriptsId = fmt::format("script {} combo", i);
             ImGui::PushID(scriptsId.c_str());
-            if (ImGui::BeginCombo("Available Scripts", scriptInfo ? scriptInfo->info.class_().c_str() : "Missing script"))
+            if (ImGui::BeginCombo("Available Scripts", scriptInfo ? 
+                scriptInfo->info.class_().c_str() : 
+                currentScene.info.py_system_paths(i).empty()?"Missing script": currentScene.info.py_system_paths(i).c_str()))
             {
                 for (auto& pySystemInfo : pySystems)
                 {
-                    const auto selectedName = fmt::format("{}.{}", pySystemInfo.info.module(), pySystemInfo.info.class_());
+                    const auto selectedName = fmt::format("{}.{}", 
+                        pySystemInfo.info.module(), 
+                        pySystemInfo.info.class_());
                     if (ImGui::Selectable(selectedName.c_str(), pySystemId == pySystemInfo.resourceId))
                     {
                         *currentScene.info.mutable_py_system_paths(i) = pySystemInfo.info.path();
+                    }
+                }
+                for(auto nativeScript: core::GetNativeScriptClassNames())
+                {
+                    const auto selectedName = fmt::format("{}.{}", core::nativeModuleName, nativeScript);
+                    if(ImGui::Selectable(selectedName.c_str(), currentScene.info.py_system_paths(i) == nativeScript))
+                    {
+                        *currentScene.info.mutable_py_system_paths(i) = nativeScript;
                     }
                 }
                 ImGui::EndCombo();
@@ -624,10 +643,19 @@ bool SceneEditor::ExportAndPlayScene() const
     for(int i = 0; i < currentScene.info.py_system_paths_size();i++)
     {
         const auto& pySystemPath = currentScene.info.py_system_paths(i);
-        const auto pySystemId = resourceManager.FindResourceByPath(pySystemPath);
-        const auto* pySystemInfo = scriptEditor->GetScriptInfo(pySystemId);
+        if(std::ranges::any_of(core::GetNativeScriptClassNames(), [&pySystemPath](auto nativeScript){return nativeScript == pySystemPath;}))
+        {
+            auto* newSystem = exportScene.add_systems();
+            *newSystem->mutable_module() = core::nativeModuleName;
+            *newSystem->mutable_class_() = pySystemPath;
+        }
+        else
+        {
+            const auto pySystemId = resourceManager.FindResourceByPath(pySystemPath);
+            const auto* pySystemInfo = scriptEditor->GetScriptInfo(pySystemId);
 
-        *exportScene.add_systems() = pySystemInfo->info;
+            *exportScene.add_systems() = pySystemInfo->info;
+        }
     }
     constexpr std::string_view exportScenePath = "root.scene";
     //Write scene
@@ -652,6 +680,8 @@ bool SceneEditor::ExportAndPlayScene() const
     scriptPaths.reserve(exportScene.systems_size());
     for (int i = 0; i < exportScene.systems_size(); i++)
     {
+        if(exportScene.systems(i).path().empty())
+            continue;
         scriptPaths.push_back(fs::path(exportScene.systems(i).path(), std::filesystem::path::generic_format).string());
     }
     sceneJson["scripts"] = scriptPaths;
