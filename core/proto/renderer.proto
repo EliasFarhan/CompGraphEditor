@@ -134,6 +134,7 @@ message Attribute
         SAMPLERCUBE = 13;
         VOID = 14;
         CUSTOM = 15;
+        IMAGE2D = 16;
     }
     string name = 1;
     Type type = 2;
@@ -383,6 +384,7 @@ message DrawCommand
     bool automatic_draw = 9;
     string name = 10;
     Transform model_transform = 11;
+    Vec3i compute_dispatch_size = 12;
 }
 
 message Dependency

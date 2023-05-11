@@ -90,22 +90,23 @@ void CommandEditor::DrawInspector()
     const auto* editor = Editor::GetInstance();
     auto* materialEditor = dynamic_cast<MaterialEditor*>(editor->GetEditorSystem(EditorType::MATERIAL));
     auto* meshEditor = dynamic_cast<MeshEditor*>(editor->GetEditorSystem(EditorType::MESH));
+    auto* pipelineEditor = dynamic_cast<PipelineEditor*>(editor->GetEditorSystem(EditorType::PIPELINE));
     auto& currentCommand = commandInfos_[currentIndex_];
 
     //name editor
     std::string drawCommandName = currentCommand.info.draw_command().name();
-    if(ImGui::InputText("Name: ", &drawCommandName))
+    if (ImGui::InputText("Name: ", &drawCommandName))
     {
         currentCommand.info.mutable_draw_command()->set_name(drawCommandName);
     }
-    
+
     const auto& materials = materialEditor->GetMaterials();
     const auto* materialInfo = materialEditor->GetMaterial(currentCommand.materialId);
-    if(ImGui::BeginCombo("Material", materialInfo?materialInfo->filename.c_str():"Empty Material"))
+    if (ImGui::BeginCombo("Material", materialInfo ? materialInfo->filename.c_str() : "Empty Material"))
     {
-        for(auto& material : materials)
+        for (auto& material : materials)
         {
-            if(ImGui::Selectable(material.filename.c_str(), material.resourceId == currentCommand.materialId))
+            if (ImGui::Selectable(material.filename.c_str(), material.resourceId == currentCommand.materialId))
             {
                 currentCommand.materialId = material.resourceId;
                 currentCommand.info.set_material_path(material.path);
@@ -115,11 +116,11 @@ void CommandEditor::DrawInspector()
     }
     const auto& meshes = meshEditor->GetMeshes();
     const auto* meshInfo = meshEditor->GetMesh(currentCommand.meshId);
-    if(ImGui::BeginCombo("Mesh", meshInfo?meshInfo->filename.c_str():"Empty Mesh"))
+    if (ImGui::BeginCombo("Mesh", meshInfo ? meshInfo->filename.c_str() : "Empty Mesh"))
     {
-        for(auto& mesh: meshes)
+        for (auto& mesh : meshes)
         {
-            if(ImGui::Selectable(mesh.filename.c_str(), mesh.resourceId == currentCommand.meshId))
+            if (ImGui::Selectable(mesh.filename.c_str(), mesh.resourceId == currentCommand.meshId))
             {
                 currentCommand.meshId = mesh.resourceId;
                 currentCommand.info.set_mesh_path(mesh.path);
@@ -127,92 +128,117 @@ void CommandEditor::DrawInspector()
         }
         ImGui::EndCombo();
     }
-    bool automaticDraw = currentCommand.info.draw_command().automatic_draw();
-    if(ImGui::Checkbox("Automatic Draw", &automaticDraw))
+    if (materialInfo == nullptr)
+        return;
+    auto* pipelineInfo = pipelineEditor->GetPipeline(materialInfo->pipelineId);
+    if (pipelineInfo == nullptr)
+        return;
+    switch(pipelineInfo->info.pipeline().type())
     {
-        currentCommand.info.mutable_draw_command()->set_automatic_draw(automaticDraw);
-    }
+    case core::pb::Pipeline_Type_RASTERIZE:
+    {
+        bool automaticDraw = currentCommand.info.draw_command().automatic_draw();
+        if (ImGui::Checkbox("Automatic Draw", &automaticDraw))
+        {
+            currentCommand.info.mutable_draw_command()->set_automatic_draw(automaticDraw);
+        }
 
-    //Model matrix
-    core::pb::Transform* transform = nullptr;
-    if(currentCommand.info.draw_command().has_model_transform())
-    {
-        transform = currentCommand.info.mutable_draw_command()->mutable_model_transform();
-    }
-
-    if(transform == nullptr)
-    {
-        if(ImGui::Button("Add Model Transform Matrix"))
+        //Model matrix
+        core::pb::Transform* transform = nullptr;
+        if (currentCommand.info.draw_command().has_model_transform())
         {
             transform = currentCommand.info.mutable_draw_command()->mutable_model_transform();
+        }
+
+        if (transform == nullptr)
+        {
+            if (ImGui::Button("Add Model Transform Matrix"))
+            {
+                transform = currentCommand.info.mutable_draw_command()->mutable_model_transform();
+                auto* position = transform->mutable_position();
+                auto* scale = transform->mutable_scale();
+                scale->set_x(1.0f);
+                scale->set_y(1.0f);
+                scale->set_z(1.0f);
+                auto* eulerAngles = transform->mutable_euler_angles();
+            }
+        }
+        else
+        {
             auto* position = transform->mutable_position();
+            std::array<float, 3> positionTmp = { {position->x(), position->y(), position->z()} };
+            if (ImGui::InputFloat3("Position", positionTmp.data()))
+            {
+                position->set_x(positionTmp[0]);
+                position->set_y(positionTmp[1]);
+                position->set_z(positionTmp[2]);
+            }
             auto* scale = transform->mutable_scale();
-            scale->set_x(1.0f);
-            scale->set_y(1.0f);
-            scale->set_z(1.0f);
+            std::array<float, 3> scaleTmp = { {scale->x(), scale->y(), scale->z()} };
+            if (ImGui::InputFloat3("Scale", scaleTmp.data()))
+            {
+                scale->set_x(scaleTmp[0]);
+                scale->set_y(scaleTmp[1]);
+                scale->set_z(scaleTmp[2]);
+            }
             auto* eulerAngles = transform->mutable_euler_angles();
+            std::array<float, 3> eulerAnglesTmp = { {eulerAngles->x(), eulerAngles->y(), eulerAngles->z()} };
+            if (ImGui::InputFloat3("Euler Angles", eulerAnglesTmp.data()))
+            {
+                eulerAngles->set_x(eulerAnglesTmp[0]);
+                eulerAngles->set_y(eulerAnglesTmp[1]);
+                eulerAngles->set_z(eulerAnglesTmp[2]);
+            }
+            if (ImGui::Button("Remove Model Transform Matrix"))
+            {
+                currentCommand.info.mutable_draw_command()->clear_model_transform();
+            }
+        }
+
+        UpdateMeshInCommand(currentIndex_);
+        if (meshInfo != nullptr)
+        {
+            switch (meshInfo->info.mesh().primitve_type())
+            {
+            case core::pb::Mesh_PrimitveType_NONE:
+            {
+                int count = currentCommand.info.mutable_draw_command()->count();
+                if (ImGui::InputInt("Vertex Count", &count))
+                {
+                    currentCommand.info.mutable_draw_command()->set_count(count);
+                }
+                bool drawElements = currentCommand.info.mutable_draw_command()->draw_elements();
+                if (ImGui::Checkbox("Draw Elements", &drawElements))
+                {
+                    currentCommand.info.mutable_draw_command()->set_draw_elements(drawElements);
+                }
+
+                break;
+            }
+            case core::pb::Mesh_PrimitveType_MODEL:
+            {
+                ImGui::Text("Vertex Count: %d", currentCommand.info.draw_command().count());
+                break;
+            }
+            default:
+                break;
+            }
         }
     }
-    else
+    case core::pb::Pipeline_Type_COMPUTE:
     {
-        auto* position = transform->mutable_position();
-        std::array<float, 3> positionTmp = { {position->x(), position->y(), position->z()} };
-        if(ImGui::InputFloat3("Position", positionTmp.data()))
+        auto* computeDispatchSize = currentCommand.info.mutable_draw_command()->mutable_compute_dispatch_size();
+        std::array<int, 3> tmp = { {computeDispatchSize->x(), computeDispatchSize->y(), computeDispatchSize->z()} };
+        if (ImGui::InputInt3("Compute Dispatch Size", tmp.data()))
         {
-            position->set_x(positionTmp[0]);
-            position->set_y(positionTmp[1]);
-            position->set_z(positionTmp[2]);
+            computeDispatchSize->set_x(tmp[0]);
+            computeDispatchSize->set_y(tmp[1]);
+            computeDispatchSize->set_z(tmp[2]);
         }
-        auto* scale = transform->mutable_scale();
-        std::array<float, 3> scaleTmp = { {scale->x(), scale->y(), scale->z()} };
-        if(ImGui::InputFloat3("Scale", scaleTmp.data()))
-        {
-            scale->set_x(scaleTmp[0]);
-            scale->set_y(scaleTmp[1]);
-            scale->set_z(scaleTmp[2]);
-        }
-        auto* eulerAngles = transform->mutable_euler_angles();
-        std::array<float, 3> eulerAnglesTmp = { {eulerAngles->x(), eulerAngles->y(), eulerAngles->z()} };
-        if(ImGui::InputFloat3("Euler Angles", eulerAnglesTmp.data()))
-        {
-            eulerAngles->set_x(eulerAnglesTmp[0]);
-            eulerAngles->set_y(eulerAnglesTmp[1]);
-            eulerAngles->set_z(eulerAnglesTmp[2]);
-        }
-        if(ImGui::Button("Remove Model Transform Matrix"))
-        {
-            currentCommand.info.mutable_draw_command()->clear_model_transform();
-        }
+        break;
     }
-
-    UpdateMeshInCommand(currentIndex_);
-    if(meshInfo != nullptr)
-    {
-        switch(meshInfo->info.mesh().primitve_type())
-        {
-        case core::pb::Mesh_PrimitveType_NONE:
-        {
-            int count = currentCommand.info.mutable_draw_command()->count();
-            if (ImGui::InputInt("Vertex Count", &count))
-            {
-                currentCommand.info.mutable_draw_command()->set_count(count);
-            }
-            bool drawElements = currentCommand.info.mutable_draw_command()->draw_elements();
-            if (ImGui::Checkbox("Draw Elements", &drawElements))
-            {
-                currentCommand.info.mutable_draw_command()->set_draw_elements(drawElements);
-            }
-
-            break;
-        }
-        case core::pb::Mesh_PrimitveType_MODEL:
-        {
-            ImGui::Text("Vertex Count: %d", currentCommand.info.draw_command().count());
-            break;
-        }
-        default:
-            break;
-        }
+    default:
+        break;
     }
 }
 

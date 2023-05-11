@@ -404,7 +404,7 @@ bool ShaderEditor::AnalyzeShader(std::string_view path, core::pb::Shader& shader
 }
 core::pb::Attribute::Type ShaderEditor::GetType(std::string_view attibuteTypeString)
 {
-    static constexpr std::array<std::string_view, 15> typeString =
+    static constexpr std::array<std::string_view, 17> typeString =
         {
         "float",
         "vec2",
@@ -420,7 +420,9 @@ core::pb::Attribute::Type ShaderEditor::GetType(std::string_view attibuteTypeStr
         "bool",
         "sampler2D",
         "samplerCube",
-        "void"
+        "void",
+        "custom",
+        "image2D"
         };
     const auto it = std::ranges::find(typeString, attibuteTypeString);
     if(it != typeString.end())

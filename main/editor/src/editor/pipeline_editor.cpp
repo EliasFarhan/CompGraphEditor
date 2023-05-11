@@ -465,6 +465,10 @@ void PipelineEditor::DrawInspector()
             ImGui::EndCombo();
         }
     }
+    else if(currentPipelineInfo.info.pipeline().type() == core::pb::Pipeline_Type_RAYTRACING)
+    {
+        //TODO allow link of raytracing pipeline
+    }
 }
 bool PipelineEditor::DrawContentList(bool unfocus)
 {
@@ -534,6 +538,30 @@ void PipelineEditor::RemoveResource(const Resource& resource)
             pipelineInfo.info.clear_fragment_shader_path();
             modified = true;
         }
+        if(pipelineInfo.geometryShaderId == resource.resourceId)
+        {
+            pipelineInfo.geometryShaderId = INVALID_RESOURCE_ID;
+            pipelineInfo.info.clear_geometry_shader_path();
+            modified = true;
+        }
+        if(pipelineInfo.tessControlShaderId == resource.resourceId)
+        {
+            pipelineInfo.tessControlShaderId = INVALID_RESOURCE_ID;
+            pipelineInfo.info.clear_tess_control_shader_path();
+            modified = true;
+        }
+        if(pipelineInfo.tessEvalShaderId == resource.resourceId)
+        {
+            pipelineInfo.tessEvalShaderId == resource.resourceId;
+            pipelineInfo.info.clear_tess_eval_shader_path();
+            modified = true;
+        }
+        if(pipelineInfo.computeShaderId == resource.resourceId)
+        {
+            pipelineInfo.computeShaderId = INVALID_RESOURCE_ID;
+            pipelineInfo.info.clear_compute_shader_path();
+            modified = true;
+        }
         if(modified)
         {
             ReloadPipeline(i);
@@ -565,6 +593,22 @@ void PipelineEditor::UpdateExistingResource(const Resource& resource)
             modified = true;
         }
         if (pipelineInfo.fragmentShaderId == resource.resourceId)
+        {
+            modified = true;
+        }
+        if(pipelineInfo.computeShaderId == resource.resourceId)
+        {
+            modified = true;
+        }
+        if(pipelineInfo.geometryShaderId == resource.resourceId)
+        {
+            modified = true;
+        }
+        if(pipelineInfo.tessControlShaderId == resource.resourceId)
+        {
+            modified = true;
+        }
+        if(pipelineInfo.tessEvalShaderId == resource.resourceId)
         {
             modified = true;
         }
@@ -794,6 +838,26 @@ void PipelineEditor::ReloadPipeline(int index)
         {
             pipelineInfo.fragmentShaderId = resourceManager.FindResourceByPath(pipelineInfo.info.fragment_shader_path());
         }
+
+        if(pipelineInfo.computeShaderId == INVALID_RESOURCE_ID && !pipelineInfo.info.compute_shader_path().empty())
+        {
+            pipelineInfo.computeShaderId = resourceManager.FindResourceByPath(pipelineInfo.info.compute_shader_path());
+        }
+
+        if(pipelineInfo.geometryShaderId == INVALID_RESOURCE_ID && !pipelineInfo.info.geometry_shader_path().empty())
+        {
+            pipelineInfo.geometryShaderId = resourceManager.FindResourceByPath(pipelineInfo.info.geometry_shader_path());
+        }
+
+        if(pipelineInfo.tessControlShaderId == INVALID_RESOURCE_ID && !pipelineInfo.info.tess_control_shader_path().empty())
+        {
+            pipelineInfo.tessControlShaderId = resourceManager.FindResourceByPath(pipelineInfo.info.tess_control_shader_path());
+        }
+
+        if(pipelineInfo.tessEvalShaderId == INVALID_RESOURCE_ID && !pipelineInfo.info.tess_eval_shader_path().empty())
+        {
+            pipelineInfo.tessEvalShaderId = resourceManager.FindResourceByPath(pipelineInfo.info.tess_eval_shader_path());
+        }
     }
     std::vector<core::pb::Sampler> samplers;
     samplers.reserve(pipelineInfo.info.pipeline().samplers_size());
@@ -823,6 +887,38 @@ void PipelineEditor::ReloadPipeline(int index)
         for (int i = 0; i < fragmentShader->info.uniforms_size(); i++)
         {
             *pipelineInfo.info.mutable_pipeline()->add_uniforms() = fragmentShader->info.uniforms(i);
+        }
+    }
+    if(pipelineInfo.geometryShaderId != INVALID_RESOURCE_ID)
+    {
+        const auto* geometryShader = shaderEditor->GetShader(pipelineInfo.geometryShaderId);
+        for (int i = 0; i < geometryShader->info.uniforms_size(); i++)
+        {
+            *pipelineInfo.info.mutable_pipeline()->add_uniforms() = geometryShader->info.uniforms(i);
+        }
+    }
+    if(pipelineInfo.computeShaderId != INVALID_RESOURCE_ID)
+    {
+        const auto* computeShader = shaderEditor->GetShader(pipelineInfo.computeShaderId);
+        for (int i = 0; i < computeShader->info.uniforms_size(); i++)
+        {
+            *pipelineInfo.info.mutable_pipeline()->add_uniforms() = computeShader->info.uniforms(i);
+        }
+    }
+    if(pipelineInfo.tessControlShaderId != INVALID_RESOURCE_ID)
+    {
+        const auto* tessControlShader = shaderEditor->GetShader(pipelineInfo.tessControlShaderId);
+        for (int i = 0; i < tessControlShader->info.uniforms_size(); i++)
+        {
+            *pipelineInfo.info.mutable_pipeline()->add_uniforms() = tessControlShader->info.uniforms(i);
+        }
+    }
+    if(pipelineInfo.tessEvalShaderId != INVALID_RESOURCE_ID)
+    {
+        const auto* tessEvalShader = shaderEditor->GetShader(pipelineInfo.tessEvalShaderId);
+        for (int i = 0; i < tessEvalShader->info.uniforms_size(); i++)
+        {
+            *pipelineInfo.info.mutable_pipeline()->add_uniforms() = tessEvalShader->info.uniforms(i);
         }
     }
     for(int i = 0; i < pipelineInfo.info.pipeline().uniforms_size(); i++)

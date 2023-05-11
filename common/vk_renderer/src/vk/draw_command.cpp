@@ -452,8 +452,10 @@ void DrawCommand::GenerateUniforms()
     allocInfo.descriptorSetCount = static_cast<uint32_t>(Engine::MAX_FRAMES_IN_FLIGHT);
     allocInfo.pSetLayouts = layouts.data();
     
-    if (vkAllocateDescriptorSets(driver.device, &allocInfo, descriptorSets.data()) != VK_SUCCESS) {
+    if (vkAllocateDescriptorSets(driver.device, &allocInfo, descriptorSets.data()) != VK_SUCCESS) 
+    {
         LogError("Failed to allocate descriptor sets!");
+        return;
     }
     auto& engine = GetEngine();
     for (size_t i = 0; i < Engine::MAX_FRAMES_IN_FLIGHT; i++) 
@@ -567,7 +569,6 @@ void DrawCommand::PreDrawBind()
         vmaMapMemory(allocator, ubo.buffers[currentFrame].allocation, &data);
         std::memcpy(data, &uniformBuffer_[ubo.index], ubo.size);
         vmaUnmapMemory(allocator, ubo.buffers[currentFrame].allocation);
-
     }
     if (descriptorSets[0] == nullptr)
         return;

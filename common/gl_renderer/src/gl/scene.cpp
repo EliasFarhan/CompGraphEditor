@@ -343,111 +343,121 @@ Scene::ImportStatus Scene::LoadMaterials(const PbRepeatField<core::pb::Material>
         const auto& material = materials_[command.GetMaterialIndex()];
         auto& pipeline = pipelines_[material.pipelineIndex];
         auto& pipelineInfo = scene_.pipelines(material.pipelineIndex);
-
-        if (pipelineInfo.depth_test_enable())
+        switch (pipelineInfo.type())
         {
-            glEnable(GL_DEPTH_TEST);
-            glDepthFunc(ConvertDepthCompareOpToGL(pipelineInfo.depth_compare_op()));
-            glDepthMask(pipelineInfo.depth_mask());
+        case core::pb::Pipeline_Type_COMPUTE:
+        {
+            pipeline.Bind();
+            //TODO dispatch compute shader
+            glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
+            break;
         }
-        else
+        case core::pb::Pipeline_Type_RASTERIZE:
         {
-            glDisable(GL_DEPTH_TEST);
-        }
-
-        if (pipelineInfo.blend_enable())
-        {
-            glEnable(GL_BLEND);
-            glBlendFunc(ConvertBlendFuncToGL(pipelineInfo.blending_source_factor()), ConvertBlendFuncToGL(pipelineInfo.blending_destination_factor()));
-        }
-        else
-        {
-            glDisable(GL_BLEND);
-        }
-        if (pipelineInfo.enable_stencil_test())
-        {
-            glEnable(GL_STENCIL_TEST);
-            glStencilMask(pipelineInfo.stencil_mask());
-            glStencilOp(
-                ConvertStencilOpToGL(pipelineInfo.stencil_source_fail()),
-                ConvertStencilOpToGL(pipelineInfo.stencil_depth_fail()),
-                ConvertStencilOpToGL(pipelineInfo.stencil_depth_pass())
-            );
-            static constexpr std::array stencilFunc =
-                    {
-                            GL_NEVER,
-                            GL_LESS,
-                            GL_LEQUAL,
-                            GL_GREATER,
-                            GL_GEQUAL,
-                            GL_EQUAL,
-                            GL_NOTEQUAL,
-                            GL_ALWAYS
-                    };
-            glStencilFunc(stencilFunc[pipelineInfo.stencil_func()],
-                          pipelineInfo.stencil_ref(),
-                          pipelineInfo.stencil_func_mask());
-        }
-        else
-        {
-            glDisable(GL_STENCIL_TEST);
-        }
-
-        if (pipelineInfo.enable_culling())
-        {
-            glEnable(GL_CULL_FACE);
-            glCullFace(ConvertCullFaceToGL(pipelineInfo.cull_face()));
-            glFrontFace(ConvertFrontFaceToGL(pipelineInfo.front_face()));
-        }
-        else
-        {
-            glDisable(GL_CULL_FACE);
-        }
-
-        pipeline.Bind();
-        for (std::size_t textureIndex = 0; textureIndex < material.textures.size(); textureIndex++)
-        {
-            const auto& materialTexture = material.textures[textureIndex];
-            if (materialTexture.textureId != core::INVALID_TEXTURE_ID)
+            if (pipelineInfo.depth_test_enable())
             {
-                glCommand.SetTexture(materialTexture.uniformSamplerName, GetTexture(material.textures[textureIndex].textureId), textureIndex);
+                glEnable(GL_DEPTH_TEST);
+                glDepthFunc(ConvertDepthCompareOpToGL(pipelineInfo.depth_compare_op()));
+                glDepthMask(pipelineInfo.depth_mask());
             }
             else
             {
+                glDisable(GL_DEPTH_TEST);
+            }
 
-                const auto& framebufferName = materialTexture.framebufferName;
-                if (framebufferName.empty())
+            if (pipelineInfo.blend_enable())
+            {
+                glEnable(GL_BLEND);
+                glBlendFunc(ConvertBlendFuncToGL(pipelineInfo.blending_source_factor()), ConvertBlendFuncToGL(pipelineInfo.blending_destination_factor()));
+            }
+            else
+            {
+                glDisable(GL_BLEND);
+            }
+            if (pipelineInfo.enable_stencil_test())
+            {
+                glEnable(GL_STENCIL_TEST);
+                glStencilMask(pipelineInfo.stencil_mask());
+                glStencilOp(
+                    ConvertStencilOpToGL(pipelineInfo.stencil_source_fail()),
+                    ConvertStencilOpToGL(pipelineInfo.stencil_depth_fail()),
+                    ConvertStencilOpToGL(pipelineInfo.stencil_depth_pass())
+                );
+                static constexpr std::array stencilFunc =
                 {
-                    LogWarning("Empty Framebuffer Name for Material Attachment");
-                    continue;
-                }
-                auto it = std::ranges::find_if(framebuffers_, [&framebufferName](const auto& framebuffer)
-                {
-                    return framebuffer.GetName() == framebufferName;
-                });
-                if (it == framebuffers_.end())
-                {
-                    LogWarning(fmt::format("Could not find framebuffer: {}", framebufferName));
-                    continue;
-                }
-                const auto textureName = it->GetTextureName(materialTexture.attachmentName);
-                if (textureName == 0)
-                {
-                    LogWarning(fmt::format("Could not find attachment: {} in framebuffer: {}", materialTexture.attachmentName, framebufferName));
+                        GL_NEVER,
+                        GL_LESS,
+                        GL_LEQUAL,
+                        GL_GREATER,
+                        GL_GEQUAL,
+                        GL_EQUAL,
+                        GL_NOTEQUAL,
+                        GL_ALWAYS
+                };
+                glStencilFunc(stencilFunc[pipelineInfo.stencil_func()],
+                    pipelineInfo.stencil_ref(),
+                    pipelineInfo.stencil_func_mask());
+            }
+            else
+            {
+                glDisable(GL_STENCIL_TEST);
+            }
 
-                    continue;
-                }
-                glCommand.SetTexture(materialTexture.uniformSamplerName, textureName, textureIndex);
+            if (pipelineInfo.enable_culling())
+            {
+                glEnable(GL_CULL_FACE);
+                glCullFace(ConvertCullFaceToGL(pipelineInfo.cull_face()));
+                glFrontFace(ConvertFrontFaceToGL(pipelineInfo.front_face()));
+            }
+            else
+            {
+                glDisable(GL_CULL_FACE);
+            }
 
+            pipeline.Bind();
+            for (std::size_t textureIndex = 0; textureIndex < material.textures.size(); textureIndex++)
+            {
+                const auto& materialTexture = material.textures[textureIndex];
+                if (materialTexture.textureId != core::INVALID_TEXTURE_ID)
+                {
+                    glCommand.SetTexture(materialTexture.uniformSamplerName, GetTexture(material.textures[textureIndex].textureId), textureIndex);
+                }
+                else
+                {
+
+                    const auto& framebufferName = materialTexture.framebufferName;
+                    if (framebufferName.empty())
+                    {
+                        LogWarning("Empty Framebuffer Name for Material Attachment");
+                        continue;
+                    }
+                    auto it = std::ranges::find_if(framebuffers_, [&framebufferName](const auto& framebuffer)
+                        {
+                            return framebuffer.GetName() == framebufferName;
+                        });
+                    if (it == framebuffers_.end())
+                    {
+                        LogWarning(fmt::format("Could not find framebuffer: {}", framebufferName));
+                        continue;
+                    }
+                    const auto textureName = it->GetTextureName(materialTexture.attachmentName);
+                    if (textureName == 0)
+                    {
+                        LogWarning(fmt::format("Could not find attachment: {} in framebuffer: {}", materialTexture.attachmentName, framebufferName));
+
+                        continue;
+                    }
+                    glCommand.SetTexture(materialTexture.uniformSamplerName, textureName, textureIndex);
+
+
+                }
 
             }
 
-        }
 
-
-        GLenum mode = 0;
-        switch (commandInfo.mode())
-        {
+            GLenum mode = 0;
+            switch (commandInfo.mode())
+            {
             case core::pb::DrawCommand_Mode_TRIANGLES:
                 mode = GL_TRIANGLES;
                 break;
@@ -456,29 +466,32 @@ Scene::ImportStatus Scene::LoadMaterials(const PbRepeatField<core::pb::Material>
                 break;
             default:
                 break;
-        }
+            }
 
-        const auto meshIndex = command.GetMeshIndex();
-        if (meshIndex >= 0)
-        {
-            vertexBuffers_[meshIndex].Bind();
-            glCheckError();
-        }
-        else
-        {
-            glBindVertexArray(emptyMeshVao_);
-            glCheckError();
-        }
+            const auto meshIndex = command.GetMeshIndex();
+            if (meshIndex >= 0)
+            {
+                vertexBuffers_[meshIndex].Bind();
+                glCheckError();
+            }
+            else
+            {
+                glBindVertexArray(emptyMeshVao_);
+                glCheckError();
+            }
 
-        if (commandInfo.draw_elements())
-        {
-            glDrawElements(mode, commandInfo.count(), GL_UNSIGNED_INT, nullptr);
-            glCheckError();
+            if (commandInfo.draw_elements())
+            {
+                glDrawElements(mode, commandInfo.count(), GL_UNSIGNED_INT, nullptr);
+                glCheckError();
+            }
+            else
+            {
+                glDrawArrays(mode, 0, commandInfo.count());
+                glCheckError();
+            }
+            break;
         }
-        else
-        {
-            glDrawArrays(mode, 0, commandInfo.count());
-            glCheckError();
         }
     }
 
