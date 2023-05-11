@@ -536,13 +536,12 @@ bool SceneEditor::ExportAndPlayScene() const
                 }
                 const auto* pipeline = pipelineEditor->GetPipeline(material->pipelineId);
                 auto pipelineIndexIt = resourceIndexMap.find(pipeline->resourceId);
-                if(pipelineIndexIt == resourceIndexMap.end())
+                if (pipelineIndexIt == resourceIndexMap.end())
                 {
                     const auto pipelineIndex = exportScene.pipelines_size();
                     auto* newPipeline = exportScene.add_pipelines();
                     *newPipeline = pipeline->info.pipeline();
                     resourceIndexMap[pipeline->resourceId] = pipelineIndex;
-
                     const auto shaderExportFunc = [&resourceIndexMap, &exportScene, &shaderEditor, isVulkan](ResourceId shaderId)
                     {
                         if (shaderId == INVALID_RESOURCE_ID)
@@ -565,27 +564,46 @@ bool SceneEditor::ExportAndPlayScene() const
                             return shaderIt->second;
                         }
                     };
-
-                    int vertexShaderIndex = shaderExportFunc(pipeline->vertexShaderId);
-                    if(vertexShaderIndex == -1)
+                    switch (newPipeline->type())
                     {
-                        LogWarning(fmt::format("Could not export scene, missing vertex shader in pipeline. Pipeline: {}", pipeline->path));
-                        return false;
-                    }
-                    newPipeline->set_vertex_shader_index(vertexShaderIndex);
-
-                    int fragmentShaderIndex = shaderExportFunc(pipeline->fragmentShaderId);
-                    if(fragmentShaderIndex == -1)
+                    case core::pb::Pipeline_Type_RASTERIZE:
                     {
-                        LogWarning(fmt::format("Could not export scene, missing fragment shader in pipeline. Pipeline: {}", pipeline->path));
-                        return false;
-                    }
-                    newPipeline->set_fragment_shader_index(fragmentShaderIndex);
-                    newPipeline->set_geometry_shader_index(shaderExportFunc(pipeline->geometryShaderId));
-                    newPipeline->set_tess_control_shader_index(shaderExportFunc(pipeline->tessControlShaderId));
-                    newPipeline->set_tess_eval_shader_index(shaderExportFunc(pipeline->tessEvalShaderId));
+                        int vertexShaderIndex = shaderExportFunc(pipeline->vertexShaderId);
+                        if (vertexShaderIndex == -1)
+                        {
+                            LogWarning(fmt::format("Could not export scene, missing vertex shader in pipeline. Pipeline: {}", pipeline->path));
+                            return false;
+                        }
+                        newPipeline->set_vertex_shader_index(vertexShaderIndex);
 
-                    newMaterial->set_pipeline_index(pipelineIndex);
+                        int fragmentShaderIndex = shaderExportFunc(pipeline->fragmentShaderId);
+                        if (fragmentShaderIndex == -1)
+                        {
+                            LogWarning(fmt::format("Could not export scene, missing fragment shader in pipeline. Pipeline: {}", pipeline->path));
+                            return false;
+                        }
+                        newPipeline->set_fragment_shader_index(fragmentShaderIndex);
+                        newPipeline->set_geometry_shader_index(shaderExportFunc(pipeline->geometryShaderId));
+                        newPipeline->set_tess_control_shader_index(shaderExportFunc(pipeline->tessControlShaderId));
+                        newPipeline->set_tess_eval_shader_index(shaderExportFunc(pipeline->tessEvalShaderId));
+
+                        newMaterial->set_pipeline_index(pipelineIndex);
+                        break;
+                    }
+                    case core::pb::Pipeline_Type_COMPUTE:
+                    {
+
+                        int computeShaderIndex = shaderExportFunc(pipeline->computeShaderId);
+                        if (computeShaderIndex == -1)
+                        {
+                            LogWarning(fmt::format("Could not export scene, missing compute shader in pipeline. Pipeline: {}", pipeline->path));
+                            return false;
+                        }
+                        newPipeline->set_vertex_shader_index(computeShaderIndex);
+
+                        break;
+                    }
+                }
                 }
                 else
                 {
