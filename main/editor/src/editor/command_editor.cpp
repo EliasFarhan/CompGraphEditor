@@ -1,6 +1,7 @@
 #include "command_editor.h"
 
 #include <imgui.h>
+#include <imgui_stdlib.h>
 #include <fmt/format.h>
 
 #include "editor.h"
@@ -37,7 +38,10 @@ void CommandEditor::AddResource(const Resource& resource)
             return;
         }
     }
-    commandInfo.info.mutable_draw_command()->set_name(GetFilename(resource.path, false));
+    if (commandInfo.info.draw_command().name().empty())
+    {
+        commandInfo.info.mutable_draw_command()->set_name(GetFilename(resource.path, false));
+    }
     commandInfo.path = resource.path;
     commandInfos_.push_back(commandInfo);
 }
@@ -88,6 +92,12 @@ void CommandEditor::DrawInspector()
     auto* meshEditor = dynamic_cast<MeshEditor*>(editor->GetEditorSystem(EditorType::MESH));
     auto& currentCommand = commandInfos_[currentIndex_];
 
+    //name editor
+    std::string drawCommandName = currentCommand.info.draw_command().name();
+    if(ImGui::InputText("Name: ", &drawCommandName))
+    {
+        currentCommand.info.mutable_draw_command()->set_name(drawCommandName);
+    }
     
     const auto& materials = materialEditor->GetMaterials();
     const auto* materialInfo = materialEditor->GetMaterial(currentCommand.materialId);

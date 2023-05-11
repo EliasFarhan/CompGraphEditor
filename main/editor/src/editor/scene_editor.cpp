@@ -77,8 +77,12 @@ void SceneEditor::AddResource(const Resource& resource)
 {
     if (!CheckExtensions(resource.extension))
     {
+        if (resource.path.find("neko2.py") != std::string::npos || resource.path.find("__pycache__") != std::string::npos)
+        {
+            return;
+        }
         //Adding a resource to the list
-        auto* sceneInfo = GetCurrentSceneInfo();
+        const auto* sceneInfo = GetCurrentSceneInfo();
         if (std::ranges::none_of(sceneInfo->info.resources(), [&resource](const auto& path) {return path == resource.path; }))
         {
             GetCurrentSceneInfo()->info.add_resources(resource.path);

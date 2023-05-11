@@ -128,6 +128,7 @@ def analyze_gl_shader(shader_path: str):
         if type_name == '1404':
             return 'int'
         return 'undefined'
+
     def get_type_name(line: str):
         split_line = line[line.index(':')+1:].split(',')
         for elem in split_line:

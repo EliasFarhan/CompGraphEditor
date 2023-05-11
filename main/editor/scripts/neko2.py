@@ -135,8 +135,11 @@ class Vec3:
         """Vector multiplication with a scalar float"""
         return Vec3()
 
-    def __divmod__(self, other: float) -> Vec3:
+    def __divmod__(self, other: float) -> (Vec3, Vec3):
         """Vector multiplication with a scalar float"""
+        return Vec3(), Vec3()
+
+    def __rtruediv__(self, other: float) -> Vec3:
         return Vec3()
 
     def normalize(self) -> Vec3:
