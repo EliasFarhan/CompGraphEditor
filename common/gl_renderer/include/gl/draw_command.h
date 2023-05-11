@@ -20,6 +20,7 @@ public:
     void SetVec2(std::string_view uniformName, glm::vec2 v) override;
     void SetVec3(std::string_view uniformName, glm::vec3 v) override;
     void SetVec4(std::string_view uniformName, glm::vec4 v) override;
+    void SetMat3(std::string_view uniformName, const glm::mat3& mat) override;
     void SetMat4(std::string_view uniformName, const glm::mat4& mat) override;
     void SetAngle(std::string_view uniformName, core::Radian angle) override;
 

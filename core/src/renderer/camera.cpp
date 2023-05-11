@@ -34,6 +34,7 @@ CameraSystem* GetCameraSystem()
 void CameraSystem::Begin()
 {
     cameraSystem = this;
+    
 }
 
 void CameraSystem::Update(float dt)
@@ -63,6 +64,8 @@ void CameraSystem::Update(float dt)
     mouseMotion_ = {};
     camera.direction = glm::vec3(rotateX*rotateY*glm::vec4(camera.direction, 1.0));
     camera.position += (horizontal*direction.x+camera.direction*direction.y)*dt;
+    
+    camera.aspect = static_cast<float>(windowSize.x) / static_cast<float>(windowSize.y);
 
     //Updating the scene camera
     auto* scene = GetCurrentScene();

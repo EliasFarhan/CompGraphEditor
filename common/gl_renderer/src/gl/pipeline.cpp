@@ -232,6 +232,13 @@ void Pipeline::SetMat4(std::string_view uniformName, const glm::mat4& mat)
     glCheckError();
 }
 
+void Pipeline::SetMat3(std::string_view uniformName, const glm::mat3& mat)
+{
+    Bind();
+    glUniformMatrix3fv(GetUniformLocation(uniformName), 1, GL_FALSE, &mat[0][0]);
+    glCheckError();
+}
+
 void Pipeline::SetTexture(std::string_view uniformName, const Texture& texture, GLenum textureUnit)
 {
     SetInt(uniformName, textureUnit);

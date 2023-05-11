@@ -43,6 +43,11 @@ void DrawCommand::SetVec4(std::string_view uniformName, glm::vec4 v)
     pipeline_->SetVec4(uniformName, v);
 }
 
+void DrawCommand::SetMat3(std::string_view uniformName, const glm::mat3& mat)
+{
+    pipeline_->SetMat3(uniformName, mat);
+}
+
 void DrawCommand::SetMat4(std::string_view uniformName, const glm::mat4& mat)
 {
     pipeline_->SetMat4(uniformName, mat);

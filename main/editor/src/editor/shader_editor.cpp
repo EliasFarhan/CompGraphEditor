@@ -319,7 +319,7 @@ bool ShaderEditor::AnalyzeShader(std::string_view path, core::pb::Shader& shader
     }
     try
     {
-        LogDebug(result);
+        LogDebug(fmt::format("JSON content {}", result));
         shaderJson = json::parse(result);
         int returnCode = shaderJson["returncode"].get<int>();
         if (returnCode != 0)
@@ -398,7 +398,7 @@ bool ShaderEditor::AnalyzeShader(std::string_view path, core::pb::Shader& shader
     }
     catch (json::exception& e)
     {
-        LogError(fmt::format("Could not parse shader info from script\n{}\n{}", e.what(), result));
+        LogError(fmt::format("Could not parse shader info of file: {} from script\n{}\n{}", path, e.what(), result));
     }
     return false;
 }

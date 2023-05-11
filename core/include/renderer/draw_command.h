@@ -94,7 +94,7 @@ public:
     virtual void SetVec3(std::string_view uniformName, glm::vec3 v) = 0;
 
     virtual void SetVec4(std::string_view uniformName, glm::vec4 v) = 0;
-
+    virtual void SetMat3(std::string_view uniformName, const glm::mat3& mat) = 0;
     virtual void SetMat4(std::string_view uniformName, const glm::mat4& mat) = 0;
 
     virtual void SetAngle(std::string_view uniformName, Radian angle) = 0;
@@ -111,6 +111,7 @@ public:
     virtual void PreDrawBind() = 0;
 
     ModelTransformMatrix modelTransformMatrix;
+
 
 protected:
 

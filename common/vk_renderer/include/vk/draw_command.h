@@ -26,6 +26,8 @@ public:
 
     void SetMat4(std::string_view uniformName, const glm::mat4 &mat) override;
 
+    void SetMat3(std::string_view uniformName, const glm::mat3& mat) override;
+
     void SetAngle(std::string_view uniformName, core::Radian angle) override;
 
     void Bind() override;
@@ -66,5 +68,4 @@ private:
     VkDescriptorPool descriptorPool;
 };
 }
-
 

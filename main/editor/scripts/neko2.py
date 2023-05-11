@@ -135,6 +135,10 @@ class Vec3:
         """Vector multiplication with a scalar float"""
         return Vec3()
 
+    def __divmod__(self, other: float) -> Vec3:
+        """Vector multiplication with a scalar float"""
+        return Vec3()
+
     def normalize(self) -> Vec3:
         """Return the normalized vector (length 1)"""
         return Vec3()
@@ -358,6 +362,9 @@ class DrawCommand:
         """Return the name of the Mesh used in the DrawCommand"""
         return ""
 
+    def set_int(self, uniform_name: str, v: int):
+        pass
+
     def set_float(self, uniform_name: str, v: float):
         """Set a named uniform float value"""
         pass
@@ -372,6 +379,9 @@ class DrawCommand:
 
     def set_vec4(self, uniform_name: str, v: Vec4):
         """Set a named uniform Vec4 value"""
+        pass
+
+    def set_mat3(self, uniform_name: str, m: Mat3):
         pass
 
     def set_mat4(self, uniform_name: str, m: Mat4):

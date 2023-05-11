@@ -123,6 +123,10 @@ def analyze_gl_shader(shader_path: str):
             return 'image2D'
         if type_name == '8b60':
             return 'samplerCube'
+        if type_name == '1406':
+            return 'float'
+        if type_name == '1404':
+            return 'int'
         return 'undefined'
     def get_type_name(line: str):
         split_line = line[line.index(':')+1:].split(',')
