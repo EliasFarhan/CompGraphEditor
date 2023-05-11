@@ -9,7 +9,8 @@ struct PipelineInfo
 {
     std::string path;
     std::string filename;
-    editor::pb::EditorPipeline info;
+    pb::EditorPipeline info;
+    pb::EditorRaytracingPipeline raytracingInfo;
     ResourceId resourceId = INVALID_RESOURCE_ID;
     ResourceId vertexShaderId = INVALID_RESOURCE_ID;
     ResourceId fragmentShaderId = INVALID_RESOURCE_ID;
@@ -17,6 +18,11 @@ struct PipelineInfo
     ResourceId computeShaderId = INVALID_RESOURCE_ID;
     ResourceId tessControlShaderId = INVALID_RESOURCE_ID;
     ResourceId tessEvalShaderId = INVALID_RESOURCE_ID;
+    ResourceId rayGenShaderId = INVALID_RESOURCE_ID;
+    ResourceId missHitShaderId = INVALID_RESOURCE_ID;
+    ResourceId closestHitShaderId = INVALID_RESOURCE_ID;
+    ResourceId anyHitShaderId = INVALID_RESOURCE_ID;
+    ResourceId intersectionHitShaderId = INVALID_RESOURCE_ID;
 };
 
 class PipelineEditor final : public EditorSystem

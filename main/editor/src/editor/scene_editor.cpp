@@ -290,7 +290,7 @@ bool SceneEditor::DrawContentList(bool unfocus)
     for (std::size_t i = 0; i < sceneInfos_.size(); i++)
     {
         const auto& sceneInfo = sceneInfos_[i];
-        const auto selected = ImGui::Selectable(sceneInfo.filename.data(), unfocus);
+        const auto selected = ImGui::Selectable(sceneInfo.filename.data(), !unfocus);
 
         if (selected)
         {
@@ -381,6 +381,7 @@ bool SceneEditor::ExportAndPlayScene() const
     for(int subPassIndex = 0; subPassIndex < currentRenderPass->info.sub_passes_size(); subPassIndex++)
     {
         auto* exportSubPass = exportRenderPass->add_sub_passes();
+        exportSubPass->set_type(core::pb::Pipeline_Type_NONE);
         const auto& editorSubPass = currentRenderPass->info.sub_passes(subPassIndex);
 
         //export framebuffer
@@ -433,7 +434,7 @@ bool SceneEditor::ExportAndPlayScene() const
             //link material index
             const auto* material = materialEditor->GetMaterial(editorCommand->materialId);
             auto materialIndexIt = resourceIndexMap.find(material->resourceId);
-            if(materialIndexIt == resourceIndexMap.end())
+            if (materialIndexIt == resourceIndexMap.end())
             {
                 const auto materialIndex = exportScene.materials_size();
                 auto* newMaterial = exportScene.add_materials();
@@ -442,15 +443,15 @@ bool SceneEditor::ExportAndPlayScene() const
                 resourceIndexMap[material->resourceId] = materialIndex;
 
                 //list textures
-                for(int textureIndex = 0; textureIndex < material->info.textures_size(); textureIndex++)
+                for (int textureIndex = 0; textureIndex < material->info.textures_size(); textureIndex++)
                 {
                     const auto& editorMaterialTexture = material->info.textures(textureIndex);
                     auto* materialTexture = newMaterial->add_textures();
-                    if(editorMaterialTexture.texture_name().empty() && 
+                    if (editorMaterialTexture.texture_name().empty() &&
                         editorMaterialTexture.material_texture().attachment_name().empty())
                     {
                         LogWarning(fmt::format(
-                            "Could not export, missing texture/attachment in material sampler. Material: {} Sampler: {}", 
+                            "Could not export, missing texture/attachment in material sampler. Material: {} Sampler: {}",
                             material->info.material().name(), editorMaterialTexture.material_texture().sampler_name()));
                         materialTexture->set_texture_index(-1);
                         return false;
@@ -461,7 +462,7 @@ bool SceneEditor::ExportAndPlayScene() const
                         auto textureId = resourceManager.FindResourceByPath(editorMaterialTexture.texture_name());
                         if (textureId == INVALID_RESOURCE_ID)
                         {
-                            LogWarning(fmt::format("Could not export scene. Missing texture in material sampler, Material: {} Sampler: {}", 
+                            LogWarning(fmt::format("Could not export scene. Missing texture in material sampler, Material: {} Sampler: {}",
                                 material->info.material().name(), editorMaterialTexture.material_texture().sampler_name()));
                             materialTexture->set_texture_index(-1);
                             return false;
@@ -494,22 +495,22 @@ bool SceneEditor::ExportAndPlayScene() const
                     else //framebuffer attachment for sampler
                     {
                         bool isValid = false;
-                        for(const auto& framebufferPb: currentScene.info.framebuffers())
+                        for (const auto& framebufferPb : currentScene.info.framebuffers())
                         {
-                            if(framebufferPb.name() == editorMaterialTexture.material_texture().framebuffer_name())
+                            if (framebufferPb.name() == editorMaterialTexture.material_texture().framebuffer_name())
                             {
-                                for(const auto& colorAttachment : framebufferPb.color_attachments())
+                                for (const auto& colorAttachment : framebufferPb.color_attachments())
                                 {
-                                    if(!colorAttachment.rbo() && colorAttachment.name() == editorMaterialTexture.material_texture().attachment_name())
+                                    if (!colorAttachment.rbo() && colorAttachment.name() == editorMaterialTexture.material_texture().attachment_name())
                                     {
                                         materialTexture->set_attachment_name(editorMaterialTexture.material_texture().attachment_name());
                                         materialTexture->set_framebuffer_name(editorMaterialTexture.material_texture().framebuffer_name());
                                         isValid = true;
                                     }
                                 }
-                                if(framebufferPb.has_depth_stencil_attachment() && !framebufferPb.depth_stencil_attachment().rbo())
+                                if (framebufferPb.has_depth_stencil_attachment() && !framebufferPb.depth_stencil_attachment().rbo())
                                 {
-                                    if(framebufferPb.depth_stencil_attachment().name() == editorMaterialTexture.material_texture().attachment_name())
+                                    if (framebufferPb.depth_stencil_attachment().name() == editorMaterialTexture.material_texture().attachment_name())
                                     {
                                         materialTexture->set_attachment_name(editorMaterialTexture.material_texture().attachment_name());
                                         materialTexture->set_framebuffer_name(editorMaterialTexture.material_texture().framebuffer_name());
@@ -518,9 +519,9 @@ bool SceneEditor::ExportAndPlayScene() const
                                 }
                             }
                         }
-                        if(!isValid)
+                        if (!isValid)
                         {
-                            LogWarning(fmt::format("Could not export, invalid framebuffer attachment in material sampler. Material: {} Sampler: {}", 
+                            LogWarning(fmt::format("Could not export, invalid framebuffer attachment in material sampler. Material: {} Sampler: {}",
                                 material->info.material().name(), editorMaterialTexture.material_texture().sampler_name()));
                             return false;
                         }
@@ -529,16 +530,29 @@ bool SceneEditor::ExportAndPlayScene() const
                 }
 
                 //check if pipeline exists
-                if(material->pipelineId == INVALID_RESOURCE_ID)
+                if (material->pipelineId == INVALID_RESOURCE_ID)
                 {
                     LogWarning(fmt::format("Could not export scene, missing pipeline in material. Material: {}", material->path));
                     return false;
                 }
                 const auto* pipeline = pipelineEditor->GetPipeline(material->pipelineId);
+                if (exportSubPass->type() == core::pb::Pipeline_Type_NONE)
+                {
+                    exportSubPass->set_type(pipeline->info.pipeline().type());
+                }
+                else
+                {
+                    if (exportSubPass->type() != pipeline->info.pipeline().type())
+                    {
+                        LogWarning(fmt::format("Subpass {} cannot have different pipeline types (Rasterize, Compute or Raytracing)", subPassIndex));
+                        return false;
+                    }
+                }
                 auto pipelineIndexIt = resourceIndexMap.find(pipeline->resourceId);
                 if (pipelineIndexIt == resourceIndexMap.end())
                 {
                     const auto pipelineIndex = exportScene.pipelines_size();
+                    
                     auto* newPipeline = exportScene.add_pipelines();
                     *newPipeline = pipeline->info.pipeline();
                     resourceIndexMap[pipeline->resourceId] = pipelineIndex;
@@ -599,11 +613,50 @@ bool SceneEditor::ExportAndPlayScene() const
                             LogWarning(fmt::format("Could not export scene, missing compute shader in pipeline. Pipeline: {}", pipeline->path));
                             return false;
                         }
-                        newPipeline->set_vertex_shader_index(computeShaderIndex);
+                        newPipeline->set_compute_shader_index(computeShaderIndex);
 
                         break;
                     }
-                }
+                    case core::pb::Pipeline_Type_RAYTRACING:
+                    {
+                        int raytracingPipelineIndex = exportScene.raytracing_pipelines_size();
+                        auto* raytracingPipeline = exportScene.add_raytracing_pipelines();
+                        newPipeline->set_raytracing_pipeline_index(raytracingPipelineIndex);
+                        *raytracingPipeline = pipeline->raytracingInfo.pipeline();
+
+                        int rayGenShaderIndex = shaderExportFunc(pipeline->rayGenShaderId);
+                        if (rayGenShaderIndex == -1)
+                        {
+                            LogWarning(fmt::format("Could not export scene, missing raygen shader in pipeline. Pipeline: {}", pipeline->path));
+                            return false;
+                        }
+                        raytracingPipeline->set_ray_gen_shader_index(rayGenShaderIndex);
+
+                        int missHitShaderIndex = shaderExportFunc(pipeline->missHitShaderId);
+                        if (missHitShaderIndex == -1)
+                        {
+                            LogWarning(fmt::format("Could not export scene, missing miss hit shader in pipeline. Pipeline: {}", pipeline->path));
+                            return false;
+                        }
+                        raytracingPipeline->set_miss_hit_shader_index(missHitShaderIndex);
+
+                        int closestHitShaderIndex = shaderExportFunc(pipeline->closestHitShaderId);
+                        if (closestHitShaderIndex == -1)
+                        {
+                            LogWarning(fmt::format("Could not export scene, missing closest hit shader in pipeline. Pipeline: {}", pipeline->path));
+                            return false;
+                        }
+                        raytracingPipeline->set_closest_hit_shader_index(closestHitShaderIndex);
+
+                        raytracingPipeline->set_any_hit_shader_index(shaderExportFunc(pipeline->anyHitShaderId));
+                        raytracingPipeline->set_intersection_hit_shader_index(shaderExportFunc(pipeline->intersectionHitShaderId));
+
+
+                        break;
+                    }
+                    default: break;
+                    }
+                    
                 }
                 else
                 {

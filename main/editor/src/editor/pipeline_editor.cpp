@@ -457,7 +457,7 @@ void PipelineEditor::DrawInspector()
                 }
                 if (ImGui::Selectable(shader.filename.c_str(), shader.resourceId == currentPipelineInfo.computeShaderId))
                 {
-                    currentPipelineInfo.geometryShaderId = shader.resourceId;
+                    currentPipelineInfo.computeShaderId = shader.resourceId;
                     currentPipelineInfo.info.set_compute_shader_path(shader.info.path());
                     ReloadPipeline(currentIndex_);
                 }
@@ -467,7 +467,101 @@ void PipelineEditor::DrawInspector()
     }
     else if(currentPipelineInfo.info.pipeline().type() == core::pb::Pipeline_Type_RAYTRACING)
     {
-        //TODO allow link of raytracing pipeline
+        const auto* rayGenShader = shaderEditor->GetShader(currentPipelineInfo.rayGenShaderId);
+        if (ImGui::BeginCombo("Ray Gen Shader", rayGenShader ? rayGenShader->filename.data() : "No Ray Gen shader"))
+        {
+            for (auto& shader : shaders)
+            {
+                if (shader.info.type() != core::pb::RAY_GEN)
+                {
+                    continue;
+                }
+                if (ImGui::Selectable(shader.filename.c_str(), shader.resourceId == currentPipelineInfo.rayGenShaderId))
+                {
+                    currentPipelineInfo.rayGenShaderId = shader.resourceId;
+                    currentPipelineInfo.raytracingInfo.set_ray_gen_shader_path(shader.info.path());
+                    ReloadPipeline(currentIndex_);
+                }
+            }
+            ImGui::EndCombo();
+        }
+        const auto* missHitShader = shaderEditor->GetShader(currentPipelineInfo.missHitShaderId);
+        if (ImGui::BeginCombo("Miss Hit Shader", missHitShader ? missHitShader->filename.data() : "No Miss Hit shader"))
+        {
+            for (auto& shader : shaders)
+            {
+                if (shader.info.type() != core::pb::RAY_MISS)
+                {
+                    continue;
+                }
+                if (ImGui::Selectable(shader.filename.c_str(), shader.resourceId == currentPipelineInfo.missHitShaderId))
+                {
+                    currentPipelineInfo.missHitShaderId = shader.resourceId;
+                    currentPipelineInfo.raytracingInfo.set_miss_hit_shader_path(shader.info.path());
+                    ReloadPipeline(currentIndex_);
+                }
+            }
+            ImGui::EndCombo();
+        }
+        const auto* closestHitShader = shaderEditor->GetShader(currentPipelineInfo.closestHitShaderId);
+        if (ImGui::BeginCombo("Closest Hit Shader", closestHitShader ? closestHitShader->filename.data() : "No Closest Hit shader"))
+        {
+            for (auto& shader : shaders)
+            {
+                if (shader.info.type() != core::pb::RAY_CLOSEST_HIT)
+                {
+                    continue;
+                }
+                if (ImGui::Selectable(shader.filename.c_str(), shader.resourceId == currentPipelineInfo.closestHitShaderId))
+                {
+                    currentPipelineInfo.closestHitShaderId = shader.resourceId;
+                    currentPipelineInfo.raytracingInfo.set_closest_hit_shader_path(shader.info.path());
+                    ReloadPipeline(currentIndex_);
+                }
+            }
+            ImGui::EndCombo();
+        }
+        const auto* anyHitShader = shaderEditor->GetShader(currentPipelineInfo.anyHitShaderId);
+        if (ImGui::BeginCombo("Any Hit Shader", closestHitShader ? closestHitShader->filename.data() : "No Any Hit shader"))
+        {
+            for (auto& shader : shaders)
+            {
+                if (shader.info.type() != core::pb::RAY_ANY_HIT)
+                {
+                    continue;
+                }
+                if (ImGui::Selectable(shader.filename.c_str(), shader.resourceId == currentPipelineInfo.anyHitShaderId))
+                {
+                    currentPipelineInfo.anyHitShaderId = shader.resourceId;
+                    currentPipelineInfo.raytracingInfo.set_any_hit_shader_path(shader.info.path());
+                    ReloadPipeline(currentIndex_);
+                }
+            }
+            ImGui::EndCombo();
+        }
+        const auto* intersectionShader = shaderEditor->GetShader(currentPipelineInfo.intersectionHitShaderId);
+        if (ImGui::BeginCombo("Intersection Hit Shader", intersectionShader ? intersectionShader->filename.data() : "No Intersection Hit shader"))
+        {
+            for (auto& shader : shaders)
+            {
+                if (shader.info.type() != core::pb::RAY_INTERSECTION)
+                {
+                    continue;
+                }
+                if (ImGui::Selectable(shader.filename.c_str(), shader.resourceId == currentPipelineInfo.intersectionHitShaderId))
+                {
+                    currentPipelineInfo.intersectionHitShaderId = shader.resourceId;
+                    currentPipelineInfo.raytracingInfo.set_intersection_hit_shader_path(shader.info.path());
+                    ReloadPipeline(currentIndex_);
+                }
+            }
+            ImGui::EndCombo();
+        }
+        int maxRecursiveDepth = static_cast<int>(currentPipelineInfo.raytracingInfo.pipeline().max_recursion_depth());
+        if(ImGui::InputInt("Max Recursive Depth", &maxRecursiveDepth))
+        {
+            currentPipelineInfo.raytracingInfo.mutable_pipeline()->set_max_recursion_depth(static_cast<std::uint32_t>(maxRecursiveDepth));
+        }
     }
 }
 bool PipelineEditor::DrawContentList(bool unfocus)
@@ -562,6 +656,36 @@ void PipelineEditor::RemoveResource(const Resource& resource)
             pipelineInfo.info.clear_compute_shader_path();
             modified = true;
         }
+        if (pipelineInfo.rayGenShaderId == resource.resourceId)
+        {
+            pipelineInfo.rayGenShaderId = INVALID_RESOURCE_ID;
+            pipelineInfo.raytracingInfo.clear_ray_gen_shader_path();
+            modified = true;
+        }
+        if (pipelineInfo.missHitShaderId == resource.resourceId)
+        {
+            pipelineInfo.missHitShaderId = INVALID_RESOURCE_ID;
+            pipelineInfo.raytracingInfo.clear_miss_hit_shader_path();
+            modified = true;
+        }
+        if (pipelineInfo.anyHitShaderId == resource.resourceId)
+        {
+            pipelineInfo.anyHitShaderId = INVALID_RESOURCE_ID;
+            pipelineInfo.raytracingInfo.clear_any_hit_shader_path();
+            modified = true;
+        }
+        if (pipelineInfo.closestHitShaderId == resource.resourceId)
+        {
+            pipelineInfo.closestHitShaderId = INVALID_RESOURCE_ID;
+            pipelineInfo.raytracingInfo.clear_closest_hit_shader_path();
+            modified = true;
+        }
+        if (pipelineInfo.intersectionHitShaderId == resource.resourceId)
+        {
+            pipelineInfo.intersectionHitShaderId = INVALID_RESOURCE_ID;
+            pipelineInfo.raytracingInfo.clear_intersection_hit_shader_path();
+            modified = true;
+        }
         if(modified)
         {
             ReloadPipeline(i);
@@ -609,6 +733,26 @@ void PipelineEditor::UpdateExistingResource(const Resource& resource)
             modified = true;
         }
         if(pipelineInfo.tessEvalShaderId == resource.resourceId)
+        {
+            modified = true;
+        }
+        if(pipelineInfo.rayGenShaderId == resource.resourceId)
+        {
+            modified = true;
+        }
+        if(pipelineInfo.closestHitShaderId == resource.resourceId)
+        {
+            modified = true;
+        }
+        if(pipelineInfo.missHitShaderId == resource.resourceId)
+        {
+            modified = true;
+        }
+        if(pipelineInfo.intersectionHitShaderId == resource.resourceId)
+        {
+            modified = true;
+        }
+        if(pipelineInfo.anyHitShaderId == resource.resourceId)
         {
             modified = true;
         }
@@ -859,6 +1003,36 @@ void PipelineEditor::ReloadPipeline(int index)
             pipelineInfo.tessEvalShaderId = resourceManager.FindResourceByPath(pipelineInfo.info.tess_eval_shader_path());
         }
     }
+    else if(pipelineInfo.info.pipeline().type() == core::pb::Pipeline_Type_COMPUTE)
+    {
+        if (pipelineInfo.computeShaderId == INVALID_RESOURCE_ID && !pipelineInfo.info.compute_shader_path().empty())
+        {
+            pipelineInfo.computeShaderId = resourceManager.FindResourceByPath(pipelineInfo.info.compute_shader_path());
+        }
+    }
+    else if(pipelineInfo.info.pipeline().type() == core::pb::Pipeline_Type_RAYTRACING)
+    {
+        if (pipelineInfo.rayGenShaderId == INVALID_RESOURCE_ID && !pipelineInfo.raytracingInfo.ray_gen_shader_path().empty())
+        {
+            pipelineInfo.rayGenShaderId = resourceManager.FindResourceByPath(pipelineInfo.raytracingInfo.ray_gen_shader_path());
+        }
+        if (pipelineInfo.missHitShaderId == INVALID_RESOURCE_ID && !pipelineInfo.raytracingInfo.miss_hit_shader_path().empty())
+        {
+            pipelineInfo.missHitShaderId = resourceManager.FindResourceByPath(pipelineInfo.raytracingInfo.miss_hit_shader_path());
+        }
+        if (pipelineInfo.closestHitShaderId == INVALID_RESOURCE_ID && !pipelineInfo.raytracingInfo.closest_hit_shader_path().empty())
+        {
+            pipelineInfo.closestHitShaderId = resourceManager.FindResourceByPath(pipelineInfo.raytracingInfo.closest_hit_shader_path());
+        }
+        if (pipelineInfo.anyHitShaderId == INVALID_RESOURCE_ID && !pipelineInfo.raytracingInfo.any_hit_shader_path().empty())
+        {
+            pipelineInfo.anyHitShaderId = resourceManager.FindResourceByPath(pipelineInfo.raytracingInfo.any_hit_shader_path());
+        }
+        if (pipelineInfo.intersectionHitShaderId == INVALID_RESOURCE_ID && !pipelineInfo.raytracingInfo.intersection_hit_shader_path().empty())
+        {
+            pipelineInfo.intersectionHitShaderId = resourceManager.FindResourceByPath(pipelineInfo.raytracingInfo.intersection_hit_shader_path());
+        }
+    }
     std::vector<core::pb::Sampler> samplers;
     samplers.reserve(pipelineInfo.info.pipeline().samplers_size());
     for(int i = 0; i < pipelineInfo.info.pipeline().samplers_size(); i++)
@@ -919,6 +1093,46 @@ void PipelineEditor::ReloadPipeline(int index)
         for (int i = 0; i < tessEvalShader->info.uniforms_size(); i++)
         {
             *pipelineInfo.info.mutable_pipeline()->add_uniforms() = tessEvalShader->info.uniforms(i);
+        }
+    }
+    if (pipelineInfo.rayGenShaderId != INVALID_RESOURCE_ID)
+    {
+        const auto* rayGenShader = shaderEditor->GetShader(pipelineInfo.rayGenShaderId);
+        for (int i = 0; i < rayGenShader->info.uniforms_size(); i++)
+        {
+            *pipelineInfo.info.mutable_pipeline()->add_uniforms() = rayGenShader->info.uniforms(i);
+        }
+    }
+    if (pipelineInfo.missHitShaderId != INVALID_RESOURCE_ID)
+    {
+        const auto* missHitShader = shaderEditor->GetShader(pipelineInfo.missHitShaderId);
+        for (int i = 0; i < missHitShader->info.uniforms_size(); i++)
+        {
+            *pipelineInfo.info.mutable_pipeline()->add_uniforms() = missHitShader->info.uniforms(i);
+        }
+    }
+    if (pipelineInfo.closestHitShaderId != INVALID_RESOURCE_ID)
+    {
+        const auto* closestHitShader = shaderEditor->GetShader(pipelineInfo.closestHitShaderId);
+        for (int i = 0; i < closestHitShader->info.uniforms_size(); i++)
+        {
+            *pipelineInfo.info.mutable_pipeline()->add_uniforms() = closestHitShader->info.uniforms(i);
+        }
+    }
+    if (pipelineInfo.anyHitShaderId != INVALID_RESOURCE_ID)
+    {
+        const auto* anyHitShader = shaderEditor->GetShader(pipelineInfo.anyHitShaderId);
+        for (int i = 0; i < anyHitShader->info.uniforms_size(); i++)
+        {
+            *pipelineInfo.info.mutable_pipeline()->add_uniforms() = anyHitShader->info.uniforms(i);
+        }
+    }
+    if (pipelineInfo.intersectionHitShaderId != INVALID_RESOURCE_ID)
+    {
+        const auto* intersectionHitShader = shaderEditor->GetShader(pipelineInfo.intersectionHitShaderId);
+        for (int i = 0; i < intersectionHitShader->info.uniforms_size(); i++)
+        {
+            *pipelineInfo.info.mutable_pipeline()->add_uniforms() = intersectionHitShader->info.uniforms(i);
         }
     }
     for(int i = 0; i < pipelineInfo.info.pipeline().uniforms_size(); i++)

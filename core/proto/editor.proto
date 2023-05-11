@@ -15,6 +15,16 @@ message EditorPipeline
     string geometry_shader_path = 11;// Used by the editor
 }
 
+message EditorRaytracingPipeline
+{
+    core.pb.RaytracingPipeline pipeline = 1;
+    string ray_gen_shader_path = 2;
+    string miss_hit_shader_path = 3;
+    string closest_hit_shader_path = 4;
+    string any_hit_shader_path = 5;
+    string intersection_hit_shader_path = 6;
+}
+
 
 message EditorMaterialTexture
 {

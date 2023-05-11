@@ -9,8 +9,10 @@ from enum import Enum
 if platform.system() == 'Windows':
     vulkan_path = os.getenv("VULKAN_SDK")
     program = '{}\\Bin\\glslangValidator.exe'.format(vulkan_path)
+    compiler = '{}\\Bin\\glslc.exe'.format(vulkan_path)
 else:
     program = 'glslangValidator'
+    compiler = 'glslc'
 
 
 if platform.system() == 'Windows':
@@ -30,7 +32,7 @@ else:
 def analyze_vk_shader(shader_path):
     """Analyze Vulkan Shader"""
     meta_content = {}
-    status = subprocess.run([program, "-V", shader_path, "-o", shader_path+".spv"], capture_output=True, text=True)
+    status = subprocess.run([compiler, shader_path, "-o", shader_path+".spv", '--target-env=vulkan1.2'], capture_output=True, text=True)
     meta_content["stdout"] = status.stdout
     meta_content["stderr"] = status.stderr
     meta_content["returncode"] = status.returncode

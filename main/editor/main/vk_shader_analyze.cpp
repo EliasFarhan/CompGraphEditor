@@ -49,7 +49,7 @@ constexpr core::pb::Attribute_Type GetAttributeType(spirv_cross::SPIRType::BaseT
         break;
     case spirv_cross::SPIRType::Double: break;
     case spirv_cross::SPIRType::Struct: break;
-    case spirv_cross::SPIRType::Image: break;
+    case spirv_cross::SPIRType::Image: return core::pb::Attribute_Type_IMAGE2D;
     case spirv_cross::SPIRType::SampledImage: return core::pb::Attribute_Type_SAMPLER2D;
     case spirv_cross::SPIRType::Sampler: return core::pb::Attribute_Type_SAMPLER2D;
     case spirv_cross::SPIRType::AccelerationStructure: break;
@@ -81,6 +81,7 @@ constexpr std::string GetAttributeTypeName(core::pb::Attribute_Type attributeTyp
     case core::pb::Attribute_Type_SAMPLER2D: return "sampler2D";
     case core::pb::Attribute_Type_SAMPLERCUBE: return "samplerCube";
     case core::pb::Attribute_Type_VOID: return "void";
+    case core::pb::Attribute_Type_IMAGE2D: return "image2D";
     case core::pb::Attribute_Type_CUSTOM: break;
     default: ;
     }
@@ -102,7 +103,8 @@ int main([[maybe_unused]] int argc, char** argv)
 
     try
     {
-        const spirv_cross::Compiler compiler(reinterpret_cast<std::uint32_t*>(filebuffer.data), 
+        const spirv_cross::Compiler compiler(
+            reinterpret_cast<std::uint32_t*>(filebuffer.data), 
             filebuffer.length/sizeof(std::uint32_t));
 
         auto shaderResources = compiler.get_shader_resources();

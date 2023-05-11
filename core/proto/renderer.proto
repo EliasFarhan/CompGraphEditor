@@ -170,6 +170,7 @@ message Pipeline
         RASTERIZE = 0;
         COMPUTE = 1;
         RAYTRACING = 2;
+        NONE = 3;
     }
     Type type = 1;
     int32 vertex_shader_index = 2;
@@ -278,8 +279,7 @@ message RaytracingPipeline
     int32 closest_hit_shader_index = 3;
     int32 any_hit_shader_index = 4;
     int32 intersection_hit_shader_index = 5;
-    repeated DrawCommand rasterizer_draw_commands = 6;
-    uint32 max_recursion_depth = 7;
+    uint32 max_recursion_depth = 6;
 }
 
 message Texture
@@ -398,6 +398,7 @@ message SubPass
     repeated DrawCommand commands = 2;
     repeated Dependency dependencies = 3;
     int32 framebuffer_index = 4;
+    Pipeline.Type type = 5;
 
 }
 
