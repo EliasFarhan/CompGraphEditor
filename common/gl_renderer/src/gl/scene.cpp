@@ -497,6 +497,7 @@ Scene::ImportStatus Scene::LoadMaterials(const PbRepeatField<core::pb::Material>
             }
             break;
         }
+            default: break;
         }
     }
 

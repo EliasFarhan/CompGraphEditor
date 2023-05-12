@@ -646,7 +646,7 @@ void PipelineEditor::RemoveResource(const Resource& resource)
         }
         if(pipelineInfo.tessEvalShaderId == resource.resourceId)
         {
-            pipelineInfo.tessEvalShaderId == resource.resourceId;
+            pipelineInfo.tessEvalShaderId = resource.resourceId;
             pipelineInfo.info.clear_tess_eval_shader_path();
             modified = true;
         }
