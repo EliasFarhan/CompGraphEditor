@@ -167,17 +167,156 @@ bool Pipeline::LoadRasterizePipeline(const core::pb::Pipeline& pipelinePb,
     multisampling.alphaToCoverageEnable = VK_FALSE; // Optional
     multisampling.alphaToOneEnable = VK_FALSE; // Optional
 
+    
+
     VkPipelineColorBlendAttachmentState colorBlendAttachment{};
-    colorBlendAttachment.colorWriteMask =
-        VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT |
-        VK_COLOR_COMPONENT_A_BIT;
-    colorBlendAttachment.blendEnable = VK_FALSE;
-    colorBlendAttachment.srcColorBlendFactor = VK_BLEND_FACTOR_ONE; // Optional
-    colorBlendAttachment.dstColorBlendFactor = VK_BLEND_FACTOR_ZERO; // Optional
-    colorBlendAttachment.colorBlendOp = VK_BLEND_OP_ADD; // Optional
-    colorBlendAttachment.srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE; // Optional
-    colorBlendAttachment.dstAlphaBlendFactor = VK_BLEND_FACTOR_ZERO; // Optional
-    colorBlendAttachment.alphaBlendOp = VK_BLEND_OP_ADD; // Optional
+    if(pipelinePb.blend_enable())
+    {
+        switch(pipelinePb.blending_source_factor())
+        {
+        case core::pb::Pipeline_BlendFunc_BLEND_ZERO: 
+            colorBlendAttachment.srcColorBlendFactor = VK_BLEND_FACTOR_ZERO;
+            break;
+        case core::pb::Pipeline_BlendFunc_ONE:
+            colorBlendAttachment.srcColorBlendFactor = VK_BLEND_FACTOR_ONE;
+            break;
+        case core::pb::Pipeline_BlendFunc_SRC_COLOR: 
+            colorBlendAttachment.srcColorBlendFactor = VK_BLEND_FACTOR_SRC_COLOR;
+            break;
+        case core::pb::Pipeline_BlendFunc_ONE_MINUS_SRC_COLOR: 
+            colorBlendAttachment.srcColorBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_COLOR;
+            break;
+        case core::pb::Pipeline_BlendFunc_DST_COLOR: 
+            colorBlendAttachment.srcColorBlendFactor = VK_BLEND_FACTOR_DST_COLOR;
+            break;
+        case core::pb::Pipeline_BlendFunc_ONE_MINUS_DST_COLOR: 
+            colorBlendAttachment.srcColorBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_DST_COLOR;
+            break;
+        case core::pb::Pipeline_BlendFunc_SRC_ALPHA: 
+            colorBlendAttachment.srcColorBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA;
+            break;
+        case core::pb::Pipeline_BlendFunc_ONE_MINUS_SRC_ALPHA: 
+            colorBlendAttachment.srcColorBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
+            break;
+        case core::pb::Pipeline_BlendFunc_DST_ALPHA: 
+            colorBlendAttachment.srcColorBlendFactor = VK_BLEND_FACTOR_DST_ALPHA;
+            break;
+        case core::pb::Pipeline_BlendFunc_ONE_MINUS_DST_ALPHA: 
+            colorBlendAttachment.srcColorBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_DST_ALPHA;
+            break;
+        case core::pb::Pipeline_BlendFunc_CONSTANT_COLOR: 
+            colorBlendAttachment.srcColorBlendFactor = VK_BLEND_FACTOR_CONSTANT_COLOR;
+            break;
+        case core::pb::Pipeline_BlendFunc_ONE_MINUS_CONSTANT_COLOR: 
+            colorBlendAttachment.srcColorBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_CONSTANT_COLOR;
+            break;
+        case core::pb::Pipeline_BlendFunc_CONSTANT_ALPHA: 
+            colorBlendAttachment.srcColorBlendFactor = VK_BLEND_FACTOR_CONSTANT_ALPHA;
+            break;
+        case core::pb::Pipeline_BlendFunc_ONE_MINUS_CONSTANT_ALPHA: 
+            colorBlendAttachment.srcColorBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_CONSTANT_ALPHA;
+            break;
+        case core::pb::Pipeline_BlendFunc_SRC_ALPHA_SATURATE: 
+            colorBlendAttachment.srcColorBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA_SATURATE;
+            break;
+        case core::pb::Pipeline_BlendFunc_SRC1_COLOR: 
+            colorBlendAttachment.srcColorBlendFactor = VK_BLEND_FACTOR_SRC1_COLOR;
+            break;
+        case core::pb::Pipeline_BlendFunc_ONE_MINUS_SRC1_COLOR: 
+            colorBlendAttachment.srcColorBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC1_COLOR;
+            break;
+        case core::pb::Pipeline_BlendFunc_SRC1_ALPHA: 
+            colorBlendAttachment.srcColorBlendFactor = VK_BLEND_FACTOR_SRC1_ALPHA;
+            break;
+        case core::pb::Pipeline_BlendFunc_ONE_MINUS_SRC1_ALPHA: 
+            colorBlendAttachment.srcColorBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC1_ALPHA;
+            break;
+        default: break;
+        }
+        switch(pipelinePb.blending_destination_factor())
+        {
+        case core::pb::Pipeline_BlendFunc_BLEND_ZERO: 
+            colorBlendAttachment.dstColorBlendFactor = VK_BLEND_FACTOR_ZERO;
+            break;
+        case core::pb::Pipeline_BlendFunc_ONE:
+            colorBlendAttachment.dstColorBlendFactor = VK_BLEND_FACTOR_ONE;
+            break;
+        case core::pb::Pipeline_BlendFunc_SRC_COLOR:
+            colorBlendAttachment.dstColorBlendFactor = VK_BLEND_FACTOR_SRC_COLOR;
+            break;
+        case core::pb::Pipeline_BlendFunc_ONE_MINUS_SRC_COLOR:
+            colorBlendAttachment.dstColorBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_COLOR;
+            break;
+        case core::pb::Pipeline_BlendFunc_DST_COLOR:
+            colorBlendAttachment.dstColorBlendFactor = VK_BLEND_FACTOR_DST_COLOR;
+            break;
+        case core::pb::Pipeline_BlendFunc_ONE_MINUS_DST_COLOR:
+            colorBlendAttachment.dstColorBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_DST_COLOR;
+            break;
+        case core::pb::Pipeline_BlendFunc_SRC_ALPHA:
+            colorBlendAttachment.dstColorBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA;
+            break;
+        case core::pb::Pipeline_BlendFunc_ONE_MINUS_SRC_ALPHA:
+            colorBlendAttachment.dstColorBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
+            break;
+        case core::pb::Pipeline_BlendFunc_DST_ALPHA:
+            colorBlendAttachment.dstColorBlendFactor = VK_BLEND_FACTOR_DST_ALPHA;
+            break;
+        case core::pb::Pipeline_BlendFunc_ONE_MINUS_DST_ALPHA:
+            colorBlendAttachment.dstColorBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_DST_ALPHA;
+            break;
+        case core::pb::Pipeline_BlendFunc_CONSTANT_COLOR:
+            colorBlendAttachment.dstColorBlendFactor = VK_BLEND_FACTOR_CONSTANT_COLOR;
+            break;
+        case core::pb::Pipeline_BlendFunc_ONE_MINUS_CONSTANT_COLOR:
+            colorBlendAttachment.dstColorBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_CONSTANT_COLOR;
+            break;
+        case core::pb::Pipeline_BlendFunc_CONSTANT_ALPHA: 
+            colorBlendAttachment.dstColorBlendFactor = VK_BLEND_FACTOR_CONSTANT_ALPHA;
+            break;
+        case core::pb::Pipeline_BlendFunc_ONE_MINUS_CONSTANT_ALPHA:
+            colorBlendAttachment.dstColorBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_CONSTANT_ALPHA;
+            break;
+        case core::pb::Pipeline_BlendFunc_SRC_ALPHA_SATURATE: 
+            colorBlendAttachment.dstColorBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA_SATURATE;
+            break;
+        case core::pb::Pipeline_BlendFunc_SRC1_COLOR: 
+            colorBlendAttachment.dstColorBlendFactor = VK_BLEND_FACTOR_SRC1_COLOR;
+            break;
+        case core::pb::Pipeline_BlendFunc_ONE_MINUS_SRC1_COLOR: 
+            colorBlendAttachment.dstColorBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC1_COLOR;
+            break;
+        case core::pb::Pipeline_BlendFunc_SRC1_ALPHA:
+            colorBlendAttachment.dstColorBlendFactor = VK_BLEND_FACTOR_SRC1_ALPHA;
+            break;
+        case core::pb::Pipeline_BlendFunc_ONE_MINUS_SRC1_ALPHA: 
+            colorBlendAttachment.dstColorBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC1_ALPHA;
+            break;
+        default: break;
+        }
+        colorBlendAttachment.colorWriteMask =
+            VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT |
+            VK_COLOR_COMPONENT_A_BIT;
+        colorBlendAttachment.blendEnable = VK_TRUE;
+        colorBlendAttachment.colorBlendOp = VK_BLEND_OP_ADD; // Optional
+        colorBlendAttachment.srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE; // Optional
+        colorBlendAttachment.dstAlphaBlendFactor = VK_BLEND_FACTOR_ZERO; // Optional
+        colorBlendAttachment.alphaBlendOp = VK_BLEND_OP_ADD; // Optional
+    }
+    else
+    {
+        colorBlendAttachment.colorWriteMask =
+            VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT |
+            VK_COLOR_COMPONENT_A_BIT;
+        colorBlendAttachment.blendEnable = VK_FALSE;
+        colorBlendAttachment.srcColorBlendFactor = VK_BLEND_FACTOR_ONE; // Optional
+        colorBlendAttachment.dstColorBlendFactor = VK_BLEND_FACTOR_ZERO; // Optional
+        colorBlendAttachment.colorBlendOp = VK_BLEND_OP_ADD; // Optional
+        colorBlendAttachment.srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE; // Optional
+        colorBlendAttachment.dstAlphaBlendFactor = VK_BLEND_FACTOR_ZERO; // Optional
+        colorBlendAttachment.alphaBlendOp = VK_BLEND_OP_ADD; // Optional
+    }
+
 
     VkPipelineColorBlendStateCreateInfo colorBlending{};
     colorBlending.sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO;
@@ -378,20 +517,89 @@ bool Pipeline::LoadRasterizePipeline(const core::pb::Pipeline& pipelinePb,
             break;
         }
         
-        //TODO stencil test
         depthStencil.depthBoundsTestEnable = VK_FALSE;
         depthStencil.minDepthBounds = 0.0f; // Optional
         depthStencil.maxDepthBounds = 1.0f; // Optional
+        if(pipelinePb.enable_stencil_test())
+        {
+            depthStencil.stencilTestEnable = VK_TRUE;
+            VkStencilOpState stencilState{};
+            stencilState.writeMask = pipelinePb.stencil_mask();
+            stencilState.compareMask = pipelinePb.stencil_func_mask();
+            stencilState.reference = pipelinePb.stencil_ref();
 
-        depthStencil.stencilTestEnable = VK_FALSE;
-        depthStencil.front = {}; // Optional
-        depthStencil.back = {}; // Optional
+            switch(pipelinePb.stencil_func())
+            {
+            case core::pb::Pipeline_StencilFunc_STENCIL_NEVER: 
+                stencilState.compareOp = VK_COMPARE_OP_NEVER;
+                break;
+            case core::pb::Pipeline_StencilFunc_STENCIL_LESS: 
+                stencilState.compareOp = VK_COMPARE_OP_LESS;
+                break;
+            case core::pb::Pipeline_StencilFunc_STENCIL_LEQUAL:
+                stencilState.compareOp = VK_COMPARE_OP_LESS_OR_EQUAL;
+                break;
+            case core::pb::Pipeline_StencilFunc_STENCIL_GREATER:
+                stencilState.compareOp = VK_COMPARE_OP_GREATER;
+                break;
+            case core::pb::Pipeline_StencilFunc_STENCIL_GEQUAL:
+                stencilState.compareOp = VK_COMPARE_OP_GREATER_OR_EQUAL;
+                break;
+            case core::pb::Pipeline_StencilFunc_STENCIL_EQUAL:
+                stencilState.compareOp = VK_COMPARE_OP_EQUAL;
+                break;
+            case core::pb::Pipeline_StencilFunc_STENCIL_NOTEQUAL:
+                stencilState.compareOp = VK_COMPARE_OP_NOT_EQUAL;
+                break;
+            case core::pb::Pipeline_StencilFunc_STENCIL_ALWAYS:
+                stencilState.compareOp = VK_COMPARE_OP_ALWAYS;
+                break;
+            default: 
+                break;
+            }
 
+            const auto convertStencilOpToVk = [](core::pb::Pipeline_StencilOp stencilOp)
+            {
+                switch (stencilOp)
+                {
+                case core::pb::Pipeline_StencilOp_KEEP:
+                    return VK_STENCIL_OP_KEEP;
+                case core::pb::Pipeline_StencilOp_STENCIL_ZERO:
+                    return VK_STENCIL_OP_ZERO;
+                case core::pb::Pipeline_StencilOp_REPLACE:
+                    return VK_STENCIL_OP_REPLACE;
+                case core::pb::Pipeline_StencilOp_INCR:
+                    return VK_STENCIL_OP_INCREMENT_AND_CLAMP;
+                case core::pb::Pipeline_StencilOp_INCR_WRAP:
+                    return VK_STENCIL_OP_INCREMENT_AND_WRAP;
+                case core::pb::Pipeline_StencilOp_DECR:
+                    return VK_STENCIL_OP_DECREMENT_AND_CLAMP;
+                case core::pb::Pipeline_StencilOp_DECR_WRAP:
+                    return VK_STENCIL_OP_DECREMENT_AND_WRAP;
+                case core::pb::Pipeline_StencilOp_INVERT:
+                    return VK_STENCIL_OP_INVERT;
+                default:
+                    return VK_STENCIL_OP_ZERO;
+                }
+            };
+            stencilState.depthFailOp = convertStencilOpToVk(pipelinePb.stencil_depth_fail());
+            stencilState.failOp = convertStencilOpToVk(pipelinePb.stencil_source_fail());
+            stencilState.passOp = convertStencilOpToVk(pipelinePb.stencil_depth_pass());
+
+            depthStencil.front = stencilState;
+            depthStencil.back = stencilState;
+        }
+        else
+        {
+            depthStencil.stencilTestEnable = VK_FALSE;
+            depthStencil.front = {}; // Optional
+            depthStencil.back = {}; // Optional
+        }
         pipelineInfo.pDepthStencilState = &depthStencil;
     }
     else
     {
-        pipelineInfo.pDepthStencilState = VK_NULL_HANDLE; // Optional
+        pipelineInfo.pDepthStencilState = VK_NULL_HANDLE; 
     }
 
     std::array dynamicStates =
