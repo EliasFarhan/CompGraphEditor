@@ -35,13 +35,13 @@ file(GLOB_RECURSE EDITOR_SRC src/editor/*.cpp include/editor/*.h)
 add_executable(editor ${EDITOR_SRC} ${SCRIPT_FILES} main/editor_main.cpp)
 
 target_include_directories(editor PRIVATE include/editor/)
-target_link_libraries(editor PRIVATE CommonGL nlohmann_json::nlohmann_json CommonPy argh)
+target_link_libraries(editor PRIVATE CommonGL nlohmann_json::nlohmann_json CommonPy argh imnodes)
 
 add_dependencies(editor editor_scripts)
 
 set_target_properties (editor PROPERTIES FOLDER Main)
 set_target_properties (editor_scripts PROPERTIES FOLDER Main)
-#set_target_properties(editor PROPERTIES UNITY_BUILD ON)
+set_target_properties(editor PROPERTIES UNITY_BUILD ON)
 
 #gl player
 

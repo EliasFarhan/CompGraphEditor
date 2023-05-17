@@ -32,5 +32,5 @@ endif()
 add_subdirectory(core/)
 add_subdirectory(common/)
 
-
+add_subdirectory(external/imnodes)
 add_subdirectory(main/)

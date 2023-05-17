@@ -85,6 +85,10 @@ class Vec2:
         """Vector multiplication with scalar"""
         return Vec2()
 
+    def __truediv__(self, other: float) -> Vec2:
+        """Vector division with scalar"""
+        return Vec2()
+
     def normalize(self) -> Vec2:
         """Return a normalized (length 1)"""
         return Vec2()
@@ -135,11 +139,7 @@ class Vec3:
         """Vector multiplication with a scalar float"""
         return Vec3()
 
-    def __divmod__(self, other: float) -> (Vec3, Vec3):
-        """Vector multiplication with a scalar float"""
-        return Vec3(), Vec3()
-
-    def __rtruediv__(self, other: float) -> Vec3:
+    def __truediv__(self, other: float) -> Vec3:
         return Vec3()
 
     def normalize(self) -> Vec3:
@@ -201,6 +201,10 @@ class Vec4:
         """Vector multiplication with a scalar float"""
         return Vec4()
 
+    def __truediv__(self, other: float) -> Vec4:
+        """Vector multiplication with a scalar float"""
+        return Vec4()
+
     def normalize(self) -> Vec4:
         """Return the normalized vector (length 1)"""
         return Vec4()
@@ -237,7 +241,11 @@ class Mat3:
         return Vec3()
 
     def __mul__(self, other: Mat3) -> Mat3:
-        """Matrix multiplication"""
+        """Matrix multiplication with scalar"""
+        return Mat3()
+
+    def __truediv__(self, other: float) -> Mat3:
+        """Matrix division with scalar"""
         return Mat3()
 
     def inverse(self) -> Mat3:
@@ -290,6 +298,9 @@ class Mat4:
     def __mul__(self, other: Mat4) -> Mat4:
         return Mat4()
 
+    def __truediv__(self, other: float) -> Mat4:
+        return Mat4()
+
     @staticmethod
     def view(eye: Vec3, center: Vec3, up: Vec3) -> Mat4:
         """Return the view matrix from camera position eye, with target position center and up vector"""
@@ -297,6 +308,12 @@ class Mat4:
     
     @staticmethod
     def perspective(fov_radian: float, aspect: float, near: float, far: float) -> Mat4:
+        """Return the perspective matrix from fov (field of view) in radian, aspect ratio, near and far plane scalar value"""
+        return Mat4()
+
+    @staticmethod
+    def orthographic(width: float, height: float, near: float, far: float) -> Mat4:
+        """Return the orthographic matrix from width, height and near and far plane scalar value"""
         return Mat4()
     
     def inverse(self) -> Mat4:
