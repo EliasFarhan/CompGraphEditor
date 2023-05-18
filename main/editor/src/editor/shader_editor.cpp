@@ -373,6 +373,7 @@ bool ShaderEditor::AnalyzeShader(std::string_view path, core::pb::Shader& shader
             newOutAttribute->set_type_name(typeName);
         }
         auto& structsJson = shaderJson["structs"];
+        shaderInfo.mutable_structs()->Clear();
         for(auto& structJson: structsJson)
         {
             auto structName = structJson["name"].get<std::string>();

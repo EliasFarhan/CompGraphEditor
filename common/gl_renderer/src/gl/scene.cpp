@@ -61,7 +61,8 @@ Scene::ImportStatus Scene::LoadShaders(
 }
 
 Scene::ImportStatus Scene::LoadPipelines(
-    const google::protobuf::RepeatedPtrField<core::pb::Pipeline>& pipelines)
+    const google::protobuf::RepeatedPtrField<core::pb::Pipeline>& pipelines, 
+    const PbRepeatField<core::pb::RaytracingPipeline>& raytracingPipelines)
 {
     const auto pipelinesSize = pipelines.size();
     pipelines_.resize(pipelinesSize);

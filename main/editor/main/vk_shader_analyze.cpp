@@ -52,7 +52,7 @@ constexpr core::pb::Attribute_Type GetAttributeType(spirv_cross::SPIRType::BaseT
     case spirv_cross::SPIRType::Image: return core::pb::Attribute_Type_IMAGE2D;
     case spirv_cross::SPIRType::SampledImage: return core::pb::Attribute_Type_SAMPLER2D;
     case spirv_cross::SPIRType::Sampler: return core::pb::Attribute_Type_SAMPLER2D;
-    case spirv_cross::SPIRType::AccelerationStructure: break;
+    case spirv_cross::SPIRType::AccelerationStructure: return core::pb::Attribute_Type_ACCELERATION_STRUCT;
     case spirv_cross::SPIRType::RayQuery: break;
     case spirv_cross::SPIRType::ControlPointArray: break;
     case spirv_cross::SPIRType::Interpolant: break;
@@ -83,6 +83,7 @@ constexpr std::string GetAttributeTypeName(core::pb::Attribute_Type attributeTyp
     case core::pb::Attribute_Type_VOID: return "void";
     case core::pb::Attribute_Type_IMAGE2D: return "image2D";
     case core::pb::Attribute_Type_CUSTOM: break;
+    case core::pb::Attribute_Type_ACCELERATION_STRUCT: return "accelerationStructureEXT";
     default: ;
     }
     return "";
@@ -208,6 +209,28 @@ int main([[maybe_unused]] int argc, char** argv)
                 GetAttributeTypeName(attributeType);
             uniformJson["push_constant"] = false;
             uniformJson["binding"] = compiler.get_decoration(ubo.id, spv::DecorationBinding);
+            uniforms.push_back(uniformJson);
+        }
+        for(auto& accelerationStruct : shaderResources.acceleration_structures)
+        {
+            json uniformJson;
+            const auto& type = compiler.get_type(accelerationStruct.base_type_id);
+            const auto attributeType = GetAttributeType(type.basetype, type.vecsize, type.columns);
+            uniformJson["name"] = compiler.get_name(accelerationStruct.id);
+            uniformJson["type"] = attributeType;
+            uniformJson["type_name"] = GetAttributeTypeName(attributeType);
+            uniformJson["binding"] = compiler.get_decoration(accelerationStruct.id, spv::DecorationBinding);
+            uniforms.push_back(uniformJson);
+        }
+        for(auto& storageImage : shaderResources.storage_images)
+        {
+            json uniformJson;
+            const auto& type = compiler.get_type(storageImage.base_type_id);
+            const auto attributeType = GetAttributeType(type.basetype, type.vecsize, type.columns);
+            uniformJson["name"] = compiler.get_name(storageImage.id);
+            uniformJson["type"] = attributeType;
+            uniformJson["type_name"] = GetAttributeTypeName(attributeType);
+            uniformJson["binding"] = compiler.get_decoration(storageImage.id, spv::DecorationBinding);
             uniforms.push_back(uniformJson);
         }
         for (auto& pushConstant : shaderResources.push_constant_buffers)

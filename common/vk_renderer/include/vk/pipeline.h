@@ -34,12 +34,10 @@ public:
         std::optional < std::reference_wrapper<Shader> > tesselationEvalShader = std::nullopt);
     bool LoadComputePipeline(const core::pb::Pipeline& pipelinePb, 
         Shader& computeShader);
-    bool LoadRaytracingPipeline(const core::pb::Pipeline& pipelinePb,
-                                const core::pb::RaytracingPipeline raytracingPipelinePb,
+    bool LoadRaytracingPipeline(const core::pb::RaytracingPipeline& raytracingPipelinePb,
                                 Shader& rayGenShader,
                                 Shader& missHitShader,
                                 Shader& closestHitShader,
-                                int pipelineIndex,
                                 std::optional < std::reference_wrapper<Shader> > anyHitShader = std::nullopt, std::optional < std::reference_wrapper<Shader> > intersectionShadder = std::nullopt);
     void Bind() override;
     void Destroy() const;
@@ -51,5 +49,7 @@ private:
     VkPipelineLayout pipelineLayout{};
     VkDescriptorSetLayout descriptorSetLayout{};
     std::array<PushConstantData, core::pb::SHADER_TYPE_COUNT> pushConstantDataTable_{};
+
+    std::vector<VkRayTracingShaderGroupCreateInfoKHR> shaderGroups_;
 };
 }

@@ -6,6 +6,7 @@
 
 namespace vk
 {
+
 bool Pipeline::LoadRasterizePipeline(const core::pb::Pipeline& pipelinePb,
                                     Shader& vertexShader,
                                     Shader& fragmentShader,
@@ -665,16 +666,160 @@ bool Pipeline::LoadComputePipeline(const core::pb::Pipeline& pipelinePb, Shader&
     return false;
 }
 
-bool Pipeline::LoadRaytracingPipeline(const core::pb::Pipeline& pipelinePb,
-                                      const core::pb::RaytracingPipeline raytracingPipelinePb,
+bool Pipeline::LoadRaytracingPipeline(const core::pb::RaytracingPipeline& raytracingPipelinePb,
                                       Shader& rayGenShader,
                                       Shader& missHitShader,
                                       Shader& closestHitShader,
-                                      int pipelineIndex,
-                                      std::optional<std::reference_wrapper<Shader>> anyHitShader, std::optional<std::reference_wrapper<Shader>> intersectionShadder)
+                                      std::optional<std::reference_wrapper<Shader>> anyHitShader, 
+                                      std::optional<std::reference_wrapper<Shader>> intersectionShadder)
 {
-    //TODO gather all scene meshes to put in BLAS, put them all in the TLAS
-    return false;
+    auto& driver = GetDriver();
+
+    std::vector<VkDescriptorSetLayoutBinding> bindings(raytracingPipelinePb.uniforms_size());
+    for(int i = 0; i < raytracingPipelinePb.uniforms_size(); i++)
+    {
+        auto& binding = bindings[i];
+        const auto& uniform = raytracingPipelinePb.uniforms(i);
+
+        binding.binding = uniform.binding();
+        switch(uniform.type())
+        {
+        case core::pb::Attribute_Type_ACCELERATION_STRUCT:
+            binding.descriptorType = VK_DESCRIPTOR_TYPE_ACCELERATION_STRUCTURE_KHR;
+            break;
+        case core::pb::Attribute_Type_IMAGE2D:
+            binding.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;
+            break;
+        default:
+            binding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+            break;
+        }
+        binding.descriptorCount = 1;
+        binding.stageFlags = GetShaderStage(uniform.stage());;
+    }
+
+    VkDescriptorSetLayoutCreateInfo layoutInfo{};
+    layoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
+    layoutInfo.bindingCount = static_cast<uint32_t>(bindings.size());
+    layoutInfo.pBindings = bindings.data();
+    if (vkCreateDescriptorSetLayout(
+        driver.device,
+        &layoutInfo,
+        nullptr,
+        &descriptorSetLayout) != VK_SUCCESS)
+    {
+        LogError("Failed to create descriptor set layout!");
+        return false;
+    }
+
+    VkPipelineLayoutCreateInfo pipelineLayoutInfo{};
+    pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
+    pipelineLayoutInfo.setLayoutCount =  1;
+    pipelineLayoutInfo.pSetLayouts = &descriptorSetLayout;
+
+    if (vkCreatePipelineLayout(
+        driver.device,
+        &pipelineLayoutInfo,
+        nullptr,
+        &pipelineLayout) != VK_SUCCESS)
+    {
+        LogError("Failed to create pipeline layout!\n");
+        return false;
+    }
+
+    std::vector<std::reference_wrapper<const Shader>> shaders
+    {
+        rayGenShader,
+        missHitShader,
+        closestHitShader
+    };
+    if(intersectionShadder)
+    {
+        shaders.emplace_back(intersectionShadder.value());
+    }
+    if(anyHitShader)
+    {
+        shaders.emplace_back(anyHitShader.value());
+    }
+
+    std::vector<VkPipelineShaderStageCreateInfo> shaderStages;
+    shaderStages.reserve(shaders.size());
+    shaderGroups_.reserve(shaders.size());
+
+    for(std::size_t i = 0; i < shaders.size(); i++)
+    {
+        VkPipelineShaderStageCreateInfo shaderStage = {};
+        shaderStage.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+        shaderStage.stage = shaders[i].get().stage;
+        shaderStage.module = shaders[i].get().module;
+        shaderStage.pName = "main";
+        shaderStages.push_back(shaderStage);
+
+        VkRayTracingShaderGroupCreateInfoKHR shaderGroup{};
+        shaderGroup.sType = VK_STRUCTURE_TYPE_RAY_TRACING_SHADER_GROUP_CREATE_INFO_KHR;
+        switch(shaders[i].get().stage)
+        {
+        case VK_SHADER_STAGE_RAYGEN_BIT_KHR:
+        case VK_SHADER_STAGE_MISS_BIT_KHR:
+            shaderGroup.type = VK_RAY_TRACING_SHADER_GROUP_TYPE_GENERAL_KHR;
+            break;
+        default:
+            shaderGroup.type = VK_RAY_TRACING_SHADER_GROUP_TYPE_TRIANGLES_HIT_GROUP_KHR;
+            break;
+        }
+        switch (shaders[i].get().stage)
+        {
+        case VK_SHADER_STAGE_RAYGEN_BIT_KHR:
+        case VK_SHADER_STAGE_MISS_BIT_KHR:
+            shaderGroup.generalShader = i;
+            shaderGroup.closestHitShader = VK_SHADER_UNUSED_KHR;
+            shaderGroup.anyHitShader = VK_SHADER_UNUSED_KHR;
+            shaderGroup.intersectionShader = VK_SHADER_UNUSED_KHR;
+            break;
+        case VK_SHADER_STAGE_CLOSEST_HIT_BIT_KHR:
+            shaderGroup.generalShader = VK_SHADER_UNUSED_KHR;
+            shaderGroup.closestHitShader = i;
+            shaderGroup.anyHitShader = VK_SHADER_UNUSED_KHR;
+            shaderGroup.intersectionShader = VK_SHADER_UNUSED_KHR;
+            break;
+        case VK_SHADER_STAGE_INTERSECTION_BIT_KHR:
+            shaderGroup.generalShader = VK_SHADER_UNUSED_KHR;
+            shaderGroup.closestHitShader = VK_SHADER_UNUSED_KHR;
+            shaderGroup.anyHitShader = VK_SHADER_UNUSED_KHR;
+            shaderGroup.intersectionShader = i;
+            break;
+        case VK_SHADER_STAGE_ANY_HIT_BIT_KHR:
+            shaderGroup.generalShader = VK_SHADER_UNUSED_KHR;
+            shaderGroup.closestHitShader = VK_SHADER_UNUSED_KHR;
+            shaderGroup.anyHitShader = i;
+            shaderGroup.intersectionShader = VK_SHADER_UNUSED_KHR;
+            break;
+        default:
+            break;
+        }
+        shaderGroups_.push_back(shaderGroup);
+    }
+
+    VkRayTracingPipelineCreateInfoKHR rayTracingPipelineCI{};
+    rayTracingPipelineCI.sType = VK_STRUCTURE_TYPE_RAY_TRACING_PIPELINE_CREATE_INFO_KHR;
+    rayTracingPipelineCI.stageCount = static_cast<uint32_t>(shaderStages.size());
+    rayTracingPipelineCI.pStages = shaderStages.data();
+    rayTracingPipelineCI.groupCount = static_cast<uint32_t>(shaderGroups_.size());
+    rayTracingPipelineCI.pGroups = shaderGroups_.data();
+    rayTracingPipelineCI.maxPipelineRayRecursionDepth = raytracingPipelinePb.max_recursion_depth();
+    rayTracingPipelineCI.layout = pipelineLayout;
+    if(vkCreateRayTracingPipelinesKHR(
+        driver.device, 
+        VK_NULL_HANDLE, 
+        VK_NULL_HANDLE, 
+        1, 
+        &rayTracingPipelineCI, 
+        nullptr,
+        &pipeline) != VK_SUCCESS)
+    {
+        return false;
+    }
+    return true;
 }
 
 void Pipeline::Bind()

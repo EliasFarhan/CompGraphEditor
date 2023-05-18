@@ -1,5 +1,5 @@
 
-file(GLOB_RECURSE TRIANGLE_SRC src/*.cpp include/*.h data/*.py data/*.vert data/*.frag)
+file(GLOB_RECURSE TRIANGLE_SRC src/*.cpp include/*.h data/*.py data/*.vert data/*.frag data/*.rgen data/*.rchit data/*.rmiss)
 add_executable(vk_samples ${TRIANGLE_SRC})
 copydata(${CMAKE_CURRENT_SOURCE_DIR} vk_samples)
 checkvkshaders(${CMAKE_CURRENT_SOURCE_DIR} vk_samples)

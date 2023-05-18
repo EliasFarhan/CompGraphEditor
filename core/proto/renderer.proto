@@ -135,6 +135,7 @@ message Attribute
         VOID = 14;
         CUSTOM = 15;
         IMAGE2D = 16;
+        ACCELERATION_STRUCT = 17;
     }
     string name = 1;
     Type type = 2;
@@ -280,6 +281,7 @@ message RaytracingPipeline
     int32 any_hit_shader_index = 4;
     int32 intersection_hit_shader_index = 5;
     uint32 max_recursion_depth = 6;
+    repeated Attribute uniforms = 7;
 }
 
 message Texture
@@ -392,6 +394,18 @@ message Dependency
     int32 subpassIndex = 1;
 }
 
+message RaytracingCommand
+{
+    message AccelerationStructure
+    {
+        int32 mesh_index = 1;
+        Transform transform = 2;
+        
+    }
+    repeated AccelerationStructure blas = 1;
+    int32 pipeline_index = 2;
+}
+
 message SubPass
 {
     Color4 clear_color = 1;
@@ -399,7 +413,7 @@ message SubPass
     repeated Dependency dependencies = 3;
     int32 framebuffer_index = 4;
     Pipeline.Type type = 5;
-
+    repeated RaytracingCommand raytracing_commands = 6;
 }
 
 message RenderPass

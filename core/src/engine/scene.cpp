@@ -19,23 +19,23 @@ static SceneManager* sceneManagerInstance = nullptr;
 
 void Scene::LoadScene()
 {
-    const auto textures = scene_.textures();
+    const auto& textures = scene_.textures();
     if (LoadTextures(textures) != ImportStatus::SUCCESS)
     {
         LogError("Could not import textures");
     }
-    const auto models = scene_.model_paths();
+    const auto& models = scene_.model_paths();
     if (LoadModels(models) != ImportStatus::SUCCESS)
     {
         LogError("Could not import models");
     }
 
-    const auto meshes = scene_.meshes();
+    const auto& meshes = scene_.meshes();
     if (LoadMeshes(meshes) != ImportStatus::SUCCESS)
     {
         LogError("Could not import meshes");
     }
-    const auto framebuffers = scene_.framebuffers();
+    const auto& framebuffers = scene_.framebuffers();
     if (LoadFramebuffers(framebuffers) != ImportStatus::SUCCESS)
     {
         LogError("Could not import framebuffers");
@@ -45,19 +45,20 @@ void Scene::LoadScene()
     {
         LogError("Count not import render pass");
     }
-    const auto shaders = scene_.shaders();
+    const auto& shaders = scene_.shaders();
     if (LoadShaders(shaders) != ImportStatus::SUCCESS)
     {
         LogError("Could not import shaders");
     }
-    const auto pipelines = scene_.pipelines();
-    if(LoadPipelines(pipelines) != ImportStatus::SUCCESS)
+    const auto& pipelines = scene_.pipelines();
+    const auto& raytracingPipelines = scene_.raytracing_pipelines();
+    if(LoadPipelines(pipelines, raytracingPipelines) != ImportStatus::SUCCESS)
     {
         LogError("Could not import pipelines");
     }
     
 
-    const auto materials = scene_.materials();
+    const auto& materials = scene_.materials();
     if(LoadMaterials(materials) != ImportStatus::SUCCESS)
     {
         LogError("Could not import materials");
@@ -67,9 +68,6 @@ void Scene::LoadScene()
     {
         LogError("Could not import draw commands");
     }
-
-    
-
 
     const auto systemSize = scene_.systems_size();
     scripts_.clear();

@@ -265,22 +265,25 @@ Scene::ImportStatus Scene::LoadShaders(const PbRepeatField<core::pb::Shader>& sh
     return ImportStatus::SUCCESS;
 }
 
-Scene::ImportStatus Scene::LoadPipelines(const PbRepeatField<core::pb::Pipeline>& pipelines)
+Scene::ImportStatus Scene::LoadPipelines(
+    const PbRepeatField<core::pb::Pipeline>& pipelines,
+    const PbRepeatField<core::pb::RaytracingPipeline>& raytracingPipelines)
 {
     LogDebug("Load Pipelines");
-    pipelines_.resize(pipelines.size());
+    auto getShader = [this](const int index, core::pb::ShaderType type)->std::optional<std::reference_wrapper<Shader>>
+    {
+        if (index != -1 && scene_.shaders(index).type() == type)
+        {
+            return shaders_[index];
+        }
+        return std::nullopt;
+    };
+    pipelines_.resize(pipelines.size()+raytracingPipelines.size());
     for(int i = 0; i < pipelines.size(); i++)
     {
         Pipeline& pipeline = pipelines_[i];
         const auto& pipelinePb = pipelines[i];
-        auto getShader = [this](const int index, core::pb::ShaderType type)->std::optional<std::reference_wrapper<Shader>>
-        {
-            if (index != -1 && scene_.shaders(index).type() == type)
-            {
-                return shaders_[index];
-            }
-            return std::nullopt;
-        };
+        
         switch(pipelinePb.type())
         {
         case core::pb::Pipeline_Type_RASTERIZE:
@@ -297,26 +300,29 @@ Scene::ImportStatus Scene::LoadPipelines(const PbRepeatField<core::pb::Pipeline>
             }
             break;
         }
-        case core::pb::Pipeline_Type_COMPUTE: break;
-        case core::pb::Pipeline_Type_RAYTRACING:
+        case core::pb::Pipeline_Type_COMPUTE:
         {
-            const auto& raytracingPipelinePb = scene_.raytracing_pipelines(pipelinePb.raytracing_pipeline_index());
-            if (!pipeline.LoadRaytracingPipeline(pipelinePb,
-                raytracingPipelinePb,
-                shaders_[raytracingPipelinePb.ray_gen_shader_index()],
-                shaders_[raytracingPipelinePb.miss_hit_shader_index()],
-                shaders_[raytracingPipelinePb.closest_hit_shader_index()],
-                i,
-                getShader(raytracingPipelinePb.any_hit_shader_index(), core::pb::RAY_ANY_HIT),
-                getShader(raytracingPipelinePb.intersection_hit_shader_index(), core::pb::RAY_INTERSECTION)))
-            {
-                return ImportStatus::FAILURE;
-            }
             break;
         }
         default: break;
         }
-        
+    }
+
+    int raytracingPipelineBaseIndex = pipelines.size();
+    for(int i = 0; i < raytracingPipelines.size(); i++)
+    {
+
+        Pipeline& pipeline = pipelines_[raytracingPipelineBaseIndex+i];
+        const auto& raytracingPipelinePb = scene_.raytracing_pipelines(i);
+        if (!pipeline.LoadRaytracingPipeline(raytracingPipelinePb,
+            shaders_[raytracingPipelinePb.ray_gen_shader_index()],
+            shaders_[raytracingPipelinePb.miss_hit_shader_index()],
+            shaders_[raytracingPipelinePb.closest_hit_shader_index()],
+            getShader(raytracingPipelinePb.any_hit_shader_index(), core::pb::RAY_ANY_HIT),
+            getShader(raytracingPipelinePb.intersection_hit_shader_index(), core::pb::RAY_INTERSECTION)))
+        {
+            return ImportStatus::FAILURE;
+        }
     }
     return ImportStatus::SUCCESS;
 }
@@ -747,7 +753,7 @@ void Scene::ResizeWindow()
     renderPass_.renderPass = VK_NULL_HANDLE;
 
     //Recreate them
-    const auto framebuffers = scene_.framebuffers();
+    const auto& framebuffers = scene_.framebuffers();
     if (LoadFramebuffers(framebuffers) != ImportStatus::SUCCESS)
     {
         LogError("Could not recreate framebuffers");
@@ -757,8 +763,9 @@ void Scene::ResizeWindow()
     {
         LogError("Count not recreate render pass");
     }
-    const auto pipelines = scene_.pipelines();
-    if (LoadPipelines(pipelines) != ImportStatus::SUCCESS)
+    const auto& pipelines = scene_.pipelines();
+    const auto& raytracingPipelines = scene_.raytracing_pipelines();
+    if (LoadPipelines(pipelines, raytracingPipelines) != ImportStatus::SUCCESS)
     {
         LogError("Could not recreate pipelines");
     }

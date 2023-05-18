@@ -99,12 +99,12 @@ endfunction()
 function(checkvkshaders main_folder exe_name)
     if(MSVC)
         if (${CMAKE_HOST_SYSTEM_PROCESSOR} STREQUAL "AMD64")
-            set(GLSL_VALIDATOR "$ENV{VULKAN_SDK}/Bin/glslangValidator.exe")
+            set(GLSL_VALIDATOR "$ENV{VULKAN_SDK}/Bin/glslc.exe")
         else()
-            set(GLSL_VALIDATOR "$ENV{VULKAN_SDK}/Bin32/glslangValidator.exe")
+            set(GLSL_VALIDATOR "$ENV{VULKAN_SDK}/Bin32/glslc.exe")
         endif()
     elseif(UNIX)
-        set(GLSL_VALIDATOR "glslangValidator")
+        set(GLSL_VALIDATOR "glslc")
     endif()
 
     file(GLOB_RECURSE GLSL_SOURCE_FILES
@@ -139,7 +139,7 @@ function(checkvkshaders main_folder exe_name)
                 COMMAND ${CMAKE_COMMAND} -E copy
                 ${main_folder}/${PATH_NAME}/${FILE_NAME}
                 ${GLSL_OUTPUT}
-                COMMAND ${GLSL_VALIDATOR} --target-env vulkan1.2 -V ${GLSL} -o ${GLSL_OUTPUT}.spv
+                COMMAND ${GLSL_VALIDATOR} ${GLSL} -o ${GLSL_OUTPUT}.spv --target-env=vulkan1.2
                 DEPENDS ${GLSL})
         list(APPEND GLSL_OUTPUT_FILES ${GLSL_OUTPUT})
     endforeach(GLSL)

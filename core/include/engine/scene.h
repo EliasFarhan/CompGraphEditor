@@ -89,7 +89,7 @@ protected:
     using PbRepeatField = google::protobuf::RepeatedPtrField<T>;
 
     virtual ImportStatus LoadShaders(const PbRepeatField<pb::Shader> & shadersPb) = 0;
-    virtual ImportStatus LoadPipelines(const PbRepeatField<pb::Pipeline>& pipelines) = 0;
+    virtual ImportStatus LoadPipelines(const PbRepeatField<pb::Pipeline>& pipelines, const PbRepeatField<pb::RaytracingPipeline>& raytracingPipelines) = 0;
     virtual ImportStatus LoadTextures(const PbRepeatField<pb::Texture>& textures) = 0;
     virtual ImportStatus LoadMaterials(const PbRepeatField<pb::Material>& materials) = 0;
     virtual ImportStatus LoadModels(const PbRepeatField<std::string>& models) = 0;

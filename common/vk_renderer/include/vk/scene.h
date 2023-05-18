@@ -43,7 +43,7 @@ public:
     void OnEvent(SDL_Event& event) override;
 protected:
     ImportStatus LoadShaders(const PbRepeatField<core::pb::Shader>& shadersPb) override;
-    ImportStatus LoadPipelines(const PbRepeatField<core::pb::Pipeline>& pipelines) override;
+    ImportStatus LoadPipelines(const PbRepeatField<core::pb::Pipeline>& pipelines, const PbRepeatField<core::pb::RaytracingPipeline>& raytracingPipelines) override;
     ImportStatus LoadTextures(const PbRepeatField<core::pb::Texture>& textures) override;
     ImportStatus LoadMaterials(const PbRepeatField<core::pb::Material>& materials) override;
     ImportStatus LoadModels(const PbRepeatField<std::string>& models) override;
