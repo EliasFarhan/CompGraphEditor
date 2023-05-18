@@ -77,6 +77,7 @@ void Engine::Begin()
     allocatorInfo.device = window_.GetDriver().device;
     allocatorInfo.instance = window_.GetDriver().instance;
     allocatorInfo.pVulkanFunctions = &vmaVulkanFunctions;
+    allocatorInfo.flags = VMA_ALLOCATOR_CREATE_BUFFER_DEVICE_ADDRESS_BIT;
     
     vmaCreateAllocator(&allocatorInfo, &allocator_);
 

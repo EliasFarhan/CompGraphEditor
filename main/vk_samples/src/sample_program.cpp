@@ -3,6 +3,7 @@
 //
 
 #include "sample_program.h"
+#include "raytracing_scene.h"
 
 #include <imgui.h>
 
@@ -669,7 +670,7 @@ core::pb::Scene Scene07()
 
 void HelloVulkanProgram::Begin() 
 {
-    scene_.SetScene(Scene6());
+    scene_.SetScene(RaytracingScene01());
 
     sceneManager_.LoadScene(&scene_);
 }

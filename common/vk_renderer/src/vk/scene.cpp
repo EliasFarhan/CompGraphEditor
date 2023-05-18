@@ -49,6 +49,11 @@ void Scene::UnloadScene()
         vmaDestroyBuffer(allocator, vertexBuffer.indexBuffer.buffer, vertexBuffer.indexBuffer.allocation);
     }
     vertexBuffers_.clear();
+    for(auto& tlas : topLevelAccelerationStructures_)
+    {
+        tlas.Destroy();
+    }
+    topLevelAccelerationStructures_.clear();
 }
 
 void Scene::Update(float dt)
@@ -413,6 +418,12 @@ Scene::ImportStatus Scene::LoadMeshes(const PbRepeatField<core::pb::Mesh>& meshe
         default:
             break;
         }
+    }
+    const auto& topLevelAccelerationStructures = scene_.top_level_acceleration_structures();
+    topLevelAccelerationStructures_.resize(topLevelAccelerationStructures.size());
+    for(int i = 0; i < topLevelAccelerationStructures.size(); i++)
+    {
+        topLevelAccelerationStructures_[i].Create(topLevelAccelerationStructures.Get(i));
     }
     return ImportStatus::SUCCESS;
 }

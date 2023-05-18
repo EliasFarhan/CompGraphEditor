@@ -192,6 +192,7 @@ void Window::CreateLogicalDevice() {
 
     VkPhysicalDeviceFeatures deviceFeatures{};
     deviceFeatures.samplerAnisotropy = VK_TRUE;
+    
 
     VkDeviceCreateInfo createInfo{};
     createInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
@@ -199,14 +200,35 @@ void Window::CreateLogicalDevice() {
     createInfo.queueCreateInfoCount = static_cast<std::uint32_t>(queueCreateInfos.size());
 
     createInfo.pEnabledFeatures = &deviceFeatures;
+
+    VkPhysicalDeviceBufferDeviceAddressFeaturesKHR addressFeaturesKhr{};
+    addressFeaturesKhr.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_BUFFER_DEVICE_ADDRESS_FEATURES;
+    addressFeaturesKhr.bufferDeviceAddress = VK_TRUE;
+
+
+    VkPhysicalDeviceAccelerationStructureFeaturesKHR accelerationStructureFeaturesKhr{};
+    accelerationStructureFeaturesKhr.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_ACCELERATION_STRUCTURE_FEATURES_KHR;
+    accelerationStructureFeaturesKhr.accelerationStructure = VK_TRUE;
+    accelerationStructureFeaturesKhr.pNext = &addressFeaturesKhr;
+
+
+    VkPhysicalDeviceRayTracingPipelineFeaturesKHR pipelineFeaturesKhr{};
+    pipelineFeaturesKhr.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_RAY_TRACING_PIPELINE_FEATURES_KHR;
+    pipelineFeaturesKhr.rayTracingPipeline = VK_TRUE;
+    pipelineFeaturesKhr.pNext = &accelerationStructureFeaturesKhr;
+
+
     std::vector allDeviceExtensions(deviceExtensions.cbegin(), deviceExtensions.cend());
     if(CheckRaytracingExtensionSupport(driver_.physicalDevice))
     {
+        hasRaytracing_ = true;
         LogDebug("Adding Raytracing Device Extensions");
         allDeviceExtensions.insert(
             allDeviceExtensions.end(), 
             raytracingDeviceExtensions.cbegin(), 
             raytracingDeviceExtensions.cend());
+
+        createInfo.pNext = &pipelineFeaturesKhr;
     }
     createInfo.enabledExtensionCount = static_cast<std::uint32_t>(allDeviceExtensions.size());
     createInfo.ppEnabledExtensionNames = allDeviceExtensions.data();
@@ -425,5 +447,10 @@ Driver& GetDriver()
 Swapchain& GetSwapchain()
 {
     return instance->GetSwapChain();
+}
+
+bool HasRaytracing()
+{
+    return instance->HasRaytracing();
 }
 }

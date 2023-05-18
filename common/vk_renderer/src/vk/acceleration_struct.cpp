@@ -8,7 +8,7 @@ namespace vk
 bool BottomAccelerationStructure::Create(
     const core::pb::TopLevelAccelerationStructure_AccelerationStructure& accelerationStruct)
 {
-
+	LogDebug("Create BLAS");
 	auto* scene = static_cast<vk::Scene*>(core::GetCurrentScene());
 	auto& vertexBuffers = scene->GetVertexBuffers();
 
@@ -134,7 +134,7 @@ bool TopLevelAccelerationStructure::Create(const core::pb::TopLevelAccelerationS
 	{
 		bottomAccelerationStructures_[i].Create(accelerationStructure.blas(i));
 	}
-
+	LogDebug("Create TLAS");
 	std::vector<Buffer> instancesBuffers(accelerationStructure.blas_size());
 	std::vector< VkAccelerationStructureGeometryKHR> geometries;
 	geometries.reserve(accelerationStructure.blas_size());
@@ -207,7 +207,7 @@ bool TopLevelAccelerationStructure::Create(const core::pb::TopLevelAccelerationS
 	accelerationStructureCreateInfo.sType = VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_CREATE_INFO_KHR;
 	accelerationStructureCreateInfo.buffer = tlas_.buffer.buffer;
 	accelerationStructureCreateInfo.size = buildSizesInfo.accelerationStructureSize;
-	accelerationStructureCreateInfo.type = VK_ACCELERATION_STRUCTURE_TYPE_BOTTOM_LEVEL_KHR;
+	accelerationStructureCreateInfo.type = VK_ACCELERATION_STRUCTURE_TYPE_TOP_LEVEL_KHR;
 	vkCreateAccelerationStructureKHR(GetDriver().device, &accelerationStructureCreateInfo, nullptr, &tlas_.handle);
 	
 

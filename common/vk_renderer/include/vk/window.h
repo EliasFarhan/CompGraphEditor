@@ -53,6 +53,7 @@ public:
     Driver& GetDriver() { return driver_; }
     Swapchain& GetSwapChain() { return swapchain_; }
     SDL_Window* GetSdlWindow() const { return window_; }
+    bool HasRaytracing() const { return hasRaytracing_; }
 private:
 
     void CreateWindow();
@@ -78,9 +79,12 @@ private:
 
     VkDebugUtilsMessengerEXT debugMessenger_;
 
+    bool hasRaytracing_ = false;
+
 };
 
 Driver& GetDriver();
 Swapchain& GetSwapchain();
+bool HasRaytracing();
 
 }

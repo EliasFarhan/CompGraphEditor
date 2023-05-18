@@ -1,6 +1,6 @@
 #include "raytracing_scene.h"
 
-namespace grp5300
+namespace gpr5300
 {
 
 
@@ -10,15 +10,15 @@ core::pb::Scene RaytracingScene01()
 
     auto* raygenShader = scene.add_shaders();
     raygenShader->set_type(core::pb::RAY_GEN);
-    raygenShader->set_path("data/shaders/rt_01/raygen.rgen");
+    raygenShader->set_path("data/shaders/rt_01/raygen.rgen.spv");
 
     auto* missShader = scene.add_shaders();
     missShader->set_type(core::pb::RAY_MISS);
-    missShader->set_path("data/shaders/rt_01/miss.rmiss");
+    missShader->set_path("data/shaders/rt_01/miss.rmiss.spv");
 
     auto* closestHitShader = scene.add_shaders();
     closestHitShader->set_type(core::pb::RAY_CLOSEST_HIT);
-    closestHitShader->set_path("data/shaders/rt_01/closesthit.rchit");
+    closestHitShader->set_path("data/shaders/rt_01/closesthit.rchit.spv");
 
     auto* raytracingPipeline = scene.add_raytracing_pipelines();
     raytracingPipeline->set_ray_gen_shader_index(0);

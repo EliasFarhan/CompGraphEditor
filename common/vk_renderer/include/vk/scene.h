@@ -5,6 +5,7 @@
 #include "vk/mesh.h"
 #include "vk/common.h"
 #include "vk/draw_command.h"
+#include "vk/acceleration_struct.h"
 
 #include <vulkan/vulkan.h>
 
@@ -60,6 +61,7 @@ private:
     std::vector<Shader> shaders_;
     std::vector<DrawCommand> drawCommands_;
     std::vector<SceneTexture> textures_;
+    std::vector<TopLevelAccelerationStructure> topLevelAccelerationStructures_;
     RenderPass renderPass_;
     std::vector<core::ModelIndex> modelIndices_;
 };

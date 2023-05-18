@@ -18,11 +18,15 @@ VertexBuffer CreateVertexBufferFromMesh(const core::Mesh& mesh)
     vmaMapMemory(allocator, stagingVertexBuffer.allocation, &data);
     std::memcpy(data, mesh.vertices.data(), bufferSize);
     vmaUnmapMemory(allocator, stagingVertexBuffer.allocation);
-    const auto vertexBuffer = CreateBuffer(bufferSize,
-        VK_BUFFER_USAGE_TRANSFER_DST_BIT |
-        VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | 
-        VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT,
-                                                  VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+    auto vertexFlag = VK_BUFFER_USAGE_TRANSFER_DST_BIT |
+        VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
+    if(HasRaytracing())
+    {
+
+        vertexFlag |= VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT |
+            VK_BUFFER_USAGE_ACCELERATION_STRUCTURE_BUILD_INPUT_READ_ONLY_BIT_KHR;
+    }
+    const auto vertexBuffer = CreateBuffer(bufferSize, vertexFlag,VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
     CopyBuffer(stagingVertexBuffer, vertexBuffer, bufferSize);
     vmaDestroyBuffer(allocator, stagingVertexBuffer.buffer, stagingVertexBuffer.allocation);
     //Upload index buffer to GPU
@@ -34,11 +38,17 @@ VertexBuffer CreateVertexBufferFromMesh(const core::Mesh& mesh)
     std::memcpy(data, mesh.indices.data(), mesh.indices.size() * sizeof(unsigned));
     vmaUnmapMemory(allocator, stagingIndexBuffer.allocation);
 
+    auto indexFlag = VK_BUFFER_USAGE_TRANSFER_DST_BIT |
+        VK_BUFFER_USAGE_INDEX_BUFFER_BIT;
+    if(HasRaytracing())
+    {
+        indexFlag |= VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT |
+            VK_BUFFER_USAGE_ACCELERATION_STRUCTURE_BUILD_INPUT_READ_ONLY_BIT_KHR;
+    }
+
     const auto indexBuffer = CreateBuffer(mesh.indices.size()*sizeof(unsigned),
-        VK_BUFFER_USAGE_TRANSFER_DST_BIT |
-        VK_BUFFER_USAGE_INDEX_BUFFER_BIT |
-        VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT,
-                                                 VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+        indexFlag,
+        VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
     CopyBuffer(stagingIndexBuffer, indexBuffer, mesh.indices.size() * sizeof(unsigned));
     vmaDestroyBuffer(allocator, stagingIndexBuffer.buffer, stagingIndexBuffer.allocation);
 
