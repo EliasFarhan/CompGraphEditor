@@ -57,7 +57,7 @@ bool Texture::LoadTexture(const core::pb::Texture& textureInfo)
 
     auto& engine = GetEngine();
 
-    const auto stagingBuffer = engine.CreateBuffer(imageSize,
+    const auto stagingBuffer = CreateBuffer(imageSize,
         VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
         VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
         VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
@@ -97,22 +97,22 @@ bool Texture::LoadTexture(const core::pb::Texture& textureInfo)
         LogError(fmt::format("Invalid channel count on image. Count: {}, for texture at path: {}", channelInFile, path));
         return false;
     }
-    image = engine.CreateImage(width, height, format, 1,
+    image = CreateImage(width, height, format, 1,
         VK_IMAGE_TILING_OPTIMAL,
         VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT,
         VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, mipMapLevels);
     
 
-    engine.TransitionImageLayout(image.image, VK_IMAGE_LAYOUT_UNDEFINED,
+    TransitionImageLayout(image.image, VK_IMAGE_LAYOUT_UNDEFINED,
         VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, mipMapLevels, 1);
 
-    engine.CopyImageFromBuffer(stagingBuffer, image, width, height, 1);
+    CopyImageFromBuffer(stagingBuffer, image, width, height, 1);
 
     vmaDestroyBuffer(allocator, stagingBuffer.buffer, stagingBuffer.allocation);
 
     if(mipMapLevels == 1)
     {
-        engine.TransitionImageLayout(image.image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+        TransitionImageLayout(image.image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
             VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, mipMapLevels, 1);
     }
     else

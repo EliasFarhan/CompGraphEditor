@@ -487,7 +487,7 @@ void DrawCommand::GenerateUniforms()
                 ubo.size = uniformData.size;
 
                 auto& buffer = ubo.buffers[i];
-                buffer = engine.CreateBuffer(uniformData.size,
+                buffer = CreateBuffer(uniformData.size,
                     VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
                     VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
 

@@ -27,7 +27,7 @@ void Framebuffer::Load(const core::pb::FrameBuffer& framebufferPb)
         const auto targetSize = targetInfo.size_type() == core::pb::RenderTarget_Size_WINDOW_SIZE ? windowSize : glm::uvec2(targetInfo.target_size().x(), targetInfo.target_size().y());
         renderTarget.name = targetInfo.name();
         renderTarget.format = format;
-        renderTarget.image = engine.CreateImage(targetSize.x,
+        renderTarget.image = CreateImage(targetSize.x,
             targetSize.y,
             format,
             1,
@@ -70,7 +70,7 @@ void Framebuffer::Load(const core::pb::FrameBuffer& framebufferPb)
         const auto format = GetFramebufferFormat(targetInfo.format(), targetInfo.format_size(), targetInfo.type());
         const auto targetSize = targetInfo.size_type() == core::pb::RenderTarget_Size_WINDOW_SIZE ? windowSize : glm::uvec2(targetInfo.target_size().x(), targetInfo.target_size().y());
         renderTarget.format = format;
-        renderTarget.image = engine.CreateImage(targetSize.x,
+        renderTarget.image = CreateImage(targetSize.x,
             targetSize.y,
             format,
             1,

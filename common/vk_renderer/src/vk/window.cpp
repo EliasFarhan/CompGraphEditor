@@ -348,7 +348,7 @@ void Window::CreateDepthResources()
 {
     const VkFormat depthFormat = FindDepthFormat(driver_.physicalDevice);
     auto& engine = GetEngine();
-    swapchain_.depthImage = engine.CreateImage(
+    swapchain_.depthImage = CreateImage(
         swapchain_.extent.width,
         swapchain_.extent.height,
         depthFormat,

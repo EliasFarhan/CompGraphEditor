@@ -41,15 +41,16 @@ public:
                                 std::optional < std::reference_wrapper<Shader> > anyHitShader = std::nullopt, std::optional < std::reference_wrapper<Shader> > intersectionShadder = std::nullopt);
     void Bind() override;
     void Destroy() const;
-    [[nodiscard]] VkPipelineLayout GetLayout() const { return pipelineLayout; }
-    [[nodiscard]] VkDescriptorSetLayout GetDescriptorSetLayout() const{ return descriptorSetLayout; }
+    [[nodiscard]] VkPipelineLayout GetLayout() const { return pipelineLayout_; }
+    [[nodiscard]] VkDescriptorSetLayout GetDescriptorSetLayout() const{ return descriptorSetLayout_; }
     [[nodiscard]] const auto& GetPushConstantDataTable() const {return pushConstantDataTable_;}
 private:
     VkPipeline pipeline{};
-    VkPipelineLayout pipelineLayout{};
-    VkDescriptorSetLayout descriptorSetLayout{};
+    VkPipelineLayout pipelineLayout_{};
+    VkDescriptorSetLayout descriptorSetLayout_{};
     std::array<PushConstantData, core::pb::SHADER_TYPE_COUNT> pushConstantDataTable_{};
 
     std::vector<VkRayTracingShaderGroupCreateInfoKHR> shaderGroups_;
+    VkPipelineBindPoint pipelineBindPoint_ = VK_PIPELINE_BIND_POINT_MAX_ENUM;
 };
 }

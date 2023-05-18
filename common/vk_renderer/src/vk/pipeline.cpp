@@ -19,6 +19,7 @@ bool Pipeline::LoadRasterizePipeline(const core::pb::Pipeline& pipelinePb,
     const auto& sceneInfo = scene->GetInfo();
     auto& swapchain = GetSwapchain();
     auto& driver = GetDriver();
+    pipelineBindPoint_ = VK_PIPELINE_BIND_POINT_GRAPHICS;
     std::vector<VkPipelineShaderStageCreateInfo> shaderStages{
         {
             {.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,.stage = vertexShader.stage, .module = vertexShader.module,.pName = "main"},
@@ -454,7 +455,7 @@ bool Pipeline::LoadRasterizePipeline(const core::pb::Pipeline& pipelinePb,
             driver.device, 
             &layoutInfo, 
             nullptr, 
-            &descriptorSetLayout) != VK_SUCCESS) 
+            &descriptorSetLayout_) != VK_SUCCESS) 
         {
             LogError("Failed to create descriptor set layout!");
             return false;
@@ -464,7 +465,7 @@ bool Pipeline::LoadRasterizePipeline(const core::pb::Pipeline& pipelinePb,
     VkPipelineLayoutCreateInfo pipelineLayoutInfo{};
     pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
     pipelineLayoutInfo.setLayoutCount = descriptorSetLayoutBindings.empty() ? 0 : 1;
-    pipelineLayoutInfo.pSetLayouts = descriptorSetLayoutBindings.empty() ? nullptr : &descriptorSetLayout;
+    pipelineLayoutInfo.pSetLayouts = descriptorSetLayoutBindings.empty() ? nullptr : &descriptorSetLayout_;
     pipelineLayoutInfo.pushConstantRangeCount = pushConstantRanges.size();
     pipelineLayoutInfo.pPushConstantRanges = pushConstantRanges.empty() ? 0 : pushConstantRanges.data();
 
@@ -472,7 +473,7 @@ bool Pipeline::LoadRasterizePipeline(const core::pb::Pipeline& pipelinePb,
         driver.device, 
         &pipelineLayoutInfo, 
         nullptr,
-        &pipelineLayout) != VK_SUCCESS)
+        &pipelineLayout_) != VK_SUCCESS)
     {
         LogError("Failed to create pipeline layout!\n");
         return false;
@@ -623,7 +624,7 @@ bool Pipeline::LoadRasterizePipeline(const core::pb::Pipeline& pipelinePb,
     pipelineInfo.pMultisampleState = &multisampling;
     pipelineInfo.pColorBlendState = &colorBlending;
     pipelineInfo.pDynamicState = &pipelineDynamicStateCreateInfo;
-    pipelineInfo.layout = pipelineLayout;
+    pipelineInfo.layout = pipelineLayout_;
     pipelineInfo.renderPass = renderPass;
     int subpassIndex = -1;
     for(int i = 0; i < sceneInfo.render_pass().sub_passes_size(); i++)
@@ -663,6 +664,7 @@ bool Pipeline::LoadRasterizePipeline(const core::pb::Pipeline& pipelinePb,
 
 bool Pipeline::LoadComputePipeline(const core::pb::Pipeline& pipelinePb, Shader& computeShader)
 {
+    pipelineBindPoint_ = VK_PIPELINE_BIND_POINT_COMPUTE;
     return false;
 }
 
@@ -674,7 +676,7 @@ bool Pipeline::LoadRaytracingPipeline(const core::pb::RaytracingPipeline& raytra
                                       std::optional<std::reference_wrapper<Shader>> intersectionShadder)
 {
     auto& driver = GetDriver();
-
+    pipelineBindPoint_ = VK_PIPELINE_BIND_POINT_RAY_TRACING_KHR;
     std::vector<VkDescriptorSetLayoutBinding> bindings(raytracingPipelinePb.uniforms_size());
     for(int i = 0; i < raytracingPipelinePb.uniforms_size(); i++)
     {
@@ -706,7 +708,7 @@ bool Pipeline::LoadRaytracingPipeline(const core::pb::RaytracingPipeline& raytra
         driver.device,
         &layoutInfo,
         nullptr,
-        &descriptorSetLayout) != VK_SUCCESS)
+        &descriptorSetLayout_) != VK_SUCCESS)
     {
         LogError("Failed to create descriptor set layout!");
         return false;
@@ -715,13 +717,13 @@ bool Pipeline::LoadRaytracingPipeline(const core::pb::RaytracingPipeline& raytra
     VkPipelineLayoutCreateInfo pipelineLayoutInfo{};
     pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
     pipelineLayoutInfo.setLayoutCount =  1;
-    pipelineLayoutInfo.pSetLayouts = &descriptorSetLayout;
+    pipelineLayoutInfo.pSetLayouts = &descriptorSetLayout_;
 
     if (vkCreatePipelineLayout(
         driver.device,
         &pipelineLayoutInfo,
         nullptr,
-        &pipelineLayout) != VK_SUCCESS)
+        &pipelineLayout_) != VK_SUCCESS)
     {
         LogError("Failed to create pipeline layout!\n");
         return false;
@@ -807,7 +809,7 @@ bool Pipeline::LoadRaytracingPipeline(const core::pb::RaytracingPipeline& raytra
     rayTracingPipelineCI.groupCount = static_cast<uint32_t>(shaderGroups_.size());
     rayTracingPipelineCI.pGroups = shaderGroups_.data();
     rayTracingPipelineCI.maxPipelineRayRecursionDepth = raytracingPipelinePb.max_recursion_depth();
-    rayTracingPipelineCI.layout = pipelineLayout;
+    rayTracingPipelineCI.layout = pipelineLayout_;
     if(vkCreateRayTracingPipelinesKHR(
         driver.device, 
         VK_NULL_HANDLE, 
@@ -825,15 +827,15 @@ bool Pipeline::LoadRaytracingPipeline(const core::pb::RaytracingPipeline& raytra
 void Pipeline::Bind()
 {
     const auto& renderer = GetRenderer();
-    vkCmdBindPipeline(renderer.commandBuffers[renderer.imageIndex], VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline);
+    vkCmdBindPipeline(renderer.commandBuffers[renderer.imageIndex], pipelineBindPoint_, pipeline);
 }
 
 void Pipeline::Destroy() const
 {
     const auto& driver = GetDriver();
-    vkDestroyDescriptorSetLayout(driver.device, descriptorSetLayout, nullptr);
+    vkDestroyDescriptorSetLayout(driver.device, descriptorSetLayout_, nullptr);
     vkDestroyPipeline(driver.device, pipeline, nullptr);
-    vkDestroyPipelineLayout(driver.device, pipelineLayout, nullptr);
+    vkDestroyPipelineLayout(driver.device, pipelineLayout_, nullptr);
 }
 
 }

@@ -117,11 +117,11 @@ void ImGuiManager::UploadFontAtlas()
     vkResetCommandPool(driver.device, renderer.commandPool, 0);
 
 
-    const auto commandBuffer = engine.BeginSingleTimeCommands();
+    const auto commandBuffer = BeginSingleTimeCommands();
     {
         ImGui_ImplVulkan_CreateFontsTexture(commandBuffer);
     }
-    engine.EndSingleTimeCommands(commandBuffer);
+    EndSingleTimeCommands(commandBuffer);
 
     ImGui_ImplVulkan_DestroyFontUploadObjects();
 }
