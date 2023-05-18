@@ -719,7 +719,7 @@ Scene::ImportStatus Scene::LoadDrawCommands(const core::pb::RenderPass& renderPa
         for(int j = 0; j < subpassPb.commands_size(); j++)
         {
             drawCommands_.emplace_back(subpassPb.commands(j), i);
-            drawCommands_.back().GenerateUniforms();
+            drawCommands_.back().Create();
         }
     }
     return Scene::ImportStatus::SUCCESS;

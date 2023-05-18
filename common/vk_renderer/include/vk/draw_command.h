@@ -34,7 +34,7 @@ public:
 
     void PreDrawBind() override;
 
-    void GenerateUniforms();
+    void Create();
 
     void Destroy();
 private:
@@ -66,6 +66,8 @@ private:
     std::vector<UniformBufferObject> uniformBuffers_;
     std::array<VkDescriptorSet, Engine::MAX_FRAMES_IN_FLIGHT> descriptorSets{};
     VkDescriptorPool descriptorPool;
+
+    AccelerationStructure tlas_;
 };
 }
 

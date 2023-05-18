@@ -186,7 +186,7 @@ void DrawCommand::Bind()
     }
 }
 
-void DrawCommand::GenerateUniforms()
+void DrawCommand::Create()
 {
     auto* scene = static_cast<Scene*>(core::GetCurrentScene());
     const auto& sceneInfo = scene->GetInfo();

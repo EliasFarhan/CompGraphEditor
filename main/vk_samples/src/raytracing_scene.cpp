@@ -44,13 +44,16 @@ core::pb::Scene RaytracingScene01()
     quadMesh->set_mesh_name("Quad");
     quadMesh->set_primitve_type(core::pb::Mesh_PrimitveType_QUAD);
 
+    auto* tlas = scene.add_top_level_acceleration_structures();
+    auto* blas = tlas->add_blas();
+    blas->set_mesh_index(0);
+    
     auto* renderPass = scene.mutable_render_pass();
 
     auto* subpass = renderPass->add_sub_passes();
     auto* raytracingCommand = subpass->add_raytracing_commands();
     raytracingCommand->set_pipeline_index(0);
-    auto* blas = raytracingCommand->add_blas();
-    blas->set_mesh_index(0);
+    raytracingCommand->set_top_level_acceleration_structure_index(0);
 
 
     return scene;

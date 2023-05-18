@@ -394,15 +394,19 @@ message Dependency
     int32 subpassIndex = 1;
 }
 
-message RaytracingCommand
+message TopLevelAccelerationStructure
 {
     message AccelerationStructure
     {
         int32 mesh_index = 1;
-        Transform transform = 2;
-        
+        Transform transform = 2;        
     }
     repeated AccelerationStructure blas = 1;
+}
+
+message RaytracingCommand
+{
+    int32 top_level_acceleration_structure_index = 1;
     int32 pipeline_index = 2;
 }
 
@@ -443,4 +447,5 @@ message Scene
     repeated string cubemap_textures_side_paths = 13;
     bool is_vulkan = 14;
     repeated RaytracingPipeline raytracing_pipelines = 15;
+    repeated TopLevelAccelerationStructure top_level_acceleration_structures = 16;
 }
