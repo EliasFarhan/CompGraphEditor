@@ -525,12 +525,11 @@ void DrawCommand::Destroy()
 {
     const auto& driver = GetDriver();
     vkDestroyDescriptorPool(driver.device, descriptorPool, nullptr);
-    const auto& allocator = GetAllocator();
     for(auto& buffer: uniformBuffers_)
     {
         for(int i = 0; i < Engine::MAX_FRAMES_IN_FLIGHT; i++)
         {
-            vmaDestroyBuffer(allocator, buffer.buffers[i].buffer, buffer.buffers[i].allocation);
+            DestroyBuffer(buffer.buffers[i]);
         }
     }
     uniformBuffers_.clear();

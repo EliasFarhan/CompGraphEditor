@@ -677,29 +677,76 @@ bool Pipeline::LoadRaytracingPipeline(const core::pb::RaytracingPipeline& raytra
 {
     auto& driver = GetDriver();
     pipelineBindPoint_ = VK_PIPELINE_BIND_POINT_RAY_TRACING_KHR;
-    std::vector<VkDescriptorSetLayoutBinding> bindings(raytracingPipelinePb.uniforms_size());
-    for(int i = 0; i < raytracingPipelinePb.uniforms_size(); i++)
-    {
-        auto& binding = bindings[i];
-        const auto& uniform = raytracingPipelinePb.uniforms(i);
 
-        binding.binding = uniform.binding();
-        switch(uniform.type())
+    //generate uniform push constant table
+    std::vector<std::reference_wrapper<const core::pb::Shader>> shadersInfos;
+    std::array shaderIndices =
+    {
+        raytracingPipelinePb.ray_gen_shader_index(),
+        raytracingPipelinePb.miss_hit_shader_index(),
+        raytracingPipelinePb.closest_hit_shader_index(),
+        raytracingPipelinePb.any_hit_shader_index(),
+        raytracingPipelinePb.intersection_hit_shader_index(),
+    };
+    std::array shaderTypes =
+    {
+        core::pb::RAY_GEN,
+        core::pb::RAY_MISS,
+        core::pb::RAY_CLOSEST_HIT,
+        core::pb::RAY_ANY_HIT,
+        core::pb::RAY_INTERSECTION
+    };
+    const auto& sceneInfo = core::GetCurrentScene()->GetInfo();
+    for (std::size_t i = 0; i < shaderIndices.size(); i++)
+    {
+        auto shaderIndex = shaderIndices[i];
+        if (shaderIndex == -1)
+            continue;
+        auto& shader = sceneInfo.shaders(shaderIndex);
+        if (shader.type() == shaderTypes[i])
         {
-        case core::pb::Attribute_Type_ACCELERATION_STRUCT:
-            binding.descriptorType = VK_DESCRIPTOR_TYPE_ACCELERATION_STRUCTURE_KHR;
-            break;
-        case core::pb::Attribute_Type_IMAGE2D:
-            binding.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;
-            break;
-        default:
-            binding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-            break;
+            shadersInfos.emplace_back(shader);
         }
-        binding.descriptorCount = 1;
-        binding.stageFlags = GetShaderStage(uniform.stage());;
     }
 
+    std::vector<VkDescriptorSetLayoutBinding> bindings;
+    
+    for (auto& shaderInfo : shadersInfos)
+    {
+        for (int i = 0; i < shaderInfo.get().uniforms_size(); i++)
+        {
+            VkDescriptorSetLayoutBinding bindingLayout{};
+            const auto& uniform = shaderInfo.get().uniforms(i);
+            const auto binding = uniform.binding();
+            const auto it = std::ranges::find_if(bindings, [binding](const auto& bindingLayout)
+                {
+                    return bindingLayout.binding == binding;
+                });
+            if(it != bindings.end())
+            {
+                it->stageFlags |= GetShaderStage(uniform.stage());
+                continue;
+            }
+
+
+            bindingLayout.binding = uniform.binding();
+            switch (uniform.type())
+            {
+            case core::pb::Attribute_Type_ACCELERATION_STRUCT:
+                bindingLayout.descriptorType = VK_DESCRIPTOR_TYPE_ACCELERATION_STRUCTURE_KHR;
+                break;
+            case core::pb::Attribute_Type_IMAGE2D:
+                bindingLayout.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;
+                break;
+            default:
+                bindingLayout.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+                break;
+            }
+            bindingLayout.descriptorCount = 1;
+            bindingLayout.stageFlags = GetShaderStage(uniform.stage());
+            bindings.push_back(bindingLayout);
+        }
+    }
     VkDescriptorSetLayoutCreateInfo layoutInfo{};
     layoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
     layoutInfo.bindingCount = static_cast<uint32_t>(bindings.size());
@@ -718,7 +765,7 @@ bool Pipeline::LoadRaytracingPipeline(const core::pb::RaytracingPipeline& raytra
     pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
     pipelineLayoutInfo.setLayoutCount =  1;
     pipelineLayoutInfo.pSetLayouts = &descriptorSetLayout_;
-
+    //TODO add push constant
     if (vkCreatePipelineLayout(
         driver.device,
         &pipelineLayoutInfo,

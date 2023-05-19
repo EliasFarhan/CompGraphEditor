@@ -157,14 +157,15 @@ bool TopLevelAccelerationStructure::Create(const core::pb::TopLevelAccelerationS
 		Buffer instancesBuffer = CreateBuffer(sizeof(VkAccelerationStructureInstanceKHR),
 			VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT | VK_BUFFER_USAGE_ACCELERATION_STRUCTURE_BUILD_INPUT_READ_ONLY_BIT_KHR,
 			VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
-		void* data;
+
+		instancesBuffers.push_back(instancesBuffer);
+	    void* data;
 		vmaMapMemory(GetAllocator(), instancesBuffer.allocation, &data);
 		std::memcpy(data, &instance, sizeof(VkAccelerationStructureInstanceKHR));
 		vmaUnmapMemory(GetAllocator(), instancesBuffer.allocation);
 
 		VkDeviceOrHostAddressConstKHR instanceDataDeviceAddress{};
 		instanceDataDeviceAddress.deviceAddress = GetBufferDeviceAddress(instancesBuffer.buffer);
-
 		VkAccelerationStructureGeometryKHR accelerationStructureGeometry{};
 		accelerationStructureGeometry.sType = VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_GEOMETRY_KHR;
 		accelerationStructureGeometry.geometryType = VK_GEOMETRY_TYPE_INSTANCES_KHR;
@@ -173,6 +174,7 @@ bool TopLevelAccelerationStructure::Create(const core::pb::TopLevelAccelerationS
 		accelerationStructureGeometry.geometry.instances.arrayOfPointers = VK_FALSE;
 		accelerationStructureGeometry.geometry.instances.data = instanceDataDeviceAddress;
 		geometries.push_back(accelerationStructureGeometry);
+
 	}
 	// Get size info
 	/*

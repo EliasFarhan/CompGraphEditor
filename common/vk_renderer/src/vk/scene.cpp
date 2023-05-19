@@ -45,8 +45,8 @@ void Scene::UnloadScene()
     auto& allocator = GetAllocator();
     for(auto& vertexBuffer: vertexBuffers_)
     {
-        vmaDestroyBuffer(allocator, vertexBuffer.vertexBuffer.buffer, vertexBuffer.vertexBuffer.allocation);
-        vmaDestroyBuffer(allocator, vertexBuffer.indexBuffer.buffer, vertexBuffer.indexBuffer.allocation);
+        DestroyBuffer(vertexBuffer.vertexBuffer);
+        DestroyBuffer(vertexBuffer.indexBuffer);
     }
     vertexBuffers_.clear();
     for(auto& tlas : topLevelAccelerationStructures_)
