@@ -38,11 +38,15 @@ void Scene::UnloadScene()
         pipeline.Destroy();
     }
     pipelines_.clear();
+    for(auto& pipeline: raytracingPipelines_)
+    {
+        pipeline.Destroy();
+    }
+    raytracingPipelines_.clear();
     vkDestroyRenderPass(driver.device, renderPass_.renderPass, nullptr);
     renderPass_.renderPass = VK_NULL_HANDLE;
     auto& textureManager = core::GetTextureManager();
     textureManager.Clear();
-    auto& allocator = GetAllocator();
     for(auto& vertexBuffer: vertexBuffers_)
     {
         DestroyBuffer(vertexBuffer.vertexBuffer);
@@ -250,6 +254,11 @@ void Scene::OnEvent(SDL_Event& event)
     
 }
 
+Pipeline& Scene::GetRaytracingPipeline(int raytracingPipelineIndex)
+{
+    return raytracingPipelines_[raytracingPipelineIndex];
+}
+
 Scene::ImportStatus Scene::LoadShaders(const PbRepeatField<core::pb::Shader>& shadersPb)
 {
     LogDebug("Load Shaders");
@@ -283,7 +292,7 @@ Scene::ImportStatus Scene::LoadPipelines(
         }
         return std::nullopt;
     };
-    pipelines_.resize(pipelines.size()+raytracingPipelines.size());
+    pipelines_.resize(pipelines.size());
     for(int i = 0; i < pipelines.size(); i++)
     {
         Pipeline& pipeline = pipelines_[i];
@@ -313,11 +322,12 @@ Scene::ImportStatus Scene::LoadPipelines(
         }
     }
 
-    int raytracingPipelineBaseIndex = pipelines.size();
+    LogDebug("Load Raytracing Pipelines");
+    raytracingPipelines_.resize(raytracingPipelines.size());
     for(int i = 0; i < raytracingPipelines.size(); i++)
     {
 
-        Pipeline& pipeline = pipelines_[raytracingPipelineBaseIndex+i];
+        Pipeline& pipeline = raytracingPipelines_[i];
         const auto& raytracingPipelinePb = scene_.raytracing_pipelines(i);
         if (!pipeline.LoadRaytracingPipeline(raytracingPipelinePb,
             shaders_[raytracingPipelinePb.ray_gen_shader_index()],
@@ -797,5 +807,19 @@ VkCommandBuffer GetCurrentCommandBuffer()
 {
     auto& renderer = GetRenderer();
     return renderer.commandBuffers[renderer.imageIndex];
+}
+
+VkDescriptorSetLayout GetDescriptorSetLayout(int pipelineIndex, int raytracingPipelineIndex)
+{
+    auto* scene = static_cast<Scene*>(core::GetCurrentScene());
+    if(pipelineIndex == -1 && raytracingPipelineIndex == -1)
+    {
+        return VK_NULL_HANDLE;
+    }
+    else if(pipelineIndex != -1)
+    {
+        return scene->GetPipeline(pipelineIndex).GetDescriptorSetLayout();
+    }
+    return scene->GetRaytracingPipeline(raytracingPipelineIndex).GetDescriptorSetLayout();
 }
 }

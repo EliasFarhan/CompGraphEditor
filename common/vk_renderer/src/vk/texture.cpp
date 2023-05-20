@@ -62,10 +62,9 @@ bool Texture::LoadTexture(const core::pb::Texture& textureInfo)
         VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
         VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
     const auto& allocator = GetAllocator();
-    void* data;
-    vmaMapMemory(allocator, stagingBuffer.allocation, &data);
-    memcpy(data, imageData, static_cast<size_t>(imageSize));
-    vmaUnmapMemory(allocator, stagingBuffer.allocation);
+    void* data = stagingBuffer.Map();
+    std::memcpy(data, imageData, static_cast<size_t>(imageSize));
+    stagingBuffer.Unmap();
 
     stbi_image_free(imageData);
 

@@ -5,6 +5,23 @@
 
 namespace vk
 {
+void* Buffer::Map() const
+{
+    void* ptr;
+    vmaMapMemory(GetAllocator(), allocation, &ptr);
+    return ptr;
+}
+
+void Buffer::Unmap() const
+{
+    vmaUnmapMemory(GetAllocator(), allocation);
+}
+
+void Buffer::Destroy() const
+{
+    DestroyBuffer(*this);
+}
+
 bool CheckError(VkResult result)
 {
     switch (result)

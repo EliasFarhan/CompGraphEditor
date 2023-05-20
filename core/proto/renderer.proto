@@ -399,7 +399,8 @@ message TopLevelAccelerationStructure
     message AccelerationStructure
     {
         int32 mesh_index = 1;
-        Transform transform = 2;        
+        Transform transform = 2;
+        repeated MaterialTexture textures = 3;
     }
     repeated AccelerationStructure blas = 1;
 }

@@ -138,6 +138,7 @@ bool TopLevelAccelerationStructure::Create(const core::pb::TopLevelAccelerationS
 	std::vector<Buffer> instancesBuffers(accelerationStructure.blas_size());
 	std::vector< VkAccelerationStructureGeometryKHR> geometries;
 	geometries.reserve(accelerationStructure.blas_size());
+	unsigned i = 0;
 	for (auto& blas : bottomAccelerationStructures_)
 	{
 		VkTransformMatrixKHR transformMatrix = {
@@ -147,7 +148,8 @@ bool TopLevelAccelerationStructure::Create(const core::pb::TopLevelAccelerationS
 		//TODO add transform from blas info here
 		VkAccelerationStructureInstanceKHR instance{};
 		instance.transform = transformMatrix;
-		instance.instanceCustomIndex = 0;
+		instance.instanceCustomIndex = i;
+		i++;
 		instance.mask = 0xFF;
 		instance.instanceShaderBindingTableRecordOffset = 0;
 		instance.flags = VK_GEOMETRY_INSTANCE_TRIANGLE_FACING_CULL_DISABLE_BIT_KHR;
@@ -159,10 +161,9 @@ bool TopLevelAccelerationStructure::Create(const core::pb::TopLevelAccelerationS
 			VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
 
 		instancesBuffers.push_back(instancesBuffer);
-	    void* data;
-		vmaMapMemory(GetAllocator(), instancesBuffer.allocation, &data);
+		void* data = instancesBuffer.Map();
 		std::memcpy(data, &instance, sizeof(VkAccelerationStructureInstanceKHR));
-		vmaUnmapMemory(GetAllocator(), instancesBuffer.allocation);
+		instancesBuffer.Unmap();
 
 		VkDeviceOrHostAddressConstKHR instanceDataDeviceAddress{};
 		instanceDataDeviceAddress.deviceAddress = GetBufferDeviceAddress(instancesBuffer.buffer);

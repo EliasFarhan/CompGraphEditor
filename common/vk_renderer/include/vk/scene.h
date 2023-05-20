@@ -4,7 +4,7 @@
 #include "vk/framebuffer.h"
 #include "vk/mesh.h"
 #include "vk/common.h"
-#include "vk/draw_command.h"
+#include "vk/command.h"
 #include "vk/acceleration_struct.h"
 
 #include <vulkan/vulkan.h>
@@ -42,6 +42,8 @@ public:
     const std::vector<VertexBuffer>& GetVertexBuffers() const { return vertexBuffers_; }
 
     void OnEvent(SDL_Event& event) override;
+    Pipeline& GetRaytracingPipeline(int raytracingPipelineIndex);
+
 protected:
     ImportStatus LoadShaders(const PbRepeatField<core::pb::Shader>& shadersPb) override;
     ImportStatus LoadPipelines(const PbRepeatField<core::pb::Pipeline>& pipelines, const PbRepeatField<core::pb::RaytracingPipeline>& raytracingPipelines) override;
@@ -60,6 +62,8 @@ private:
     std::vector<VertexBuffer> vertexBuffers_;
     std::vector<Shader> shaders_;
     std::vector<DrawCommand> drawCommands_;
+    std::vector<RaytracingCommand> raytracingCommands_;
+    std::vector<Pipeline> raytracingPipelines_;
     std::vector<SceneTexture> textures_;
     std::vector<TopLevelAccelerationStructure> topLevelAccelerationStructures_;
     RenderPass renderPass_;
@@ -68,4 +72,6 @@ private:
 
 VkRenderPass GetCurrentRenderPass();
 VkCommandBuffer GetCurrentCommandBuffer();
+
+VkDescriptorSetLayout GetDescriptorSetLayout(int pipelineIndex, int raytracingPipelineIndex = -1);
 }

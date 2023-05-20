@@ -11,6 +11,9 @@ struct Buffer
 {
     VkBuffer buffer{};
     VmaAllocation allocation{};
+    void* Map() const;
+    void Unmap() const;
+    void Destroy() const;
 };
 
 struct Image
