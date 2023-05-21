@@ -54,6 +54,8 @@ public:
     Swapchain& GetSwapChain() { return swapchain_; }
     SDL_Window* GetSdlWindow() const { return window_; }
     bool HasRaytracing() const { return hasRaytracing_; }
+    VkPhysicalDeviceRayTracingPipelinePropertiesKHR GetRayTracingPipelineProperties() const { return rayTracingPipelineProperties_; }
+
 private:
 
     void CreateWindow();
@@ -79,6 +81,8 @@ private:
 
     VkDebugUtilsMessengerEXT debugMessenger_;
 
+    VkPhysicalDeviceRayTracingPipelinePropertiesKHR  rayTracingPipelineProperties_{};
+    VkPhysicalDeviceAccelerationStructureFeaturesKHR accelerationStructureFeatures_{};
     bool hasRaytracing_ = false;
 
 };
@@ -86,5 +90,6 @@ private:
 Driver& GetDriver();
 Swapchain& GetSwapchain();
 bool HasRaytracing();
+VkPhysicalDeviceRayTracingPipelinePropertiesKHR GetRayTracingPipelineProperties();
 
 }

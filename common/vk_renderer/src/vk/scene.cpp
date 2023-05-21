@@ -33,6 +33,11 @@ void Scene::UnloadScene()
         drawCommand.Destroy();
     }
     drawCommands_.clear();
+    for(auto& command: raytracingCommands_)
+    {
+        command.Destroy();
+    }
+    raytracingCommands_.clear();
     for(auto& pipeline : pipelines_)
     {
         pipeline.Destroy();
@@ -742,6 +747,11 @@ Scene::ImportStatus Scene::LoadDrawCommands(const core::pb::RenderPass& renderPa
             drawCommands_.emplace_back(subpassPb.commands(j), i);
             drawCommands_.back().Create();
         }
+        for(int j = 0; j < subpassPb.raytracing_commands_size(); j++)
+        {
+            raytracingCommands_.emplace_back(subpassPb.raytracing_commands(j));
+            raytracingCommands_.back().Create();
+        }
     }
     return Scene::ImportStatus::SUCCESS;
 }
@@ -765,6 +775,11 @@ void Scene::ResizeWindow()
         drawCommand.Destroy();
     }
     drawCommands_.clear();
+    for(auto& command: raytracingCommands_)
+    {
+        command.Destroy();
+    }
+    raytracingCommands_.clear();
     for (auto& pipeline : pipelines_)
     {
         pipeline.Destroy();

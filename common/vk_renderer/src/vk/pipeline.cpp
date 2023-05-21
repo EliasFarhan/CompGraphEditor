@@ -653,7 +653,7 @@ bool Pipeline::LoadRasterizePipeline(const core::pb::Pipeline& pipelinePb,
 
 
     if (vkCreateGraphicsPipelines(driver.device, VK_NULL_HANDLE, 1, &pipelineInfo, nullptr,
-        &pipeline) != VK_SUCCESS)
+        &pipeline_) != VK_SUCCESS)
     {
         LogError("Failed to create graphics pipeline!\n");
         return false;
@@ -864,7 +864,7 @@ bool Pipeline::LoadRaytracingPipeline(const core::pb::RaytracingPipeline& raytra
         1, 
         &rayTracingPipelineCI, 
         nullptr,
-        &pipeline) != VK_SUCCESS)
+        &pipeline_) != VK_SUCCESS)
     {
         return false;
     }
@@ -874,14 +874,14 @@ bool Pipeline::LoadRaytracingPipeline(const core::pb::RaytracingPipeline& raytra
 void Pipeline::Bind()
 {
     const auto& renderer = GetRenderer();
-    vkCmdBindPipeline(renderer.commandBuffers[renderer.imageIndex], pipelineBindPoint_, pipeline);
+    vkCmdBindPipeline(renderer.commandBuffers[renderer.imageIndex], pipelineBindPoint_, pipeline_);
 }
 
 void Pipeline::Destroy() const
 {
     const auto& driver = GetDriver();
     vkDestroyDescriptorSetLayout(driver.device, descriptorSetLayout_, nullptr);
-    vkDestroyPipeline(driver.device, pipeline, nullptr);
+    vkDestroyPipeline(driver.device, pipeline_, nullptr);
     vkDestroyPipelineLayout(driver.device, pipelineLayout_, nullptr);
 }
 

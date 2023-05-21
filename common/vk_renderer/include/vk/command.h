@@ -107,6 +107,7 @@ private:
 class RaytracingCommand
 {
 public:
+    RaytracingCommand(const core::pb::RaytracingCommand& command);
     template<typename T>
     void SetUniform(std::string_view uniformName, const T& uniformValue)
     {
@@ -118,5 +119,7 @@ public:
     void Dispatch();
 private:
     UniformManager uniformManager_{};
+    std::vector<Buffer> shaderBindingTables_;
+    std::reference_wrapper<const core::pb::RaytracingCommand> commandInfo_;
 };
 } // namespace vk

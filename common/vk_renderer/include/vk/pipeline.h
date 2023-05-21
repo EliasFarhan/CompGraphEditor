@@ -44,8 +44,11 @@ public:
     [[nodiscard]] VkPipelineLayout GetLayout() const { return pipelineLayout_; }
     [[nodiscard]] VkDescriptorSetLayout GetDescriptorSetLayout() const{ return descriptorSetLayout_; }
     [[nodiscard]] const auto& GetPushConstantDataTable() const {return pushConstantDataTable_;}
+    std::size_t GetGroupCount() const { return shaderGroups_.size(); }
+    VkPipeline GetPipeline() const { return pipeline_; }
+
 private:
-    VkPipeline pipeline{};
+    VkPipeline pipeline_{};
     VkPipelineLayout pipelineLayout_{};
     VkDescriptorSetLayout descriptorSetLayout_{};
     std::array<PushConstantData, core::pb::SHADER_TYPE_COUNT> pushConstantDataTable_{};

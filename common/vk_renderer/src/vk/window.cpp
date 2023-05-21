@@ -229,6 +229,20 @@ void Window::CreateLogicalDevice() {
             raytracingDeviceExtensions.cend());
 
         createInfo.pNext = &pipelineFeaturesKhr;
+
+        // Get ray tracing pipeline properties, which will be used later on in the sample
+        rayTracingPipelineProperties_.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_RAY_TRACING_PIPELINE_PROPERTIES_KHR;
+        VkPhysicalDeviceProperties2 deviceProperties2{};
+        deviceProperties2.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PROPERTIES_2;
+        deviceProperties2.pNext = &rayTracingPipelineProperties_;
+        vkGetPhysicalDeviceProperties2(driver_.physicalDevice, &deviceProperties2);
+
+        // Get acceleration structure properties, which will be used later on in the sample
+        accelerationStructureFeatures_.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_ACCELERATION_STRUCTURE_FEATURES_KHR;
+        VkPhysicalDeviceFeatures2 deviceFeatures2{};
+        deviceFeatures2.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2;
+        deviceFeatures2.pNext = &accelerationStructureFeatures_;
+        vkGetPhysicalDeviceFeatures2(driver_.physicalDevice, &deviceFeatures2);
     }
     createInfo.enabledExtensionCount = static_cast<std::uint32_t>(allDeviceExtensions.size());
     createInfo.ppEnabledExtensionNames = allDeviceExtensions.data();
@@ -452,5 +466,10 @@ Swapchain& GetSwapchain()
 bool HasRaytracing()
 {
     return instance->HasRaytracing();
+}
+
+VkPhysicalDeviceRayTracingPipelinePropertiesKHR GetRayTracingPipelineProperties()
+{
+    return instance->GetRayTracingPipelineProperties();
 }
 }

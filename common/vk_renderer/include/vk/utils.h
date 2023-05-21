@@ -149,4 +149,9 @@ void TransitionImageLayout(VkImage image, VkImageLayout oldLayout, VkImageLayout
 void CopyBuffer(const Buffer& srcBuffer, const Buffer& dstBuffer, std::size_t bufferSize);
 void CopyImageFromBuffer(const Buffer& srcBuffer, const Image& image, int width, int height, int layerCount);
 
+constexpr uint32_t alignedSize(uint32_t value, uint32_t alignment)
+{
+    return (value + alignment - 1) & ~(alignment - 1);
+}
+
 }

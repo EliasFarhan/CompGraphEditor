@@ -217,6 +217,15 @@ void UniformManager::Create()
                     }
                     continue; //don't put sampler in uniform map
                 }
+                else if(uniform.type() == core::pb::Attribute_Type_IMAGE2D)
+                {
+                    continue;
+                }
+                else if(uniform.type() == core::pb::Attribute_Type_ACCELERATION_STRUCT)
+                {
+                    //TODO get the acceleration structure
+                    continue;
+                }
                 else
                 {
                     poolSize.type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
@@ -445,12 +454,53 @@ void DrawCommand::Destroy()
     uniformManager_.Destroy();
 }
 
+RaytracingCommand::RaytracingCommand(const core::pb::RaytracingCommand& command) : commandInfo_(command)
+{
+}
+
 void RaytracingCommand::Create()
 {
+    auto* scene = static_cast<vk::Scene*>(core::GetCurrentScene());
+    const auto pipelineIndex = commandInfo_.get().pipeline_index();
+    auto& pipeline = scene->GetRaytracingPipeline(pipelineIndex);
+    uniformManager_.raytracingPipelineIndex = pipelineIndex;
+    uniformManager_.Create();
+
+    const auto& rayTracingPipelineProperties = GetRayTracingPipelineProperties();
+    const auto shaderGroupCount = pipeline.GetGroupCount();
+    const std::uint32_t handleSize = rayTracingPipelineProperties.shaderGroupHandleSize;
+    const std::uint32_t handleSizeAligned = alignedSize(rayTracingPipelineProperties.shaderGroupHandleSize, rayTracingPipelineProperties.shaderGroupHandleAlignment);
+    const std::uint32_t groupCount = static_cast<std::uint32_t>(shaderGroupCount);
+    const std::uint32_t sbtSize = groupCount * handleSizeAligned;
+    shaderBindingTables_.resize(groupCount);
+
+    std::vector<uint8_t> shaderHandleStorage(sbtSize);
+    if(vkGetRayTracingShaderGroupHandlesKHR(GetDriver().device, pipeline.GetPipeline(), 0, groupCount, sbtSize, shaderHandleStorage.data()) != VK_SUCCESS)
+    {
+        LogError("Could not create RayTracing Shader Group Handles");
+        return;
+    }
+
+    constexpr VkBufferUsageFlags bufferUsageFlags = VK_BUFFER_USAGE_SHADER_BINDING_TABLE_BIT_KHR | VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT;
+    constexpr VkMemoryPropertyFlags memoryUsageFlags = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
+    for(std::uint32_t i = 0; i < groupCount; i++)
+    {
+        auto& shaderBindingTable = shaderBindingTables_[i];
+        shaderBindingTable = CreateBuffer(handleSize, bufferUsageFlags, memoryUsageFlags);
+        void* data = shaderBindingTable.Map();
+        std::memcpy(data, shaderHandleStorage.data() + handleSizeAligned*i, handleSize);
+        shaderBindingTable.Unmap();
+    }
 }
 
 void RaytracingCommand::Destroy()
 {
+    uniformManager_.Destroy();
+    for(auto& shaderBindingTable : shaderBindingTables_)
+    {
+        shaderBindingTable.Destroy();
+    }
+    shaderBindingTables_.clear();
 }
 
 void RaytracingCommand::Bind()

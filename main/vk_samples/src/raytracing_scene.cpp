@@ -17,6 +17,7 @@ core::pb::Scene RaytracingScene01()
     camStruct->set_name("CameraProperties");
     camStruct->set_size(2*sizeof(glm::mat4));
     camStruct->set_alignment(4 * alignof(float));
+
     auto* viewInverse = camStruct->add_attributes();
     viewInverse->set_type(core::pb::Attribute_Type_MAT4);
     viewInverse->set_stage(core::pb::RAY_GEN);
