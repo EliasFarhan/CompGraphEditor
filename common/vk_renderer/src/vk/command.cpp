@@ -223,7 +223,14 @@ void UniformManager::Create()
                 }
                 else if(uniform.type() == core::pb::Attribute_Type_ACCELERATION_STRUCT)
                 {
-                    //TODO get the acceleration structure
+                    poolSize.type = VK_DESCRIPTOR_TYPE_ACCELERATION_STRUCTURE_KHR;
+                    poolSize.descriptorCount = static_cast<uint32_t>(Engine::MAX_FRAMES_IN_FLIGHT);
+                    poolSizes.push_back(poolSize);
+
+                    uniformData.uniformType = UniformType::ACCELERATION_STRUCT;
+                    uniformData.binding = uniform.binding();
+
+                    uniformDatas.push_back(uniformData);
                     continue;
                 }
                 else
@@ -310,7 +317,6 @@ void UniformManager::Create()
     }
 
     //Allocate descriptor sets
-    //TODO change get correct index for raytracing pipeline
     const auto descriptorSetLayout = GetDescriptorSetLayout(pipelineIndex, raytracingPipelineIndex);
     if (descriptorSetLayout == VK_NULL_HANDLE)
     {
@@ -328,12 +334,13 @@ void UniformManager::Create()
         LogError("Failed to allocate descriptor sets!");
         return;
     }
-    auto& engine = GetEngine();
     for (size_t i = 0; i < Engine::MAX_FRAMES_IN_FLIGHT; i++)
     {
         std::vector<VkWriteDescriptorSet> descriptorWrites{};
-
+        VkWriteDescriptorSetAccelerationStructureKHR descriptorAccelerationStructureInfo{};
         std::vector<VkDescriptorBufferInfo> bufferInfos{};
+        std::vector< VkDescriptorImageInfo> imageDescriptors{};
+        imageDescriptors.reserve(uniformDatas.size());
         bufferInfos.reserve(uniformDatas.size());
         int uboIndex = 0;
         for (auto& uniformData : uniformDatas)
@@ -349,6 +356,27 @@ void UniformManager::Create()
                 descriptorWrite.descriptorCount = 1;
                 descriptorWrite.pImageInfo = &imageInfos[uniformData.index];
                 descriptorWrites.push_back(descriptorWrite);
+            }
+            else if(uniformData.uniformType == UniformType::IMAGE)
+            {
+                //TODO bind image view of storage image
+            }
+            else if(uniformData.uniformType == UniformType::ACCELERATION_STRUCT)
+            {
+                const auto& tlas = scene->GetAccelerationStructure(accelerationStructureIndex);
+                descriptorAccelerationStructureInfo.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET_ACCELERATION_STRUCTURE_KHR;
+                descriptorAccelerationStructureInfo.accelerationStructureCount = 1;
+                descriptorAccelerationStructureInfo.pAccelerationStructures = &tlas.GetHandle();
+
+                VkWriteDescriptorSet accelerationStructureWrite{};
+                accelerationStructureWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+                // The specialized acceleration structure descriptor has to be chained
+                accelerationStructureWrite.pNext = &descriptorAccelerationStructureInfo;
+                accelerationStructureWrite.dstSet = descriptorSets[i];
+                accelerationStructureWrite.dstBinding = uniformData.binding;
+                accelerationStructureWrite.descriptorCount = 1;
+                accelerationStructureWrite.descriptorType = VK_DESCRIPTOR_TYPE_ACCELERATION_STRUCTURE_KHR;
+                descriptorWrites.push_back(accelerationStructureWrite);
             }
             else if (uniformData.uniformType == UniformType::UBO)
             {
@@ -464,6 +492,7 @@ void RaytracingCommand::Create()
     const auto pipelineIndex = commandInfo_.get().pipeline_index();
     auto& pipeline = scene->GetRaytracingPipeline(pipelineIndex);
     uniformManager_.raytracingPipelineIndex = pipelineIndex;
+    uniformManager_.accelerationStructureIndex = commandInfo_.get().top_level_acceleration_structure_index();
     uniformManager_.Create();
 
     const auto& rayTracingPipelineProperties = GetRayTracingPipelineProperties();

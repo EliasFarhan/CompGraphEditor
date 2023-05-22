@@ -264,6 +264,11 @@ Pipeline& Scene::GetRaytracingPipeline(int raytracingPipelineIndex)
     return raytracingPipelines_[raytracingPipelineIndex];
 }
 
+TopLevelAccelerationStructure& Scene::GetAccelerationStructure(int accelerationStructureIndex)
+{
+    return topLevelAccelerationStructures_[accelerationStructureIndex];
+}
+
 Scene::ImportStatus Scene::LoadShaders(const PbRepeatField<core::pb::Shader>& shadersPb)
 {
     LogDebug("Load Shaders");

@@ -22,6 +22,8 @@ public:
         PUSH_CONSTANT,
         UBO,
         SAMPLER,
+        ACCELERATION_STRUCT,
+        IMAGE,
         NONE
     };
     struct UniformInternalData
@@ -62,6 +64,7 @@ public:
     int materialIndex = -1;
     int pipelineIndex = -1;
     int raytracingPipelineIndex = -1;
+    int accelerationStructureIndex = -1;
 
 private:
     std::unordered_map<std::string, UniformInternalData> uniformMap_;

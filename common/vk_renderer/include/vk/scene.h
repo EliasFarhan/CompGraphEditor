@@ -43,6 +43,7 @@ public:
 
     void OnEvent(SDL_Event& event) override;
     Pipeline& GetRaytracingPipeline(int raytracingPipelineIndex);
+    TopLevelAccelerationStructure& GetAccelerationStructure(int accelerationStructureIndex);
 
 protected:
     ImportStatus LoadShaders(const PbRepeatField<core::pb::Shader>& shadersPb) override;

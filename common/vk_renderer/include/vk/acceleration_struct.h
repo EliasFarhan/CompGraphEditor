@@ -26,6 +26,7 @@ class TopLevelAccelerationStructure
 public:
     bool Create(const core::pb::TopLevelAccelerationStructure& accelerationStructure);
     void Destroy() const;
+    const VkAccelerationStructureKHR& GetHandle() const { return tlas_.handle; }
 private:
     std::vector<BottomAccelerationStructure> bottomAccelerationStructures_;
     AccelerationStructure tlas_;
