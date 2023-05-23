@@ -618,7 +618,7 @@ bool Pipeline::LoadRasterizePipeline(const core::pb::Pipeline& pipelinePb,
     pipelineInfo.stageCount = shaderStages.size();
     pipelineInfo.pStages = shaderStages.data();
     pipelineInfo.pVertexInputState = &vertexInputInfo;
-    pipelineInfo.pInputAssemblyState = nullptr; // &inputAssembly;
+    pipelineInfo.pInputAssemblyState = &inputAssembly;
     pipelineInfo.pViewportState = &viewportState;
     pipelineInfo.pRasterizationState = &rasterizer;
     pipelineInfo.pMultisampleState = &multisampling;

@@ -19,7 +19,7 @@ namespace core
     {
         if (!PHYSFS_init(argv0_.c_str()))
         {
-            LogError(fmt::format("PhysFS init failed {}", PHYSFS_getLastErrorCode()));
+            LogError(fmt::format("PhysFS init failed {}", static_cast<int>(PHYSFS_getLastErrorCode())));
         }
     }
 
@@ -27,7 +27,7 @@ namespace core
     {
         if (!PHYSFS_deinit())
         {
-            LogError(fmt::format("PhysFS deinit failed: {}", PHYSFS_getLastErrorCode()));
+            LogError(fmt::format("PhysFS deinit failed: {}", static_cast<int>(PHYSFS_getLastErrorCode())));
         }
     }
 
@@ -37,7 +37,7 @@ namespace core
         {
             LogError(fmt::format(
                 "PhysFS could not mount: {} at mount point: {}\n Log: {}",
-                dir, mountPoint, PHYSFS_getLastErrorCode()));
+                dir, mountPoint, static_cast<int>(PHYSFS_getLastErrorCode())));
         }
     }
 
@@ -59,7 +59,7 @@ namespace core
         if (PHYSFS_readBytes(file, newFile.data, newFile.length) == -1)
         {
             LogError(fmt::format("Physfs could not read file: {}\nLog: {}",
-                genericPath, PHYSFS_getLastErrorCode()));
+                genericPath, static_cast<int>(PHYSFS_getLastErrorCode())));
             PHYSFS_close(file);
             return {};
         }
@@ -83,7 +83,7 @@ namespace core
         {
             LogError(fmt::format(
                 "PhysFS could not get stat of file: {}\nLog: {}",
-                genericPath, PHYSFS_getLastErrorCode()));
+                genericPath, static_cast<int>(PHYSFS_getLastErrorCode())));
             return false;
         }
         return stat.filetype == PHYSFS_FILETYPE_REGULAR;
@@ -96,7 +96,7 @@ namespace core
         {
             LogError(fmt::format(
                 "PhysFS could not get stat of file: {}\nLog: {}",
-                path, PHYSFS_getLastErrorCode()));
+                path, static_cast<int>(PHYSFS_getLastErrorCode())));
             return false;
         }
         return stat.filetype == PHYSFS_FILETYPE_DIRECTORY;

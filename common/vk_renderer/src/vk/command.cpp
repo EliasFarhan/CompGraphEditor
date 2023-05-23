@@ -20,8 +20,6 @@ void UniformManager::Create()
 {
     auto* scene = static_cast<Scene*>(core::GetCurrentScene());
     const auto& sceneInfo = scene->GetInfo();
-    std::optional<std::reference_wrapper<const core::pb::Material>> materialInfo = 
-        materialIndex != -1 ? std::optional{ sceneInfo.materials(materialIndex) } : std::nullopt;
     std::optional<std::reference_wrapper<const core::pb::Pipeline>> pipelineInfo = 
         pipelineIndex != -1 ? std::optional{ sceneInfo.pipelines(pipelineIndex) } : std::nullopt;
     std::optional<std::reference_wrapper<const core::pb::RaytracingPipeline>> raytracingPipelineInfo = 
@@ -170,10 +168,14 @@ void UniformManager::Create()
                     int textureIndex = -1;
                     std::string_view framebufferName;
                     std::string_view attachmentName;
-                    if (materialInfo)
+                    if (materialIndex != -1)
                     {
-                        for (auto& materialTexture : materialInfo.value().get().textures())
+
+                        const auto& materialPb = sceneInfo.materials(materialIndex);
+                        const auto textureCount = materialPb.textures_size();
+                        for (int i = 0; i < textureCount; i++)
                         {
+                            const auto& materialTexture = materialPb.textures(i);
                             LogDebug(fmt::format("Material Sampler Name: {} Shader Uniform Name: {}", materialTexture.sampler_name(), uniform.name()));
                             if (materialTexture.sampler_name() == uniform.name())
                             {
@@ -658,7 +660,6 @@ void DrawCommand::Bind()
         vkCmdBindVertexBuffers(renderer.commandBuffers[renderer.imageIndex], 0, 1, &vertexBuffer.vertexBuffer.buffer, offsets);
         vkCmdBindIndexBuffer(renderer.commandBuffers[renderer.imageIndex], vertexBuffer.indexBuffer.buffer, 0, VK_INDEX_TYPE_UINT32);
     }
-    //TODO bind textures samplers
 
     if (drawCommandInfo_.get().has_model_transform())
     {

@@ -88,7 +88,7 @@ bool CheckError(VkResult result)
     case VK_RESULT_MAX_ENUM: break;
     default:;
     }
-    LogError(fmt::format("[Vulkan] Error Code: {}", result));
+    LogError(fmt::format("[Vulkan] Error Code: {}", static_cast<int>(result)));
     return true;
 }
 }
