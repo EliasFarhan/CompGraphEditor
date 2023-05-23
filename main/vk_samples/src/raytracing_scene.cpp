@@ -95,6 +95,11 @@ core::pb::Scene RaytracingScene01()
     raytracingCommand->set_top_level_acceleration_structure_index(0);
 
 
+    auto* pySystem = scene.add_systems();
+    pySystem->set_class_("Raytracing01");
+    pySystem->set_module("data.scripts.rt_01");
+    pySystem->set_path("data/scripts/rt_01.py");
+
     return scene;
 }
 

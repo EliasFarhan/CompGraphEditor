@@ -782,13 +782,13 @@ bool Pipeline::LoadRaytracingPipeline(const core::pb::RaytracingPipeline& raytra
         missHitShader,
         closestHitShader
     };
+    if (anyHitShader)
+    {
+        shaders.emplace_back(anyHitShader.value());
+    }
     if(intersectionShadder)
     {
         shaders.emplace_back(intersectionShadder.value());
-    }
-    if(anyHitShader)
-    {
-        shaders.emplace_back(anyHitShader.value());
     }
 
     std::vector<VkPipelineShaderStageCreateInfo> shaderStages;

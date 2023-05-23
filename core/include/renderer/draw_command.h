@@ -56,8 +56,27 @@ private:
     glm::vec3 scale_{ 1.0f };
     glm::vec3 rotation_{ 0.0f };
 };
-    
-class DrawCommand
+
+class Command
+{
+public:
+    //Uniform functions
+    virtual void SetFloat(std::string_view uniformName, float f) = 0;
+
+    virtual void SetInt(std::string_view uniformName, int i) = 0;
+
+    virtual void SetVec2(std::string_view uniformName, glm::vec2 v) = 0;
+
+    virtual void SetVec3(std::string_view uniformName, glm::vec3 v) = 0;
+
+    virtual void SetVec4(std::string_view uniformName, glm::vec4 v) = 0;
+    virtual void SetMat3(std::string_view uniformName, const glm::mat3& mat) = 0;
+    virtual void SetMat4(std::string_view uniformName, const glm::mat4& mat) = 0;
+
+    virtual void SetAngle(std::string_view uniformName, Radian angle) = 0;
+};
+
+class DrawCommand : public Command
 {
 public:
     DrawCommand(const pb::DrawCommand& drawCommandInfo, int subpassIndex): drawCommandInfo_(drawCommandInfo), subPassIndex_(subpassIndex)
@@ -84,20 +103,7 @@ public:
     }
     virtual ~DrawCommand() = default;
     
-    //Uniform functions
-    virtual void SetFloat(std::string_view uniformName, float f) = 0;
-
-    virtual void SetInt(std::string_view uniformName, int i)  = 0;
-
-    virtual void SetVec2(std::string_view uniformName, glm::vec2 v) = 0;
-
-    virtual void SetVec3(std::string_view uniformName, glm::vec3 v) = 0;
-
-    virtual void SetVec4(std::string_view uniformName, glm::vec4 v) = 0;
-    virtual void SetMat3(std::string_view uniformName, const glm::mat3& mat) = 0;
-    virtual void SetMat4(std::string_view uniformName, const glm::mat4& mat) = 0;
-
-    virtual void SetAngle(std::string_view uniformName, Radian angle) = 0;
+    
 
     [[nodiscard]] std::string_view GetName() const{ return drawCommandInfo_.get().name();}
     int GetMaterialIndex() const { return drawCommandInfo_.get().material_index(); }

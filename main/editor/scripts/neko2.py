@@ -350,6 +350,33 @@ class Material:
         return self.name
 
 
+class Command:
+    def set_int(self, uniform_name: str, v: int):
+        pass
+
+    def set_float(self, uniform_name: str, v: float):
+        """Set a named uniform float value"""
+        pass
+
+    def set_vec2(self, uniform_name: str, v: Vec2):
+        """Set a named uniform Vec2 value"""
+        pass
+
+    def set_vec3(self, uniform_name: str, v: Vec3):
+        """Set a named uniform Vec3 value"""
+        pass
+
+    def set_vec4(self, uniform_name: str, v: Vec4):
+        """Set a named uniform Vec4 value"""
+        pass
+
+    def set_mat3(self, uniform_name: str, m: Mat3):
+        pass
+
+    def set_mat4(self, uniform_name: str, m: Mat4):
+        """Set a named uniform Mat4 value"""
+        pass
+
 class ModelTransformMatrix:
     """ModelTransformMatrix is an abstraction of a model transform matrix with a translate, scale and euler rotation.
     It is used by a DrawCommand to place the given mesh in the world space."""
@@ -358,7 +385,6 @@ class ModelTransformMatrix:
         self.scale = Vec3()
         self.rotation = Vec3()
         self.transform = Mat4()
-
 
 class DrawCommand:
     """DrawCommand is an abstraction representing a draw call.

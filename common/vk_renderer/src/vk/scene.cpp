@@ -63,6 +63,13 @@ void Scene::UnloadScene()
         tlas.Destroy();
     }
     topLevelAccelerationStructures_.clear();
+    if (raytracingStorageImage_.imageView != VK_NULL_HANDLE)
+    {
+        vmaDestroyImage(GetAllocator(), raytracingStorageImage_.image.image, raytracingStorageImage_.image.allocation);
+        vkDestroyImageView(driver.device, raytracingStorageImage_.imageView, nullptr);
+        raytracingStorageImage_ = {};
+    }
+    
 }
 
 void Scene::Update(float dt)
@@ -70,89 +77,162 @@ void Scene::Update(float dt)
     core::Scene::Update(dt);
     auto& renderer = GetRenderer();
     auto& swapchain = GetSwapchain();
-    VkRenderPassBeginInfo renderPassInfo{};
-    renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
-    renderPassInfo.renderPass = renderPass_.renderPass;
-    renderPassInfo.framebuffer = renderPass_.framebuffers[renderer.imageIndex];
-    renderPassInfo.renderArea.offset = { 0, 0 };
-    renderPassInfo.renderArea.extent = swapchain.extent;
 
-    //Fill with subpass clear values
-    std::vector<VkClearValue> clearValues{};
-    for(auto& subpass : scene_.render_pass().sub_passes())
+    if (renderPass_.renderPass != VK_NULL_HANDLE)
     {
-        if (subpass.framebuffer_index() == -1 || subpass.framebuffer_index() >= scene_.framebuffers_size())
+        VkRenderPassBeginInfo renderPassInfo{};
+        renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
+        renderPassInfo.renderPass = renderPass_.renderPass;
+        renderPassInfo.framebuffer = renderPass_.framebuffers[renderer.imageIndex];
+        renderPassInfo.renderArea.offset = { 0, 0 };
+        renderPassInfo.renderArea.extent = swapchain.extent;
+
+        //Fill with subpass clear values
+        std::vector<VkClearValue> clearValues{};
+        for (auto& subpass : scene_.render_pass().sub_passes())
         {
-            VkClearValue clearValue;
-            clearValue.color = { 0.0f, 0.0f, 0.0f, 1.0f };
-            clearValues.push_back(clearValue);
-            for(auto& command : subpass.commands())
+            if (subpass.framebuffer_index() == -1 || subpass.framebuffer_index() >= scene_.framebuffers_size())
             {
-                if(scene_.pipelines(scene_.materials(command.material_index()).pipeline_index()).depth_test_enable())
+                VkClearValue clearValue;
+                clearValue.color = { 0.0f, 0.0f, 0.0f, 1.0f };
+                clearValues.push_back(clearValue);
+                for (auto& command : subpass.commands())
                 {
+                    if (scene_.pipelines(scene_.materials(command.material_index()).pipeline_index()).depth_test_enable())
+                    {
+                        clearValue.depthStencil = { 1.0f, 0 };
+                        clearValues.push_back(clearValue);
+                    }
+                }
+            }
+            else
+            {
+                auto& framebuffer = scene_.framebuffers(subpass.framebuffer_index());
+                for (auto& target : framebuffer.color_attachments())
+                {
+                    VkClearValue clearValue;
+                    clearValue.color = { 0.0f, 0.0f, 0.0f, 1.0f };
+                    clearValues.push_back(clearValue);
+                }
+                if (framebuffer.has_depth_stencil_attachment())
+                {
+                    VkClearValue clearValue;
                     clearValue.depthStencil = { 1.0f, 0 };
                     clearValues.push_back(clearValue);
                 }
             }
         }
-        else
-        {
-            auto& framebuffer = scene_.framebuffers(subpass.framebuffer_index());
-            for (auto& target : framebuffer.color_attachments())
-            {
-                VkClearValue clearValue;
-                clearValue.color = { 0.0f, 0.0f, 0.0f, 1.0f };
-                clearValues.push_back(clearValue);
-            }
-            if (framebuffer.has_depth_stencil_attachment())
-            {
-                VkClearValue clearValue;
-                clearValue.depthStencil = { 1.0f, 0 };
-                clearValues.push_back(clearValue);
-            }
-        }
-    }
-    renderPassInfo.clearValueCount = clearValues.size();
-    renderPassInfo.pClearValues = clearValues.data();
+        renderPassInfo.clearValueCount = clearValues.size();
+        renderPassInfo.pClearValues = clearValues.data();
 
-    vkCmdBeginRenderPass(renderer.commandBuffers[renderer.imageIndex], &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
+        vkCmdBeginRenderPass(renderer.commandBuffers[renderer.imageIndex], &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
 
-    //Automatic draw
-    for(int i = 0; i < scene_.render_pass().sub_passes_size(); i++)
-    {
-        const auto& subpass = scene_.render_pass().sub_passes(i);
-        
-        const auto commandSize = subpass.commands_size();
-        for (int j = 0; j < commandSize; j++)
+        //Automatic draw
+        for (int i = 0; i < scene_.render_pass().sub_passes_size(); i++)
         {
-            const auto& command = subpass.commands(j);
-            for (auto* script : scripts_)
+            const auto& subpass = scene_.render_pass().sub_passes(i);
+
+            const auto commandSize = subpass.commands_size();
+            for (int j = 0; j < commandSize; j++)
             {
-                auto& drawCommand = static_cast<DrawCommand&>(GetDrawCommand(i, j));
-                drawCommand.PreDrawBind();
-                if (script != nullptr)
+                const auto& command = subpass.commands(j);
+                for (auto* script : scripts_)
                 {
-                    script->Draw(&drawCommand);
+                    auto& drawCommand = static_cast<DrawCommand&>(GetDrawCommand(i, j));
+                    drawCommand.PreDrawBind();
+                    if (script != nullptr)
+                    {
+                        script->Draw(&drawCommand);
+                    }
                 }
             }
+
+            for (int j = 0; j < subpass.commands_size(); j++)
+            {
+                const auto& command = subpass.commands(j);
+                if (!command.automatic_draw())
+                    continue;
+                auto& drawCommand = static_cast<DrawCommand&>(GetDrawCommand(i, j));
+                drawCommand.PreDrawBind();
+                Draw(drawCommand);
+            }
+            if (i < scene_.render_pass().sub_passes_size() - 1)
+            {
+                vkCmdNextSubpass(renderer.commandBuffers[renderer.imageIndex], VK_SUBPASS_CONTENTS_INLINE);
+            }
         }
 
-        for (int j = 0; j < subpass.commands_size(); j++)
+        vkCmdEndRenderPass(renderer.commandBuffers[renderer.imageIndex]);
+    }
+    //Raytracing or compute pass
+    int raytracingCommand = 0;
+    for (int i = 0; i < scene_.render_pass().sub_passes_size(); i++)
+    {
+        const auto& subpass = scene_.render_pass().sub_passes(i);
+
+        const auto commandSize = subpass.raytracing_commands_size();
+        for(int raytracingCommandIndex = 0; raytracingCommandIndex < commandSize; raytracingCommandIndex++)
         {
-            const auto& command = subpass.commands(j);
-            if (!command.automatic_draw())
-                continue;
-            auto& drawCommand = static_cast<DrawCommand&>(GetDrawCommand(i, j));
-            drawCommand.PreDrawBind();
-            Draw(drawCommand);
-        }
-        if(i < scene_.render_pass().sub_passes_size()-1)
-        {
-            vkCmdNextSubpass(renderer.commandBuffers[renderer.imageIndex], VK_SUBPASS_CONTENTS_INLINE);
+            auto& command = raytracingCommands_[raytracingCommandIndex];
+            command.Bind();
+            for(auto* script: scripts_)
+            {
+                if(script == nullptr)
+                    continue;
+                script->Dispatch(&command);
+            }
+            command.Dispatch();
+            raytracingCommand++;
         }
     }
+    if (raytracingCommand > 0)
+    {
+        const auto windowSize = core::GetWindowSize();
+        auto& commandBuffer = renderer.commandBuffers[renderer.imageIndex];
+        
+        /*
+                    Copy ray tracing output to swap chain image
+                */
 
-    vkCmdEndRenderPass(renderer.commandBuffers[renderer.imageIndex]);
+                // Prepare current swap chain image as transfer destination
+        TransitionImageLayout(swapchain.images[renderer.imageIndex],
+            VK_IMAGE_LAYOUT_UNDEFINED,
+            VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+            1,1,
+            commandBuffer);
+
+        // Prepare ray tracing output image as transfer source
+        TransitionImageLayout(
+            raytracingStorageImage_.image.image,
+            VK_IMAGE_LAYOUT_GENERAL,
+            VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
+            1,1,
+            commandBuffer);
+
+        VkImageCopy copyRegion{};
+        copyRegion.srcSubresource = { VK_IMAGE_ASPECT_COLOR_BIT, 0, 0, 1 };
+        copyRegion.srcOffset = { 0, 0, 0 };
+        copyRegion.dstSubresource = { VK_IMAGE_ASPECT_COLOR_BIT, 0, 0, 1 };
+        copyRegion.dstOffset = { 0, 0, 0 };
+        copyRegion.extent = { windowSize.x, windowSize.y, 1 };
+        vkCmdCopyImage(commandBuffer, raytracingStorageImage_.image.image, 
+            VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, swapchain.images[renderer.imageIndex],
+            VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &copyRegion);
+
+        // Transition swap chain image back for presentation
+        TransitionImageLayout(
+            swapchain.images[renderer.imageIndex],
+            VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+            VK_IMAGE_LAYOUT_PRESENT_SRC_KHR,
+            1,1,commandBuffer);
+
+        // Transition ray tracing output image back to general layout
+        TransitionImageLayout(
+            raytracingStorageImage_.image.image,
+            VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
+            VK_IMAGE_LAYOUT_GENERAL,
+            1,1,commandBuffer);
+    }
 }
 
 void Scene::Draw(core::DrawCommand& drawCommand)
@@ -477,6 +557,7 @@ Scene::ImportStatus Scene::LoadRenderPass(const core::pb::RenderPass& renderPass
         VkAttachmentReference depthAttachmentRef;
         bool isBackBuffer = false;
         bool hasDepth = false;
+        bool isRaytracing = false;
     };
     struct RenderTargetData
     {
@@ -487,7 +568,9 @@ Scene::ImportStatus Scene::LoadRenderPass(const core::pb::RenderPass& renderPass
     std::vector<VkSubpassDescription> subpasses(renderPassPb.sub_passes_size());
     std::vector<SubpassData> subpassDatas(renderPassPb.sub_passes_size());
     std::vector<RenderTargetData> renderTargetDatas;
-
+    int raytracingPass = 0;
+    int rasterizePass = 0;
+    int computePass = 0;
     for (int i = 0; i < renderPassPb.sub_passes_size(); i++)
     {
         const auto& subpassPb = renderPassPb.sub_passes(i);
@@ -644,6 +727,21 @@ Scene::ImportStatus Scene::LoadRenderPass(const core::pb::RenderPass& renderPass
                 }
             }
         }
+
+        if (subpassPb.commands_size() > 0)
+        {
+            rasterizePass++;
+        }
+
+        for(auto& command : subpassPb.raytracing_commands())
+        {
+            subpassDatas[i].isRaytracing = true;
+            //TODO link other framebuffer attachment
+        }
+        if(subpassDatas[i].isRaytracing)
+        {
+            raytracingPass++;
+        }
         subpassDatas[i].inputReferences.reserve(inputAttachmentIndices.size());
         for(auto& inputAtt : inputAttachmentIndices)
         {
@@ -652,6 +750,24 @@ Scene::ImportStatus Scene::LoadRenderPass(const core::pb::RenderPass& renderPass
         subpasses[i].inputAttachmentCount = subpassDatas[i].inputReferences.size();
         subpasses[i].pInputAttachments = subpassDatas[i].inputReferences.data();
 
+    }
+    if(raytracingPass > 0 && rasterizePass == 0)
+    {
+        //Pure raytracing scene
+        LogDebug("Create Raytracing Storage Image for pure raytracing");
+        auto& swapchain = GetSwapchain();
+        const auto windowSize = core::GetWindowSize();
+        raytracingStorageImage_.image = CreateImage(windowSize.x,
+            windowSize.y,
+            swapchain.imageFormat,
+            1,
+            VK_IMAGE_TILING_OPTIMAL,
+            VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_STORAGE_BIT,
+            VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
+            1);
+        TransitionImageLayout(raytracingStorageImage_.image.image, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_GENERAL, 1, 1);
+        raytracingStorageImage_.imageView = CreateImageView(driver.device, raytracingStorageImage_.image.image, swapchain.imageFormat, VK_IMAGE_ASPECT_COLOR_BIT);
+        return ImportStatus::SUCCESS;
     }
     std::vector<VkSubpassDependency> dependencies;
     {
@@ -827,6 +943,20 @@ VkCommandBuffer GetCurrentCommandBuffer()
 {
     auto& renderer = GetRenderer();
     return renderer.commandBuffers[renderer.imageIndex];
+}
+
+VkPipelineLayout GetPipelineLayout(int pipelineIndex, int raytracingPipelineIndex)
+{
+    auto* scene = static_cast<Scene*>(core::GetCurrentScene());
+    if (pipelineIndex == -1 && raytracingPipelineIndex == -1)
+    {
+        return VK_NULL_HANDLE;
+    }
+    else if (pipelineIndex != -1)
+    {
+        return scene->GetPipeline(pipelineIndex).GetLayout();
+    }
+    return scene->GetRaytracingPipeline(raytracingPipelineIndex).GetLayout();
 }
 
 VkDescriptorSetLayout GetDescriptorSetLayout(int pipelineIndex, int raytracingPipelineIndex)

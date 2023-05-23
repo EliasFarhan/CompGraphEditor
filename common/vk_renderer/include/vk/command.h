@@ -107,7 +107,7 @@ private:
     UniformManager uniformManager_{};
 };
 
-class RaytracingCommand
+class RaytracingCommand : public core::Command
 {
 public:
     RaytracingCommand(const core::pb::RaytracingCommand& command);
@@ -120,9 +120,43 @@ public:
     void Destroy();
     void Bind();
     void Dispatch();
+    void SetFloat(std::string_view uniformName, float f) override
+    {
+        SetUniform(uniformName, f);
+    }
+    void SetInt(std::string_view uniformName, int i) override
+    {
+        SetUniform(uniformName, i);
+    }
+    void SetVec2(std::string_view uniformName, glm::vec2 v) override
+    {
+        SetUniform(uniformName, v);
+    }
+    void SetVec3(std::string_view uniformName, glm::vec3 v) override
+    {
+        SetUniform(uniformName, v);
+    }
+    void SetVec4(std::string_view uniformName, glm::vec4 v) override
+    {
+        SetUniform(uniformName, v);
+    }
+    void SetMat3(std::string_view uniformName, const glm::mat3& mat) override
+    {
+        SetUniform<glm::mat3>(uniformName, mat);
+    }
+    void SetMat4(std::string_view uniformName, const glm::mat4& mat) override
+    {
+        SetUniform<glm::mat4>(uniformName, mat);
+    }
+    void SetAngle(std::string_view uniformName, core::Radian angle) override
+    {
+        SetUniform(uniformName, angle);
+    }
+
 private:
     UniformManager uniformManager_{};
     std::vector<Buffer> shaderBindingTables_;
+    std::array<VkStridedDeviceAddressRegionKHR, 5> shaderBindingStridedAddresses_{};
     std::reference_wrapper<const core::pb::RaytracingCommand> commandInfo_;
 };
 } // namespace vk

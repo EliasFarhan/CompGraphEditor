@@ -29,6 +29,11 @@ struct RenderPass
 class Scene : public core::Scene
 {
 public:
+    struct RaytracingStorageImage
+    {
+        Image image{};
+        VkImageView imageView = VK_NULL_HANDLE;
+    };
     void UnloadScene() override;
     void Update(float dt) override;
     void Draw(core::DrawCommand& drawCommand) override;
@@ -44,6 +49,7 @@ public:
     void OnEvent(SDL_Event& event) override;
     Pipeline& GetRaytracingPipeline(int raytracingPipelineIndex);
     TopLevelAccelerationStructure& GetAccelerationStructure(int accelerationStructureIndex);
+    const RaytracingStorageImage& GetStorageImage() const { return raytracingStorageImage_; }
 
 protected:
     ImportStatus LoadShaders(const PbRepeatField<core::pb::Shader>& shadersPb) override;
@@ -59,6 +65,7 @@ private:
     void ResizeWindow();
     std::vector<Pipeline> pipelines_;
     std::vector<Framebuffer> framebuffers_;
+
     std::vector<core::Mesh> meshes_;
     std::vector<VertexBuffer> vertexBuffers_;
     std::vector<Shader> shaders_;
@@ -69,10 +76,12 @@ private:
     std::vector<TopLevelAccelerationStructure> topLevelAccelerationStructures_;
     RenderPass renderPass_;
     std::vector<core::ModelIndex> modelIndices_;
+    RaytracingStorageImage raytracingStorageImage_;
 };
 
 VkRenderPass GetCurrentRenderPass();
 VkCommandBuffer GetCurrentCommandBuffer();
 
+VkPipelineLayout GetPipelineLayout(int pipelineIndex, int raytracingPipelineIndex = -1);
 VkDescriptorSetLayout GetDescriptorSetLayout(int pipelineIndex, int raytracingPipelineIndex = -1);
 }

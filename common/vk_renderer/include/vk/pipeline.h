@@ -46,6 +46,7 @@ public:
     [[nodiscard]] const auto& GetPushConstantDataTable() const {return pushConstantDataTable_;}
     std::size_t GetGroupCount() const { return shaderGroups_.size(); }
     VkPipeline GetPipeline() const { return pipeline_; }
+    VkPipelineBindPoint GetBindPoint() const { return pipelineBindPoint_; }
 
 private:
     VkPipeline pipeline_{};

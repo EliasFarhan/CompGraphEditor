@@ -21,7 +21,6 @@ VertexBuffer CreateVertexBufferFromMesh(const core::Mesh& mesh)
         VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
     if(HasRaytracing())
     {
-
         vertexFlag |= VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT |
             VK_BUFFER_USAGE_ACCELERATION_STRUCTURE_BUILD_INPUT_READ_ONLY_BIT_KHR;
     }

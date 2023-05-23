@@ -219,6 +219,18 @@ void UniformManager::Create()
                 }
                 else if(uniform.type() == core::pb::Attribute_Type_IMAGE2D)
                 {
+
+                    uniformData.uniformType = UniformType::IMAGE;
+                    uniformData.binding = uniform.binding();
+                    uniformData.index = imageInfos.size();
+                    uniformDatas.push_back(uniformData);
+
+                    VkDescriptorImageInfo storageImageDescriptor{};
+                    storageImageDescriptor.imageView = scene->GetStorageImage().imageView;
+                    storageImageDescriptor.imageLayout = VK_IMAGE_LAYOUT_GENERAL;
+
+                    imageInfos.push_back(storageImageDescriptor);
+
                     continue;
                 }
                 else if(uniform.type() == core::pb::Attribute_Type_ACCELERATION_STRUCT)
@@ -359,7 +371,15 @@ void UniformManager::Create()
             }
             else if(uniformData.uniformType == UniformType::IMAGE)
             {
-                //TODO bind image view of storage image
+                VkWriteDescriptorSet descriptorWrite{};
+                descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+                descriptorWrite.dstSet = descriptorSets[i];
+                descriptorWrite.dstBinding = uniformData.binding;
+                descriptorWrite.dstArrayElement = 0;
+                descriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;
+                descriptorWrite.descriptorCount = 1;
+                descriptorWrite.pImageInfo = &imageInfos[uniformData.index];
+                descriptorWrites.push_back(descriptorWrite);
             }
             else if(uniformData.uniformType == UniformType::ACCELERATION_STRUCT)
             {
@@ -424,7 +444,8 @@ void UniformManager::Bind()
 {
     auto* scene = static_cast<Scene*>(core::GetCurrentScene());
     const auto& sceneInfo = scene->GetInfo();
-    const auto& pipeline = static_cast<const Pipeline&>(scene->GetPipeline(pipelineIndex));
+    const auto& pipeline = pipelineIndex != -1 ? static_cast<const Pipeline&>(scene->GetPipeline(pipelineIndex)) : scene->GetRaytracingPipeline(raytracingPipelineIndex);
+    const auto& pipelineLayout = pipeline.GetLayout();
     const auto& pushConstantDataTable = pipeline.GetPushConstantDataTable();
 
 
@@ -435,7 +456,7 @@ void UniformManager::Bind()
             const auto shaderType = static_cast<core::pb::ShaderType>(i);
             const auto shaderStage = GetShaderStage(shaderType);
             vkCmdPushConstants(GetCurrentCommandBuffer(),
-                pipeline.GetLayout(),
+                pipelineLayout,
                 shaderStage,
                 pushConstantDataTable[i].index,
                 pushConstantDataTable[i].size,
@@ -454,8 +475,8 @@ void UniformManager::Bind()
         return;
     //Bind descriptor sets
     vkCmdBindDescriptorSets(GetCurrentCommandBuffer(),
-        VK_PIPELINE_BIND_POINT_GRAPHICS,
-        pipeline.GetLayout(),
+        pipeline.GetBindPoint(),
+        pipelineLayout,
         0,
         1,
         &descriptorSets[currentFrame],
@@ -520,6 +541,24 @@ void RaytracingCommand::Create()
         std::memcpy(data, shaderHandleStorage.data() + handleSizeAligned*i, handleSize);
         shaderBindingTable.Unmap();
     }
+    
+    VkStridedDeviceAddressRegionKHR raygenShaderSbtEntry{};
+    raygenShaderSbtEntry.deviceAddress = GetBufferDeviceAddress(shaderBindingTables_[0].buffer);
+    raygenShaderSbtEntry.stride = handleSizeAligned;
+    raygenShaderSbtEntry.size = handleSizeAligned;
+    this->shaderBindingStridedAddresses_[0] = raygenShaderSbtEntry;
+
+    VkStridedDeviceAddressRegionKHR missShaderSbtEntry{};
+    missShaderSbtEntry.deviceAddress = GetBufferDeviceAddress(shaderBindingTables_[1].buffer);
+    missShaderSbtEntry.stride = handleSizeAligned;
+    missShaderSbtEntry.size = handleSizeAligned;
+    shaderBindingStridedAddresses_[1] = missShaderSbtEntry;
+
+    VkStridedDeviceAddressRegionKHR hitShaderSbtEntry{};
+    hitShaderSbtEntry.deviceAddress = GetBufferDeviceAddress(shaderBindingTables_[2].buffer);
+    hitShaderSbtEntry.stride = handleSizeAligned;
+    hitShaderSbtEntry.size = handleSizeAligned;
+    shaderBindingStridedAddresses_[2] = hitShaderSbtEntry;
 }
 
 void RaytracingCommand::Destroy()
@@ -534,10 +573,30 @@ void RaytracingCommand::Destroy()
 
 void RaytracingCommand::Bind()
 {
+    auto* scene = static_cast<Scene*>(core::GetCurrentScene());
+    const auto& sceneInfo = scene->GetInfo();
+    auto& pipeline = scene->GetRaytracingPipeline(commandInfo_.get().pipeline_index());
+
+    pipeline.Bind();
+    uniformManager_.Bind();
 }
 
 void RaytracingCommand::Dispatch()
 {
+    auto* scene = static_cast<Scene*>(core::GetCurrentScene());
+    const auto& sceneInfo = scene->GetInfo();
+    auto& renderer = GetRenderer();
+    auto& pipeline = scene->GetRaytracingPipeline(commandInfo_.get().pipeline_index());
+    const auto windowSize = core::GetWindowSize();
+    vkCmdTraceRaysKHR(
+        renderer.commandBuffers[renderer.imageIndex],
+        &shaderBindingStridedAddresses_[0],
+        &shaderBindingStridedAddresses_[1],
+        &shaderBindingStridedAddresses_[2],
+        &shaderBindingStridedAddresses_[3],
+        windowSize.x,
+        windowSize.y,
+        sceneInfo.raytracing_pipelines(commandInfo_.get().pipeline_index()).max_recursion_depth());
 }
 
 void DrawCommand::SetFloat(std::string_view uniformName, float f)
@@ -620,7 +679,7 @@ void DrawCommand::Bind()
             const auto& translate = modelTransform.position();
             modelMatrix = glm::translate(modelMatrix, glm::vec3(translate.x(), translate.y(), translate.z()));
         }
-        SetMat4("model", modelMatrix);
+        //SetMat4("model", modelMatrix);
     }
 }
 

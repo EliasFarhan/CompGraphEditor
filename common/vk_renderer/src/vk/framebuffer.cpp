@@ -32,7 +32,8 @@ void Framebuffer::Load(const core::pb::FrameBuffer& framebufferPb)
             format,
             1,
             VK_IMAGE_TILING_OPTIMAL,
-            VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | (targetInfo.rbo() ? 0 : VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT),
+            VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | 
+            (targetInfo.rbo() ? 0 : VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT),
             VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
             1);
         renderTarget.imageView = CreateImageView(driver.device,
