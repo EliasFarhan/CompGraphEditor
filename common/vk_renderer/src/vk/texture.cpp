@@ -14,6 +14,11 @@
 
 #include "vk/engine.h"
 
+
+#ifdef TRACY_ENABLE
+#include <tracy/Tracy.hpp>
+#endif
+
 namespace vk
 {
 Texture::~Texture()

@@ -20,13 +20,8 @@ namespace core
 class ModelTransformMatrix
 {
 public:
-    glm::mat4 GetModelTransformMatrix() const
-    {
-        glm::mat4 transform = glm::orientate4(rotation_);
-        transform = glm::scale(transform, scale_);
-        transform = glm::translate(transform, translate_);
-        return transform;
-    }
+    glm::mat4 GetModelTransformMatrix() const;
+
     constexpr glm::vec3 GetTranslate() const
     {
         return translate_;
@@ -116,7 +111,7 @@ public:
      */
     virtual void PreDrawBind() = 0;
 
-    ModelTransformMatrix modelTransformMatrix;
+    ModelTransformMatrix modelTransformMatrix{};
 
 
 protected:

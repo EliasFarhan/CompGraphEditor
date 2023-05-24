@@ -13,4 +13,5 @@ def get_materials_path(obj_path: str):
                 materials.append(mtl_path)
 
     material_json = {"materials":materials}
+    print(material_json)
     return json.dumps(material_json)

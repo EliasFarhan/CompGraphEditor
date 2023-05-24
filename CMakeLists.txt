@@ -27,6 +27,8 @@ add_subdirectory(external/pybind11)
 option(ENABLE_PROFILER "Enable Tracy Profiling" OFF)
 if(ENABLE_PROFILER)
     add_subdirectory(external/tracy)
+    
+    set_target_properties (TracyClient PROPERTIES FOLDER External)
 endif()
 
 add_subdirectory(core/)

@@ -1,6 +1,10 @@
 #include "renderer/model.h"
-#include <assimp/postprocess.h>
 
+#include "engine/filesystem.h"
+#include "utils/log.h"
+
+#include <assimp/postprocess.h>
+#include <fmt/format.h>
 
 #ifdef TRACY_ENABLE
 #include <tracy/Tracy.hpp>
@@ -134,7 +138,7 @@ ModelIndex ModelManager::ImportModel(std::string_view modelPath)
         return INVALID_MODEL_INDEX;
     }
     const auto* scene = importer_.ReadFile(modelPath.data(),
-        aiProcess_CalcTangentSpace | aiProcess_Triangulate | aiProcess_GenNormals);
+        aiProcess_CalcTangentSpace | aiProcess_Triangulate | aiProcess_GenNormals | aiProcess_FlipUVs);
     
     if(scene == nullptr)
     {

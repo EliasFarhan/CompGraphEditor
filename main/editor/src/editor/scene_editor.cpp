@@ -680,9 +680,9 @@ bool SceneEditor::ExportAndPlayScene() const
             int meshModel = -1;
             if (!mesh->info.model_path().empty())
             {
-                for (int modelIndex = 0; modelIndex < currentScene.info.scene().model_paths_size(); modelIndex++)
+                for (int modelIndex = 0; modelIndex < exportScene.model_paths_size(); modelIndex++)
                 {
-                    auto& sceneModelPath = currentScene.info.scene().model_paths(modelIndex);
+                    auto& sceneModelPath = exportScene.model_paths(modelIndex);
                     if (fs::equivalent(sceneModelPath, mesh->info.model_path()))
                     {
                         meshModel = modelIndex;

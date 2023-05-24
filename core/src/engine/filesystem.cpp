@@ -4,6 +4,10 @@
 #include <fstream>
 #include <filesystem>
 
+#ifdef TRACY_ENABLE
+#include <tracy/Tracy.hpp>
+#endif
+
 namespace fs = std::filesystem;
 
 
@@ -22,6 +26,9 @@ BufferFile::~BufferFile()
 
 BufferFile DefaultFilesystem::LoadFile(std::string_view path) const
 {
+#ifdef TRACY_ENABLE
+    ZoneScoped;
+#endif
     // allocate memory to contain file data
     BufferFile bufferFile;
     if(!FileExists(path))

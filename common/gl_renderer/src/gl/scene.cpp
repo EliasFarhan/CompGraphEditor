@@ -300,7 +300,10 @@ Scene::ImportStatus Scene::LoadMaterials(const PbRepeatField<core::pb::Material>
                 subPass.clear_color().g(),
                 subPass.clear_color().b(),
                 subPass.clear_color().a());
-            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+            glDepthMask(GL_TRUE);
+            glStencilMask(0xFF);
+            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+            glClear(GL_STENCIL_BUFFER_BIT);
 #ifdef TRACY_ENABLE
             TracyCZoneEnd(glClearZone);
             TracyCZoneN(pySystemsDrawZone, "PySystem Draw", true);

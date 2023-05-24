@@ -85,14 +85,28 @@ bool Texture::LoadTexture(const core::pb::Texture &textureInfo)
     std::string_view path = textureInfo.path();
     if (filesystem.FileExists(path))
     {
+#ifdef TRACY_ENABLE
+        TracyCZoneN(ctx, "Load File", true);
+#endif
         const auto file = filesystem.LoadFile(path);
+#ifdef TRACY_ENABLE
+        TracyCZoneEnd(ctx);
+
+        TracyCZoneN(ctx2, "Decompress", true);
+#endif
         int channelInFile;
         const auto* imageData = stbi_load_from_memory(file.data, file.length, &width, &height, &channelInFile, 0);
+#ifdef TRACY_ENABLE
+        TracyCZoneEnd(ctx2);
+#endif
         if(imageData == nullptr)
         {
             LogError(fmt::format("Could not decode image from path: {}", path));
             return false;
         }
+#ifdef TRACY_ENABLE
+        ZoneNamedN(gpuUpload, "Upload to GPU", true);
+#endif
         glGenTextures(1, &name);
         glCheckError();
 

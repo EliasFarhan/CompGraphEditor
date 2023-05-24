@@ -276,7 +276,7 @@ void ModelEditor::ImportResource(std::string_view path)
         auto mtlList = materialsJson["materials"];
         for(auto& mtlPath: mtlList)
         {
-            LogDebug(fmt::format("Material file: {} in obj file: {}", mtlPath, path));
+            LogDebug(fmt::format("Material file: {} in obj file: {}", mtlPath.get<std::string>(), path));
             mtlFiles.push_back(mtlPath);
         }
     }
