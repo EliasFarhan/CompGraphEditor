@@ -45,6 +45,8 @@ void ExecutePlayer(std::string_view scenePkg)
     {
 #ifdef _DEBUG
         command = fmt::format(".\\Debug\\{} {}", executable.generic_string(), scenePkg);
+#else
+        command = fmt::format(".\\Release\\{} {}", executable.generic_string(), scenePkg);
 #endif
     }
 #else
@@ -75,6 +77,8 @@ void SceneEditor::ImportResource(std::string_view path)
 
 void SceneEditor::AddResource(const Resource& resource)
 {
+
+    const auto& filesystem = core::FilesystemLocator::get();
     if (!CheckExtensions(resource.extension))
     {
         if (resource.path.find("neko2.py") != std::string::npos || resource.path.find("__pycache__") != std::string::npos)
@@ -85,7 +89,10 @@ void SceneEditor::AddResource(const Resource& resource)
         const auto* sceneInfo = GetCurrentSceneInfo();
         if (std::ranges::none_of(sceneInfo->info.resources(), [&resource](const auto& path) {return path == resource.path; }))
         {
-            GetCurrentSceneInfo()->info.add_resources(resource.path);
+            if (filesystem.FileExists(resource.path))
+            {
+                GetCurrentSceneInfo()->info.add_resources(resource.path);
+            }
         }
         return;
     }
@@ -116,13 +123,27 @@ void SceneEditor::AddResource(const Resource& resource)
 
     auto* editor = Editor::GetInstance();
     auto& resourceManager = editor->GetResourceManager();
+    std::vector<int> unexistingResources;
     
-    for(const auto& resourcePath: sceneInfo.info.resources())
+    for(int i = 0; i < sceneInfo.info.resources_size(); i++)
     {
+        const auto& resourcePath = sceneInfo.info.resources(i);
+        if(!filesystem.FileExists(resourcePath))
+        {
+            unexistingResources.push_back(i);
+            continue;
+        }
         if (resourceManager.FindResourceByPath(resourcePath) == INVALID_RESOURCE_ID)
         {
             resourceManager.AddResource(resourcePath);
         }
+
+    }
+    auto* resourcesPb = GetCurrentSceneInfo()->info.mutable_resources();
+    for(int i = static_cast<int>(unexistingResources.size()) - 1; i >= 0; i--)
+    {
+        LogWarning(fmt::format("Removing file {} from scene: file does not exists", sceneInfo.info.resources(unexistingResources[i])));
+        resourcesPb->erase(resourcesPb->begin()+unexistingResources[i]);
     }
     core::SetWindowName(fmt::format("Neko2 Editor - {}", sceneInfo.info.name()));
 }

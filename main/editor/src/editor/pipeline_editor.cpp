@@ -287,6 +287,8 @@ void PipelineEditor::DrawInspector()
         if(ImGui::Checkbox("Enable Blend", &enableBlend))
         {
             currentPipelineInfo.info.mutable_pipeline()->set_blend_enable(enableBlend);
+            currentPipelineInfo.info.mutable_pipeline()->set_blending_source_factor(core::pb::Pipeline_BlendFunc_SRC_ALPHA);
+            currentPipelineInfo.info.mutable_pipeline()->set_blending_destination_factor(core::pb::Pipeline_BlendFunc_ONE_MINUS_SRC_ALPHA);
         }
         if(enableBlend)
         {

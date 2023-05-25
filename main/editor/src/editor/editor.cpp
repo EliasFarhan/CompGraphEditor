@@ -353,15 +353,24 @@ bool Editor::UpdateCreateNewFile()
                 return false;
             }
         }
-        const auto path = fmt::format("{}{}/{}{}", 
-            ResourceManager::dataFolder,
-            sceneInfo ? sceneInfo->info.name() : newCreateFilename_,
-            editorSystem->GetSubFolder(), 
-            actualFilename);
+        std::string path;
         static bool isVulkanScene = false;
+        
         if(currentCreateFileSystem_ == EditorType::SCENE)
         {
+            path = fmt::format("{}/{}/{}",
+                ResourceManager::dataFolder,
+                newCreateFilename_,
+                actualFilename);
             ImGui::Checkbox("Vulkan", &isVulkanScene);
+        }
+        else
+        {
+            path = fmt::format("{}{}/{}{}",
+                ResourceManager::dataFolder,
+                sceneInfo ? sceneInfo->info.name() : newCreateFilename_,
+                editorSystem->GetSubFolder(),
+                actualFilename);
         }
         if (!filesystem.FileExists(path))
         {
