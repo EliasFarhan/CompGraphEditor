@@ -206,10 +206,28 @@ def analyze_gl_shader(shader_path: str):
         if "void main" in line:
             break
         split_line = line.split(" ")
-        if "in" in split_line and not compute and not vertex:
-            in_index = split_line.index("in")
-            in_variable = {"type_name": split_line[in_index + 1], "name": split_line[in_index + 2]}
-            in_attributes.append(in_variable)
+        if "in" in split_line and not compute:
+            if vertex:
+                in_index = split_line.index("in")
+                input_name = split_line[in_index + 2]
+
+                par_in_index = line.index('(')
+                par_out_index = line.index(')')
+                param = line[par_in_index+1:par_out_index]
+                param = param.replace(' ', '')
+                split_param = param.split(',')
+                location = -1
+                for p in split_param:
+                    v = p.split('=')
+                    if v[0] == 'location':
+                        location = int(v[1])
+                for in_attrib in in_attributes:
+                    if in_attrib["name"] == input_name:
+                        in_attrib["location"] = location
+            else:
+                in_index = split_line.index("in")
+                in_variable = {"type_name": split_line[in_index + 1], "name": split_line[in_index + 2]}
+                in_attributes.append(in_variable)
         if "out" in split_line and not fragment:
             out_index = split_line.index('out')
             out_variable = {"type_name": split_line[out_index + 1], "name": split_line[out_index + 2]}
@@ -218,6 +236,7 @@ def analyze_gl_shader(shader_path: str):
     meta_content["in_attributes"] = in_attributes
     meta_content["out_attributes"] = out_attributes
     meta_content["structs"] = structs
+    #print(result)
     #print(json.dumps(meta_content, indent=2))
     return json.dumps(meta_content)
 

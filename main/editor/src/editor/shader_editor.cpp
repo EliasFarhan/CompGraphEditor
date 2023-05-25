@@ -24,12 +24,51 @@ using json = nlohmann::json;
 
 namespace editor
 {
-
+bool CheckVertexInput(const core::pb::Shader& shaderInfo)
+{
+    for(int i = 0; i < shaderInfo.in_attributes_size(); i++)
+    {
+        switch (shaderInfo.in_attributes(i).location())
+        {
+        case 0:
+        case 2:
+        case 3:
+        case 4:
+        {
+            if (shaderInfo.in_attributes(i).type() != core::pb::Attribute_Type_VEC3)
+            {
+                LogWarning(fmt::format("Vertex input {} must be vec3, found {}. Shader: {}",
+                    shaderInfo.in_attributes(i).location(),
+                    shaderInfo.in_attributes(i).type_name(),
+                    shaderInfo.path()));
+                return false;
+            }
+            break;
+        }
+        case 1:
+        {
+            if (shaderInfo.in_attributes(i).type() != core::pb::Attribute_Type_VEC2)
+            {
+                LogWarning(fmt::format("Vertex input {} must be vec2, found {}. Shader: {}",
+                    shaderInfo.in_attributes(i).location(),
+                    shaderInfo.in_attributes(i).type_name(),
+                    shaderInfo.path()));
+                return false;
+            }
+            break;
+        }
+        default: 
+            break;
+        }
+    }
+    return true;
+}
 void ShaderEditor::AddResource(const Resource& resource)
 {
     ShaderInfo shaderInfo{};
     shaderInfo.info.set_type(core::GetTypeFromExtension(resource.extension));
     shaderInfo.compiledCorrectly = AnalyzeShader(resource.path, shaderInfo.info);
+    shaderInfo.correctVertexInput = CheckVertexInput(shaderInfo.info);
     shaderInfo.filename = GetFilename(resource.path);
     shaderInfo.resourceId = resource.resourceId;
     shaderInfo.info.set_path(resource.path);
@@ -58,6 +97,7 @@ void ShaderEditor::UpdateExistingResource(const Resource& resource)
         if(shaderInfo.resourceId == resource.resourceId)
         {
             shaderInfo.compiledCorrectly = AnalyzeShader(resource.path, shaderInfo.info);
+            shaderInfo.correctVertexInput = CheckVertexInput(shaderInfo.info);
             pipelineEditor->UpdateExistingResource(resource);
             return;
         }
@@ -80,6 +120,11 @@ void ShaderEditor::DrawInspector()
     else
     {
         ImGui::TextColored(ImVec4(1.0f, 0.0f, 0.0f, 1.0f), "Shader failed compilation!");
+    }
+    if(!currentShaderInfo.correctVertexInput)
+    {
+        ImGui::TextColored(ImVec4(1.0f, 0.0f, 0.0f, 1.0f), "Incorrect vertex inputs!");
+
     }
     switch (currentShaderInfo.info.type())
     {
@@ -359,6 +404,11 @@ bool ShaderEditor::AnalyzeShader(std::string_view path, core::pb::Shader& shader
             newInAttribute->set_name(inAttributeName);
             newInAttribute->set_type(type);
             newInAttribute->set_type_name(typeName);
+            auto it = inAttributeJson.find("location");
+            if(it != inAttributeJson.end())
+            {
+                newInAttribute->set_location(it.value().get<int>());
+            }
         }
         shaderInfo.mutable_out_attributes()->Clear();
         auto& outAttributesJson = shaderJson["out_attributes"];

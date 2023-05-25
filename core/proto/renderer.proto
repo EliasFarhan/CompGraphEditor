@@ -144,6 +144,7 @@ message Attribute
     //only used for Vulkan
     bool push_constant = 5;
     int32 binding = 6;
+    int32 location = 7;
 }
 
 message CustomStruct

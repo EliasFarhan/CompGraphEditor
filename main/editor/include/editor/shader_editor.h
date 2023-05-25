@@ -12,6 +12,7 @@ struct ShaderInfo
     core::pb::Shader info;
     ResourceId resourceId = INVALID_RESOURCE_ID;
     bool compiledCorrectly = true;
+    bool correctVertexInput = true;
 };
 
 class ShaderEditor final : public EditorSystem
