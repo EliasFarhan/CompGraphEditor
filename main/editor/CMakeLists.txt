@@ -42,6 +42,15 @@ add_dependencies(editor editor_scripts)
 set_target_properties (editor PROPERTIES FOLDER Main)
 set_target_properties (editor_scripts PROPERTIES FOLDER Main)
 set_target_properties(editor PROPERTIES UNITY_BUILD ON)
+target_precompile_headers(editor PRIVATE 
+        "<filesystem>" 
+        "<fmt/format.h>"
+        "<nlohmann/json.hpp>" 
+        "<proto/renderer.pb.h>" 
+        "<proto/editor.pb.h>"
+        "<pybind11/pybind11.h>"
+        "<gl/pipeline.h>"
+        "<engine/engine.h>")
 
 #gl player
 

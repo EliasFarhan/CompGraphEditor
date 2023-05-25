@@ -8,3 +8,4 @@ target_link_libraries(CommonGL PUBLIC Core GLEW::GLEW)
 set_target_properties(CommonGL PROPERTIES UNITY_BUILD ON)
 
 set_target_properties (CommonGL PROPERTIES FOLDER Core)
+target_precompile_headers(CommonGL REUSE_FROM Core)

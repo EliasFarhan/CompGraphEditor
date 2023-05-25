@@ -22,3 +22,5 @@ else()
     target_compile_options(Core PUBLIC -march=haswell -ffast-math -flto)
     target_link_options(Core PUBLIC -flto)
 endif()
+
+target_precompile_headers(Core PRIVATE "${CMAKE_CURRENT_BINARY_DIR}/proto/renderer.pb.h" "<array>" "<vector>" "<string>" "<filesystem>")

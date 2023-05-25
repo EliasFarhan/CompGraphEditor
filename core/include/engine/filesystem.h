@@ -8,7 +8,6 @@
 #include <cassert>
 #include <string_view>
 
-#include "renderer/buffer.h"
 
 
 namespace core
