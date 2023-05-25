@@ -62,6 +62,10 @@ target_link_libraries(gl_player PRIVATE CommonGL CommonPy argh PhysFilesystem)
 
 set_target_properties(gl_player PROPERTIES UNITY_BUILD ON)
 set_target_properties (gl_player PROPERTIES FOLDER Main)
+add_dependencies(editor gl_player)
+target_precompile_headers(gl_player PRIVATE 
+        "<engine/engine.h>"
+        "<py_interface.h>")
 
 #vk player
 
@@ -72,8 +76,14 @@ target_include_directories(vk_player PRIVATE include/vk_player/)
 target_link_libraries(vk_player PRIVATE CommonVK CommonPy argh PhysFilesystem)
 set_target_properties(vk_player PROPERTIES UNITY_BUILD ON)
 set_target_properties (vk_player PROPERTIES FOLDER Main)
+add_dependencies(editor vk_player)
+
+target_precompile_headers(vk_player PRIVATE 
+        "<engine/engine.h>"
+        "<py_interface.h>")
 
 #vk shader analyzer
 add_executable(vk_shader_analyze main/vk_shader_analyze.cpp)
 target_link_libraries(vk_shader_analyze argh nlohmann_json::nlohmann_json CommonVK spirv-cross-core spirv-cross-reflect)
 set_target_properties (vk_shader_analyze PROPERTIES FOLDER Main/Utils)
+add_dependencies(editor vk_shader_analyze)

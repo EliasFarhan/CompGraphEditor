@@ -1,7 +1,6 @@
 #include "player.h"
 #include "phys_filesystem.h"
 #include "py_interface.h"
-#include "engine/engine.h"
 #include "gl/engine.h"
 
 
