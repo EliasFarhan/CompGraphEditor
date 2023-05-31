@@ -358,7 +358,6 @@ core::pb::Scene Scene7()
     drawCommand->set_automatic_draw(false);
 
     auto* cameraPySystem = scene.add_systems();
-    cameraPySystem->set_path("data/scripts/camera.py");
     cameraPySystem->set_class_("CameraSystem");
     cameraPySystem->set_module("cppmodule");
 
@@ -466,7 +465,6 @@ core::pb::Scene Scene8()
     scale->set_y(2.0f);
     scale->set_z(2.0f);
     auto* cameraPySystem = scene.add_systems();
-    cameraPySystem->set_path("data/scripts/camera.py");
     cameraPySystem->set_class_("CameraSystem");
     cameraPySystem->set_module("cppmodule");
 
@@ -567,7 +565,6 @@ core::pb::Scene Scene9()
     cubemap->set_path("data/textures/skybox/skybox.cube");
 
     auto* cameraPySystem = scene.add_systems();
-    cameraPySystem->set_path("data/scripts/camera.py");
     cameraPySystem->set_class_("CameraSystem");
     cameraPySystem->set_module("cppmodule");
 

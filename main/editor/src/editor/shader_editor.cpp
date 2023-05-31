@@ -26,6 +26,8 @@ namespace editor
 {
 bool CheckVertexInput(const core::pb::Shader& shaderInfo)
 {
+    if (shaderInfo.type() != core::pb::VERTEX)
+        return true;
     for(int i = 0; i < shaderInfo.in_attributes_size(); i++)
     {
         switch (shaderInfo.in_attributes(i).location())
@@ -121,7 +123,8 @@ void ShaderEditor::DrawInspector()
     {
         ImGui::TextColored(ImVec4(1.0f, 0.0f, 0.0f, 1.0f), "Shader failed compilation!");
     }
-    if(!currentShaderInfo.correctVertexInput)
+    if(currentShaderInfo.info.type() == core::pb::VERTEX &&
+        !currentShaderInfo.correctVertexInput)
     {
         ImGui::TextColored(ImVec4(1.0f, 0.0f, 0.0f, 1.0f), "Incorrect vertex inputs!");
 

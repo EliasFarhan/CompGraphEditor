@@ -12,6 +12,7 @@
 #include <fstream>
 
 #include "framebuffer_editor.h"
+#include "command_editor.h"
 #include "scene_editor.h"
 #include "model_editor.h"
 
@@ -199,6 +200,61 @@ bool RenderPassEditor::DrawContentList(bool unfocus)
         }
     }
     return wasFocused;
+}
+
+void RenderPassEditor::DrawCenterView()
+{
+    if (currentIndex_ >= renderPassInfos_.size())
+        return;
+    const auto& currentRenderPassInfo = renderPassInfos_[currentIndex_];
+    const auto* editor = Editor::GetInstance();
+    auto* commandEditor = dynamic_cast<CommandEditor*>(editor->GetEditorSystem(EditorType::COMMAND));
+    const auto& resourceManager = editor->GetResourceManager();
+    ImNodes::BeginNodeEditor();
+    const auto subpassCount = currentRenderPassInfo.info.sub_passes_size();
+    constexpr auto inputAttribIndex = 100;
+    constexpr auto outputAttribIndex = 200;
+    std::vector<std::pair<int, int>> links;
+
+    for(int i = 0; i < subpassCount; i++)
+    {
+        const auto& subpass = currentRenderPassInfo.info.sub_passes(i);
+        ImNodes::BeginNode(i);
+
+        ImNodes::BeginNodeTitleBar();
+        ImGui::Text("Subpass %d", i);
+        ImNodes::EndNodeTitleBar();
+
+        if(i != 0)
+        {
+            ImNodes::BeginInputAttribute(inputAttribIndex+i);
+            ImNodes::EndInputAttribute();
+        }
+
+        if (i != subpassCount - 1)
+        {
+            links.emplace_back(outputAttribIndex + i, inputAttribIndex + i + 1);
+            ImNodes::BeginOutputAttribute(outputAttribIndex + i);
+            ImNodes::EndOutputAttribute();
+        }
+        ImGui::TextUnformatted("Commands:");
+        for(int commandIndex = 0; commandIndex < subpass.command_paths_size(); commandIndex++)
+        {
+            const auto& commandPath = subpass.command_paths(commandIndex);
+            const auto commandResource = resourceManager.FindResourceByPath(commandPath);
+            const auto& commandInfo = commandEditor->GetCommand(commandResource);
+            ImGui::Text("%s", commandInfo->info.draw_command().name().c_str());
+        }
+
+        ImNodes::EndNode();
+
+        ImNodes::SetNodeGridSpacePos(i, { 50+static_cast<float>(i)*150,150 });
+    }
+    for (std::size_t i = 0; i < links.size(); i++)
+    {
+        ImNodes::Link(i, links[i].first, links[i].second);
+    }
+    ImNodes::EndNodeEditor();
 }
 
 std::string_view RenderPassEditor::GetSubFolder()

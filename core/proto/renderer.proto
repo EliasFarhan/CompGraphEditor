@@ -141,10 +141,12 @@ message Attribute
     Type type = 2;
     string type_name = 3;
     ShaderType stage = 4;
+    int32 count = 8;
+    //used for GL
+    int32 location = 7;
     //only used for Vulkan
     bool push_constant = 5;
     int32 binding = 6;
-    int32 location = 7;
 }
 
 message CustomStruct

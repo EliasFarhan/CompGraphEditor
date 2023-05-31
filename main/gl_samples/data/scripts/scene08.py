@@ -10,9 +10,11 @@ class Scene08(System):
         pass
 
     def draw(self, draw_command: DrawCommand):
+        camera = get_scene().camera
         if draw_command.subpass_index == 0:
             draw_command.bind()
-            draw_command.set_mat4("projection", Mat4.perspective(math.radians(45), get_aspect(), 0.1, 100.0))
+            draw_command.set_mat4("projection", camera.projection)
+            draw_command.set_mat4("view", camera.view)
             draw_command.set_mat4("model", Mat4(1.0))
             draw_command.draw()
 

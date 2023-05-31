@@ -267,7 +267,7 @@ void MaterialEditor::DrawCenterView()
     }
     ImNodes::EndNode();
 
-    ImNodes::SetNodeGridSpacePos(2, { 200,150 });
+    ImNodes::SetNodeGridSpacePos(2, { 300,150 });
 
     for (std::size_t i = 0; i < links.size(); i++)
     {

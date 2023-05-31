@@ -241,11 +241,11 @@ def analyze_gl_shader(shader_path: str):
     return json.dumps(meta_content)
 
 def main():
-    analyze_gl_shader("../../gl_samples/data/shaders/scene06/rotated_cube.vert")
-    analyze_gl_shader("../../gl_samples/data/shaders/scene06/rotated_cube_ubo.vert")
-    analyze_gl_shader("../../gl_samples/data/shaders/scene06/rotated_cube_ubo_block.vert")
-    analyze_gl_shader("../../gl_samples/data/shaders/scene09/skybox.frag")
-    analyze_gl_shader("../shaders/pre_compute_brdf.comp")
+    print(analyze_gl_shader("../../gl_samples/data/shaders/scene06/rotated_cube.vert"))
+    print(analyze_gl_shader("../../gl_samples/data/shaders/scene06/rotated_cube_ubo.vert"))
+    print(analyze_gl_shader("../../gl_samples/data/shaders/scene06/rotated_cube_ubo_block.vert"))
+    print(analyze_gl_shader("../../gl_samples/data/shaders/scene09/skybox.frag"))
+    print(analyze_gl_shader("../shaders/pre_compute_brdf.comp"))
 
 
 if __name__ == '__main__':
