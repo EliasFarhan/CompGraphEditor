@@ -138,6 +138,13 @@ def analyze_gl_shader(shader_path: str):
                 return translate_type_name(elem.split(' ')[-1])
         return 'undefined'
 
+    def get_count(line: str):
+        split_line = line[line.index(':')+1:].split(',')
+        for elem in split_line:
+            if 'size' in elem:
+                return int(elem.split(' ')[-1])
+        return 0
+
     mode = Mode.NONE
     for line in result_lines:
 
@@ -164,7 +171,7 @@ def analyze_gl_shader(shader_path: str):
             if ":" not in line:
                 continue
             uniform_name = line[0:line.index(":")]
-            uniform_obj = {"type_name": get_type_name(line), "name": uniform_name}
+            uniform_obj = {"type_name": get_type_name(line), "name": uniform_name, "count": get_count(line)}
             uniforms.append(uniform_obj)
         elif mode == Mode.PIPELINE_INPUT:
             if ":" not in line:
@@ -241,11 +248,12 @@ def analyze_gl_shader(shader_path: str):
     return json.dumps(meta_content)
 
 def main():
-    print(analyze_gl_shader("../../gl_samples/data/shaders/scene06/rotated_cube.vert"))
-    print(analyze_gl_shader("../../gl_samples/data/shaders/scene06/rotated_cube_ubo.vert"))
-    print(analyze_gl_shader("../../gl_samples/data/shaders/scene06/rotated_cube_ubo_block.vert"))
-    print(analyze_gl_shader("../../gl_samples/data/shaders/scene09/skybox.frag"))
-    print(analyze_gl_shader("../shaders/pre_compute_brdf.comp"))
+    print(analyze_gl_shader("../../gl_samples/data/shaders/scene10/model_instancing.vert"))
+    print(analyze_gl_shader("../../gl_samples/data/shaders/scene11/model_instancing.vert"))
+    #print(analyze_gl_shader("../../gl_samples/data/shaders/scene06/rotated_cube_ubo.vert"))
+    #print(analyze_gl_shader("../../gl_samples/data/shaders/scene06/rotated_cube_ubo_block.vert"))
+    #print(analyze_gl_shader("../../gl_samples/data/shaders/scene09/skybox.frag"))
+    #print(analyze_gl_shader("../shaders/pre_compute_brdf.comp"))
 
 
 if __name__ == '__main__':

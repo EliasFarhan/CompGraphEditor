@@ -141,7 +141,7 @@ message Attribute
     Type type = 2;
     string type_name = 3;
     ShaderType stage = 4;
-    int32 count = 8;
+    int32 count = 8; //-1 dynamic, 1 not array, > 1 array
     //used for GL
     int32 location = 7;
     //only used for Vulkan
@@ -164,6 +164,7 @@ message Shader
     repeated Attribute in_attributes = 3;
     repeated Attribute out_attributes = 4;
     repeated Attribute uniforms = 5;
+    repeated Attribute storage_buffers = 7;
     repeated CustomStruct structs = 6;
 }
 
