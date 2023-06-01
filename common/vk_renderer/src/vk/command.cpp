@@ -257,13 +257,14 @@ void UniformManager::Create()
 
                     if (uniform.type() != core::pb::Attribute_Type_CUSTOM)
                     {
-                        const auto typeInfo = core::GetTypeInfo(uniform.type());
+                        const auto typeInfo = core::GetTypeInfo(uniform.type(), uniform.count()>1);
                         if (baseUniformIndex % typeInfo.alignment != 0)
                         {
                             baseUniformIndex += typeInfo.alignment - baseUniformIndex % typeInfo.alignment;
                         }
                         uniformData.index = baseUniformIndex;
-                        uniformData.size = typeInfo.size;
+                        uniformData.attributeType = uniform.type();
+                        uniformData.size = typeInfo.size*(uniform.count()>1?uniform.count():1);
                         baseUniformIndex += typeInfo.size;
                     }
                     else
@@ -290,13 +291,14 @@ void UniformManager::Create()
                             for (auto& structUniform : structType.attributes())
                             {
                                 UniformInternalData internalUniformData{};
-                                const auto internalTypeInfo = core::GetTypeInfo(structUniform.type());
+                                const auto internalTypeInfo = core::GetTypeInfo(structUniform.type(), structUniform.count()>1);
                                 if (internalUniformIndex % internalTypeInfo.alignment != 0)
                                 {
                                     internalUniformIndex += internalTypeInfo.alignment - internalUniformIndex % internalTypeInfo.alignment;
                                 }
                                 internalUniformData.index = internalUniformIndex;
-                                internalUniformData.size = internalTypeInfo.size;
+                                internalUniformData.attributeType = structUniform.type();
+                                internalUniformData.size = internalTypeInfo.size*(structUniform.count()>1?structUniform.count():1);
                                 internalUniformData.uniformType = UniformType::UBO;
                                 internalUniformIndex += internalTypeInfo.size;
                                 uniformMap_[fmt::format("{}.{}", name, structUniform.name())] = internalUniformData;

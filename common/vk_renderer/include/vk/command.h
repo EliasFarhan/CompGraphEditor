@@ -32,6 +32,7 @@ public:
         int size = 0;
         UniformType uniformType = UniformType::NONE;
         int binding = 0;
+        core::pb::Attribute_Type attributeType = core::pb::Attribute_Type_CUSTOM;
     };
 
     struct UniformBufferObject
@@ -44,17 +45,40 @@ public:
     template<typename T>
     void SetUniform(std::string_view uniformName, const T& uniformValue)
     {
-        const auto& uniformData = uniformMap_[uniformName.data()];
         T* ptr = nullptr;
-        if (uniformData.uniformType == UniformType::PUSH_CONSTANT)
+        const auto index = uniformName.find('[');
+        if (index != std::string::npos)
         {
-            ptr = reinterpret_cast<T*>(&pushConstantBuffer_[uniformData.index]);
+            const std::string tmpUniform = uniformName.data();
+            const std::string uniformArrayName = tmpUniform.substr(0, index);
+            const auto valueIndex = std::stoi(tmpUniform.substr(index + 1));
+            const auto& uniformData = uniformMap_[uniformArrayName.data()];
+            const auto typeInfo = core::GetTypeInfo(uniformData.attributeType);
+            if (uniformData.uniformType == UniformType::PUSH_CONSTANT)
+            {
+                ptr = reinterpret_cast<T*>(&pushConstantBuffer_[uniformData.index + typeInfo.alignment * valueIndex]);
+            }
+            else if (uniformData.uniformType == UniformType::UBO)
+            {
+                ptr = reinterpret_cast<T*>(&uniformBuffer_[uniformData.index+typeInfo.alignment*valueIndex]);
+            }
+
         }
-        else if (uniformData.uniformType == UniformType::UBO)
+        else
         {
-            ptr = reinterpret_cast<T*>(&uniformBuffer_[uniformData.index]);
+            const auto& uniformData = uniformMap_[uniformName.data()];
+
+            if (uniformData.uniformType == UniformType::PUSH_CONSTANT)
+            {
+                ptr = reinterpret_cast<T*>(&pushConstantBuffer_[uniformData.index]);
+            }
+            else if (uniformData.uniformType == UniformType::UBO)
+            {
+                ptr = reinterpret_cast<T*>(&uniformBuffer_[uniformData.index]);
+            }
         }
         *ptr = uniformValue;
+
     }
 
     void Create();

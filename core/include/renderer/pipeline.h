@@ -65,7 +65,7 @@ struct TypeInfo
     int alignment = 0;
 };
 
-constexpr TypeInfo GetTypeInfo(pb::Attribute_Type attributeType)
+constexpr TypeInfo GetTypeInfo(pb::Attribute_Type attributeType, bool array=false)
 {
     TypeInfo info{};
     switch(attributeType)

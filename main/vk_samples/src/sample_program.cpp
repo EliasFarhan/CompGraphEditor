@@ -668,9 +668,123 @@ core::pb::Scene Scene07()
     return scene;
 }
 
+core::pb::Scene Scene08()
+{
+    core::pb::Scene scene{};
+    auto* vertexShader = scene.add_shaders();
+    vertexShader->set_type(core::pb::VERTEX);
+    vertexShader->set_path("data/shaders/08_uniform_instancing/model_instancing.vert.spv");
+    auto* uboStruct = vertexShader->add_structs();
+    uboStruct->set_alignment(16);
+    uboStruct->set_size(2 * sizeof(glm::mat4) + 1000 * sizeof(glm::vec4));
+    uboStruct->set_name("uniforms");
+
+    auto* view = uboStruct->add_attributes();
+    view->set_type(core::pb::Attribute_Type_MAT4);
+    view->set_name("view");
+    view->set_stage(core::pb::VERTEX);
+    auto* projection = uboStruct->add_attributes();
+    projection->set_type(core::pb::Attribute_Type_MAT4);
+    projection->set_name("projection");
+    projection->set_stage(core::pb::VERTEX);
+    auto* posArray = uboStruct->add_attributes();
+    posArray->set_count(1000);
+    posArray->set_name("pos");
+    posArray->set_stage(core::pb::VERTEX);
+    posArray->set_type(core::pb::Attribute_Type_VEC3);
+
+    auto* ubo = vertexShader->add_uniforms();
+    ubo->set_type(core::pb::Attribute_Type_CUSTOM);
+    ubo->set_type_name("uniforms");
+    ubo->set_name("ubo");
+    ubo->set_binding(0);
+    ubo->set_stage(core::pb::VERTEX);
+    
+    auto* fragmentShader = scene.add_shaders();
+    fragmentShader->set_type(core::pb::FRAGMENT);
+    fragmentShader->set_path("data/shaders/08_uniform_instancing/model_instancing.frag.spv");
+    auto* sampler = fragmentShader->add_uniforms();
+    sampler->set_type(core::pb::Attribute_Type_SAMPLER2D);
+    sampler->set_binding(1);
+    sampler->set_stage(core::pb::FRAGMENT);
+    sampler->set_name("texture_diffuse1");
+
+    auto* pipeline = scene.add_pipelines();
+    pipeline->set_vertex_shader_index(0);
+    pipeline->set_fragment_shader_index(1);
+    pipeline->set_depth_test_enable(true);
+    pipeline->set_depth_mask(true);
+    pipeline->set_type(core::pb::Pipeline_Type_RASTERIZE);
+    pipeline->set_depth_compare_op(core::pb::Pipeline_DepthCompareOp_LESS);
+
+    auto* posInput = pipeline->add_in_vertex_attributes();
+    posInput->set_name("pos");
+    posInput->set_binding(0);
+    posInput->set_stage(core::pb::VERTEX);
+    posInput->set_type(core::pb::Attribute_Type_VEC3);
+    posInput->set_type_name("vec3");
+    auto* texCoords = pipeline->add_in_vertex_attributes();
+    texCoords->set_name("texCoords");
+    texCoords->set_binding(0);
+    texCoords->set_stage(core::pb::VERTEX);
+    texCoords->set_type(core::pb::Attribute_Type_VEC2);
+    texCoords->set_type_name("vec2");
+
+
+    auto* material = scene.add_materials();
+    material->set_pipeline_index(0);
+
+    auto* materialTexture = material->add_textures();
+    materialTexture->set_texture_index(0);
+    materialTexture->set_sampler_name("texture_diffuse1");
+
+    constexpr std::string_view modelPath = "data/model/rock/rock.obj";
+    *scene.add_model_paths() = modelPath;
+
+    auto* mesh = scene.add_meshes();
+    mesh->set_primitve_type(core::pb::Mesh_PrimitveType_MODEL);
+    mesh->set_model_index(0);
+    mesh->set_mesh_name("Cube");
+
+    auto* texture = scene.add_textures();
+    texture->set_path("data/model/rock/rock.png");
+    texture->set_filter_mode(core::pb::Texture_FilteringMode_LINEAR);
+
+
+    auto* renderPass = scene.mutable_render_pass();
+    auto* subPass = renderPass->add_sub_passes();
+    auto* clearColor = subPass->mutable_clear_color();
+    clearColor->set_r(0.0f);
+    clearColor->set_g(0.0f);
+    clearColor->set_b(0.0f);
+    clearColor->set_a(0.0f);
+
+
+    auto* drawCommand = subPass->add_commands();
+
+    drawCommand->set_material_index(0);
+    drawCommand->set_count(192 * 3);
+    drawCommand->set_mesh_index(0);
+    drawCommand->set_draw_elements(true);
+    drawCommand->set_mode(core::pb::DrawCommand_Mode_TRIANGLES);
+    drawCommand->set_automatic_draw(false);
+
+    auto* cameraPySystem = scene.add_systems();
+    cameraPySystem->set_class_("CameraSystem");
+    cameraPySystem->set_module("cppmodule");
+
+    auto* scenePySystem = scene.add_systems();
+    scenePySystem->set_path("data/scripts/08_uniform_instancing.py");
+    scenePySystem->set_class_("UniformInstancingScene");
+    scenePySystem->set_module("data.scripts.08_uniform_instancing");
+
+
+    return scene;
+}
+
 void HelloVulkanProgram::Begin() 
 {
-    scene_.SetScene(RaytracingScene01());
+    scene_.SetScene(Scene08());
 
     sceneManager_.LoadScene(&scene_);
 }
