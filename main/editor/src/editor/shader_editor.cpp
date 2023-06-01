@@ -387,6 +387,11 @@ bool ShaderEditor::AnalyzeShader(std::string_view path, core::pb::Shader& shader
             {
                 binding = uniformJson["binding"].get<int>();
             }
+            int count = 1;
+            if(uniformJson.contains("count"))
+            {
+                count = uniformJson["count"].get<int>();
+            }
             auto type = GetType(typeName);
             auto* newUniformInfo = shaderInfo.add_uniforms();
             newUniformInfo->set_name(uniformName);
@@ -394,6 +399,7 @@ bool ShaderEditor::AnalyzeShader(std::string_view path, core::pb::Shader& shader
             newUniformInfo->set_type_name(typeName);
             newUniformInfo->set_stage(shaderInfo.type());
             newUniformInfo->set_binding(binding);
+            newUniformInfo->set_count(count);
             
         }
         shaderInfo.mutable_in_attributes()->Clear();

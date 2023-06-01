@@ -235,7 +235,7 @@ void Scene::Update(float dt)
     }
 }
 
-void Scene::Draw(core::DrawCommand& drawCommand)
+void Scene::Draw(core::DrawCommand& drawCommand, int instance)
 {
     const auto& renderer = GetRenderer();
 
@@ -268,7 +268,7 @@ void Scene::Draw(core::DrawCommand& drawCommand)
     {
         vkCmdDrawIndexed(renderer.commandBuffers[renderer.imageIndex],
             drawCommand.GetInfo().count(),
-            1,
+            instance,
             0,
             0,
             0);
@@ -277,7 +277,7 @@ void Scene::Draw(core::DrawCommand& drawCommand)
     {
         vkCmdDraw(renderer.commandBuffers[renderer.imageIndex],
             drawCommand.GetInfo().count(),
-            1, 
+            instance, 
             0,
             0);
     }

@@ -337,7 +337,7 @@ Scene::ImportStatus Scene::LoadMaterials(const PbRepeatField<core::pb::Material>
 
 
 
-    void Scene::Draw(core::DrawCommand& command)
+    void Scene::Draw(core::DrawCommand& command, int instance)
     {
 #ifdef TRACY_ENABLE
         ZoneScoped;
@@ -491,14 +491,27 @@ Scene::ImportStatus Scene::LoadMaterials(const PbRepeatField<core::pb::Material>
 
             if (commandInfo.draw_elements())
             {
-                glDrawElements(mode, commandInfo.count(), GL_UNSIGNED_INT, nullptr);
-                glCheckError();
+                if (instance == 1)
+                {
+                    glDrawElements(mode, commandInfo.count(), GL_UNSIGNED_INT, nullptr);
+                }
+                else
+                {
+                    glDrawElementsInstanced(mode, commandInfo.count(), GL_UNSIGNED_INT, nullptr, instance);
+                }
             }
             else
             {
-                glDrawArrays(mode, 0, commandInfo.count());
-                glCheckError();
+                if (instance == 1)
+                {
+                    glDrawArrays(mode, 0, commandInfo.count());
+                }
+                else
+                {
+                    glDrawArraysInstanced(mode, 0, commandInfo.count(), instance);
+                }
             }
+            glCheckError();
             break;
         }
             default: break;

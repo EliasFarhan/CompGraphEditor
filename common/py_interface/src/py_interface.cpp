@@ -40,6 +40,7 @@ PYBIND11_EMBEDDED_MODULE(neko2, m)
         .def("set_vec4", &core::Command::SetVec4)
         .def("set_mat3", &core::Command::SetMat3)
         .def("set_mat4", &core::Command::SetMat4);
+
     py::class_<core::DrawCommand>(m, "DrawCommand")
         .def("set_float", &core::DrawCommand::SetFloat)
         .def("set_int", &core::DrawCommand::SetInt)
@@ -54,6 +55,12 @@ PYBIND11_EMBEDDED_MODULE(neko2, m)
                 drawCommand.PreDrawBind();
                 scene->Draw(drawCommand);
         })
+        .def("draw_instanced", [](core::DrawCommand& drawCommand, int instance)
+            {
+                auto* scene = core::GetCurrentScene();
+                drawCommand.PreDrawBind();
+                scene->Draw(drawCommand, instance);
+            })
         .def("bind", &core::DrawCommand::Bind)
         .def("get_material", [](core::DrawCommand& drawCommand)
         {
@@ -367,6 +374,7 @@ Script* PyManager::LoadScript(std::string_view path, std::string_view module, st
     auto* nativeScript = MinimalScriptLoader::LoadScript(path, module, className);
     if(nativeScript != nullptr)
     {
+        nativeScript->Begin();
         return nativeScript;
     }
     const auto& filesystem = FilesystemLocator::get();

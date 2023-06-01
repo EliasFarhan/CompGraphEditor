@@ -81,6 +81,9 @@ class Vec2:
         """Vector subtraction"""
         return Vec2()
 
+    def __neg__(self):
+        return Vec3()
+
     def __mul__(self, other: float) -> Vec2:
         """Vector multiplication with scalar"""
         return Vec2()
@@ -142,6 +145,10 @@ class Vec3:
     def __truediv__(self, other: float) -> Vec3:
         return Vec3()
 
+
+    def __neg__(self):
+        return Vec3()
+
     def normalize(self) -> Vec3:
         """Return the normalized vector (length 1)"""
         return Vec3()
@@ -196,6 +203,9 @@ class Vec4:
     def __sub__(self, other: Vec4) -> Vec4:
         """Vector subtraction"""
         return Vec4()
+
+    def __neg__(self):
+        return Vec3()
 
     def __mul__(self, other: float) -> Vec4:
         """Vector multiplication with a scalar float"""
@@ -441,6 +451,11 @@ class DrawCommand:
 
     def draw(self):
         """Perform the draw call of the DrawCommand.
+        Typically the last operation with a DrawCommand."""
+        pass
+
+    def draw_instanced(self, instance: int):
+        """Perform the draw call of the DrawCommand with given instance count.
         Typically the last operation with a DrawCommand."""
         pass
 

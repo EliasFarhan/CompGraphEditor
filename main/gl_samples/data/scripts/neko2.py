@@ -85,6 +85,10 @@ class Vec2:
         """Vector multiplication with scalar"""
         return Vec2()
 
+    def __truediv__(self, other: float) -> Vec2:
+        """Vector division with scalar"""
+        return Vec2()
+
     def normalize(self) -> Vec2:
         """Return a normalized (length 1)"""
         return Vec2()
@@ -131,8 +135,14 @@ class Vec3:
         """Vector subtraction"""
         return Vec3()
 
+    def __neg__(self):
+        return Vec3()
+
     def __mul__(self, other: float) -> Vec3:
         """Vector multiplication with a scalar float"""
+        return Vec3()
+
+    def __truediv__(self, other: float) -> Vec3:
         return Vec3()
 
     def normalize(self) -> Vec3:
@@ -194,6 +204,10 @@ class Vec4:
         """Vector multiplication with a scalar float"""
         return Vec4()
 
+    def __truediv__(self, other: float) -> Vec4:
+        """Vector multiplication with a scalar float"""
+        return Vec4()
+
     def normalize(self) -> Vec4:
         """Return the normalized vector (length 1)"""
         return Vec4()
@@ -230,7 +244,11 @@ class Mat3:
         return Vec3()
 
     def __mul__(self, other: Mat3) -> Mat3:
-        """Matrix multiplication"""
+        """Matrix multiplication with scalar"""
+        return Mat3()
+
+    def __truediv__(self, other: float) -> Mat3:
+        """Matrix division with scalar"""
         return Mat3()
 
     def inverse(self) -> Mat3:
@@ -283,6 +301,9 @@ class Mat4:
     def __mul__(self, other: Mat4) -> Mat4:
         return Mat4()
 
+    def __truediv__(self, other: float) -> Mat4:
+        return Mat4()
+
     @staticmethod
     def view(eye: Vec3, center: Vec3, up: Vec3) -> Mat4:
         """Return the view matrix from camera position eye, with target position center and up vector"""
@@ -290,6 +311,12 @@ class Mat4:
     
     @staticmethod
     def perspective(fov_radian: float, aspect: float, near: float, far: float) -> Mat4:
+        """Return the perspective matrix from fov (field of view) in radian, aspect ratio, near and far plane scalar value"""
+        return Mat4()
+
+    @staticmethod
+    def orthographic(width: float, height: float, near: float, far: float) -> Mat4:
+        """Return the orthographic matrix from width, height and near and far plane scalar value"""
         return Mat4()
     
     def inverse(self) -> Mat4:
@@ -326,6 +353,33 @@ class Material:
         return self.name
 
 
+class Command:
+    def set_int(self, uniform_name: str, v: int):
+        pass
+
+    def set_float(self, uniform_name: str, v: float):
+        """Set a named uniform float value"""
+        pass
+
+    def set_vec2(self, uniform_name: str, v: Vec2):
+        """Set a named uniform Vec2 value"""
+        pass
+
+    def set_vec3(self, uniform_name: str, v: Vec3):
+        """Set a named uniform Vec3 value"""
+        pass
+
+    def set_vec4(self, uniform_name: str, v: Vec4):
+        """Set a named uniform Vec4 value"""
+        pass
+
+    def set_mat3(self, uniform_name: str, m: Mat3):
+        pass
+
+    def set_mat4(self, uniform_name: str, m: Mat4):
+        """Set a named uniform Mat4 value"""
+        pass
+
 class ModelTransformMatrix:
     """ModelTransformMatrix is an abstraction of a model transform matrix with a translate, scale and euler rotation.
     It is used by a DrawCommand to place the given mesh in the world space."""
@@ -334,7 +388,6 @@ class ModelTransformMatrix:
         self.scale = Vec3()
         self.rotation = Vec3()
         self.transform = Mat4()
-
 
 class DrawCommand:
     """DrawCommand is an abstraction representing a draw call.
@@ -358,6 +411,9 @@ class DrawCommand:
         """Return the name of the Mesh used in the DrawCommand"""
         return ""
 
+    def set_int(self, uniform_name: str, v: int):
+        pass
+
     def set_float(self, uniform_name: str, v: float):
         """Set a named uniform float value"""
         pass
@@ -374,14 +430,11 @@ class DrawCommand:
         """Set a named uniform Vec4 value"""
         pass
 
+    def set_mat3(self, uniform_name: str, m: Mat3):
+        pass
+
     def set_mat4(self, uniform_name: str, m: Mat4):
         """Set a named uniform Mat4 value"""
-        pass
-
-    def set_texture(self, uniform_name: str, texture_name: int, texture_unit: int):
-        pass
-
-    def set_cubemap(self, uniform_name: str, texture_name: int, texture_unit: int):
         pass
 
     def bind(self):
@@ -391,6 +444,11 @@ class DrawCommand:
 
     def draw(self):
         """Perform the draw call of the DrawCommand.
+        Typically the last operation with a DrawCommand."""
+        pass
+
+    def draw_instanced(self, instance: int):
+        """Perform the draw call of the DrawCommand with given instance count.
         Typically the last operation with a DrawCommand."""
         pass
 

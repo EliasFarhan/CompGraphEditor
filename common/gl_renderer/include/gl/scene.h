@@ -27,7 +27,7 @@ class Scene : public core::Scene
 public:
     void UnloadScene() override;
     void Update(float dt) override;
-    void Draw(core::DrawCommand& drawCommand) override;
+    void Draw(core::DrawCommand& drawCommand, int instance = 1) override;
 
     core::SceneMaterial GetMaterial(int materialIndex) override;
 

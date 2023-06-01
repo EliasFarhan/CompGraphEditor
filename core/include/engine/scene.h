@@ -60,7 +60,7 @@ public:
     virtual void UnloadScene() = 0;
     void SetScene(const pb::Scene &scene);
     virtual void Update(float dt) = 0;
-    virtual void Draw(DrawCommand& drawCommand) = 0;
+    virtual void Draw(DrawCommand& drawCommand, int instance = 1) = 0;
     virtual Framebuffer& GetFramebuffer(int framebufferIndex) = 0;
 
     SceneSubPass GetSubpass(int subPassIndex);
