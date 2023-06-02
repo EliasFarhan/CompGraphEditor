@@ -14,6 +14,7 @@ namespace core
 class Script;
 class PyManager;
 class DrawCommand;
+class BufferManager;
 
 class Scene;
 class Framebuffer;
@@ -76,6 +77,8 @@ public:
 
     void OnEvent(SDL_Event& event) override;
     virtual DrawCommand& GetDrawCommand(int subPassIndex, int drawCommandIndex) = 0;
+
+    virtual core::BufferManager& GetBufferManager() = 0;
 
     const pb::Scene& GetInfo() const { return scene_; }
 protected:

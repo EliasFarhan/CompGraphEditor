@@ -19,4 +19,22 @@ private:
     GLuint vbo{};
     GLuint ebo{};
 };
+
+struct Buffer
+{
+    GLuint ssbo;
+    std::vector<std::uint8_t> data;
+};
+class BufferManager final : public core::BufferManager
+{
+public:
+    void Clear() override;
+
+    core::BufferId CreateBuffer(std::size_t count, std::size_t size) override;
+
+    void* GetArrayBuffer(core::BufferId id) override;
+
+private:
+    std::vector<Buffer> buffers_;
+};
 } // namespace gl

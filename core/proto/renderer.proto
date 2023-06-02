@@ -375,6 +375,13 @@ message Transform
     Vec3f euler_angles = 3;
 }
 
+message Buffer
+{
+    uint64 count = 1;
+    uint64 type_size = 2;
+    string name = 3;
+}
+
 message DrawCommand
 {
     enum Mode
@@ -391,6 +398,7 @@ message DrawCommand
     string name = 10;
     Transform model_transform = 11;
     Vec3i compute_dispatch_size = 12;
+    int32 buffer_index = 13;
 }
 
 message Dependency

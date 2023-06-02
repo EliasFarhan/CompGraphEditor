@@ -1,6 +1,7 @@
 #include "vk/mesh.h"
 
 #include "vk/engine.h"
+#include "vk/utils.h"
 
 namespace vk
 {

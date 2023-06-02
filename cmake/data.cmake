@@ -104,7 +104,7 @@ function(checkvkshaders main_folder exe_name)
             set(GLSL_VALIDATOR "$ENV{VULKAN_SDK}/Bin32/glslc.exe")
         endif()
     elseif(UNIX)
-        set(GLSL_VALIDATOR "glslc")
+        set(GLSL_VALIDATOR "$ENV{VULKAN_SDK}/bin/glslc")
     endif()
 
     file(GLOB_RECURSE GLSL_SOURCE_FILES

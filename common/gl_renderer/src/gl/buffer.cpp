@@ -54,4 +54,26 @@ void VertexBuffer::Destroy()
     }
 }
 
+void BufferManager::Clear()
+{
+
+}
+
+core::BufferId BufferManager::CreateBuffer(std::size_t count, std::size_t size)
+{
+    const auto index = buffers_.size();
+    Buffer buffer{};
+    glGenBuffers(1, &buffer.ssbo);
+    buffer.data.resize(count*size);
+
+    buffers_.emplace_back(buffer);
+
+    return {index};
+}
+
+void* BufferManager::GetArrayBuffer(core::BufferId id)
+{
+    return buffers_[id.bufferId].data.data();
+}
 } // namespace gl
+

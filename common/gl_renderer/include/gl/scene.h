@@ -36,6 +36,8 @@ public:
     core::Pipeline& GetPipeline(int index) override { return pipelines_[index]; }
     VertexBuffer& GetVertexBuffer(int index) { return vertexBuffers_[index]; }
     core::DrawCommand& GetDrawCommand(int subPassIndex, int drawCommandIndex) override;
+
+    core::BufferManager& GetBufferManager() override { return bufferManager_; }
     
 protected:
     ImportStatus LoadShaders(const PbRepeatField<core::pb::Shader>& shadersPb) override;
@@ -57,6 +59,7 @@ private:
     std::vector<Material> materials_;
     std::vector<Framebuffer> framebuffers_;
     std::vector<DrawCommand> drawCommands_;
+    BufferManager bufferManager_;
 
     GLuint emptyMeshVao_ = 0;
 };

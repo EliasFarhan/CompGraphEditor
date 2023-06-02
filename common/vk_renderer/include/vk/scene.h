@@ -6,6 +6,7 @@
 #include "vk/common.h"
 #include "vk/command.h"
 #include "vk/acceleration_struct.h"
+#include "vk/buffer.h"
 
 #include <vulkan/vulkan.h>
 
@@ -51,6 +52,7 @@ public:
     TopLevelAccelerationStructure& GetAccelerationStructure(int accelerationStructureIndex);
     const RaytracingStorageImage& GetStorageImage() const { return raytracingStorageImage_; }
 
+    core::BufferManager & GetBufferManager() override { return bufferManager_; }
 protected:
     ImportStatus LoadShaders(const PbRepeatField<core::pb::Shader>& shadersPb) override;
     ImportStatus LoadPipelines(const PbRepeatField<core::pb::Pipeline>& pipelines, const PbRepeatField<core::pb::RaytracingPipeline>& raytracingPipelines) override;
@@ -77,6 +79,7 @@ private:
     RenderPass renderPass_;
     std::vector<core::ModelIndex> modelIndices_;
     RaytracingStorageImage raytracingStorageImage_;
+    BufferManager bufferManager_;
 };
 
 VkRenderPass GetCurrentRenderPass();
