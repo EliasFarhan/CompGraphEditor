@@ -701,8 +701,14 @@ core::pb::Scene Scene11()
     drawCommand->set_count(192 * 3);
     drawCommand->set_mesh_index(0);
     drawCommand->set_draw_elements(true);
+    drawCommand->set_buffer_index(0);
     drawCommand->set_mode(core::pb::DrawCommand_Mode_TRIANGLES);
     drawCommand->set_automatic_draw(false);
+
+    auto* buffer = scene.add_buffers();
+    buffer->set_count(10000);
+    buffer->set_name("positions");
+    buffer->set_type_size(sizeof(glm::vec3));
 
     auto* cameraPySystem = scene.add_systems();
     cameraPySystem->set_class_("CameraSystem");

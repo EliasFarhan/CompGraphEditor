@@ -782,6 +782,8 @@ core::pb::Scene Scene08()
     return scene;
 }
 
+
+
 void HelloVulkanProgram::Begin() 
 {
     scene_.SetScene(Scene08());

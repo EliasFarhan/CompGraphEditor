@@ -461,4 +461,5 @@ message Scene
     bool is_vulkan = 14;
     repeated RaytracingPipeline raytracing_pipelines = 15;
     repeated TopLevelAccelerationStructure top_level_acceleration_structures = 16;
+    repeated Buffer buffers = 17;
 }

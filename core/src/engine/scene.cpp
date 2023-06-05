@@ -64,10 +64,17 @@ void Scene::LoadScene()
         LogError("Could not import materials");
     }
 
+    if (LoadBuffers(scene_.buffers()) != ImportStatus::SUCCESS)
+    {
+        LogError("Could not import buffers");
+    }
+
     if(LoadDrawCommands(renderPass) != ImportStatus::SUCCESS)
     {
         LogError("Could not import draw commands");
     }
+
+
 
     const auto systemSize = scene_.systems_size();
     scripts_.clear();

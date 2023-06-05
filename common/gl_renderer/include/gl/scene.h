@@ -49,7 +49,7 @@ protected:
     ImportStatus LoadFramebuffers(const PbRepeatField<core::pb::FrameBuffer>& framebuffers) override;
     ImportStatus LoadRenderPass(const core::pb::RenderPass& renderPass) override;
     ImportStatus LoadDrawCommands(const core::pb::RenderPass &renderPass) override;
-
+    ImportStatus LoadBuffers(const PbRepeatField<core::pb::Buffer>& buffers) override;
 private:
     std::vector<Shader> shaders_;
     std::vector<Pipeline> pipelines_;

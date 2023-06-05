@@ -1,10 +1,12 @@
 #include "gl/buffer.h"
 #include "renderer/model.h"
 
+#include "gl/debug.h"
+#include "utils/log.h"
+
+#include <fmt/format.h>
 #include <glm/vec2.hpp>
 #include <glm/vec3.hpp>
-
-#include "gl/debug.h"
 
 namespace gl
 {
@@ -56,24 +58,61 @@ void VertexBuffer::Destroy()
 
 void BufferManager::Clear()
 {
-
+    for (auto& buffer : buffers_)
+    {
+        if (buffer.ssbo != 0)
+        {
+            glDeleteBuffers(1, &buffer.ssbo);
+        }
+    }
+    buffers_.clear();
 }
 
-core::BufferId BufferManager::CreateBuffer(std::size_t count, std::size_t size)
+core::BufferId BufferManager::CreateBuffer(std::string_view name, std::size_t count, std::size_t size)
 {
     const auto index = buffers_.size();
     Buffer buffer{};
     glGenBuffers(1, &buffer.ssbo);
     buffer.data.resize(count*size);
+    buffer.name = name;
+    buffer.typeSize = size;
 
     buffers_.emplace_back(buffer);
 
     return {index};
 }
 
-void* BufferManager::GetArrayBuffer(core::BufferId id)
+core::ArrayBuffer BufferManager::GetArrayBuffer(core::BufferId id)
 {
-    return buffers_[id.bufferId].data.data();
+    return
+    {
+        buffers_[id.bufferId].data.data(),
+        buffers_[id.bufferId].data.size()/buffers_[id.bufferId].typeSize
+    };
+}
+
+core::BufferId BufferManager::GetBuffer(std::string_view bufferName)
+{
+    const auto it = std::ranges::find_if(buffers_, [&bufferName](const auto& buffer)
+    {
+        return buffer.name == bufferName;
+    });
+    if(it != buffers_.end())
+    {
+        return core::BufferId{ static_cast<std::size_t>(std::distance(buffers_.begin(), it) )};
+    }
+    return {};
+}
+
+void BufferManager::CopyData(std::string_view bufferName, void* dataSrc, std::size_t length)
+{
+    const auto bufferId = GetBuffer(bufferName);
+    const auto arrayBuffer = GetArrayBuffer(bufferId);
+    if(length > arrayBuffer.length)
+    {
+        LogError(fmt::format("Copy Data Error: buffer {} has not enough allocated size. Copy size: {} Buffer size: {}", bufferName, length, arrayBuffer.length));
+    }
+    std::memcpy(arrayBuffer.data, dataSrc, length);
 }
 } // namespace gl
 

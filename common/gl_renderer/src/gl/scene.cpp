@@ -563,6 +563,16 @@ Scene::ImportStatus Scene::LoadDrawCommands(const core::pb::RenderPass &renderPa
     }
     return ImportStatus::SUCCESS;
 }
+
+Scene::ImportStatus Scene::LoadBuffers(const PbRepeatField<core::pb::Buffer>& buffers)
+{
+    for(int i = 0; i < buffers.size(); i++)
+    {
+        const auto& bufferInfo = buffers[i];
+        bufferManager_.CreateBuffer(bufferInfo.name(), bufferInfo.count(), bufferInfo.type_size());
+    }
+    return ImportStatus::SUCCESS;
+}
 }
 
 

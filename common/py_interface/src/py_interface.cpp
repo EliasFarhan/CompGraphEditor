@@ -5,6 +5,7 @@
 #include "engine/filesystem.h"
 #include "renderer/draw_command.h"
 #include "renderer/framebuffer.h"
+#include "renderer/buffer.h"
 
 #include <pybind11/pybind11.h>
 #include <pybind11/embed.h>
@@ -17,6 +18,21 @@
 
 #include "maths/angle.h"
 
+
+std::size_t GetPyTypeSize(const py::type& type)
+{
+    LogDebug(fmt::format("Python type: {}", py::str(type).cast<std::string>()));
+    //TODO read type from python code
+    return 0;
+}
+
+core::ArrayBuffer GetArrayBuffer(const core::BufferId& bufferId, const py::type& type)
+{
+    auto& bufferManager = core::GetCurrentScene()->GetBufferManager();
+    auto arrayBuffer = bufferManager.GetArrayBuffer(bufferId);
+    arrayBuffer.typeSize = GetPyTypeSize(type);
+    return arrayBuffer;
+}
 
 PYBIND11_EMBEDDED_MODULE(neko2, m)
 {
@@ -124,7 +140,7 @@ PYBIND11_EMBEDDED_MODULE(neko2, m)
                 return fmt::format("({},{})",a.x, a.y);
             })
     ;
-    py::class_<glm::vec3>(m, "Vec3")
+    py::class_<glm::vec3>(m, "Vec3", py::buffer_protocol())
 
         .def_readwrite("x", &glm::vec3::x)
         .def_readwrite("y", &glm::vec3::y)
@@ -146,10 +162,20 @@ PYBIND11_EMBEDDED_MODULE(neko2, m)
         .def_property_readonly("length", [](glm::vec3 v) {return glm::length(v); })
         .def_static("dot", [](glm::vec3 v1, glm::vec3 v2) {return glm::dot(v1, v2); })
         .def_static("cross", [](glm::vec3 v1, glm::vec3 v2) {return glm::cross(v1, v2); })
-    .def("__repr__",
-            [](const glm::vec3& a) {
-                return fmt::format("({},{},{})", a.x, a.y, a.z);
-            })
+        .def("__repr__",
+                [](const glm::vec3& a) {
+                    return fmt::format("({},{},{})", a.x, a.y, a.z);
+                })
+        .def_buffer([](glm::vec3& m) -> py::buffer_info {
+                return py::buffer_info(
+                    &m[0],                               /* Pointer to buffer */
+                    sizeof(glm::vec3),                          /* Size of one scalar */
+                    "Vec3", /* Python struct-style format descriptor */
+                    1,                                      /* Number of dimensions */
+                    { 3 },                 /* Buffer dimensions */
+                    { sizeof(glm::vec3) }
+                );
+    })
     ;
     py::class_<glm::vec4>(m, "Vec4")
         .def_readwrite("x", &glm::vec4::x)
@@ -222,7 +248,7 @@ PYBIND11_EMBEDDED_MODULE(neko2, m)
         .def_static("orthographic", [](float width, float height, float near, float far) {return glm::ortho(-width/2.0f, width/2.0f, -height/2.0f, height/2.0f, near, far); })
     ;
 
-    m.def("get_scene", [](){
+    m.def("get_scene", []{
        return core::GetCurrentScene();
     }, py::return_value_policy::reference);
 
@@ -325,9 +351,29 @@ PYBIND11_EMBEDDED_MODULE(neko2, m)
         .def_readwrite("camera", 
             &core::CameraSystem::camera,
             py::return_value_policy::reference);
+
+    py::class_<core::BufferId>(m, "Buffer")
+        .def("memory_view", [](core::BufferId bufferId, const py::handle& type)
+        {
+                auto arrayBuffer = GetArrayBuffer( bufferId, py::type::of(type));
+            return py::memoryview::from_buffer(
+                arrayBuffer.data,
+                arrayBuffer.typeSize,
+                "C/C++ Buffer",
+                { arrayBuffer.length },
+                { arrayBuffer.typeSize }
+            );
+        })
+    ;
+
     m.def("get_camera_system", []() {
         return core::GetCameraSystem();
         }, py::return_value_policy::reference);
+    m.def("get_buffer", [](std::string_view bufferName)
+        {
+            auto& bufferManager = core::GetCurrentScene()->GetBufferManager();
+            return bufferManager.GetBuffer(bufferName);
+        });
 
 }
 
@@ -417,4 +463,5 @@ Script* PyManager::LoadScript(std::string_view path, std::string_view module, st
     }
 
 }
+
 }

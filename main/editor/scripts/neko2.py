@@ -572,6 +572,9 @@ class CameraSystem(System):
         System.__init__(self)
         self.camera = Camera()
 
+class Buffer:
+    def array(self, type_name: type) -> list:
+        pass
 
 def get_window_size():
     return Vec2()
@@ -588,3 +591,6 @@ def get_scene():
 def get_camera_system():
     """Return the CameraSystem is use."""
     return CameraSystem()
+
+def get_buffer(name: str):
+    return Buffer()

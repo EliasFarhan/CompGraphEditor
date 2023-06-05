@@ -20,15 +20,37 @@ public:
  */
 struct BufferId
 {
-    std::size_t bufferId = std::numeric_limits<std::size_t>::max();
+    std::size_t bufferId = static_cast<std::size_t>(-1);
+};
+
+struct ArrayBuffer
+{
+    void* data = nullptr;
+    std::size_t length = static_cast<std::size_t>(-1);
+    std::size_t typeSize = static_cast<std::size_t>(-1);
+};
+
+template<typename T>
+struct NativeArrayBuffer
+{
+    T* data = nullptr;
+    std::size_t length = 0;
 };
 
 class BufferManager
 {
 public:
+    virtual BufferId CreateBuffer(std::string_view name, std::size_t count, std::size_t size) = 0;
     virtual void Clear() = 0;
-    virtual BufferId CreateBuffer(std::size_t count, std::size_t size) = 0;
-    virtual void* GetArrayBuffer(BufferId id) = 0;
+    virtual BufferId GetBuffer(std::string_view bufferName) = 0;
+    virtual ArrayBuffer GetArrayBuffer(BufferId id) = 0;
+    virtual void CopyData(std::string_view bufferName, void* dataSrc, std::size_t length) = 0;
+    template<typename T>
+    NativeArrayBuffer<T> GetNativeArrayBuffer(BufferId id)
+    {
+        const auto arrayBuffer = GetArrayBuffer(id);
+        return { static_cast<T*>(arrayBuffer.data), arrayBuffer.length / sizeof(T) };
+    }
 };
 
 } // namespace core

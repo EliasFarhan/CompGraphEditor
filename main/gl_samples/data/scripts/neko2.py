@@ -81,6 +81,9 @@ class Vec2:
         """Vector subtraction"""
         return Vec2()
 
+    def __neg__(self):
+        return Vec3()
+
     def __mul__(self, other: float) -> Vec2:
         """Vector multiplication with scalar"""
         return Vec2()
@@ -135,14 +138,15 @@ class Vec3:
         """Vector subtraction"""
         return Vec3()
 
-    def __neg__(self):
-        return Vec3()
-
     def __mul__(self, other: float) -> Vec3:
         """Vector multiplication with a scalar float"""
         return Vec3()
 
     def __truediv__(self, other: float) -> Vec3:
+        return Vec3()
+
+
+    def __neg__(self):
         return Vec3()
 
     def normalize(self) -> Vec3:
@@ -199,6 +203,9 @@ class Vec4:
     def __sub__(self, other: Vec4) -> Vec4:
         """Vector subtraction"""
         return Vec4()
+
+    def __neg__(self):
+        return Vec3()
 
     def __mul__(self, other: float) -> Vec4:
         """Vector multiplication with a scalar float"""
@@ -565,6 +572,9 @@ class CameraSystem(System):
         System.__init__(self)
         self.camera = Camera()
 
+class Buffer:
+    def memory_view(self, type_name: type) -> memoryview:
+        pass
 
 def get_window_size():
     return Vec2()
@@ -581,3 +591,6 @@ def get_scene():
 def get_camera_system():
     """Return the CameraSystem is use."""
     return CameraSystem()
+
+def get_buffer(name: str):
+    return Buffer()
