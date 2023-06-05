@@ -18,6 +18,7 @@ class UniformInstancingScene(System):
 
         view = self.pos_buffer.memory_view(Vec3)
         print("View: {} Itemsize: {} Nbytes: {}".format(view.format, view.itemsize, view.nbytes))
+        #print("View content: {}".format(view[0]))
         for i in range(10000):
             tmp = Vec3(random.randint(10, 50), 0.0, random.randint(10, 50))
             view[i] = memoryview(tmp)[:]
