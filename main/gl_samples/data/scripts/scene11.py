@@ -51,4 +51,4 @@ class UniformInstancingScene(System):
         draw_command.bind()
         draw_command.set_mat4("view", camera.view)
         draw_command.set_mat4("projection", camera.projection)
-        draw_command.draw_instanced(1000)
+        draw_command.draw_instanced(10000)

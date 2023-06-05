@@ -18,19 +18,43 @@
 
 #include "maths/angle.h"
 
-
-std::size_t GetPyTypeSize(const py::type& type)
+struct TypeInfo
 {
-    LogDebug(fmt::format("Python type: {}", py::str(type).cast<std::string>()));
-    //TODO read type from python code
-    return 0;
+    std::string_view pyName;
+    std::size_t typeSize;
+    std::string_view format;
+};
+
+std::pair<std::size_t, std::string_view> GetPyTypeSize(std::string_view typeString)
+{
+    static constexpr std::array<TypeInfo, 8> types =
+    {
+        {
+            {"neko2.Vec2", sizeof(glm::vec2), "@ff"},
+            {"neko2.Vec3", sizeof(glm::vec3), "@fff"},
+            {"neko2.Vec4", sizeof(glm::vec4), "@ffff"},
+            {"neko2.Mat2", sizeof(glm::mat2), "@ffff"},
+            {"neko2.Mat3", sizeof(glm::mat3), "@fffffffff"},
+            {"neko2.Mat4", sizeof(glm::mat4), "@ffffffffffffffff"},
+            {"float", sizeof(float), "f"},
+            {"int", sizeof(int), "i"},
+        }
+    };
+    for(const auto& typePair : types)
+    {
+        if(typeString.find(typePair.pyName) != std::string::npos)
+        {
+            return { typePair.typeSize, typePair.format };
+        }
+    }
+
+    return {};
 }
 
-core::ArrayBuffer GetArrayBuffer(const core::BufferId& bufferId, const py::type& type)
+core::ArrayBuffer GetArrayBuffer(const core::BufferId& bufferId)
 {
     auto& bufferManager = core::GetCurrentScene()->GetBufferManager();
     auto arrayBuffer = bufferManager.GetArrayBuffer(bufferId);
-    arrayBuffer.typeSize = GetPyTypeSize(type);
     return arrayBuffer;
 }
 
@@ -170,7 +194,7 @@ PYBIND11_EMBEDDED_MODULE(neko2, m)
                 return py::buffer_info(
                     &m[0],                               /* Pointer to buffer */
                     sizeof(glm::vec3),                          /* Size of one scalar */
-                    "Vec3", /* Python struct-style format descriptor */
+                    "fff", /* Python struct-style format descriptor */
                     1,                                      /* Number of dimensions */
                     { 3 },                 /* Buffer dimensions */
                     { sizeof(glm::vec3) }
@@ -355,13 +379,16 @@ PYBIND11_EMBEDDED_MODULE(neko2, m)
     py::class_<core::BufferId>(m, "Buffer")
         .def("memory_view", [](core::BufferId bufferId, const py::handle& type)
         {
-                auto arrayBuffer = GetArrayBuffer( bufferId, py::type::of(type));
+
+            const auto typeString = py::str(type).cast<std::string>();
+            const auto arrayBuffer = GetArrayBuffer( bufferId);
+            const auto typeInfo = GetPyTypeSize(typeString);
             return py::memoryview::from_buffer(
                 arrayBuffer.data,
-                arrayBuffer.typeSize,
-                "C/C++ Buffer",
+                typeInfo.first,
+                typeInfo.second.data(),
                 { arrayBuffer.length },
-                { arrayBuffer.typeSize }
+                { typeInfo.first }
             );
         })
     ;
