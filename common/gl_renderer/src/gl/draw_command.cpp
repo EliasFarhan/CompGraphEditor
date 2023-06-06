@@ -115,5 +115,13 @@ void DrawCommand::Bind()
 void DrawCommand::PreDrawBind()
 {
     //TODO bind transform if any
+
+    //TODO bind buffer
+    auto& bufferManager = core::GetCurrentScene()->GetBufferManager();
+    for(const auto& bufferBinding : pipeline_->GetBufferBindings())
+    {
+        const auto bufferId = bufferManager.GetBuffer(bufferBinding.name);
+        bufferManager.BindBuffer(bufferId, bufferBinding.bindingPoint);
+    }
 }
 }

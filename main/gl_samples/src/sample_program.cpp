@@ -654,6 +654,10 @@ core::pb::Scene Scene11()
     vertexShader->set_type(core::pb::VERTEX);
     vertexShader->set_path("data/shaders/scene11/model_instancing.vert");
 
+    auto* ssbo = vertexShader->add_storage_buffers();
+    ssbo->set_binding(1);
+    ssbo->set_name("positions");
+
     auto* fragmentShader = scene.add_shaders();
     fragmentShader->set_type(core::pb::FRAGMENT);
     fragmentShader->set_path("data/shaders/scene11/model_instancing.frag");
@@ -708,7 +712,7 @@ core::pb::Scene Scene11()
     auto* buffer = scene.add_buffers();
     buffer->set_count(10000);
     buffer->set_name("positions");
-    buffer->set_type_size(sizeof(glm::vec3));
+    buffer->set_type_size(sizeof(glm::vec4));
 
     auto* cameraPySystem = scene.add_systems();
     cameraPySystem->set_class_("CameraSystem");

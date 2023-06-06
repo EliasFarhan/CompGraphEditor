@@ -17,7 +17,7 @@ namespace gl
 {
 struct Texture;
 
-struct Shader
+struct Shader : core::Shader
 {
     ~Shader();
     void LoadShader(const core::pb::Shader& shader);

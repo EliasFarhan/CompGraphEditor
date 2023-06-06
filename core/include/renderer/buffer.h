@@ -26,7 +26,7 @@ struct BufferId
 struct ArrayBuffer
 {
     void* data = nullptr;
-    std::size_t length = static_cast<std::size_t>(-1);
+    std::size_t count = static_cast<std::size_t>(-1);
     std::size_t typeSize = static_cast<std::size_t>(-1);
 };
 
@@ -45,12 +45,14 @@ public:
     virtual BufferId GetBuffer(std::string_view bufferName) = 0;
     virtual ArrayBuffer GetArrayBuffer(BufferId id) = 0;
     virtual void CopyData(std::string_view bufferName, void* dataSrc, std::size_t length) = 0;
+    virtual void BindBuffer(BufferId id, int bindPoint) = 0;
     template<typename T>
     NativeArrayBuffer<T> GetNativeArrayBuffer(BufferId id)
     {
         const auto arrayBuffer = GetArrayBuffer(id);
-        return { static_cast<T*>(arrayBuffer.data), arrayBuffer.length / sizeof(T) };
+        return { static_cast<T*>(arrayBuffer.data), arrayBuffer.count / sizeof(T) };
     }
+
 };
 
 } // namespace core

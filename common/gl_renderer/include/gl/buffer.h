@@ -37,7 +37,7 @@ public:
     core::ArrayBuffer GetArrayBuffer(core::BufferId id) override;
     core::BufferId GetBuffer(std::string_view bufferName) override;
     void CopyData(std::string_view bufferName, void* dataSrc, std::size_t length) override;
-
+    void BindBuffer(core::BufferId id, int bindPoint) override;
 private:
     std::vector<Buffer> buffers_;
 };

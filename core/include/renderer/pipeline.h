@@ -10,13 +10,14 @@
 #include <string_view>
 #include <string>
 #include <array>
+#include <span>
 
 namespace core
 {
 
-class Shader
+struct Shader
 {
-
+    int shaderIndex = -1;
 };
 
 constexpr pb::ShaderType GetTypeFromExtension(std::string_view extension)
@@ -46,6 +47,12 @@ constexpr pb::ShaderType GetTypeFromExtension(std::string_view extension)
     return pb::SHADER_TYPE_COUNT;
 }
 
+struct BufferBinding
+{
+    std::string name;
+    int bindingPoint = -1;
+};
+
 class Pipeline
 {
 public:
@@ -54,9 +61,11 @@ public:
 
     void SetPipelineName(std::string_view name);
     [[nodiscard]] std::string_view GetPipelineName() const;
+    std::span<const BufferBinding> GetBufferBindings() const { return bufferBindings_; }
+protected:
+    std::vector<BufferBinding> bufferBindings_;
 private:
     std::string pipelineName_;
-
 };
 
 struct TypeInfo

@@ -118,19 +118,33 @@ void Pipeline::LoadRasterizePipeline(
     std::optional<std::reference_wrapper<Shader>> tesselationEvalShader)
 {
     const GLuint program = glCreateProgram();
+    const auto& sceneInfo = core::GetCurrentScene()->GetInfo();
+    auto addSsbo = [this](const core::pb::Shader& shaderInfo)
+    {
+        for (const auto& bufferBinding : shaderInfo.storage_buffers())
+        {
+            bufferBindings_.emplace_back(bufferBinding.name(), bufferBinding.binding());
+        }
+    };
     glAttachShader(program, vertex.name);
+    addSsbo(sceneInfo.shaders(vertex.shaderIndex));
+    
     glAttachShader(program, fragment.name);
+    addSsbo(sceneInfo.shaders(fragment.shaderIndex));
     if(geometryShader)
     {
         glAttachShader(program, geometryShader.value().get().name);
+        addSsbo(sceneInfo.shaders(geometryShader.value().get().shaderIndex));
     }
     if(tesselationControlShader)
     {
         glAttachShader(program, tesselationControlShader.value().get().name);
+        addSsbo(sceneInfo.shaders(tesselationControlShader.value().get().shaderIndex));
     }
     if(tesselationEvalShader)
     {
         glAttachShader(program, tesselationEvalShader.value().get().name);
+        addSsbo(sceneInfo.shaders(tesselationEvalShader.value().get().shaderIndex));
     }
 
     glLinkProgram(program);

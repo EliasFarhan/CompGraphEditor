@@ -23,28 +23,29 @@ struct TypeInfo
     std::string_view pyName;
     std::size_t typeSize;
     std::string_view format;
+    std::size_t elementCount;
 };
 
-std::pair<std::size_t, std::string_view> GetPyTypeSize(std::string_view typeString)
+TypeInfo GetPyTypeSize(std::string_view typeString)
 {
     static constexpr std::array<TypeInfo, 8> types =
     {
         {
-            {"neko2.Vec2", sizeof(glm::vec2), "<ff"},
-            {"neko2.Vec3", sizeof(glm::vec3), "<fff"},
-            {"neko2.Vec4", sizeof(glm::vec4), "<ffff"},
-            {"neko2.Mat2", sizeof(glm::mat2), "<ffff"},
-            {"neko2.Mat3", sizeof(glm::mat3), "<fffffffff"},
-            {"neko2.Mat4", sizeof(glm::mat4), "<ffffffffffffffff"},
-            {"float", sizeof(float), "f"},
-            {"int", sizeof(int), "i"},
+            {"neko2.Vec2", sizeof(glm::vec2), "f",2},
+            {"neko2.Vec3", sizeof(glm::vec3), "f",3},
+            {"neko2.Vec4", sizeof(glm::vec4), "f",4},
+            {"neko2.Mat2", sizeof(glm::mat2), "f",2*2},
+            {"neko2.Mat3", sizeof(glm::mat3), "f",3*3},
+            {"neko2.Mat4", sizeof(glm::mat4), "f",4*4},
+            {"float", sizeof(float), "f", 1},
+            {"int", sizeof(int), "i", 1},
         }
     };
     for(const auto& typePair : types)
     {
         if(typeString.find(typePair.pyName) != std::string::npos)
         {
-            return { typePair.typeSize, typePair.format };
+            return typePair;
         }
     }
 
@@ -139,7 +140,7 @@ PYBIND11_EMBEDDED_MODULE(neko2, m)
         ;
             
 
-    py::class_<glm::vec2>(m, "Vec2")
+    py::class_<glm::vec2>(m, "Vec2", py::buffer_protocol())
         .def_readwrite("x", &glm::vec2::x)
         .def_readwrite("y", &glm::vec2::y)
         .def(py::init<>())
@@ -162,6 +163,16 @@ PYBIND11_EMBEDDED_MODULE(neko2, m)
         .def("__repr__",
             [](const glm::vec2& a) {
                 return fmt::format("({},{})",a.x, a.y);
+            })
+        .def_buffer([](glm::vec2& m) -> py::buffer_info {
+                return py::buffer_info(
+                    &m[0],                               /* Pointer to buffer */
+                    sizeof(glm::vec2),                          /* Size of one scalar */
+                    ">ff", /* Python struct-style format descriptor */
+                    1,                                      /* Number of dimensions */
+                    { 2 },                 /* Buffer dimensions */
+                    { sizeof(glm::vec2) }
+                );
             })
     ;
     py::class_<glm::vec3>(m, "Vec3", py::buffer_protocol())
@@ -193,15 +204,15 @@ PYBIND11_EMBEDDED_MODULE(neko2, m)
         .def_buffer([](glm::vec3& m) -> py::buffer_info {
                 return py::buffer_info(
                     &m[0],                               /* Pointer to buffer */
-                    sizeof(glm::vec3),                          /* Size of one scalar */
-                    ">fff", /* Python struct-style format descriptor */
+                    sizeof(float),                          /* Size of one scalar */
+                    py::format_descriptor<float>::format(), /* Python struct-style format descriptor */
                     1,                                      /* Number of dimensions */
                     { 3 },                 /* Buffer dimensions */
-                    { sizeof(glm::vec3) }
+                    { sizeof(float) }
                 );
     })
     ;
-    py::class_<glm::vec4>(m, "Vec4")
+    py::class_<glm::vec4>(m, "Vec4", py::buffer_protocol())
         .def_readwrite("x", &glm::vec4::x)
         .def_readwrite("y", &glm::vec4::y)
         .def_readwrite("z", &glm::vec4::z)
@@ -227,8 +238,18 @@ PYBIND11_EMBEDDED_MODULE(neko2, m)
             [](const glm::vec4& a) {
                 return fmt::format("({},{},{},{})", a.x, a.y, a.z, a.w);
             })
+        .def_buffer([](glm::vec4& m) -> py::buffer_info {
+                return py::buffer_info(
+                    &m[0],                               /* Pointer to buffer */
+                    sizeof(glm::vec4),                          /* Size of one scalar */
+                    ">ffff", /* Python struct-style format descriptor */
+                    1,                                      /* Number of dimensions */
+                    { 4 },                 /* Buffer dimensions */
+                    { sizeof(glm::vec4) }
+                );
+            })
         ;
-    py::class_<glm::mat3>(m, "Mat3")
+    py::class_<glm::mat3>(m, "Mat3", py::buffer_protocol())
         .def(py::init<>())
         .def(py::init<float>())
         .def(py::init<const glm::mat4&>())
@@ -245,9 +266,19 @@ PYBIND11_EMBEDDED_MODULE(neko2, m)
         .def(float() * py::self)
         .def("inverse", [](const glm::mat3& m) {return glm::inverse(m); })
         .def("transpose", [](const glm::mat3& m) {return glm::transpose(m); })
+        .def_buffer([](glm::mat3& m) -> py::buffer_info {
+        return py::buffer_info(
+            &m[0],                               /* Pointer to buffer */
+            sizeof(float),                          /* Size of one scalar */
+            py::format_descriptor<float>::format(), /* Python struct-style format descriptor */
+            2,                                      /* Number of dimensions */
+            { 3,3 },                 /* Buffer dimensions */
+            { sizeof(float)*3, sizeof(float)}
+        );
+            })
     ;
 
-    py::class_<glm::mat4>(m, "Mat4")
+    py::class_<glm::mat4>(m, "Mat4", py::buffer_protocol())
         .def(py::init<>())
         .def(py::init<float>())
         .def(py::init<const glm::mat3&>())
@@ -270,6 +301,16 @@ PYBIND11_EMBEDDED_MODULE(neko2, m)
         .def_static("view", [](glm::vec3 eye, glm::vec3 center, glm::vec3 up) {return glm::lookAt(eye, center, up); })
         .def_static("perspective", [](float fovRadian, float aspect, float near, float far) {return glm::perspective(fovRadian, aspect, near, far); })
         .def_static("orthographic", [](float width, float height, float near, float far) {return glm::ortho(-width/2.0f, width/2.0f, -height/2.0f, height/2.0f, near, far); })
+        .def_buffer([](glm::mat4& m) -> py::buffer_info {
+        return py::buffer_info(
+            &m[0],                               /* Pointer to buffer */
+            sizeof(float),                          /* Size of one scalar */
+            py::format_descriptor<float>::format(), /* Python struct-style format descriptor */
+            2,                                      /* Number of dimensions */
+            { 4,4 },                 /* Buffer dimensions */
+            { sizeof(float) * 4, sizeof(float) }
+        );
+            })
     ;
 
     m.def("get_scene", []{
@@ -376,7 +417,7 @@ PYBIND11_EMBEDDED_MODULE(neko2, m)
             &core::CameraSystem::camera,
             py::return_value_policy::reference);
 
-    py::class_<core::BufferId>(m, "Buffer")
+    py::class_<core::BufferId>(m, "Buffer", py::buffer_protocol())
         .def("memory_view", [](core::BufferId bufferId, const py::handle& type)
         {
             const auto typeString = py::str(type).cast<std::string>();
@@ -384,10 +425,22 @@ PYBIND11_EMBEDDED_MODULE(neko2, m)
             const auto typeInfo = GetPyTypeSize(typeString);
             return py::memoryview::from_buffer(
                 arrayBuffer.data,
-                typeInfo.first,
-                typeInfo.second.data(),
-                { arrayBuffer.length },
-                { typeInfo.first }
+                typeInfo.typeSize,
+                typeInfo.format.data(),
+                { arrayBuffer.count },
+                { arrayBuffer.typeSize }
+            );
+        })
+        .def_buffer([](core::BufferId bufferId)
+        {
+            const auto arrayBuffer = GetArrayBuffer(bufferId);
+            return py::buffer_info(
+                arrayBuffer.data,                               /* Pointer to buffer */
+                sizeof(float),                          /* Size of one scalar */
+                py::format_descriptor<float>::format(), /* Python struct-style format descriptor */
+                2,                                      /* Number of dimensions */
+                { static_cast<int>(arrayBuffer.count), 4 },                 /* Buffer dimensions */
+                { arrayBuffer.typeSize, sizeof(float) }
             );
         })
     ;

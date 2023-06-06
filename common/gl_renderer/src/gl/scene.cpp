@@ -55,6 +55,7 @@ Scene::ImportStatus Scene::LoadShaders(
     {
         auto& shaderPb = shadersPb.at(i);
         shaders_[i].LoadShader(shaderPb);
+        shaders_[i].shaderIndex = i;
     }
 
     return ImportStatus::SUCCESS;

@@ -73,6 +73,10 @@ core::BufferId BufferManager::CreateBuffer(std::string_view name, std::size_t co
     const auto index = buffers_.size();
     Buffer buffer{};
     glGenBuffers(1, &buffer.ssbo);
+    glBindBuffer(GL_SHADER_STORAGE_BUFFER, buffer.ssbo);
+    glBufferData(GL_SHADER_STORAGE_BUFFER, count*size, nullptr, GL_DYNAMIC_DRAW); //sizeof(data) only works for statically sized C/C++ arrays.
+    //glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 3, ssbo);
+    glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0); // unbind
     buffer.data.resize(count*size);
     buffer.name = name;
     buffer.typeSize = size;
@@ -84,10 +88,12 @@ core::BufferId BufferManager::CreateBuffer(std::string_view name, std::size_t co
 
 core::ArrayBuffer BufferManager::GetArrayBuffer(core::BufferId id)
 {
+    auto& bufferInfo = buffers_[id.bufferId];
     return
     {
-        buffers_[id.bufferId].data.data(),
-        buffers_[id.bufferId].data.size()/buffers_[id.bufferId].typeSize
+        bufferInfo.data.data(),
+        bufferInfo.data.size()/ bufferInfo.typeSize,
+        bufferInfo.typeSize
     };
 }
 
@@ -108,11 +114,19 @@ void BufferManager::CopyData(std::string_view bufferName, void* dataSrc, std::si
 {
     const auto bufferId = GetBuffer(bufferName);
     const auto arrayBuffer = GetArrayBuffer(bufferId);
-    if(length > arrayBuffer.length)
+    if(length > arrayBuffer.count)
     {
-        LogError(fmt::format("Copy Data Error: buffer {} has not enough allocated size. Copy size: {} Buffer size: {}", bufferName, length, arrayBuffer.length));
+        LogError(fmt::format("Copy Data Error: buffer {} has not enough allocated size. Copy size: {} Buffer size: {}", bufferName, length, arrayBuffer.count));
     }
     std::memcpy(arrayBuffer.data, dataSrc, length);
+}
+
+void BufferManager::BindBuffer(core::BufferId id, int bindPoint)
+{
+    const auto& buffer = buffers_[id.bufferId];
+    glBindBuffer(GL_SHADER_STORAGE_BUFFER, buffer.ssbo);
+    glBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, buffer.data.size(), buffer.data.data()); //to update partially
+    glBindBufferBase(GL_SHADER_STORAGE_BUFFER, bindPoint, buffer.ssbo);
 }
 } // namespace gl
 
