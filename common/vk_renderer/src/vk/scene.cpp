@@ -877,6 +877,11 @@ Scene::ImportStatus Scene::LoadDrawCommands(const core::pb::RenderPass& renderPa
     return Scene::ImportStatus::SUCCESS;
 }
 
+Scene::ImportStatus Scene::LoadBuffers(const PbRepeatField<core::pb::Buffer>& buffers)
+{
+    return ImportStatus::FAILURE;
+}
+
 void Scene::ResizeWindow()
 {
     auto& driver = GetDriver();
