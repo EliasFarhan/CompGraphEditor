@@ -243,7 +243,10 @@ void RenderPassEditor::DrawCenterView()
             const auto& commandPath = subpass.command_paths(commandIndex);
             const auto commandResource = resourceManager.FindResourceByPath(commandPath);
             const auto& commandInfo = commandEditor->GetCommand(commandResource);
-            ImGui::Text("%s", commandInfo->info.draw_command().name().c_str());
+            if (commandInfo != nullptr)
+            {
+                ImGui::Text("%s", commandInfo->info.draw_command().name().c_str());
+            }
         }
 
         ImNodes::EndNode();

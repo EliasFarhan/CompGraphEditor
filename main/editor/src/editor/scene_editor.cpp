@@ -516,9 +516,11 @@ bool SceneEditor::ExportAndPlayScene() const
                     else //framebuffer attachment for sampler
                     {
                         bool isValid = false;
-                        for (const auto& framebufferPb : currentScene.info.framebuffers())
+                        for (const auto& framebufferPb : exportScene.framebuffers())
                         {
-                            if (framebufferPb.name() == editorMaterialTexture.material_texture().framebuffer_name())
+                            const auto& framebufferName = framebufferPb.name();
+                            const auto& materialSamplerFramebufferName = editorMaterialTexture.material_texture().framebuffer_name();
+                            if (framebufferName == materialSamplerFramebufferName)
                             {
                                 for (const auto& colorAttachment : framebufferPb.color_attachments())
                                 {
