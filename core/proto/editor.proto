@@ -63,6 +63,7 @@ message EditorDrawCommand
     //for the editor
     string material_path = 7;
     string mesh_path = 8;
+    string buffer_path = 2;
 }
 
 

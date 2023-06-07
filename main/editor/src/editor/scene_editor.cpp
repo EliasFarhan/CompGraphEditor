@@ -14,6 +14,7 @@
 #include <pybind11/pybind11.h>
 #include <nlohmann/json.hpp>
 
+#include "buffer_editor.h"
 #include "material_editor.h"
 #include "mesh_editor.h"
 #include "pipeline_editor.h"
@@ -381,6 +382,7 @@ bool SceneEditor::ExportAndPlayScene() const
     const auto* scriptEditor = dynamic_cast<ScriptEditor*>(editor->GetEditorSystem(EditorType::SCRIPT));
     auto* textureEditor = dynamic_cast<TextureEditor*>(editor->GetEditorSystem(EditorType::TEXTURE));
     auto* framebufferEditor = dynamic_cast<FramebufferEditor*>(editor->GetEditorSystem(EditorType::FRAMEBUFFER));
+    auto* bufferEditor = dynamic_cast<BufferEditor*>(editor->GetEditorSystem(EditorType::BUFFER));
     //TODO reload all editors to get all correct resourceId
     commandEditor->ReloadId();
     const auto& currentScene = sceneInfos_[currentIndex_];
@@ -452,6 +454,7 @@ bool SceneEditor::ExportAndPlayScene() const
                 LogWarning(fmt::format("Could not export scene, missing material in command. Command {}", exportCommand->name()));
                 return false;
             }
+            int exportedPipelineIndex = -1;
             //link material index
             const auto* material = materialEditor->GetMaterial(editorCommand->materialId);
             auto materialIndexIt = resourceIndexMap.find(material->resourceId);
@@ -625,6 +628,7 @@ bool SceneEditor::ExportAndPlayScene() const
                         newPipeline->set_tess_eval_shader_index(shaderExportFunc(pipeline->tessEvalShaderId));
 
                         newMaterial->set_pipeline_index(pipelineIndex);
+                        exportedPipelineIndex = pipelineIndex;
                         break;
                     }
                     case core::pb::Pipeline_Type_COMPUTE:
@@ -643,6 +647,7 @@ bool SceneEditor::ExportAndPlayScene() const
                     case core::pb::Pipeline_Type_RAYTRACING:
                     {
                         int raytracingPipelineIndex = exportScene.raytracing_pipelines_size();
+                        
                         auto* raytracingPipeline = exportScene.add_raytracing_pipelines();
                         newPipeline->set_raytracing_pipeline_index(raytracingPipelineIndex);
                         *raytracingPipeline = pipeline->raytracingInfo.pipeline();
@@ -684,6 +689,8 @@ bool SceneEditor::ExportAndPlayScene() const
                 else
                 {
                     newMaterial->set_pipeline_index(pipelineIndexIt->second);
+
+                    exportedPipelineIndex = pipelineIndexIt->second;
                 }
                 exportCommand->set_material_index(materialIndex);
             }
@@ -735,6 +742,55 @@ bool SceneEditor::ExportAndPlayScene() const
             else
             {
                 exportCommand->set_mesh_index(meshIndexIt->second);
+            }
+            //link buffer
+            if(editorCommand->resourceId == INVALID_RESOURCE_ID)
+            {
+                const auto* material = materialEditor->GetMaterial(editorCommand->materialId);
+                const auto* pipeline = pipelineEditor->GetPipeline(material->pipelineId);
+                const std::array resourceIds =
+                {
+                    pipeline->vertexShaderId,
+                    pipeline->fragmentShaderId,
+                    pipeline->geometryShaderId,
+                    pipeline->tessControlShaderId,
+                    pipeline->tessEvalShaderId,
+                    pipeline->computeShaderId,
+                    pipeline->rayGenShaderId,
+                    pipeline->missHitShaderId,
+                    pipeline->anyHitShaderId,
+                    pipeline->closestHitShaderId,
+                    pipeline->intersectionHitShaderId,
+                };
+                for(auto resourceId: resourceIds)
+                {
+                    auto* shader = shaderEditor->GetShader(resourceId);
+                    if(shader == nullptr)
+                    {
+                        continue;
+                    }
+                    if(shader->info.storage_buffers_size() > 0)
+                    {
+                        LogWarning(fmt::format("Could not export scene, missing buffer binding in command. Command: {}", editorCommand->path));
+                        return false;
+                    }
+                }
+            }
+            else
+            {
+                const auto it = resourceIndexMap.find(editorCommand->bufferId);
+                if(it == resourceIndexMap.end())
+                {
+                    auto* buffer = bufferEditor->GetBuffer(editorCommand->bufferId);
+                    int bufferIndex = exportScene.buffers_size();
+                    auto* newBuffer = exportScene.add_buffers();
+                    *newBuffer = buffer->info;
+                    resourceIndexMap[editorCommand->bufferId] = bufferIndex;
+                }
+                else
+                {
+                    exportCommand->set_buffer_index(it->second);
+                }
             }
         }
     }

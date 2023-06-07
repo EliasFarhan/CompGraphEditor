@@ -712,7 +712,7 @@ core::pb::Scene Scene11()
     auto* buffer = scene.add_buffers();
     buffer->set_count(10000);
     buffer->set_name("positions");
-    buffer->set_type_size(sizeof(glm::vec4));
+    buffer->set_type(core::pb::Attribute_Type_VEC3);
 
     auto* cameraPySystem = scene.add_systems();
     cameraPySystem->set_class_("CameraSystem");

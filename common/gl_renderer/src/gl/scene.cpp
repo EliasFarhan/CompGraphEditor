@@ -567,10 +567,10 @@ Scene::ImportStatus Scene::LoadDrawCommands(const core::pb::RenderPass &renderPa
 
 Scene::ImportStatus Scene::LoadBuffers(const PbRepeatField<core::pb::Buffer>& buffers)
 {
-    for(int i = 0; i < buffers.size(); i++)
+    for (const auto& bufferInfo : buffers)
     {
-        const auto& bufferInfo = buffers[i];
-        bufferManager_.CreateBuffer(bufferInfo.name(), bufferInfo.count(), bufferInfo.type_size());
+        const auto typeInfo = core::GetTypeInfo(bufferInfo.type());
+        bufferManager_.CreateBuffer(bufferInfo.name(), bufferInfo.count(), typeInfo.size);
     }
     return ImportStatus::SUCCESS;
 }

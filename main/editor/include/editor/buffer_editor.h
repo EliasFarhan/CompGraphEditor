@@ -1,25 +1,19 @@
 #pragma once
-#include <string>
-
-#include "editor_system.h"
-#include "resource.h"
-#include "proto/editor.pb.h"
+#include "editor.h"
+#include "proto/renderer.pb.h"
 
 namespace editor
 {
 
-struct CommandInfo
+struct BufferInfo
 {
-    std::string filename;
     std::string path;
-    pb::EditorDrawCommand info;
+    std::string filename;
+    core::pb::Buffer info;
     ResourceId resourceId = INVALID_RESOURCE_ID;
-    ResourceId materialId = INVALID_RESOURCE_ID;
-    ResourceId meshId = INVALID_RESOURCE_ID;
-    ResourceId bufferId = INVALID_RESOURCE_ID;
 };
 
-class CommandEditor final : public EditorSystem
+class BufferEditor final : public EditorSystem
 {
 public:
     void AddResource(const Resource& resource) override;
@@ -29,20 +23,17 @@ public:
     bool DrawContentList(bool unfocus) override;
     std::string_view GetSubFolder() override;
     EditorType GetEditorType() override;
-    void Save() override;
-
-    const auto& GetCommands() const { return commandInfos_; }
-    CommandInfo* GetCommand(ResourceId resourceId);
     void ReloadId() override;
     void Delete() override;
-    void UpdateMeshInCommand(int index);
     [[nodiscard]] std::span<const std::string_view> GetExtensions() const override;
     void Clear() override;
+    void Save() override;
+    BufferInfo* GetBuffer(ResourceId resourceId);
+    std::span<BufferInfo> GetBuffers() { return buffersInfo_; }
+
 private:
-
-    std::vector<CommandInfo> commandInfos_;
+    std::vector<BufferInfo> buffersInfo_;
     std::size_t currentIndex_ = -1;
-
 };
 
-} // namespace gpr5300
+}

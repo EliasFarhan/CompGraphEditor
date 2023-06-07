@@ -14,7 +14,7 @@ class UniformInstancingScene(System):
         self.center_mass = 1000.0
         self.planet_mass = 1.0
 
-        view = memoryview(self.pos_buffer)#.memory_view(Vec3)
+        view = self.pos_buffer.memory_view(Vec3)
         print("View: {} Itemsize: {} Nbytes: {}".format(view.format, view.itemsize, view.nbytes))
         print("View content: {}".format(view[0, 0]))
         for i in range(self.count):
@@ -33,7 +33,7 @@ class UniformInstancingScene(System):
         pass
 
     def update(self, dt: float):
-        view = memoryview(self.pos_buffer)
+        view = self.pos_buffer.memory_view(Vec3)
         pos = Vec3()
         for i in range(self.count):
             pos_view = memoryview(pos)

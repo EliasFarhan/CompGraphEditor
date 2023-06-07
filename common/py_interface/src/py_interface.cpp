@@ -22,8 +22,9 @@ struct TypeInfo
 {
     std::string_view pyName;
     std::size_t typeSize;
+    std::size_t formatSize;
     std::string_view format;
-    std::size_t elementCount;
+    std::pair<std::size_t, std::size_t> elementCount;
 };
 
 TypeInfo GetPyTypeSize(std::string_view typeString)
@@ -31,14 +32,14 @@ TypeInfo GetPyTypeSize(std::string_view typeString)
     static constexpr std::array<TypeInfo, 8> types =
     {
         {
-            {"neko2.Vec2", sizeof(glm::vec2), "f",2},
-            {"neko2.Vec3", sizeof(glm::vec3), "f",3},
-            {"neko2.Vec4", sizeof(glm::vec4), "f",4},
-            {"neko2.Mat2", sizeof(glm::mat2), "f",2*2},
-            {"neko2.Mat3", sizeof(glm::mat3), "f",3*3},
-            {"neko2.Mat4", sizeof(glm::mat4), "f",4*4},
-            {"float", sizeof(float), "f", 1},
-            {"int", sizeof(int), "i", 1},
+            {"neko2.Vec2", sizeof(glm::vec2),sizeof(float), "f",{2,1}},
+            {"neko2.Vec3", sizeof(glm::vec3),sizeof(float), "f",{3,1}},
+            {"neko2.Vec4", sizeof(glm::vec4),sizeof(float), "f",{4,1}},
+            {"neko2.Mat2", sizeof(glm::mat2),sizeof(float), "f",{2, 2}},
+            {"neko2.Mat3", sizeof(glm::mat3),sizeof(float), "f",{3, 3}},
+            {"neko2.Mat4", sizeof(glm::mat4),sizeof(float), "f",{4, 4}},
+            {"float", sizeof(float), sizeof(float), "f", {1, 1}},
+            {"int", sizeof(int),sizeof(int), "i", {1, 1}},
         }
     };
     for(const auto& typePair : types)
@@ -167,11 +168,11 @@ PYBIND11_EMBEDDED_MODULE(neko2, m)
         .def_buffer([](glm::vec2& m) -> py::buffer_info {
                 return py::buffer_info(
                     &m[0],                               /* Pointer to buffer */
-                    sizeof(glm::vec2),                          /* Size of one scalar */
-                    ">ff", /* Python struct-style format descriptor */
+                    sizeof(float),                          /* Size of one scalar */
+                    py::format_descriptor<float>::format(), /* Python struct-style format descriptor */
                     1,                                      /* Number of dimensions */
                     { 2 },                 /* Buffer dimensions */
-                    { sizeof(glm::vec2) }
+                    { sizeof(float) }
                 );
             })
     ;
@@ -241,11 +242,11 @@ PYBIND11_EMBEDDED_MODULE(neko2, m)
         .def_buffer([](glm::vec4& m) -> py::buffer_info {
                 return py::buffer_info(
                     &m[0],                               /* Pointer to buffer */
-                    sizeof(glm::vec4),                          /* Size of one scalar */
-                    ">ffff", /* Python struct-style format descriptor */
+                    sizeof(float),                          /* Size of one scalar */
+                    py::format_descriptor<float>::format(), /* Python struct-style format descriptor */
                     1,                                      /* Number of dimensions */
                     { 4 },                 /* Buffer dimensions */
-                    { sizeof(glm::vec4) }
+                    { sizeof(float) }
                 );
             })
         ;
@@ -423,13 +424,26 @@ PYBIND11_EMBEDDED_MODULE(neko2, m)
             const auto typeString = py::str(type).cast<std::string>();
             const auto arrayBuffer = GetArrayBuffer( bufferId);
             const auto typeInfo = GetPyTypeSize(typeString);
-            return py::memoryview::from_buffer(
-                arrayBuffer.data,
-                typeInfo.typeSize,
-                typeInfo.format.data(),
-                { arrayBuffer.count },
-                { arrayBuffer.typeSize }
-            );
+            if (typeInfo.elementCount.second == 1)
+            {
+                return py::memoryview::from_buffer(
+                    arrayBuffer.data,
+                    typeInfo.formatSize,
+                    typeInfo.format.data(),
+                    { arrayBuffer.count, typeInfo.elementCount.first },
+                    { arrayBuffer.typeSize, typeInfo.formatSize }
+                );
+            }
+            else
+            {
+                return py::memoryview::from_buffer(
+                    arrayBuffer.data,
+                    typeInfo.formatSize,
+                    typeInfo.format.data(),
+                    { arrayBuffer.count, typeInfo.elementCount.first, typeInfo.elementCount.second },
+                    { arrayBuffer.typeSize, typeInfo.formatSize*typeInfo.elementCount.second }
+                );
+            }
         })
         .def_buffer([](core::BufferId bufferId)
         {

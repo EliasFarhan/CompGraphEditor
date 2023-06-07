@@ -378,7 +378,7 @@ message Transform
 message Buffer
 {
     uint64 count = 1;
-    uint64 type_size = 2;
+    Attribute.Type type = 2;
     string name = 3;
 }
 

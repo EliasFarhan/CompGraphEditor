@@ -73,6 +73,7 @@ def analyze_gl_shader(shader_path: str):
     in_attributes = []
     out_attributes = []
     structs = []
+    buffers = []
     compute = False
     vertex = False
     fragment = False
@@ -131,6 +132,13 @@ def analyze_gl_shader(shader_path: str):
             return 'int'
         return 'undefined'
 
+    def get_binding(line: str):
+        split_line = line[line.index(':') + 1:].split(',')
+        for elem in split_line:
+            if 'binding' in elem:
+                return int(elem.split(' ')[-1])
+        return -1
+
     def get_type_name(line: str):
         split_line = line[line.index(':')+1:].split(',')
         for elem in split_line:
@@ -186,7 +194,11 @@ def analyze_gl_shader(shader_path: str):
             out_variable = {"type_name": get_type_name(line), "name": output_name}
             out_attributes.append(out_variable)
         elif mode == Mode.UNIFORM_BLOCK:
-            pass
+            if ":" not in line:
+                continue
+            buffer_name = line[0:line.index(":")]
+            buffer = {"name": buffer_name, "binding": get_binding(line)}
+            buffers.append(buffer)
         elif mode == Mode.BUFFER_BLOCK:
             pass
 
@@ -242,6 +254,7 @@ def analyze_gl_shader(shader_path: str):
     meta_content["uniforms"] = uniforms
     meta_content["in_attributes"] = in_attributes
     meta_content["out_attributes"] = out_attributes
+    meta_content["buffers"] = buffers
     meta_content["structs"] = structs
     #print(result)
     #print(json.dumps(meta_content, indent=2))
@@ -250,6 +263,7 @@ def analyze_gl_shader(shader_path: str):
 def main():
     print(analyze_gl_shader("../../gl_samples/data/shaders/scene10/model_instancing.vert"))
     print(analyze_gl_shader("../../gl_samples/data/shaders/scene11/model_instancing.vert"))
+    print(analyze_gl_shader("../../gl_samples/data/shaders/scene11/model_uniform_block.vert"))
     #print(analyze_gl_shader("../../gl_samples/data/shaders/scene06/rotated_cube_ubo.vert"))
     #print(analyze_gl_shader("../../gl_samples/data/shaders/scene06/rotated_cube_ubo_block.vert"))
     #print(analyze_gl_shader("../../gl_samples/data/shaders/scene09/skybox.frag"))

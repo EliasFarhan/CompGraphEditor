@@ -217,6 +217,17 @@ void ShaderEditor::DrawInspector()
         }
         ImGui::EndListBox();
     }
+
+    if (ImGui::BeginListBox("Buffers"))
+    {
+        for (int i = 0; i < currentShaderInfo.info.storage_buffers_size(); i++)
+        {
+            const auto& bufferInfo = currentShaderInfo.info.storage_buffers(i);
+            const auto text = fmt::format("Name: {} Binding: {}", bufferInfo.name(), bufferInfo.binding());
+            ImGui::Selectable(text.c_str(), false);
+        }
+        ImGui::EndListBox();
+    }
 }
 
 void ShaderEditor::DrawCenterView()
@@ -435,7 +446,7 @@ bool ShaderEditor::AnalyzeShader(std::string_view path, core::pb::Shader& shader
         shaderInfo.mutable_structs()->Clear();
         for(auto& structJson: structsJson)
         {
-            auto structName = structJson["name"].get<std::string>();
+            const auto structName = structJson["name"].get<std::string>();
             const auto size = structJson["size"].get<int>();
             const auto alignment = structJson["alignment"].get<int>();
 
@@ -453,6 +464,16 @@ bool ShaderEditor::AnalyzeShader(std::string_view path, core::pb::Shader& shader
                 attribute->set_type_name(typeName);
                 attribute->set_type(type);
             }
+        }
+        auto& buffersJson = shaderJson["buffers"];
+        shaderInfo.mutable_storage_buffers()->Clear();
+        for(auto& bufferJson: buffersJson)
+        {
+            const auto name = bufferJson["name"].get<std::string>();
+            const auto binding = bufferJson["binding"].get<int>();
+            auto* buffer = shaderInfo.add_storage_buffers();
+            buffer->set_name(name);
+            buffer->set_binding(binding);
         }
         return true;
     }

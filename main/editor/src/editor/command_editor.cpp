@@ -14,6 +14,8 @@
 #include <array>
 #include <fstream>
 
+#include "shader_editor.h"
+
 namespace editor
 {
 void CommandEditor::AddResource(const Resource& resource)
@@ -91,6 +93,8 @@ void CommandEditor::DrawInspector()
     auto* materialEditor = dynamic_cast<MaterialEditor*>(editor->GetEditorSystem(EditorType::MATERIAL));
     auto* meshEditor = dynamic_cast<MeshEditor*>(editor->GetEditorSystem(EditorType::MESH));
     auto* pipelineEditor = dynamic_cast<PipelineEditor*>(editor->GetEditorSystem(EditorType::PIPELINE));
+    auto* shaderEditor = dynamic_cast<ShaderEditor*>(editor->GetEditorSystem(EditorType::SHADER));
+    auto* bufferEditor = dynamic_cast<BufferEditor*>(editor->GetEditorSystem(EditorType::BUFFER));
     auto& currentCommand = commandInfos_[currentIndex_];
 
     //name editor
@@ -133,6 +137,57 @@ void CommandEditor::DrawInspector()
     auto* pipelineInfo = pipelineEditor->GetPipeline(materialInfo->pipelineId);
     if (pipelineInfo == nullptr)
         return;
+
+    std::array resourceIds = {
+        pipelineInfo->vertexShaderId,
+        pipelineInfo->fragmentShaderId,
+        pipelineInfo->geometryShaderId,
+        pipelineInfo->tessControlShaderId,
+        pipelineInfo->tessEvalShaderId,
+        pipelineInfo->computeShaderId,
+        pipelineInfo->rayGenShaderId,
+        pipelineInfo->anyHitShaderId,
+        pipelineInfo->closestHitShaderId,
+        pipelineInfo->intersectionHitShaderId,
+        pipelineInfo->missHitShaderId,
+    };
+    core::pb::Attribute ssbo{};
+    ssbo.set_binding(-1);
+    const auto checkSsboPresence = [&resourceIds, shaderEditor, pipelineInfo, &ssbo](ResourceId shaderId)
+    {
+        if (shaderId == INVALID_RESOURCE_ID)
+            return;
+
+        const auto* shaderInfo = shaderEditor->GetShader(pipelineInfo->vertexShaderId);
+        if(shaderInfo->info.storage_buffers_size() == 0)
+            return;
+        const auto& storage_buffer = shaderInfo->info.storage_buffers(0);
+        ssbo.set_binding(storage_buffer.binding());
+        ssbo.set_name(storage_buffer.name());
+    };
+    for(const auto resourceId : resourceIds)
+    {
+        checkSsboPresence(resourceId);
+    }
+    if(ssbo.binding() != -1)
+    {
+        const auto buffers = bufferEditor->GetBuffers();
+        const auto& currentBuffer = currentCommand.info.buffer_path();
+        
+        if(ImGui::BeginCombo("Storage Buffer", currentBuffer.empty()? "No Buffer": currentBuffer.data()))
+        {
+            for(const auto& buffer: buffers)
+            {
+                if(ImGui::Selectable(buffer.path.data(), !currentBuffer.empty() && buffer.path == currentBuffer))
+                {
+                    currentCommand.info.set_buffer_path(buffer.path);
+                    currentCommand.bufferId = buffer.resourceId;
+                }
+            }
+            ImGui::EndCombo();
+        }
+    }
+
     switch(pipelineInfo->info.pipeline().type())
     {
     case core::pb::Pipeline_Type_RASTERIZE:
@@ -240,6 +295,8 @@ void CommandEditor::DrawInspector()
     default:
         break;
     }
+
+
 }
 
 bool CommandEditor::DrawContentList(bool unfocus)
@@ -310,6 +367,12 @@ void CommandEditor::ReloadId()
         {
             commandInfo.meshId = resourceManager.FindResourceByPath(commandInfo.info.mesh_path());
         }
+
+        if(commandInfo.bufferId == INVALID_RESOURCE_ID && !commandInfo.info.buffer_path().empty())
+        {
+            commandInfo.bufferId = resourceManager.FindResourceByPath(commandInfo.info.buffer_path());
+        }
+
         UpdateMeshInCommand(std::distance(commandInfos_.data(), &commandInfo));
     }
 }

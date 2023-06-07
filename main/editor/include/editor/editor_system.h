@@ -20,6 +20,7 @@ enum class EditorType
     SCRIPT,
     MODEL,
     FRAMEBUFFER,
+    BUFFER,
     LENGTH
 };
 

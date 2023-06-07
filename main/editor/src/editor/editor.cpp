@@ -22,6 +22,7 @@
 #include "texture_editor.h"
 #include "framebuffer_editor.h"
 #include "pbr_utils.h"
+#include "buffer_editor.h"
 
 
 #include <filesystem>
@@ -46,7 +47,7 @@ void Editor::Begin()
     editorSystems_[static_cast<std::size_t>(EditorType::FRAMEBUFFER)] = std::make_unique<FramebufferEditor>();
     editorSystems_[static_cast<std::size_t>(EditorType::RENDER_PASS)] = std::make_unique<RenderPassEditor>();
     editorSystems_[static_cast<std::size_t>(EditorType::SCENE)] = std::make_unique<SceneEditor>();
-    
+    editorSystems_[static_cast<std::size_t>(EditorType::BUFFER)] = std::make_unique<BufferEditor>();
     resourceManager_.RegisterResourceChange(this);
     py::initialize_interpreter();
     const auto& filesystem = core::FilesystemLocator::get();
@@ -270,6 +271,16 @@ void Editor::CreateNewFile(std::string_view path, EditorType type)
     {
         core::pb::FrameBuffer emptyFramebuffer;
         filesystem.WriteString(path, emptyFramebuffer.SerializeAsString());
+        resourceManager_.AddResource(path);
+        break;
+    }
+    case EditorType::BUFFER:
+    {
+        core::pb::Buffer emptyBuffer{};
+        emptyBuffer.set_type(core::pb::Attribute_Type_CUSTOM);
+        emptyBuffer.set_count(-1);
+        const auto content = emptyBuffer.SerializeAsString();
+        filesystem.WriteString(path, content);
         resourceManager_.AddResource(path);
         break;
     }
@@ -590,6 +601,23 @@ void Editor::LoadFileIntoEditor(std::string_view path)
         }
 
         RecursiveSceneFileReload();
+        const auto& filesystem = core::FilesystemLocator::get();
+        for (const auto& editorSystem : editorSystems_)
+        {
+            if (!editorSystem && editorSystem->GetEditorType() != EditorType::SCENE)
+                continue;
+            const auto subFolder = fmt::format("{}{}/{}",
+                ResourceManager::dataFolder,
+                sceneEditor->GetCurrentSceneInfo()->info.name(),
+                editorSystem->GetSubFolder());
+            if (!filesystem.IsDirectory(subFolder))
+                CreateNewDirectory(subFolder);
+            if (editorSystem->GetEditorType() == EditorType::SCRIPT)
+            {
+                CopyFileFromTo("scripts/neko2.py", fmt::format("{}/neko2.py", subFolder), true);
+            }
+            editorSystem->ReloadId();
+        }
     }
 
 }
@@ -917,6 +945,34 @@ void Editor::DrawEditorContent()
             ->DrawContentList(currentFocusedSystem_ != EditorType::FRAMEBUFFER))
         {
             currentFocusedSystem_ = EditorType::FRAMEBUFFER;
+        }
+        ImGui::TreePop();
+    }
+
+    open = ImGui::TreeNode("Buffer");
+    if (ImGui::BeginPopupContextItem())
+    {
+        if (ImGui::Button("Create New Buffer"))
+        {
+            OpenMenuCreateNewFile(EditorType::BUFFER);
+        }
+
+        if (UpdateCreateNewFile())
+        {
+            ImGui::CloseCurrentPopup();
+        }
+        if (ImGui::Button("Import Buffer"))
+        {
+            OpenFileBrowserDialog(editorSystems_[static_cast<int>(EditorType::BUFFER)]->GetExtensions());
+        }
+        ImGui::EndPopup();
+    }
+    if (open)
+    {
+        if (editorSystems_[static_cast<int>(EditorType::BUFFER)]
+            ->DrawContentList(currentFocusedSystem_ != EditorType::BUFFER))
+        {
+            currentFocusedSystem_ = EditorType::BUFFER;
         }
         ImGui::TreePop();
     }

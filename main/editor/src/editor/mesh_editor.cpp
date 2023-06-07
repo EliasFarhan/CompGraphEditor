@@ -127,11 +127,13 @@ bool MeshEditor::DrawContentList(bool unfocus)
     return wasFocused;
 }
 
-std::string_view MeshEditor::GetSubFolder() {
+std::string_view MeshEditor::GetSubFolder()
+{
     return "meshes/";
 }
 
-EditorType MeshEditor::GetEditorType() {
+EditorType MeshEditor::GetEditorType()
+{
     return EditorType::MESH;
 }
 
