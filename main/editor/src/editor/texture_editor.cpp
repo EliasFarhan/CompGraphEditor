@@ -91,6 +91,10 @@ void TextureEditor::DrawInspector()
         "CLAMP_TO_EDGE",
         "CLAMP_TO_BORDER"
     };
+    if(currentTextureInfo.info.wrapping_mode() > wrappingModeNames.size())
+    {
+        currentTextureInfo.info.set_wrapping_mode(core::pb::Texture_WrappingMode_REPEAT);
+    }
     if(ImGui::BeginCombo("Wrapping Mode", wrappingModeNames[currentTextureInfo.info.wrapping_mode()].data()))
     {
         for(std::size_t i = 0; i < wrappingModeNames.size(); ++i)
@@ -107,6 +111,11 @@ void TextureEditor::DrawInspector()
         "NEAREST",
         "LINEAR"
     };
+
+    if (currentTextureInfo.info.filter_mode() > filterModeNames.size())
+    {
+        currentTextureInfo.info.set_filter_mode(core::pb::Texture_FilteringMode_NEAREST);
+    }
     if (ImGui::BeginCombo("Filter Mode", filterModeNames[currentTextureInfo.info.filter_mode()].data()))
     {
         for (std::size_t i = 0; i < filterModeNames.size(); ++i)
@@ -437,6 +446,7 @@ void TextureEditor::HdrToKtx(const TextureInfo& textureInfo)
     gl::Pipeline equirectangleToCubemap;
     equirectangleToCubemap.LoadRasterizePipeline(cubemapShader, equirectangleToCubemapShader);
     equirectangleToCubemapShader.Destroy();
+    cubemapShader.Destroy();
 
     equirectangleToCubemap.Bind();
     equirectangleToCubemap.SetTexture("equirectangularMap", envMap, 0);
@@ -522,7 +532,7 @@ void TextureEditor::HdrToKtx(const TextureInfo& textureInfo)
     ktxTexture_WriteToNamedFile(ktxTexture(texture), ktxMapPath.data());
     ktxTexture_Destroy(ktxTexture(texture));
 
-    auto& resourceManager = Editor::GetInstance()->GetResourceManager();
+    auto& resourceManager = GetResourceManager();
     resourceManager.AddResource(ktxMapPath);
 
     const auto ktxId = resourceManager.FindResourceByPath(ktxMapPath);

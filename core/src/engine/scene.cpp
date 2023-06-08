@@ -215,7 +215,11 @@ void SceneManager::OnEvent(SDL_Event& event)
 
 Scene* GetCurrentScene()
 {
-    return sceneManagerInstance->GetCurrentScene();
+    if (sceneManagerInstance != nullptr)
+    {
+        return sceneManagerInstance->GetCurrentScene();
+    }
+    return nullptr;
 }
 
 

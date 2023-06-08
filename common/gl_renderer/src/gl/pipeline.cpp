@@ -118,6 +118,7 @@ void Pipeline::LoadRasterizePipeline(
     std::optional<std::reference_wrapper<Shader>> tesselationEvalShader)
 {
     const GLuint program = glCreateProgram();
+    auto* scene = core::GetCurrentScene();
     const auto& sceneInfo = core::GetCurrentScene()->GetInfo();
     auto addSsbo = [this](const core::pb::Shader& shaderInfo)
     {
@@ -127,24 +128,39 @@ void Pipeline::LoadRasterizePipeline(
         }
     };
     glAttachShader(program, vertex.name);
-    addSsbo(sceneInfo.shaders(vertex.shaderIndex));
+    if (scene)
+    {
+        addSsbo(sceneInfo.shaders(vertex.shaderIndex));
+    }
     
     glAttachShader(program, fragment.name);
-    addSsbo(sceneInfo.shaders(fragment.shaderIndex));
+    if (scene)
+    {
+        addSsbo(sceneInfo.shaders(fragment.shaderIndex));
+    }
     if(geometryShader)
     {
         glAttachShader(program, geometryShader.value().get().name);
-        addSsbo(sceneInfo.shaders(geometryShader.value().get().shaderIndex));
+        if (scene)
+        {
+            addSsbo(sceneInfo.shaders(geometryShader.value().get().shaderIndex));
+        }
     }
     if(tesselationControlShader)
     {
         glAttachShader(program, tesselationControlShader.value().get().name);
-        addSsbo(sceneInfo.shaders(tesselationControlShader.value().get().shaderIndex));
+        if (scene)
+        {
+            addSsbo(sceneInfo.shaders(tesselationControlShader.value().get().shaderIndex));
+        }
     }
     if(tesselationEvalShader)
     {
         glAttachShader(program, tesselationEvalShader.value().get().name);
-        addSsbo(sceneInfo.shaders(tesselationEvalShader.value().get().shaderIndex));
+        if (scene)
+        {
+            addSsbo(sceneInfo.shaders(tesselationEvalShader.value().get().shaderIndex));
+        }
     }
 
     glLinkProgram(program);

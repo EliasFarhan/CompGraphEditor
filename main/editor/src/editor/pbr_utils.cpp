@@ -28,6 +28,13 @@ namespace editor
 
 void GeneratePreComputeBrdfLUT()
 {
+    auto* sceneEditor = GetSceneEditor();
+    const auto* currentScene = sceneEditor->GetCurrentSceneInfo();
+    if(currentScene == nullptr)
+    {
+        LogWarning("Can not create BRDF LUT texture without a scene.");
+        return;
+    }
     constexpr int texW = 512;
     // dimensions of the image
     constexpr int texH = 512;
@@ -68,10 +75,16 @@ void GeneratePreComputeBrdfLUT()
     glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_FLOAT, buffer);
     glCheckError();
     stbi_flip_vertically_on_write(true);
-    if (!stbi_write_hdr("data/textures/brdf_lut.hdr", texW, texH, 4, buffer))
+    const auto path = fmt::format("data/{}/textures/brdf_lut.hdr", currentScene->info.name());
+    if (!stbi_write_hdr(path.data(), texW, texH, 4, buffer))
     {
         //Error
         LogError("Error while exporting BRDF LUT to hdr texture");
+    }
+    else
+    {
+        auto& resourceManager = GetResourceManager();
+        resourceManager.AddResource(path);
     }
     std::free(buffer);
     glBindTexture(GL_TEXTURE_2D, 0);
