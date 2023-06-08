@@ -161,16 +161,16 @@ Mesh GenerateSphere(float scale, glm::vec3 offset)
         {
             for (unsigned int x = 0; x <= segment; ++x)
             {
-                mesh.indices.push_back(y * (segment + 1) + x);
                 mesh.indices.push_back((y + 1) * (segment + 1) + x);
+                mesh.indices.push_back(y * (segment + 1) + x);
             }
         }
         else
         {
             for (int x = segment; x >= 0; --x)
             {
-                mesh.indices.push_back((y + 1) * (segment + 1) + x);
                 mesh.indices.push_back(y * (segment + 1) + x);
+                mesh.indices.push_back((y + 1) * (segment + 1) + x);
             }
         }
         oddRow = !oddRow;
