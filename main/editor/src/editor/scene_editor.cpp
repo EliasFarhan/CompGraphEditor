@@ -744,7 +744,7 @@ bool SceneEditor::ExportAndPlayScene() const
                 exportCommand->set_mesh_index(meshIndexIt->second);
             }
             //link buffer
-            if(editorCommand->resourceId == INVALID_RESOURCE_ID)
+            if(editorCommand->bufferId == INVALID_RESOURCE_ID)
             {
                 const auto* material = materialEditor->GetMaterial(editorCommand->materialId);
                 const auto* pipeline = pipelineEditor->GetPipeline(material->pipelineId);

@@ -56,7 +56,7 @@ TypeInfo GetPyTypeSize(std::string_view typeString)
 core::ArrayBuffer GetArrayBuffer(const core::BufferId& bufferId)
 {
     auto& bufferManager = core::GetCurrentScene()->GetBufferManager();
-    auto arrayBuffer = bufferManager.GetArrayBuffer(bufferId);
+    const auto arrayBuffer = bufferManager.GetArrayBuffer(bufferId);
     return arrayBuffer;
 }
 
