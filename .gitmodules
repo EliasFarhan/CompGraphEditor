@@ -10,3 +10,6 @@
 [submodule "external/imnodes"]
 	path = external/imnodes
 	url = https://github.com/EliasFarhan/imnodes.git
+[submodule "external/basis_universal"]
+	path = external/basis_universal
+	url = https://github.com/BinomialLLC/basis_universal

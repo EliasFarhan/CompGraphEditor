@@ -9,7 +9,6 @@ set_property( GLOBAL PROPERTY USE_FOLDERS ON)
 include(cmake/data.cmake)
 include(cmake/proto.cmake)
 
-include_directories(external/include)
 
 find_package(glm CONFIG REQUIRED)
 find_package(SDL2 CONFIG REQUIRED)
@@ -25,16 +24,11 @@ find_package(nlohmann_json CONFIG REQUIRED)
 find_package(spirv_cross_core CONFIG REQUIRED)
 find_package(spirv_cross_reflect CONFIG REQUIRED)
 
-add_subdirectory(external/pybind11)
+include_directories(external/include)
 option(ENABLE_PROFILER "Enable Tracy Profiling" OFF)
-if(ENABLE_PROFILER)
-    add_subdirectory(external/tracy)
-    
-    set_target_properties (TracyClient PROPERTIES FOLDER External)
-endif()
+
 
 add_subdirectory(core/)
 add_subdirectory(common/)
-
-add_subdirectory(external/imnodes)
+add_subdirectory(external)
 add_subdirectory(main/)
