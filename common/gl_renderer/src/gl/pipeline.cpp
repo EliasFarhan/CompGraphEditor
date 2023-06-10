@@ -20,6 +20,9 @@ Shader::~Shader()
 
 void Shader::LoadShader(const core::pb::Shader &shader)
 {
+#ifdef TRACY_ENABLE
+    TracyGpuNamedZone(loadShader, "Load Shader", true);
+#endif
     GLenum glType = 0;
     switch (shader.type())
     {
@@ -117,6 +120,9 @@ void Pipeline::LoadRasterizePipeline(
     std::optional<std::reference_wrapper<Shader>> tesselationControlShader,
     std::optional<std::reference_wrapper<Shader>> tesselationEvalShader)
 {
+#ifdef TRACY_ENABLE
+    TracyGpuNamedZone(loadPipeline, "Load Raterize Pipeline", true);
+#endif
     const GLuint program = glCreateProgram();
     auto* scene = core::GetCurrentScene();
     const auto& sceneInfo = core::GetCurrentScene()->GetInfo();
@@ -186,6 +192,9 @@ void Pipeline::LoadRasterizePipeline(
 
 void Pipeline::LoadComputePipeline(const Shader &compute)
 {
+#ifdef TRACY_ENABLE
+    TracyGpuNamedZone(loadPipeline, "Load Compute Pipeline", true);
+#endif
     const GLuint program = glCreateProgram();
     glAttachShader(program, compute.name);
 
@@ -222,6 +231,9 @@ void Pipeline::Destroy()
 
 void Pipeline::SetFloat(std::string_view uniformName, float f)
 {
+#ifdef TRACY_ENABLE
+    TracyGpuNamedZone(setUniform, "Set Uniform Float", true);
+#endif
     Bind();
     glUniform1f(GetUniformLocation(uniformName), f);
     glCheckError();
@@ -229,6 +241,9 @@ void Pipeline::SetFloat(std::string_view uniformName, float f)
 
 void Pipeline::SetInt(std::string_view uniformName, int i)
 {
+#ifdef TRACY_ENABLE
+    TracyGpuNamedZone(setUniform, "Set Uniform Int", true);
+#endif
     Bind();
     glUniform1i(GetUniformLocation(uniformName), i);
     glCheckError();
@@ -236,6 +251,9 @@ void Pipeline::SetInt(std::string_view uniformName, int i)
 
 void Pipeline::SetVec2(std::string_view uniformName, glm::vec2 v)
 {
+#ifdef TRACY_ENABLE
+    TracyGpuNamedZone(setUniform, "Set Uniform Vec2", true);
+#endif
     Bind();
     glUniform2fv(GetUniformLocation(uniformName), 1, &v[0]);
     glCheckError();
@@ -243,6 +261,9 @@ void Pipeline::SetVec2(std::string_view uniformName, glm::vec2 v)
 
 void Pipeline::SetVec3(std::string_view uniformName, glm::vec3 v)
 {
+#ifdef TRACY_ENABLE
+    TracyGpuNamedZone(setUniform, "Set Uniform Vec3", true);
+#endif
     Bind();
     glUniform3fv(GetUniformLocation(uniformName), 1, &v[0]);
     glCheckError();
@@ -250,6 +271,9 @@ void Pipeline::SetVec3(std::string_view uniformName, glm::vec3 v)
 
 void Pipeline::SetVec4(std::string_view uniformName, glm::vec4 v)
 {
+#ifdef TRACY_ENABLE
+    TracyGpuNamedZone(setUniform, "Set Uniform Vec4", true);
+#endif
     Bind();
     glUniform4fv(GetUniformLocation(uniformName), 1, &v[0]);
     glCheckError();
@@ -257,6 +281,9 @@ void Pipeline::SetVec4(std::string_view uniformName, glm::vec4 v)
 
 void Pipeline::SetMat4(std::string_view uniformName, const glm::mat4& mat)
 {
+#ifdef TRACY_ENABLE
+    TracyGpuNamedZone(setUniform, "Set Uniform Mat4", true);
+#endif
     Bind();
     glUniformMatrix4fv(GetUniformLocation(uniformName), 1, GL_FALSE, &mat[0][0]);
     glCheckError();
@@ -264,6 +291,9 @@ void Pipeline::SetMat4(std::string_view uniformName, const glm::mat4& mat)
 
 void Pipeline::SetMat3(std::string_view uniformName, const glm::mat3& mat)
 {
+#ifdef TRACY_ENABLE
+    TracyGpuNamedZone(setUniform, "Set Uniform Mat3", true);
+#endif
     Bind();
     glUniformMatrix3fv(GetUniformLocation(uniformName), 1, GL_FALSE, &mat[0][0]);
     glCheckError();
@@ -271,6 +301,9 @@ void Pipeline::SetMat3(std::string_view uniformName, const glm::mat3& mat)
 
 void Pipeline::SetTexture(std::string_view uniformName, const Texture& texture, GLenum textureUnit)
 {
+#ifdef TRACY_ENABLE
+    TracyGpuNamedZone(bindTexture, "Bind Texture", true);
+#endif
     SetInt(uniformName, textureUnit);
     glActiveTexture(GL_TEXTURE0 + textureUnit);
     glBindTexture(texture.target, texture.name);
@@ -279,6 +312,9 @@ void Pipeline::SetTexture(std::string_view uniformName, const Texture& texture, 
 
 void Pipeline::SetTexture(std::string_view uniformName, GLuint textureName, GLenum textureUnit)
 {
+#ifdef TRACY_ENABLE
+    TracyGpuNamedZone(bindTexture, "Bind Texture", true);
+#endif
     SetInt(uniformName, textureUnit);
     glActiveTexture(GL_TEXTURE0 + textureUnit);
     glBindTexture(GL_TEXTURE_2D, textureName);
@@ -287,6 +323,9 @@ void Pipeline::SetTexture(std::string_view uniformName, GLuint textureName, GLen
 
 void Pipeline::SetCubemap(std::string_view uniformName, GLuint textureName, GLenum textureUnit)
 {
+#ifdef TRACY_ENABLE
+    TracyGpuNamedZone(bindTexture, "Bind Cubemap", true);
+#endif
     SetInt(uniformName, textureUnit);
     glActiveTexture(GL_TEXTURE0 + textureUnit);
     glBindTexture(GL_TEXTURE_CUBE_MAP, textureName);
@@ -299,6 +338,9 @@ int Pipeline::GetUniformLocation(std::string_view uniformName)
     GLint uniformLocation;
     if (uniformIt == uniformMap_.end())
     {
+#ifdef TRACY_ENABLE
+        TracyGpuNamedZone(getUniform, "Get Uniform Location", true);
+#endif
         uniformLocation = glGetUniformLocation(name, uniformName.data());
         glCheckError();
         uniformMap_[uniformName.data()] = uniformLocation;

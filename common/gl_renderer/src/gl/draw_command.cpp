@@ -8,6 +8,10 @@
 
 #include <glm/gtx/euler_angles.hpp>
 
+#ifdef TRACY_ENABLE
+#include <tracy/TracyOpenGL.hpp>
+#endif
+
 namespace gl
 {
 DrawCommand::DrawCommand(const core::pb::DrawCommand& drawCommandInfo, int subpassIndex) : core::DrawCommand(drawCommandInfo, subpassIndex)
@@ -75,6 +79,9 @@ void DrawCommand::SetCubemap(std::string_view uniformName, GLuint textureName, G
 
 void DrawCommand::Bind()
 {
+#ifdef TRACY_ENABLE
+    TracyGpuNamedZone(bindDrawCommand, "Bind Draw Command", true);
+#endif
     auto& textureManager = static_cast<TextureManager&>(core::GetTextureManager());
     pipeline_->Bind();
     for (std::size_t textureIndex = 0; textureIndex < material_->textures.size(); textureIndex++)
@@ -116,7 +123,10 @@ void DrawCommand::PreDrawBind()
 {
     //TODO bind transform if any
 
-    //TODO bind buffer
+    //bind buffer
+#ifdef TRACY_ENABLE
+    TracyGpuNamedZone(preBindDraw, "Pre Draw Bind", true);
+#endif
     auto& bufferManager = core::GetCurrentScene()->GetBufferManager();
     for(const auto& bufferBinding : pipeline_->GetBufferBindings())
     {

@@ -13,6 +13,7 @@
 
 #ifdef TRACY_ENABLE
 #include <tracy/Tracy.hpp>
+#include <tracy/TracyOpenGL.hpp>
 #endif
 
 namespace gl
@@ -61,6 +62,11 @@ void Engine::Begin()
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, config_.major_version());
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, config_.minor_version());
 
+    LogDebug(fmt::format("Init GL Window with OpenGL{} {}.{}", 
+        config_.es() ? " ES" : "", 
+        config_.major_version(), 
+        config_.minor_version()));
+
     SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
     SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 8);
     const auto windowSize = glm::ivec2(config_.window_size().x(), config_.window_size().y());
@@ -73,6 +79,7 @@ void Engine::Begin()
         SDL_WINDOW_RESIZABLE | SDL_WINDOW_OPENGL
     );
     glRenderContext_ = SDL_GL_CreateContext(window_);
+
     SDL_GL_SetSwapInterval(config_.vertical_sync());
 
     if (GLEW_OK != glewInit())
@@ -80,6 +87,9 @@ void Engine::Begin()
         assert(false && "Failed to initialize OpenGL context");
     }
 
+#ifdef TRACY_ENABLE
+    TracyGpuContext;
+#endif
     // Setup Dear ImGui context
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
@@ -159,6 +169,9 @@ void Engine::SwapWindow()
 #endif
     SDL_GL_SwapWindow(window_);
     glCheckError();
+#ifdef TRACY_ENABLE
+    TracyGpuCollect;
+#endif
 }
 
 GlVersion GetGlVersion()

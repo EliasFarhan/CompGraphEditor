@@ -5,7 +5,13 @@
 
 namespace editor
 {
-
+struct KtxExportInfo
+{
+    bool uastc = false;
+    int uastcLevel = 2; //(0-4)
+    int quality = 128;
+    int compLevel = 1;
+};
 struct TextureInfo
 {
     std::string filename;
@@ -13,7 +19,10 @@ struct TextureInfo
     core::pb::Texture info;
     ResourceId resourceId = INVALID_RESOURCE_ID;
     core::pb::Cubemap cubemap;
+    core::TextureId textureId;
+    KtxExportInfo ktxInfo;
 };
+
 
 class TextureEditor final : public EditorSystem
 {
@@ -21,6 +30,8 @@ public:
     void DrawInspector() override;
 
     bool DrawContentList(bool unfocus) override;
+
+    void DrawCenterView() override;
 
     std::string_view GetSubFolder() override;
 
@@ -41,8 +52,10 @@ public:
     std::span<const std::string_view> GetExtensions() const override;
     void Clear() override;
 private:
+
     void CubeToKtx(const TextureInfo& textureInfo);
     void HdrToKtx(const TextureInfo& textureInfo);
+    void ExportToKtx(const TextureInfo& textureInfo);
     std::vector<TextureInfo> textureInfos_;
     std::size_t currentIndex_ = -1;
 };

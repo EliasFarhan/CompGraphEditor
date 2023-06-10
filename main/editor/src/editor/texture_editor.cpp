@@ -138,8 +138,8 @@ void TextureEditor::DrawInspector()
     {
         currentTextureInfo.info.set_gamma_correction(gammaCorrection);
     }
-
-    if(GetFileExtension(currentTextureInfo.info.path()) == ".hdr")
+    const auto fileExtension = GetFileExtension(currentTextureInfo.info.path());
+    if(fileExtension == ".hdr")
     {
         if(ImGui::Button("HDR to KTX"))
         {
@@ -154,7 +154,39 @@ void TextureEditor::DrawInspector()
             GeneratePreFilterEnvMap(currentTextureInfo.info.path());
         }
     }
-    
+
+    static constexpr std::array<std::string_view, 6> extensions =
+    {
+        {
+        ".jpg",
+        ".jpeg",
+        ".png",
+        ".tga",
+        }
+    };
+    if(std::ranges::any_of(extensions, [&fileExtension](const auto extension)
+    {
+        return extension == fileExtension;
+    }))
+    {
+        ImGui::Separator();
+        ImGui::TextUnformatted("KTX Exporter");
+        ImGui::Checkbox("UASTC", &currentTextureInfo.ktxInfo.uastc);
+        if(currentTextureInfo.ktxInfo.uastc)
+        {
+            //UASTC
+        }
+        else
+        {
+            //ETC1S
+        }
+        ImGui::SliderInt("Quality", &currentTextureInfo.ktxInfo.quality, 0, 255);
+
+        if (ImGui::Button("Export To KTX"))
+        {
+            ExportToKtx(currentTextureInfo);
+        }
+    }
 }
 
 bool TextureEditor::DrawContentList(bool unfocus)
@@ -172,6 +204,15 @@ bool TextureEditor::DrawContentList(bool unfocus)
         }
     }
     return wasFocused;
+}
+
+void TextureEditor::DrawCenterView()
+{
+    if (currentIndex_ >= textureInfos_.size())
+    {
+        return;
+    }
+    auto& currentTextureInfo = textureInfos_[currentIndex_];
 }
 
 std::string_view TextureEditor::GetSubFolder()
@@ -283,8 +324,8 @@ std::span<const std::string_view> TextureEditor::GetExtensions() const
         ".png",
         ".bmp",
         ".tga",
-        ".hdr",
         ".gif",
+        ".hdr",
         ".cube",
         ".ktx"
     };
@@ -545,5 +586,27 @@ void TextureEditor::HdrToKtx(const TextureInfo& textureInfo)
     cube.Destroy();
     captureFbo.Destroy();
     equirectangleToCubemap.Destroy();
+}
+
+void TextureEditor::ExportToKtx(const TextureInfo& textureInfo)
+{
+    std::string result;
+    py::function exportKtx = py::module_::import("scripts.texture_ktx_exporter").attr("export_ktx");
+
+    const auto args = fmt::format("-ktx2,-q,{},{},", textureInfo.ktxInfo.quality, textureInfo.ktxInfo.uastc?"-uastc":"");
+    try
+    {
+        result = static_cast<py::str>(exportKtx(textureInfo.info.path(), args));
+        //TODO print result stdout
+        json resultJson = json::parse(result);
+        if(resultJson["status"].get<int>() != 0)
+        {
+            LogError(resultJson["stderr"].get<std::string>());
+        }
+    }
+    catch (py::error_already_set& e)
+    {
+        LogError(fmt::format("Export KTX failed for file: {}\n{}", textureInfo.info.path(), e.what()));
+    }
 }
 }

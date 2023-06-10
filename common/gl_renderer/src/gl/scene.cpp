@@ -494,10 +494,16 @@ Scene::ImportStatus Scene::LoadMaterials(const PbRepeatField<core::pb::Material>
             {
                 if (instance == 1)
                 {
+#ifdef TRACY_ENABLE
+                    TracyGpuNamedZone(preBindDraw, "Draw Elements", true);
+#endif
                     glDrawElements(mode, commandInfo.count(), GL_UNSIGNED_INT, nullptr);
                 }
                 else
                 {
+#ifdef TRACY_ENABLE
+                    TracyGpuNamedZone(preBindDraw, "Draw Elements Instanced", true);
+#endif
                     glDrawElementsInstanced(mode, commandInfo.count(), GL_UNSIGNED_INT, nullptr, instance);
                 }
             }
@@ -505,10 +511,16 @@ Scene::ImportStatus Scene::LoadMaterials(const PbRepeatField<core::pb::Material>
             {
                 if (instance == 1)
                 {
+#ifdef TRACY_ENABLE
+                    TracyGpuNamedZone(preBindDraw, "Draw Arrays", true);
+#endif
                     glDrawArrays(mode, 0, commandInfo.count());
                 }
                 else
                 {
+#ifdef TRACY_ENABLE
+                    TracyGpuNamedZone(DrawArraysInstanced, "Pre Draw Bind", true);
+#endif
                     glDrawArraysInstanced(mode, 0, commandInfo.count(), instance);
                 }
             }

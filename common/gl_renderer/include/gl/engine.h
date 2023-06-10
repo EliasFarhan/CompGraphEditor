@@ -1,8 +1,8 @@
 #pragma once
 
+
 #include "gl/texture.h"
 #include "engine/engine.h"
-
 namespace gl
 {
 struct GlVersion

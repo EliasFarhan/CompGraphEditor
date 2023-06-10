@@ -10,8 +10,13 @@
 #include <fmt/format.h>
 #include <ktx.h>
 
+#include <filesystem>
+
+namespace fs = std::filesystem;
+
 #ifdef TRACY_ENABLE
 #include <tracy/Tracy.hpp>
+#include <tracy/TracyOpenGL.hpp>
 #endif
 
 namespace gl
@@ -37,9 +42,19 @@ core::TextureId TextureManager::LoadTexture(const core::pb::Texture &textureInfo
         }
         else
         {
-            if (!newTexture.LoadTexture(textureInfo))
+            if(path.find(".ktx") != std::string::npos)
             {
-                return {};
+                if(!newTexture.LoadKtxTexture(textureInfo))
+                {
+                    return {};
+                }
+            }
+            else
+            {
+                if (!newTexture.LoadTexture(textureInfo))
+                {
+                    return {};
+                }
             }
         }
         const auto textureId = core::TextureId{ static_cast<int>(textures_.size()) };
@@ -156,7 +171,9 @@ bool Texture::LoadTexture(const core::pb::Texture &textureInfo)
 
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, minFilterMode);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, magFilterMode);
-
+#ifdef TRACY_ENABLE
+        TracyGpuNamedZone(loadTexture, "Load Texture", true);
+#endif
         switch (channelInFile)
         {
         case 1:
@@ -303,7 +320,21 @@ bool Texture::LoadKtxTexture(const core::pb::Texture& textureInfo)
     ktxTexture* kTexture;
     GLenum glerror;
 
-    KTX_error_code result = ktxTexture_CreateFromNamedFile(textureInfo.path().data(),
+    const auto& filesystem = core::FilesystemLocator::get();
+    std::string_view path = textureInfo.path();
+
+    if (!filesystem.FileExists(path))
+    {
+        LogError(fmt::format("File not found at path: {}", path));
+        return false;
+    }
+
+    const auto file = filesystem.LoadFile(path);
+    if(file.data == nullptr)
+    {
+        return false;
+    }
+    KTX_error_code result = ktxTexture_CreateFromMemory(file.data, file.length,
                                                            KTX_TEXTURE_CREATE_NO_FLAGS,
                                                            &kTexture);
     if(!CheckKtxError(result))

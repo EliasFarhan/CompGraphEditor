@@ -1,5 +1,5 @@
 {
-    "name": "gpr5300-920",
+    "name": "neko2",
     "version-string": "1.0",
     "dependencies": [
         {
@@ -11,6 +11,6 @@
             "features": ["sdl2-binding", "opengl3-binding", "docking-experimental", "vulkan-binding"]
         },
         "physfs", "protobuf", "spdlog", "nlohmann-json", "vulkan-memory-allocator", "assimp", "zstd", "argh",
-        "spirv-cross", "volk"
+        "spirv-cross", "volk", "basisu"
     ]
 }
