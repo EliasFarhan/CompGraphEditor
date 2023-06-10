@@ -172,6 +172,7 @@ void TextureEditor::DrawInspector()
         ImGui::Separator();
         ImGui::TextUnformatted("KTX Exporter");
         ImGui::Checkbox("UASTC", &currentTextureInfo.ktxInfo.uastc);
+        ImGui::Checkbox("Mipmap", &currentTextureInfo.ktxInfo.mipmap);
         if(currentTextureInfo.ktxInfo.uastc)
         {
             //UASTC
@@ -187,6 +188,11 @@ void TextureEditor::DrawInspector()
             ExportToKtx(currentTextureInfo);
         }
     }
+    ImGui::Separator();
+    ImGui::TextUnformatted("Texture Info");
+    auto& textureManager = static_cast<gl::TextureManager&>(core::GetTextureManager());
+    const auto& texture = textureManager.GetTexture(currentTextureInfo.textureId);
+    ImGui::Text("Width %d, Height %d", texture.width, texture.height);
 }
 
 bool TextureEditor::DrawContentList(bool unfocus)
@@ -213,6 +219,10 @@ void TextureEditor::DrawCenterView()
         return;
     }
     auto& currentTextureInfo = textureInfos_[currentIndex_];
+    auto& textureManager = static_cast<gl::TextureManager&>(core::GetTextureManager());
+    auto& texture = textureManager.GetTexture(currentTextureInfo.textureId);
+    ImGui::Image(reinterpret_cast<ImTextureID>(static_cast<intptr_t>(texture.name)), 
+        ImVec2{static_cast<float>(texture.width), static_cast<float>(texture.height)});
 }
 
 std::string_view TextureEditor::GetSubFolder()
@@ -263,6 +273,9 @@ void TextureEditor::AddResource(const Resource &resource)
         std::ifstream cubemapFile(resource.path, std::ios::binary);
         textureInfo.cubemap.ParseFromIstream(&cubemapFile);
     }
+    auto& textureManager = core::GetTextureManager();
+    textureInfo.textureId = textureManager.LoadTexture(textureInfo.info);
+
     textureInfos_.push_back(textureInfo);
 }
 
@@ -591,9 +604,14 @@ void TextureEditor::HdrToKtx(const TextureInfo& textureInfo)
 void TextureEditor::ExportToKtx(const TextureInfo& textureInfo)
 {
     std::string result;
+    std::string output = fmt::format("{}/{}.ktx", GetFolder(textureInfo.info.path()), GetFilename(textureInfo.info.path(), false));
     py::function exportKtx = py::module_::import("scripts.texture_ktx_exporter").attr("export_ktx");
 
-    const auto args = fmt::format("-ktx2,-q,{},{},", textureInfo.ktxInfo.quality, textureInfo.ktxInfo.uastc?"-uastc":"");
+    const auto args = fmt::format("-ktx2,-q,{},{},-output_file,{},{}", 
+        textureInfo.ktxInfo.quality, 
+        textureInfo.ktxInfo.uastc?"-uastc":"",
+        output,
+        textureInfo.ktxInfo.mipmap?"-mipmap":"");
     try
     {
         result = static_cast<py::str>(exportKtx(textureInfo.info.path(), args));
@@ -603,6 +621,7 @@ void TextureEditor::ExportToKtx(const TextureInfo& textureInfo)
         {
             LogError(resultJson["stderr"].get<std::string>());
         }
+        LogDebug(fmt::format("KTX exporter: {}", resultJson["args"].get<std::string>()));
     }
     catch (py::error_already_set& e)
     {

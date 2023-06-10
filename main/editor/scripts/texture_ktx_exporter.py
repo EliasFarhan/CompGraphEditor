@@ -19,6 +19,8 @@ def export_ktx(texture_path, other_args: str):
     args = [basisu_program]
     args.extend(other_args.split(","))
     args.append(texture_path)
+    if "" in args:
+        args = list(filter(lambda x: x != '', args))
     status = subprocess.run(args, capture_output=True, text=True)
     output_file = {"stdout": status.stdout, "stderr": status.stderr, "status": status.returncode, "args": str(args)}
     return json.dumps(output_file)
