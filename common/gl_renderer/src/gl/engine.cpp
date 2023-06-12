@@ -114,6 +114,7 @@ void Engine::End()
 #ifdef TRACY_ENABLE
     ZoneScoped;
 #endif
+    textureManager_.Clear();
     core::Engine::End();
 
     ImGui_ImplOpenGL3_Shutdown();

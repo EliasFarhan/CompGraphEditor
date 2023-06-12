@@ -55,6 +55,7 @@ message RenderTarget
     Type type = 7;
     string name = 8;
     bool cubemap = 9;
+    int32 mipCount = 10;
 }
 
 message FrameBuffer

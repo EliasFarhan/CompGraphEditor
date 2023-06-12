@@ -350,6 +350,7 @@ void GenerateIrradianceMap(std::string_view path)
     equirectangleFbo.Unbind();
     equirectangle.Unbind();
 
+    //Export as KTX?
     //export as hdr
     glBindTexture(GL_TEXTURE_2D, equirectangleFbo.GetTextureName("irradiance"));
     auto* buffer = static_cast<float*>(std::calloc(resultW * resultH, 4 * sizeof(float)));
@@ -482,23 +483,143 @@ void GeneratePreFilterEnvMap(std::string_view path)
     {
         glCheckError();
         equirectangleToCubemap.SetMat4("view", captureViews[i]);
-        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, envCubemap, 0);
+        glFramebufferTexture2D(GL_FRAMEBUFFER, 
+            GL_COLOR_ATTACHMENT0, 
+            GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 
+            envCubemap, 0);
         glCheckError();
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        glCheckError();
+        glClear(GL_COLOR_BUFFER_BIT);
         glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, nullptr);
         glCheckError();
     }
     captureFbo.Unbind();
+    captureFbo.Destroy();
+    equirectangleToCubemap.Destroy();
+    equirectangleToCubemapShader.Destroy();
 
+    //generate prefilter env map map
     core::pb::Shader preFilterShaderInfo;
     preFilterShaderInfo.set_type(core::pb::FRAGMENT);
     preFilterShaderInfo.set_path("shaders/prefilter.frag");
 
-    gl::Shader irradianceConvlutionShader;
-    irradianceConvlutionShader.LoadShader(preFilterShaderInfo);
+    gl::Shader preFilterShader;
+    preFilterShader.LoadShader(preFilterShaderInfo);
 
-    gl::Pipeline irradianceConvolution;
-    irradianceConvolution.LoadRasterizePipeline(cubemapShader, irradianceConvlutionShader);
+    gl::Pipeline prefilterPipeline;
+    prefilterPipeline.LoadRasterizePipeline(cubemapShader, preFilterShader);
+    preFilterShader.Destroy();
+    cubemapShader.Destroy();
+
+    core::pb::FrameBuffer prefilterFramebuffer;
+    prefilterFramebuffer.set_name("prefilterFBO");
+
+    constexpr auto width = 128;
+    constexpr auto height = 128;
+
+    constexpr GLint maxMipLevels = 5;
+    auto* prefilterTarget = prefilterFramebuffer.add_color_attachments();
+    prefilterTarget->set_cubemap(true);
+    prefilterTarget->set_format(core::pb::RenderTarget_Format_RGBA);
+    prefilterTarget->set_format_size(core::pb::RenderTarget_FormatSize_SIZE_32);
+    prefilterTarget->set_size_type(core::pb::RenderTarget_Size_FIXED_SIZE);
+    auto* targetSize = prefilterTarget->mutable_target_size();
+    targetSize->set_x(width);
+    targetSize->set_y(height);
+    prefilterTarget->set_type(core::pb::RenderTarget_Type_FLOAT);
+    prefilterTarget->set_name(envCubemapName.data());
+    prefilterTarget->set_mipcount(maxMipLevels);
+
+    gl::Framebuffer prefilterFBO;
+    prefilterFBO.Load(prefilterFramebuffer);
+
+
+    const auto prefilterMap = prefilterFBO.GetTextureName(envCubemapName);
+
+    prefilterPipeline.Bind();
+    prefilterFBO.Bind();
+    prefilterPipeline.SetCubemap("environmentMap", envCubemap, 0);
+    for(GLint mip = 0; mip < maxMipLevels; mip++)
+    {
+        const auto mipWidth = static_cast<GLsizei>(width * std::pow(0.5, static_cast<double>(mip)));
+        const auto mipHeight = static_cast<GLsizei>(height * std::pow(0.5, static_cast<double>(mip)));
+
+        glViewport(0, 0, mipWidth, mipHeight);
+        float roughness = static_cast<float>(mip) / static_cast<float>(maxMipLevels - 1);
+        prefilterPipeline.SetFloat("roughness", roughness);
+        prefilterPipeline.SetMat4("projection", captureProjection);
+        for(int i = 0; i < 6; i++)
+        {
+            prefilterPipeline.SetMat4("view", captureViews[i]);
+            glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
+                GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, prefilterMap, mip);
+
+            glCheckError();
+            glClear(GL_COLOR_BUFFER_BIT);
+
+            glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, nullptr);
+            glCheckError();
+        }
+    }
+    prefilterFBO.Unbind();
+    prefilterPipeline.Destroy();
+    
+    glCheckError();
+
+    //export to KTX
+    ktxTexture1* texture;
+    ktxTextureCreateInfo createInfo;
+    KTX_error_code result;
+
+    createInfo.glInternalformat = GL_RGBA32F;
+    createInfo.baseWidth = 128;
+    createInfo.baseHeight = 128;
+    createInfo.baseDepth = 1;
+    createInfo.numDimensions = 2;
+    createInfo.numLevels = maxMipLevels;
+    createInfo.numLayers = 1;
+    createInfo.numFaces = 6;
+    createInfo.isArray = KTX_FALSE;
+    createInfo.generateMipmaps = KTX_FALSE;
+
+
+    result = ktxTexture1_Create(&createInfo,
+        KTX_TEXTURE_CREATE_ALLOC_STORAGE,
+        &texture);
+    if (!gl::CheckKtxError(result))
+    {
+        return;
+    }
+    constexpr int maxSize = 128 * 128 * 4 * 4;
+    void* buffer = std::malloc(maxSize);
+    glBindTexture(GL_TEXTURE_CUBE_MAP, prefilterMap);
+    for (GLint mip = 0; mip < maxMipLevels; mip++)
+    {
+        auto mipWidth = static_cast<GLsizei>(128.0 * std::pow(0.5, static_cast<double>(mip)));
+        auto mipHeight = static_cast<GLsizei>(128.0 * std::pow(0.5, static_cast<double>(mip)));
+        const auto size = mipWidth * mipHeight * 4 * 4;
+        for (int faceIndex = 0; faceIndex < 6; faceIndex++)
+        {
+            glGetTexImage(GL_TEXTURE_CUBE_MAP_POSITIVE_X + faceIndex, mip, GL_RGBA, GL_FLOAT, buffer);
+            result = ktxTexture_SetImageFromMemory(ktxTexture(texture),
+                mip, 0, faceIndex,
+                static_cast<const ktx_uint8_t*>(buffer), size);
+            gl::CheckKtxError(result);
+            glCheckError();
+        }
+    }
+
+    std::free(buffer);
+
+
+    // Repeat for the other 15 slices of the base level and all other levels
+    // up to createInfo.numLevels.
+
+    ktxTexture_WriteToNamedFile(ktxTexture(texture), preFilterEnvMapPath.data());
+    ktxTexture_Destroy(ktxTexture(texture));
+
+
+    prefilterFBO.Destroy();
+    cube.Destroy();
+
 }
 } // namespace gpr5300

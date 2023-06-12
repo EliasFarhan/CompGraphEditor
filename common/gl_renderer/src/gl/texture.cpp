@@ -60,7 +60,6 @@ core::TextureId TextureManager::LoadTexture(const core::pb::Texture &textureInfo
         const auto textureId = core::TextureId{ static_cast<int>(textures_.size()) };
         textureNamesMap_[path] = textureId;
         textures_.emplace_back(std::move(newTexture));
-        newTexture = {};
         return textureId;
     }
     return it->second;
@@ -88,6 +87,23 @@ Texture::~Texture()
     {
         LogWarning("Forgot to clear texture");
     }
+}
+
+Texture::Texture(Texture&& other) noexcept
+{
+    std::swap(other.name, name);
+    height = other.height;
+    width = other.width;
+    target = other.target;
+}
+
+Texture& Texture::operator=(Texture&& other) noexcept
+{
+    std::swap(other.name, name);
+    height = other.height;
+    width = other.width;
+    target = other.target;
+    return *this;
 }
 
 bool Texture::LoadTexture(const core::pb::Texture &textureInfo)
@@ -352,6 +368,9 @@ bool Texture::LoadKtxTexture(const core::pb::Texture& textureInfo)
         return false;
     }
 
+    width = kTexture->baseWidth;
+    height = kTexture->baseHeight;
+
     ktxTexture_Destroy(kTexture);
 
     GLint wrappingMode = GL_REPEAT;
@@ -373,8 +392,8 @@ bool Texture::LoadKtxTexture(const core::pb::Texture& textureInfo)
         break;
     }
 
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, wrappingMode);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, wrappingMode);
+    glTexParameteri(target, GL_TEXTURE_WRAP_S, wrappingMode);
+    glTexParameteri(target, GL_TEXTURE_WRAP_T, wrappingMode);
 
     int minFilterMode = GL_NEAREST;
     int magFilterMode = GL_NEAREST;
@@ -396,8 +415,8 @@ bool Texture::LoadKtxTexture(const core::pb::Texture& textureInfo)
         break;
     }
 
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, minFilterMode);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, magFilterMode);
+    glTexParameteri(target, GL_TEXTURE_MIN_FILTER, minFilterMode);
+    glTexParameteri(target, GL_TEXTURE_MAG_FILTER, magFilterMode);
 
     return true;
 }

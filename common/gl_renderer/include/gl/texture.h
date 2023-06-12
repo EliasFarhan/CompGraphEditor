@@ -16,8 +16,8 @@ public:
     ~Texture() override;
     Texture(const Texture&) = delete;
     Texture& operator=(const Texture&) = delete;
-    Texture(Texture&&) noexcept = default;
-    Texture& operator=(Texture&&) noexcept = default;
+    Texture(Texture&&) noexcept;
+    Texture& operator=(Texture&&) noexcept;
 
     GLuint name = 0;
     int width = 0;

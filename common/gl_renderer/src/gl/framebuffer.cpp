@@ -235,7 +235,7 @@ void Framebuffer::Load(const core::pb::FrameBuffer& framebufferPb)
         else
         {
             const auto target = colorAttachmentInfo.cubemap() ? GL_TEXTURE_CUBE_MAP : GL_TEXTURE_2D;
-            glCreateTextures(target, 1, &colorAttachment);
+            glGenTextures(1, &colorAttachment);
             glBindTexture(target, colorAttachment);
 
             glTexParameteri(target, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
@@ -245,17 +245,26 @@ void Framebuffer::Load(const core::pb::FrameBuffer& framebufferPb)
             if(colorAttachmentInfo.cubemap())
             {
                 glTexParameteri(target, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
-                for(int face = 0; face < 6; face++)
+                for (int mip = 0; mip < std::max(colorAttachmentInfo.mipcount(), 1); mip++)
                 {
-                    glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X+face, 0, attachmentType.internalFormat,
-                        colorAttachmentInfo.size_type() == core::pb::RenderTarget_Size_WINDOW_SIZE ? windowSize.x : colorAttachmentInfo.target_size().x(),
-                        colorAttachmentInfo.size_type() == core::pb::RenderTarget_Size_WINDOW_SIZE ? windowSize.y : colorAttachmentInfo.target_size().y(),
-                        0,
-                        attachmentType.format,
-                        attachmentType.type,
-                        nullptr
-                    );
+                    const auto width = colorAttachmentInfo.size_type() == core::pb::RenderTarget_Size_WINDOW_SIZE ? windowSize.x : colorAttachmentInfo.target_size().x();
+                    const auto height = colorAttachmentInfo.size_type() == core::pb::RenderTarget_Size_WINDOW_SIZE ? windowSize.y : colorAttachmentInfo.target_size().y();
+                    const auto mipWidth = static_cast<GLsizei>(width * std::pow(0.5, static_cast<double>(mip)));
+                    const auto mipHeight = static_cast<GLsizei>(height * std::pow(0.5, static_cast<double>(mip)));
+                    for (int face = 0; face < 6; face++)
+                    {
+                        glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + face, 
+                            mip, 
+                            attachmentType.internalFormat,
+                            mipWidth,
+                            mipHeight,
+                            0,
+                            attachmentType.format,
+                            attachmentType.type,
+                            nullptr
+                        );
 
+                    }
                 }
                 glFramebufferTexture2D(GL_FRAMEBUFFER,
                     GL_COLOR_ATTACHMENT0 + i,
@@ -267,14 +276,22 @@ void Framebuffer::Load(const core::pb::FrameBuffer& framebufferPb)
             }
             else
             {
-                glTexImage2D(GL_TEXTURE_2D, 0, attachmentType.internalFormat,
-                    colorAttachmentInfo.size_type() == core::pb::RenderTarget_Size_WINDOW_SIZE ? windowSize.x : colorAttachmentInfo.target_size().x(),
-                    colorAttachmentInfo.size_type() == core::pb::RenderTarget_Size_WINDOW_SIZE ? windowSize.y : colorAttachmentInfo.target_size().y(),
-                    0,
-                    attachmentType.format,
-                    attachmentType.type,
-                    nullptr
-                );
+                for (int mip = 0; mip < std::max(colorAttachmentInfo.mipcount(), 1); mip++)
+                {
+                    const auto width = colorAttachmentInfo.size_type() == core::pb::RenderTarget_Size_WINDOW_SIZE ? windowSize.x : colorAttachmentInfo.target_size().x();
+                    const auto height = colorAttachmentInfo.size_type() == core::pb::RenderTarget_Size_WINDOW_SIZE ? windowSize.y : colorAttachmentInfo.target_size().y();
+                    const auto mipWidth = static_cast<GLsizei>(width * std::pow(0.5, static_cast<double>(mip)));
+                    const auto mipHeight = static_cast<GLsizei>(height * std::pow(0.5, static_cast<double>(mip)));
+
+                    glTexImage2D(GL_TEXTURE_2D, mip, attachmentType.internalFormat,
+                        mipWidth,
+                        mipHeight,
+                        0,
+                        attachmentType.format,
+                        attachmentType.type,
+                        nullptr
+                    );
+                }
                 glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + i, target, colorAttachment, 0);
                 glCheckError();
             }
@@ -360,6 +377,10 @@ void Framebuffer::Load(const core::pb::FrameBuffer& framebufferPb)
                 textureMap_[name] = depthStencilAttachment_;
             }
         }
+    }
+    else
+    {
+        
     }
 
     CheckFramebufferStatus();

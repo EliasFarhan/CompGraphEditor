@@ -191,8 +191,11 @@ void TextureEditor::DrawInspector()
     ImGui::Separator();
     ImGui::TextUnformatted("Texture Info");
     auto& textureManager = static_cast<gl::TextureManager&>(core::GetTextureManager());
-    const auto& texture = textureManager.GetTexture(currentTextureInfo.textureId);
-    ImGui::Text("Width %d, Height %d", texture.width, texture.height);
+    if (currentTextureInfo.textureId != core::INVALID_TEXTURE_ID)
+    {
+        const auto& texture = textureManager.GetTexture(currentTextureInfo.textureId);
+        ImGui::Text("Width %d, Height %d", texture.width, texture.height);
+    }
 }
 
 bool TextureEditor::DrawContentList(bool unfocus)
@@ -218,11 +221,14 @@ void TextureEditor::DrawCenterView()
     {
         return;
     }
-    auto& currentTextureInfo = textureInfos_[currentIndex_];
+    const auto& currentTextureInfo = textureInfos_[currentIndex_];
     auto& textureManager = static_cast<gl::TextureManager&>(core::GetTextureManager());
-    auto& texture = textureManager.GetTexture(currentTextureInfo.textureId);
-    ImGui::Image(reinterpret_cast<ImTextureID>(static_cast<intptr_t>(texture.name)), 
-        ImVec2{static_cast<float>(texture.width), static_cast<float>(texture.height)});
+    if (currentTextureInfo.textureId != core::INVALID_TEXTURE_ID)
+    {
+        auto& texture = textureManager.GetTexture(currentTextureInfo.textureId);
+        ImGui::Image(reinterpret_cast<ImTextureID>(static_cast<intptr_t>(texture.name)),
+            ImVec2{ static_cast<float>(texture.width), static_cast<float>(texture.height) });
+    }
 }
 
 std::string_view TextureEditor::GetSubFolder()
