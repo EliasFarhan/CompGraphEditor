@@ -226,8 +226,11 @@ void TextureEditor::DrawCenterView()
     if (currentTextureInfo.textureId != core::INVALID_TEXTURE_ID)
     {
         auto& texture = textureManager.GetTexture(currentTextureInfo.textureId);
-        ImGui::Image(reinterpret_cast<ImTextureID>(static_cast<intptr_t>(texture.name)),
-            ImVec2{ static_cast<float>(texture.width), static_cast<float>(texture.height) });
+        if (texture.target == GL_TEXTURE_2D)
+        {
+            ImGui::Image(reinterpret_cast<ImTextureID>(static_cast<std::intptr_t>(texture.name)),
+                ImGui::GetContentRegionAvail());
+        }
     }
 }
 

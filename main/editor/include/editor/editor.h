@@ -35,7 +35,7 @@ public:
     static Editor* GetInstance() { return instance_; }
     void CreateNewFile(std::string_view path, EditorType type);
 private:
-    void OpenMenuCreateNewFile(EditorType editorType);
+    void OpenMenuCreateNewFile(EditorType editorType, std::string_view extension = "");
     void SaveProject() const;
     void DrawMenuBar();
     bool UpdateCreateNewFile();
@@ -58,6 +58,7 @@ private:
     EditorType currentFocusedSystem_ = EditorType::LENGTH;
     EditorType currentCreateFileSystem_ = EditorType::LENGTH;
     std::string newCreateFilename_;
+    std::string newCreateExtension_;
     int currentExtensionCreateFileIndex_ = 0;
 
     inline static Editor* instance_ = nullptr;

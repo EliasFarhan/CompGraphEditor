@@ -225,6 +225,9 @@ bool Texture::LoadTexture(const core::pb::Texture &textureInfo)
         glCheckError();
         if(textureInfo.generate_mipmaps())
         {
+#ifdef TRACY_ENABLE
+            TracyGpuNamedZone(generateMipMap, "Generate MipMap", true);
+#endif
             glGenerateMipmap(GL_TEXTURE_2D);
         }
         LogDebug(fmt::format("Successfully loaded texture at path: {}", path));

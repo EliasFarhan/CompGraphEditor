@@ -101,11 +101,12 @@ void Editor::End()
 }
 
 
-void Editor::OpenMenuCreateNewFile(EditorType editorType)
+void Editor::OpenMenuCreateNewFile(EditorType editorType, std::string_view extension)
 {
     ImGui::OpenPopup("Create New File");
     currentCreateFileSystem_ = editorType;
     currentExtensionCreateFileIndex_ = 0;
+    newCreateExtension_ = extension;
     newCreateFilename_.clear();
 }
 
@@ -332,27 +333,34 @@ bool Editor::UpdateCreateNewFile()
             ImGui::EndPopup();
             return false;
         }
-        if (!editorSystem->CheckExtensions(GetFileExtension(actualFilename)))
+        if (newCreateExtension_.empty())
         {
-            if (extensions.size() > 1)
+            if (!editorSystem->CheckExtensions(GetFileExtension(actualFilename)))
             {
-                if (ImGui::BeginCombo("Extension", extensions[currentExtensionCreateFileIndex_].data()))
+                if (extensions.size() > 1)
                 {
-                    for(std::size_t i = 0; i < extensions.size();i++)
+                    if (ImGui::BeginCombo("Extension", extensions[currentExtensionCreateFileIndex_].data()))
                     {
-                        if(ImGui::Selectable(extensions[i].data(), i == currentExtensionCreateFileIndex_))
+                        for (std::size_t i = 0; i < extensions.size(); i++)
                         {
-                            currentExtensionCreateFileIndex_ = i;
+                            if (ImGui::Selectable(extensions[i].data(), i == currentExtensionCreateFileIndex_))
+                            {
+                                currentExtensionCreateFileIndex_ = i;
+                            }
                         }
+                        ImGui::EndCombo();
                     }
-                    ImGui::EndCombo();
+                    actualFilename += extensions[currentExtensionCreateFileIndex_];
                 }
-                actualFilename += extensions[currentExtensionCreateFileIndex_];
+                else
+                {
+                    actualFilename += extensions[0];
+                }
             }
-            else
-            {
-                actualFilename += extensions[0];
-            }
+        }
+        else
+        {
+            actualFilename += newCreateExtension_;
         }
         const auto* sceneInfo = sceneEditor->GetCurrentSceneInfo();
         if(sceneInfo == nullptr)
@@ -873,7 +881,7 @@ void Editor::DrawEditorContent()
     {
         if (ImGui::Button("Create New Cubemap"))
         {
-            OpenMenuCreateNewFile(EditorType::TEXTURE);
+            OpenMenuCreateNewFile(EditorType::TEXTURE, ".cube");
         }
 
         if (UpdateCreateNewFile())
