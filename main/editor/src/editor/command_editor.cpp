@@ -5,6 +5,7 @@
 #include <fmt/format.h>
 
 #include "editor.h"
+#include "buffer_editor.h"
 #include "material_editor.h"
 #include "mesh_editor.h"
 #include "render_pass_editor.h"

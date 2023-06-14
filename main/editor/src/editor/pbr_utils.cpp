@@ -478,7 +478,7 @@ void GeneratePreFilterEnvMap(std::string_view path)
     glViewport(0, 0, 512, 512);
     captureFbo.Bind();
     glCheckError();
-    auto envCubemap = captureFbo.GetTextureName(envCubemapName);
+    const auto envCubemap = captureFbo.GetTextureName(envCubemapName);
     for (unsigned int i = 0; i < 6; ++i)
     {
         glCheckError();
@@ -493,7 +493,6 @@ void GeneratePreFilterEnvMap(std::string_view path)
         glCheckError();
     }
     captureFbo.Unbind();
-    captureFbo.Destroy();
     equirectangleToCubemap.Destroy();
     equirectangleToCubemapShader.Destroy();
 
@@ -619,6 +618,7 @@ void GeneratePreFilterEnvMap(std::string_view path)
 
 
     prefilterFBO.Destroy();
+    captureFbo.Destroy();
     cube.Destroy();
 
 }

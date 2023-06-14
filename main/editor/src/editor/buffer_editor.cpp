@@ -8,6 +8,8 @@
 #include <imgui.h>
 #include <imgui_stdlib.h>
 
+#include <fmt/format.h>
+
 namespace editor
 {
 void BufferEditor::AddResource(const Resource& resource)
