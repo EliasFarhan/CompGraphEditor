@@ -130,7 +130,8 @@ void Pipeline::LoadRasterizePipeline(
     {
         for (const auto& bufferBinding : shaderInfo.storage_buffers())
         {
-            bufferBindings_.emplace_back(bufferBinding.name(), bufferBinding.binding());
+            core::BufferBinding binding = {bufferBinding.name(), bufferBinding.binding()};
+            bufferBindings_.push_back(binding);
         }
     };
     glAttachShader(program, vertex.name);
