@@ -62,6 +62,11 @@ void DrawCommand::SetAngle(std::string_view uniformName, core::Radian angle)
     pipeline_->SetFloat(uniformName, angle.value());
 }
 
+void DrawCommand::SetBool(std::string_view uniformName, bool i)
+{
+    pipeline_->SetBool(uniformName, i);
+}
+
 void DrawCommand::SetTexture(std::string_view uniformName, const Texture& texture, GLenum textureUnit)
 {
     pipeline_->SetTexture(uniformName, texture, textureUnit);
@@ -133,5 +138,60 @@ void DrawCommand::PreDrawBind()
         const auto bufferId = bufferManager.GetBuffer(bufferBinding.name);
         bufferManager.BindBuffer(bufferId, bufferBinding.bindingPoint);
     }
+}
+
+ComputeCommand::ComputeCommand(const core::pb::ComputeCommand& computeCommandInfo, int subpassIndex)
+{
+    auto* scene = core::GetCurrentScene();
+    const auto material = scene->GetMaterial(computeCommandInfo.material_index());
+    material_ = static_cast<Material*>(material.GetMaterial());
+    pipeline_ = static_cast<Pipeline*>(material.GetPipeline());
+}
+
+void ComputeCommand::SetFloat(std::string_view uniformName, float f)
+{
+    pipeline_->SetFloat(uniformName, f);
+}
+
+void ComputeCommand::SetInt(std::string_view uniformName, int i)
+{
+
+    pipeline_->SetInt(uniformName, i);
+}
+
+void ComputeCommand::SetBool(std::string_view uniformName, bool i)
+{
+
+    pipeline_->SetBool(uniformName, i);
+}
+
+void ComputeCommand::SetVec2(std::string_view uniformName, glm::vec2 v)
+{
+    pipeline_->SetVec2(uniformName, v);
+}
+
+void ComputeCommand::SetVec3(std::string_view uniformName, glm::vec3 v)
+{
+    pipeline_->SetVec3(uniformName, v);
+}
+
+void ComputeCommand::SetVec4(std::string_view uniformName, glm::vec4 v)
+{
+    pipeline_->SetVec4(uniformName, v);
+}
+
+void ComputeCommand::SetMat3(std::string_view uniformName, const glm::mat3& mat)
+{
+    pipeline_->SetMat3(uniformName, mat);
+}
+
+void ComputeCommand::SetMat4(std::string_view uniformName, const glm::mat4& mat)
+{
+    pipeline_->SetMat4(uniformName, mat);
+}
+
+void ComputeCommand::SetAngle(std::string_view uniformName, core::Radian angle)
+{
+    pipeline_->SetFloat(uniformName, angle.value());
 }
 }

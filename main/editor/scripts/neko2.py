@@ -46,6 +46,11 @@ class Key(Enum):
     SPACE = 40
     RETURN = 41
 
+class Access(Enum):
+    """Key is an enum for keyboard key of SDL"""
+    READ_ONLY = 1
+    WRITE_ONLY = 2
+    READ_WRITE = 3
 
 class Vec2:
     """Vec2 is a math struct representing a 2d float vector"""
@@ -360,7 +365,23 @@ class Material:
         return self.name
 
 
+class Framebuffer:
+    """Framebuffer is an abstraction of the GL-like framebuffer with several render targets to be drawn on."""
+    name: str
+
+    def __init__(self) -> None:
+        self.name = ""
+
+    
+
+    def get_name(self) -> str:
+        return ""
+
+
 class Command:
+    def set_bool(self, uniform_name: str, v: bool):
+        pass
+
     def set_int(self, uniform_name: str, v: int):
         pass
 
@@ -386,6 +407,14 @@ class Command:
     def set_mat4(self, uniform_name: str, m: Mat4):
         """Set a named uniform Mat4 value"""
         pass
+
+    def set_image(self, image: Image, binding: int, access: Access):
+        pass
+
+
+class ComputeCommand(Command):
+    pass
+
 
 class ModelTransformMatrix:
     """ModelTransformMatrix is an abstraction of a model transform matrix with a translate, scale and euler rotation.
@@ -460,19 +489,7 @@ class DrawCommand:
         pass
 
 
-class Framebuffer:
-    """Framebuffer is an abstraction of the GL-like framebuffer with several render targets to be drawn on."""
-    name: str
 
-    def __init__(self) -> None:
-        self.name = ""
-
-    def get_texture_name(self, texture_name: str) -> int:
-        """Return the GL name of the render target texture given in argument"""
-        return 0
-
-    def get_name(self) -> str:
-        return ""
 
 
 class SubPass:

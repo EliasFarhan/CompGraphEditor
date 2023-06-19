@@ -59,6 +59,7 @@ public:
     virtual void SetFloat(std::string_view uniformName, float f) = 0;
 
     virtual void SetInt(std::string_view uniformName, int i) = 0;
+    virtual void SetBool(std::string_view uniformName, bool i) = 0;
 
     virtual void SetVec2(std::string_view uniformName, glm::vec2 v) = 0;
 
@@ -118,6 +119,11 @@ protected:
 
     std::reference_wrapper<const pb::DrawCommand> drawCommandInfo_;
     int subPassIndex_ = -1;
+};
+
+class ComputeCommand : core::Command
+{
+    
 };
 
 } // namespace core

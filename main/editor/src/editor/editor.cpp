@@ -513,9 +513,21 @@ void Editor::OnEvent(SDL_Event& event)
         const Uint8* state = SDL_GetKeyboardState(nullptr);
         switch (event.key.keysym.sym)
         {
+        case SDLK_e:
+        {
+            if (state[SDL_SCANCODE_LCTRL])
+            {
+                GetSceneEditor()->ExportAndPlayScene();
+            }
+                break;
+        }
         case SDLK_n:
         {
-                //TODO create a new scene prompt
+            if (state[SDL_SCANCODE_LCTRL])
+            {
+                static constexpr std::array<std::string_view, 1> extensions = { ".scene" };
+                OpenFileBrowserDialog(extensions);
+            }
             break;
         }
         case SDLK_s:

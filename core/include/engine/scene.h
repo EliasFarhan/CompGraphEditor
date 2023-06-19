@@ -11,6 +11,7 @@
 
 namespace core
 {
+class ComputeCommand;
 class Script;
 class PyManager;
 class DrawCommand;
@@ -62,6 +63,7 @@ public:
     void SetScene(const pb::Scene &scene);
     virtual void Update(float dt) = 0;
     virtual void Draw(DrawCommand& drawCommand, int instance = 1) = 0;
+    virtual void Dispatch(ComputeCommand& command, int x, int y, int z) = 0;
     virtual Framebuffer& GetFramebuffer(int framebufferIndex) = 0;
 
     SceneSubPass GetSubpass(int subPassIndex);

@@ -644,6 +644,11 @@ void DrawCommand::SetAngle(std::string_view uniformName, core::Radian angle)
     uniformManager_.SetUniform(uniformName, angle);
 }
 
+void DrawCommand::SetBool(std::string_view uniformName, bool i)
+{
+    uniformManager_.SetUniform(uniformName, i);
+}
+
 void DrawCommand::Bind()
 {
     auto* scene = static_cast<Scene*>(core::GetCurrentScene());

@@ -81,7 +81,16 @@ PYBIND11_EMBEDDED_MODULE(neko2, m)
         .def("set_vec3", &core::Command::SetVec3)
         .def("set_vec4", &core::Command::SetVec4)
         .def("set_mat3", &core::Command::SetMat3)
-        .def("set_mat4", &core::Command::SetMat4);
+        .def("set_mat4", &core::Command::SetMat4)
+        .def("set_image", [](core::Image* image, int bindingPoint, core::Image::AccessType access)
+        {
+            image->BindImage(bindingPoint, access);
+        })
+        .def("dispatch", [](core::ComputeCommand& command, int x, int y, int z)
+        {
+            auto* scene = core::GetCurrentScene();
+            scene->Dispatch(command, x, y, z);
+        });
 
     py::class_<core::DrawCommand>(m, "DrawCommand")
         .def("set_float", &core::DrawCommand::SetFloat)
@@ -128,11 +137,15 @@ PYBIND11_EMBEDDED_MODULE(neko2, m)
         .def("get_framebuffer", &core::SceneSubPass::GetFramebuffer, py::return_value_policy::reference)
         ;
 
+    py::class_<core::Framebuffer>(m, "Framebuffer")
+        .def("get_image", &core::Framebuffer::GetImage);
+
     py::class_<core::Scene>(m, "Scene")
         .def("get_pipeline", &core::Scene::GetPipeline,
             py::return_value_policy::reference)
         .def("get_material", &core::Scene::GetMaterial)
         .def("get_subpass", &core::Scene::GetSubpass)
+        .def("get_framebuffer", &core::Scene::GetFramebuffer)
         .def("get_camera", &core::Scene::GetCamera, py::return_value_policy::reference)
         .def_property_readonly("camera", &core::Scene::GetCamera, py::return_value_policy::reference)
         .def_property_readonly("subpass_count", &core::Scene::GetSubpassCount)
@@ -334,6 +347,12 @@ PYBIND11_EMBEDDED_MODULE(neko2, m)
         .def("get_name", &core::SceneMaterial::GetName)
         .def_property_readonly("name", &core::SceneMaterial::GetName)
         ;
+
+    py::enum_<core::Image::AccessType>(m, "Access", py::arithmetic())
+        .value("READ_ONLY", core::Image::AccessType::READ_ONLY)
+        .value("WRITE_ONLY", core::Image::AccessType::WRITE_ONLY)
+        .value("READ_WRITE", core::Image::AccessType::READ_WRITE)
+    .export_values();
 
     py::enum_<SDL_KeyCode>(m, "Key", py::arithmetic())
         .value("A", SDLK_a)

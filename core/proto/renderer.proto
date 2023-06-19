@@ -398,7 +398,6 @@ message DrawCommand
     bool automatic_draw = 9;
     string name = 10;
     Transform model_transform = 11;
-    Vec3i compute_dispatch_size = 12;
     int32 buffer_index = 13;
 }
 
@@ -424,6 +423,12 @@ message RaytracingCommand
     int32 pipeline_index = 2;
 }
 
+message ComputeCommand
+{
+    int32 material_index = 1;
+    Vec3i dispatch_size = 2;
+}
+
 message SubPass
 {
     Color4 clear_color = 1;
@@ -432,6 +437,7 @@ message SubPass
     int32 framebuffer_index = 4;
     Pipeline.Type type = 5;
     repeated RaytracingCommand raytracing_commands = 6;
+    repeated ComputeCommand compute_commands = 7;
 }
 
 message RenderPass

@@ -33,13 +33,13 @@ void RenderPassEditor::DrawInspector()
     auto& currentRenderPass = renderPassInfos_[currentIndex_];
     int deleteSubpassIndex = -1;
     ImGui::Separator();
-    for (int i = 0; i < currentRenderPass.info.sub_passes_size(); i++)
+    for (int subpassIndex = 0; subpassIndex < currentRenderPass.info.sub_passes_size(); subpassIndex++)
     {
-        const auto headerTitle = fmt::format("Subpass {}", i);
+        const auto headerTitle = fmt::format("Subpass {}", subpassIndex);
         ImGui::PushID(headerTitle.c_str());
         ImGui::Text("%s", headerTitle.c_str());
 
-        auto* subpassInfo = currentRenderPass.info.mutable_sub_passes(i);
+        auto* subpassInfo = currentRenderPass.info.mutable_sub_passes(subpassIndex);
         std::array color
         {
             subpassInfo->subpass().clear_color().r(),
@@ -62,9 +62,10 @@ void RenderPassEditor::DrawInspector()
         {
             for (std::size_t framebufferIndex = 0; framebufferIndex < framebufferInfos.size(); framebufferIndex++)
             {
-                if(ImGui::Selectable(framebufferInfos[i].filename.data(), framebufferPath.empty()?false:fs::equivalent(framebufferInfos[i].path, framebufferPath)))
+                if(ImGui::Selectable(framebufferInfos[framebufferIndex].filename.data(), 
+                    framebufferPath.empty()?false:fs::equivalent(framebufferInfos[framebufferIndex].path, framebufferPath)))
                 {
-                    subpassInfo->set_framebuffer_path(framebufferInfos[i].path);
+                    subpassInfo->set_framebuffer_path(framebufferInfos[framebufferIndex].path);
                 }
             }
             ImGui::EndCombo();
@@ -75,18 +76,18 @@ void RenderPassEditor::DrawInspector()
         }
 
         std::vector<int> removedCommandIndices;
-        for (int j = 0; j < subpassInfo->command_paths_size(); j++)
+        for (int commandIndex = 0; commandIndex < subpassInfo->command_paths_size(); commandIndex++)
         {
-            auto commandPath = subpassInfo->command_paths(j);
+            auto commandPath = subpassInfo->command_paths(commandIndex);
             const auto commandId = resourceManager.FindResourceByPath(commandPath);
             if (!commandPath.empty() && commandId == INVALID_RESOURCE_ID)
             {
-                subpassInfo->mutable_command_paths(j)->clear();
+                subpassInfo->mutable_command_paths(commandIndex)->clear();
                 commandPath = "";
             }
             const auto* command = commandEditor->GetCommand(commandId);
 
-            const auto commandHeaderTitle = fmt::format("Command {}", j);
+            const auto commandHeaderTitle = fmt::format("Command {}", commandIndex);
             bool visible = true;
             const auto commandHeaderId = fmt::format("{}{}", headerTitle, commandHeaderTitle);
             ImGui::PushID(commandHeaderId.c_str());
@@ -100,7 +101,7 @@ void RenderPassEditor::DrawInspector()
                     {
                         if (ImGui::Selectable(availableCommand.filename.c_str(), availableCommand.resourceId == commandId))
                         {
-                            subpassInfo->set_command_paths(j, availableCommand.path);
+                            subpassInfo->set_command_paths(commandIndex, availableCommand.path);
                         }
                     }
                     ImGui::EndCombo();
@@ -110,7 +111,7 @@ void RenderPassEditor::DrawInspector()
             ImGui::PopID();
             if (!visible)
             {
-                removedCommandIndices.push_back(j);
+                removedCommandIndices.push_back(commandIndex);
             }
         }
         std::ranges::sort(removedCommandIndices);
@@ -136,7 +137,7 @@ void RenderPassEditor::DrawInspector()
         }
         if(ImGui::Button("Remove Subpass"))
         {
-            deleteSubpassIndex = i;
+            deleteSubpassIndex = subpassIndex;
         }
         ImGui::PopID();
         if (openPopup)

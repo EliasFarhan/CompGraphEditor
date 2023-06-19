@@ -17,6 +17,15 @@ struct AttachmentType
     GLint error = 0;
 };
 
+class Image : public core::Image
+{
+public:
+    explicit Image(GLuint name);
+    void BindImage(int bindPoint, AccessType access) override;
+private:
+    GLuint name_ = 0;
+};
+
 class Framebuffer : public core::Framebuffer
 {
 public:
@@ -28,6 +37,7 @@ public:
     void Load(const core::pb::FrameBuffer& framebufferPb) override;
     GLuint GetTextureName(std::string_view textureName);
     [[nodiscard]] std::string_view GetName() const { return framebufferName_; }
+    std::unique_ptr<core::Image> GetImage(std::string_view attachmentName) override;
 private:
     GLuint name_ = 0;
     std::string framebufferName_;

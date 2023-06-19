@@ -350,18 +350,6 @@ Scene::ImportStatus Scene::LoadMaterials(const PbRepeatField<core::pb::Material>
         auto& pipelineInfo = scene_.pipelines(material.pipelineIndex);
         switch (pipelineInfo.type())
         {
-        case core::pb::Pipeline_Type_COMPUTE:
-        {
-            pipeline.Bind();
-            glDispatchCompute(
-                commandInfo.compute_dispatch_size().x(), 
-                commandInfo.compute_dispatch_size().y(), 
-                commandInfo.compute_dispatch_size().z());
-
-            glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
-            
-            break;
-        }
         case core::pb::Pipeline_Type_RASTERIZE:
         {
             if (pipelineInfo.depth_test_enable())
@@ -529,6 +517,14 @@ Scene::ImportStatus Scene::LoadMaterials(const PbRepeatField<core::pb::Material>
         }
             default: break;
         }
+    }
+
+    void Scene::Dispatch(core::ComputeCommand& command, int x, int y, int z)
+    {
+        //TODO bind pipelines
+        glDispatchCompute(x, y, z);
+
+        glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
     }
 
     core::SceneMaterial Scene::GetMaterial(int materialIndex)

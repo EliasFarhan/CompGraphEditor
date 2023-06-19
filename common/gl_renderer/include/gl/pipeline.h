@@ -51,6 +51,7 @@ public:
     void SetVec4(std::string_view uniformName, glm::vec4 v);
     void SetMat4(std::string_view uniformName, const glm::mat4& mat);
     void SetMat3(std::string_view uniformName, const glm::mat3& mat);
+    void SetBool(std::string_view uniformName, bool b);
 
     void SetTexture(std::string_view uniformName, const Texture& texture, GLenum textureUnit);
     void SetTexture(std::string_view uniformName, GLuint textureName, GLenum textureUnit);

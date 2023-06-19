@@ -28,6 +28,8 @@ public:
     void UnloadScene() override;
     void Update(float dt) override;
     void Draw(core::DrawCommand& drawCommand, int instance = 1) override;
+    void Dispatch(core::ComputeCommand& command, int x, int y, int z) override;
+
 
     core::SceneMaterial GetMaterial(int materialIndex) override;
 
@@ -59,6 +61,7 @@ private:
     std::vector<Material> materials_;
     std::vector<Framebuffer> framebuffers_;
     std::vector<DrawCommand> drawCommands_;
+    std::vector<ComputeCommand> computeCommands_;
     BufferManager bufferManager_;
 
     GLuint emptyMeshVao_ = 0;

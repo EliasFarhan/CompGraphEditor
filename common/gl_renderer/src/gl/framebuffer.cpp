@@ -11,6 +11,37 @@
 
 namespace gl
 {
+Image::Image(GLuint name): name_(name)
+{
+}
+
+void Image::BindImage(int bindPoint, AccessType access)
+{
+    auto accessGl = GL_READ_ONLY;
+    switch (access)
+    {
+    case AccessType::READ_ONLY: 
+        accessGl = GL_READ_ONLY;
+        break;
+    case AccessType::WRITE_ONLY: 
+        accessGl = GL_WRITE_ONLY;
+        break;
+    case AccessType::READ_WRITE: 
+        accessGl = GL_READ_WRITE;
+        break;
+    default: 
+        break;
+    }
+    glBindImageTexture(bindPoint, 
+        name_, 
+        0, 
+        GL_FALSE, 
+        0, 
+        accessGl, 
+        GL_RGBA32F);
+}
+
+
 Framebuffer::~Framebuffer()
 {
     if (name_ != 0)
@@ -396,6 +427,10 @@ GLuint Framebuffer::GetTextureName(std::string_view textureName)
         return it->second;
     }
     return 0;
+}
+
+std::unique_ptr<core::Image> Framebuffer::GetImage(std::string_view attachmentName)
+{
 }
 
 AttachmentType GetAttachmentType(const core::pb::RenderTarget& renderTargetInfo)

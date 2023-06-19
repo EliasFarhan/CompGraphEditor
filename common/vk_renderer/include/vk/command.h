@@ -119,6 +119,7 @@ public:
     void SetMat3(std::string_view uniformName, const glm::mat3& mat) override;
 
     void SetAngle(std::string_view uniformName, core::Radian angle) override;
+    void SetBool(std::string_view uniformName, bool i) override;
 
     void Bind() override;
 
@@ -175,6 +176,10 @@ public:
     void SetAngle(std::string_view uniformName, core::Radian angle) override
     {
         SetUniform(uniformName, angle);
+    }
+    void SetBool(std::string_view uniformName, bool i) override
+    {
+        SetUniform(uniformName, i);
     }
 
 private:

@@ -103,8 +103,8 @@ void MeshEditor::DrawInspector()
             if(ImGui::InputFloat3("Offset", offsetInput.data()))
             {
                 offset->set_x(offsetInput[0]);
-                offset->set_x(offsetInput[1]);
-                offset->set_x(offsetInput[2]);
+                offset->set_y(offsetInput[1]);
+                offset->set_z(offsetInput[2]);
             }
         }
     }
