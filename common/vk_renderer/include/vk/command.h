@@ -2,8 +2,8 @@
 
 #include <volk.h>
 
-#include "engine.h"
-#include "renderer/draw_command.h"
+#include "vk/engine.h"
+#include "renderer/command.h"
 #include "proto/renderer.pb.h"
 
 #include <vector>

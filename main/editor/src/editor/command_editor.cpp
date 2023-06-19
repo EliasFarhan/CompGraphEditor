@@ -35,16 +35,40 @@ void CommandEditor::AddResource(const Resource& resource)
             return;
         }
         std::ifstream fileIn(resource.path, std::ios::binary);
-        if (!commandInfo.info.ParseFromIstream(&fileIn))
+        commandInfo.info.emplace<pb::EditorDrawCommand>();
+        auto& info = std::get<pb::EditorDrawCommand>(commandInfo.info);
+        if (!info.ParseFromIstream(&fileIn))
         {
             LogWarning(fmt::format("Could not open protobuf file: {}", resource.path));
             return;
         }
+        if (info.draw_command().name().empty())
+        {
+            info.mutable_draw_command()->set_name(GetFilename(resource.path, false));
+        }
     }
-    if (commandInfo.info.draw_command().name().empty())
+    else if(extension ==".compcmd")
     {
-        commandInfo.info.mutable_draw_command()->set_name(GetFilename(resource.path, false));
+        const auto& fileSystem = core::FilesystemLocator::get();
+        if (!fileSystem.IsRegularFile(resource.path))
+        {
+            LogWarning(fmt::format("Could not find command file: {}", resource.path));
+            return;
+        }
+        std::ifstream fileIn(resource.path, std::ios::binary);
+        commandInfo.info.emplace<pb::EditorComputeCommand>();
+        auto& info = std::get<pb::EditorComputeCommand>(commandInfo.info);
+        if (!info.ParseFromIstream(&fileIn))
+        {
+            LogWarning(fmt::format("Could not open protobuf file: {}", resource.path));
+            return;
+        }
+        if (info.compute_command().name().empty())
+        {
+            info.mutable_compute_command()->set_name(GetFilename(resource.path, false));
+        }
     }
+    
     commandInfo.path = resource.path;
     commandInfos_.push_back(commandInfo);
 }
@@ -55,13 +79,23 @@ void CommandEditor::RemoveResource(const Resource& resource)
     {
         if(command.materialId == resource.resourceId)
         {
-            command.info.clear_material_path();
+            if (command.info.index() == 0)
+            {
+                std::get<pb::EditorDrawCommand>(command.info).clear_material_path();
+            }
+            else
+            {
+                std::get<pb::EditorComputeCommand>(command.info).clear_material_path();
+            }
             command.materialId = INVALID_RESOURCE_ID;
         }
 
         if(command.meshId == resource.resourceId)
         {
-            command.info.clear_mesh_path();
+            if (command.info.index() == 0)
+            {
+                std::get<pb::EditorDrawCommand>(command.info).clear_mesh_path();
+            }
             command.meshId = INVALID_RESOURCE_ID;
         }
     }
@@ -99,204 +133,224 @@ void CommandEditor::DrawInspector()
     auto& currentCommand = commandInfos_[currentIndex_];
 
     //name editor
-    std::string drawCommandName = currentCommand.info.draw_command().name();
-    if (ImGui::InputText("Name: ", &drawCommandName))
+    if (currentCommand.info.index() == 0)
     {
-        currentCommand.info.mutable_draw_command()->set_name(drawCommandName);
-    }
-
-    const auto& materials = materialEditor->GetMaterials();
-    const auto* materialInfo = materialEditor->GetMaterial(currentCommand.materialId);
-    if (ImGui::BeginCombo("Material", materialInfo ? materialInfo->filename.c_str() : "Empty Material"))
-    {
-        for (auto& material : materials)
+        auto& drawCommandInfo = std::get<pb::EditorDrawCommand>(currentCommand.info);
+        std::string drawCommandName = drawCommandInfo.draw_command().name();
+        if (ImGui::InputText("Name: ", &drawCommandName))
         {
-            if (ImGui::Selectable(material.filename.c_str(), material.resourceId == currentCommand.materialId))
-            {
-                currentCommand.materialId = material.resourceId;
-                currentCommand.info.set_material_path(material.path);
-            }
+            drawCommandInfo.mutable_draw_command()->set_name(drawCommandName);
         }
-        ImGui::EndCombo();
-    }
-    const auto& meshes = meshEditor->GetMeshes();
-    const auto* meshInfo = meshEditor->GetMesh(currentCommand.meshId);
-    if (ImGui::BeginCombo("Mesh", meshInfo ? meshInfo->filename.c_str() : "Empty Mesh"))
-    {
-        for (auto& mesh : meshes)
-        {
-            if (ImGui::Selectable(mesh.filename.c_str(), mesh.resourceId == currentCommand.meshId))
-            {
-                currentCommand.meshId = mesh.resourceId;
-                currentCommand.info.set_mesh_path(mesh.path);
-            }
-        }
-        ImGui::EndCombo();
-    }
-    if (materialInfo == nullptr)
-        return;
-    auto* pipelineInfo = pipelineEditor->GetPipeline(materialInfo->pipelineId);
-    if (pipelineInfo == nullptr)
-        return;
 
-    std::array resourceIds = {
-        pipelineInfo->vertexShaderId,
-        pipelineInfo->fragmentShaderId,
-        pipelineInfo->geometryShaderId,
-        pipelineInfo->tessControlShaderId,
-        pipelineInfo->tessEvalShaderId,
-        pipelineInfo->computeShaderId,
-        pipelineInfo->rayGenShaderId,
-        pipelineInfo->anyHitShaderId,
-        pipelineInfo->closestHitShaderId,
-        pipelineInfo->intersectionHitShaderId,
-        pipelineInfo->missHitShaderId,
-    };
-    core::pb::Attribute ssbo{};
-    ssbo.set_binding(-1);
-    const auto checkSsboPresence = [&resourceIds, shaderEditor, pipelineInfo, &ssbo](ResourceId shaderId)
-    {
-        if (shaderId == INVALID_RESOURCE_ID)
-            return;
-
-        const auto* shaderInfo = shaderEditor->GetShader(pipelineInfo->vertexShaderId);
-        if(shaderInfo->info.storage_buffers_size() == 0)
-            return;
-        const auto& storage_buffer = shaderInfo->info.storage_buffers(0);
-        ssbo.set_binding(storage_buffer.binding());
-        ssbo.set_name(storage_buffer.name());
-    };
-    for(const auto resourceId : resourceIds)
-    {
-        checkSsboPresence(resourceId);
-    }
-    if(ssbo.binding() != -1)
-    {
-        const auto buffers = bufferEditor->GetBuffers();
-        const auto& currentBuffer = currentCommand.info.buffer_path();
-        
-        if(ImGui::BeginCombo("Storage Buffer", currentBuffer.empty()? "No Buffer": currentBuffer.data()))
+        const auto& materials = materialEditor->GetMaterials();
+        const auto* materialInfo = materialEditor->GetMaterial(currentCommand.materialId);
+        if (ImGui::BeginCombo("Material", materialInfo ? materialInfo->filename.c_str() : "Empty Material"))
         {
-            for(const auto& buffer: buffers)
+            for (auto& material : materials)
             {
-                if(ImGui::Selectable(buffer.path.data(), !currentBuffer.empty() && buffer.path == currentBuffer))
+                if (ImGui::Selectable(material.filename.c_str(), material.resourceId == currentCommand.materialId))
                 {
-                    currentCommand.info.set_buffer_path(buffer.path);
-                    currentCommand.bufferId = buffer.resourceId;
+                    currentCommand.materialId = material.resourceId;
+                    drawCommandInfo.set_material_path(material.path);
+                }
+            }
+            ImGui::EndCombo();
+        }
+        const auto& meshes = meshEditor->GetMeshes();
+        const auto* meshInfo = meshEditor->GetMesh(currentCommand.meshId);
+        if (ImGui::BeginCombo("Mesh", meshInfo ? meshInfo->filename.c_str() : "Empty Mesh"))
+        {
+            for (auto& mesh : meshes)
+            {
+                if (ImGui::Selectable(mesh.filename.c_str(), mesh.resourceId == currentCommand.meshId))
+                {
+                    currentCommand.meshId = mesh.resourceId;
+                    drawCommandInfo.set_mesh_path(mesh.path);
+                }
+            }
+            ImGui::EndCombo();
+        }
+        if (materialInfo == nullptr)
+            return;
+        auto* pipelineInfo = pipelineEditor->GetPipeline(materialInfo->pipelineId);
+        if (pipelineInfo == nullptr)
+            return;
+
+        std::array resourceIds = {
+            pipelineInfo->vertexShaderId,
+            pipelineInfo->fragmentShaderId,
+            pipelineInfo->geometryShaderId,
+            pipelineInfo->tessControlShaderId,
+            pipelineInfo->tessEvalShaderId,
+            pipelineInfo->computeShaderId,
+            pipelineInfo->rayGenShaderId,
+            pipelineInfo->anyHitShaderId,
+            pipelineInfo->closestHitShaderId,
+            pipelineInfo->intersectionHitShaderId,
+            pipelineInfo->missHitShaderId,
+        };
+        core::pb::Attribute ssbo{};
+        ssbo.set_binding(-1);
+        const auto checkSsboPresence = [&resourceIds, shaderEditor, pipelineInfo, &ssbo](ResourceId shaderId)
+        {
+            if (shaderId == INVALID_RESOURCE_ID)
+                return;
+
+            const auto* shaderInfo = shaderEditor->GetShader(pipelineInfo->vertexShaderId);
+            if (shaderInfo->info.storage_buffers_size() == 0)
+                return;
+            const auto& storage_buffer = shaderInfo->info.storage_buffers(0);
+            ssbo.set_binding(storage_buffer.binding());
+            ssbo.set_name(storage_buffer.name());
+        };
+        for (const auto resourceId : resourceIds)
+        {
+            checkSsboPresence(resourceId);
+        }
+        if (ssbo.binding() != -1)
+        {
+            const auto buffers = bufferEditor->GetBuffers();
+            const auto& currentBuffer = drawCommandInfo.buffer_path();
+
+            if (ImGui::BeginCombo("Storage Buffer", currentBuffer.empty() ? "No Buffer" : currentBuffer.data()))
+            {
+                for (const auto& buffer : buffers)
+                {
+                    if (ImGui::Selectable(buffer.path.data(), !currentBuffer.empty() && buffer.path == currentBuffer))
+                    {
+                        drawCommandInfo.set_buffer_path(buffer.path);
+                        currentCommand.bufferId = buffer.resourceId;
+                    }
+                }
+                ImGui::EndCombo();
+            }
+        }
+
+        switch (pipelineInfo->info.pipeline().type())
+        {
+        case core::pb::Pipeline_Type_RASTERIZE:
+        {
+            bool automaticDraw = drawCommandInfo.draw_command().automatic_draw();
+            if (ImGui::Checkbox("Automatic Draw", &automaticDraw))
+            {
+                drawCommandInfo.mutable_draw_command()->set_automatic_draw(automaticDraw);
+            }
+
+            //Model matrix
+            core::pb::Transform* transform = nullptr;
+            if (drawCommandInfo.draw_command().has_model_transform())
+            {
+                transform = drawCommandInfo.mutable_draw_command()->mutable_model_transform();
+            }
+
+            if (transform == nullptr)
+            {
+                if (ImGui::Button("Add Model Transform Matrix"))
+                {
+                    transform = drawCommandInfo.mutable_draw_command()->mutable_model_transform();
+                    auto* position = transform->mutable_position();
+                    auto* scale = transform->mutable_scale();
+                    scale->set_x(1.0f);
+                    scale->set_y(1.0f);
+                    scale->set_z(1.0f);
+                    auto* eulerAngles = transform->mutable_euler_angles();
+                }
+            }
+            else
+            {
+                auto* position = transform->mutable_position();
+                std::array<float, 3> positionTmp = { {position->x(), position->y(), position->z()} };
+                if (ImGui::InputFloat3("Position", positionTmp.data()))
+                {
+                    position->set_x(positionTmp[0]);
+                    position->set_y(positionTmp[1]);
+                    position->set_z(positionTmp[2]);
+                }
+                auto* scale = transform->mutable_scale();
+                std::array<float, 3> scaleTmp = { {scale->x(), scale->y(), scale->z()} };
+                if (ImGui::InputFloat3("Scale", scaleTmp.data()))
+                {
+                    scale->set_x(scaleTmp[0]);
+                    scale->set_y(scaleTmp[1]);
+                    scale->set_z(scaleTmp[2]);
+                }
+                auto* eulerAngles = transform->mutable_euler_angles();
+                std::array<float, 3> eulerAnglesTmp = { {eulerAngles->x(), eulerAngles->y(), eulerAngles->z()} };
+                if (ImGui::InputFloat3("Euler Angles", eulerAnglesTmp.data()))
+                {
+                    eulerAngles->set_x(eulerAnglesTmp[0]);
+                    eulerAngles->set_y(eulerAnglesTmp[1]);
+                    eulerAngles->set_z(eulerAnglesTmp[2]);
+                }
+                if (ImGui::Button("Remove Model Transform Matrix"))
+                {
+                    drawCommandInfo.mutable_draw_command()->clear_model_transform();
+                }
+            }
+
+            UpdateMeshInCommand(currentIndex_);
+            if (meshInfo != nullptr)
+            {
+                switch (meshInfo->info.mesh().primitve_type())
+                {
+                case core::pb::Mesh_PrimitveType_NONE:
+                {
+                    int count = drawCommandInfo.mutable_draw_command()->count();
+                    if (ImGui::InputInt("Vertex Count", &count))
+                    {
+                        drawCommandInfo.mutable_draw_command()->set_count(count);
+                    }
+                    bool drawElements = drawCommandInfo.mutable_draw_command()->draw_elements();
+                    if (ImGui::Checkbox("Draw Elements", &drawElements))
+                    {
+                        drawCommandInfo.mutable_draw_command()->set_draw_elements(drawElements);
+                    }
+
+                    break;
+                }
+                case core::pb::Mesh_PrimitveType_MODEL:
+                {
+                    ImGui::Text("Vertex Count: %d", drawCommandInfo.draw_command().count());
+                    break;
+                }
+                default:
+                    break;
+                }
+            }
+        }
+        case core::pb::Pipeline_Type_COMPUTE:
+        {
+            break;
+        }
+        default:
+            break;
+        }
+    }
+    else
+    {
+        //Compute shader
+        auto& computeCommandInfo = std::get<pb::EditorComputeCommand>(currentCommand.info);
+        std::string drawCommandName = computeCommandInfo.compute_command().name();
+        if (ImGui::InputText("Name: ", &drawCommandName))
+        {
+            computeCommandInfo.mutable_compute_command()->set_name(drawCommandName);
+        }
+
+        const auto& materials = materialEditor->GetMaterials();
+        const auto* materialInfo = materialEditor->GetMaterial(currentCommand.materialId);
+        if (ImGui::BeginCombo("Material", materialInfo ? materialInfo->filename.c_str() : "Empty Material"))
+        {
+            for (auto& material : materials)
+            {
+                if (ImGui::Selectable(material.filename.c_str(), material.resourceId == currentCommand.materialId))
+                {
+                    currentCommand.materialId = material.resourceId;
+                    computeCommandInfo.set_material_path(material.path);
                 }
             }
             ImGui::EndCombo();
         }
     }
-
-    switch(pipelineInfo->info.pipeline().type())
-    {
-    case core::pb::Pipeline_Type_RASTERIZE:
-    {
-        bool automaticDraw = currentCommand.info.draw_command().automatic_draw();
-        if (ImGui::Checkbox("Automatic Draw", &automaticDraw))
-        {
-            currentCommand.info.mutable_draw_command()->set_automatic_draw(automaticDraw);
-        }
-
-        //Model matrix
-        core::pb::Transform* transform = nullptr;
-        if (currentCommand.info.draw_command().has_model_transform())
-        {
-            transform = currentCommand.info.mutable_draw_command()->mutable_model_transform();
-        }
-
-        if (transform == nullptr)
-        {
-            if (ImGui::Button("Add Model Transform Matrix"))
-            {
-                transform = currentCommand.info.mutable_draw_command()->mutable_model_transform();
-                auto* position = transform->mutable_position();
-                auto* scale = transform->mutable_scale();
-                scale->set_x(1.0f);
-                scale->set_y(1.0f);
-                scale->set_z(1.0f);
-                auto* eulerAngles = transform->mutable_euler_angles();
-            }
-        }
-        else
-        {
-            auto* position = transform->mutable_position();
-            std::array<float, 3> positionTmp = { {position->x(), position->y(), position->z()} };
-            if (ImGui::InputFloat3("Position", positionTmp.data()))
-            {
-                position->set_x(positionTmp[0]);
-                position->set_y(positionTmp[1]);
-                position->set_z(positionTmp[2]);
-            }
-            auto* scale = transform->mutable_scale();
-            std::array<float, 3> scaleTmp = { {scale->x(), scale->y(), scale->z()} };
-            if (ImGui::InputFloat3("Scale", scaleTmp.data()))
-            {
-                scale->set_x(scaleTmp[0]);
-                scale->set_y(scaleTmp[1]);
-                scale->set_z(scaleTmp[2]);
-            }
-            auto* eulerAngles = transform->mutable_euler_angles();
-            std::array<float, 3> eulerAnglesTmp = { {eulerAngles->x(), eulerAngles->y(), eulerAngles->z()} };
-            if (ImGui::InputFloat3("Euler Angles", eulerAnglesTmp.data()))
-            {
-                eulerAngles->set_x(eulerAnglesTmp[0]);
-                eulerAngles->set_y(eulerAnglesTmp[1]);
-                eulerAngles->set_z(eulerAnglesTmp[2]);
-            }
-            if (ImGui::Button("Remove Model Transform Matrix"))
-            {
-                currentCommand.info.mutable_draw_command()->clear_model_transform();
-            }
-        }
-
-        UpdateMeshInCommand(currentIndex_);
-        if (meshInfo != nullptr)
-        {
-            switch (meshInfo->info.mesh().primitve_type())
-            {
-            case core::pb::Mesh_PrimitveType_NONE:
-            {
-                int count = currentCommand.info.mutable_draw_command()->count();
-                if (ImGui::InputInt("Vertex Count", &count))
-                {
-                    currentCommand.info.mutable_draw_command()->set_count(count);
-                }
-                bool drawElements = currentCommand.info.mutable_draw_command()->draw_elements();
-                if (ImGui::Checkbox("Draw Elements", &drawElements))
-                {
-                    currentCommand.info.mutable_draw_command()->set_draw_elements(drawElements);
-                }
-
-                break;
-            }
-            case core::pb::Mesh_PrimitveType_MODEL:
-            {
-                ImGui::Text("Vertex Count: %d", currentCommand.info.draw_command().count());
-                break;
-            }
-            default:
-                break;
-            }
-        }
-    }
-    case core::pb::Pipeline_Type_COMPUTE:
-    {
-        auto* computeDispatchSize = currentCommand.info.mutable_draw_command()->mutable_compute_dispatch_size();
-        std::array<int, 3> tmp = { {computeDispatchSize->x(), computeDispatchSize->y(), computeDispatchSize->z()} };
-        if (ImGui::InputInt3("Compute Dispatch Size", tmp.data()))
-        {
-            computeDispatchSize->set_x(tmp[0]);
-            computeDispatchSize->set_y(tmp[1]);
-            computeDispatchSize->set_z(tmp[2]);
-        }
-        break;
-    }
-    default:
-        break;
-    }
-
 
 }
 
@@ -332,9 +386,19 @@ void CommandEditor::Save()
     for (auto& commandInfo : commandInfos_)
     {
         std::ofstream fileOut(commandInfo.path, std::ios::binary);
-        if (!commandInfo.info.SerializeToOstream(&fileOut))
+        if (commandInfo.info.index() == 0)
         {
-            LogWarning(fmt::format("Could not save command at: {}", commandInfo.path));
+            if (!std::get<pb::EditorDrawCommand>(commandInfo.info).SerializeToOstream(&fileOut))
+            {
+                LogWarning(fmt::format("Could not save command at: {}", commandInfo.path));
+            }
+        }
+        else
+        {
+            if (!std::get<pb::EditorComputeCommand>(commandInfo.info).SerializeToOstream(&fileOut))
+            {
+                LogWarning(fmt::format("Could not save command at: {}", commandInfo.path));
+            }
         }
 
     }
@@ -359,19 +423,34 @@ void CommandEditor::ReloadId()
     const auto& resourceManager = editor->GetResourceManager();
     for (auto& commandInfo : commandInfos_)
     {
-        if (commandInfo.materialId == INVALID_RESOURCE_ID && !commandInfo.info.material_path().empty())
+        std::string materialPath;
+        std::string meshPath;
+        std::string bufferPath;
+        if(commandInfo.info.index() == 0)
         {
-            commandInfo.materialId = resourceManager.FindResourceByPath(commandInfo.info.material_path());
+            const auto& drawCommandInfo = std::get<pb::EditorDrawCommand>(commandInfo.info);
+            materialPath = drawCommandInfo.material_path();
+            meshPath = drawCommandInfo.mesh_path();
+            bufferPath = drawCommandInfo.buffer_path();
+        }
+        else
+        {
+            const auto& drawCommandInfo = std::get<pb::EditorComputeCommand>(commandInfo.info);
+            materialPath = drawCommandInfo.material_path();
+        }
+        if (commandInfo.materialId == INVALID_RESOURCE_ID && !materialPath.empty())
+        {
+            commandInfo.materialId = resourceManager.FindResourceByPath(materialPath);
         }
 
-        if (commandInfo.meshId == INVALID_RESOURCE_ID && !commandInfo.info.mesh_path().empty())
+        if (commandInfo.meshId == INVALID_RESOURCE_ID && !meshPath.empty())
         {
-            commandInfo.meshId = resourceManager.FindResourceByPath(commandInfo.info.mesh_path());
+            commandInfo.meshId = resourceManager.FindResourceByPath(meshPath);
         }
 
-        if(commandInfo.bufferId == INVALID_RESOURCE_ID && !commandInfo.info.buffer_path().empty())
+        if(commandInfo.bufferId == INVALID_RESOURCE_ID && !bufferPath.empty())
         {
-            commandInfo.bufferId = resourceManager.FindResourceByPath(commandInfo.info.buffer_path());
+            commandInfo.bufferId = resourceManager.FindResourceByPath(bufferPath);
         }
 
         UpdateMeshInCommand(std::distance(commandInfos_.data(), &commandInfo));
@@ -391,7 +470,7 @@ void CommandEditor::Delete()
 
 std::span<const std::string_view> CommandEditor::GetExtensions() const
 {
-    static constexpr std::array<std::string_view, 1> extensions = { ".cmd" };
+    static constexpr std::array<std::string_view, 2> extensions = { ".cmd", ".compcmd"};
     return std::span{ extensions };
 }
 
@@ -404,6 +483,11 @@ void CommandEditor::Clear()
 void CommandEditor::UpdateMeshInCommand(int index)
 {
     auto& currentCommand = commandInfos_[index];
+    if(currentCommand.info.index() != 0)
+    {
+        return;
+    }
+    auto& drawCommandInfo = std::get<pb::EditorDrawCommand>(currentCommand.info);
     const auto* editor = Editor::GetInstance();
     auto* meshEditor = dynamic_cast<MeshEditor*>(editor->GetEditorSystem(EditorType::MESH));
     const auto* meshInfo = meshEditor->GetMesh(currentCommand.meshId);
@@ -413,21 +497,21 @@ void CommandEditor::UpdateMeshInCommand(int index)
         {
         case core::pb::Mesh_PrimitveType_QUAD:
         {
-            currentCommand.info.mutable_draw_command()->set_draw_elements(true);
-            currentCommand.info.mutable_draw_command()->set_count(6);
+            drawCommandInfo.mutable_draw_command()->set_draw_elements(true);
+            drawCommandInfo.mutable_draw_command()->set_count(6);
             break;
         }
         case core::pb::Mesh_PrimitveType_CUBE:
         {
-            currentCommand.info.mutable_draw_command()->set_draw_elements(true);
-            currentCommand.info.mutable_draw_command()->set_count(36);
+            drawCommandInfo.mutable_draw_command()->set_draw_elements(true);
+            drawCommandInfo.mutable_draw_command()->set_count(36);
             break;
         }
         case core::pb::Mesh_PrimitveType_SPHERE:
         {
-            currentCommand.info.mutable_draw_command()->set_draw_elements(true);
-            currentCommand.info.mutable_draw_command()->set_count(core::sphereIndices);
-            currentCommand.info.mutable_draw_command()->set_mode(core::pb::DrawCommand_Mode_TRIANGLE_STRIP);
+            drawCommandInfo.mutable_draw_command()->set_draw_elements(true);
+            drawCommandInfo.mutable_draw_command()->set_count(core::sphereIndices);
+            drawCommandInfo.mutable_draw_command()->set_mode(core::pb::DrawCommand_Mode_TRIANGLE_STRIP);
             break;
         }
         default: break;

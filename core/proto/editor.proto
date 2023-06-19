@@ -67,6 +67,12 @@ message EditorDrawCommand
 }
 
 
+message EditorComputeCommand
+{
+    core.pb.ComputeCommand compute_command = 1;
+    string material_path = 2;
+}
+
 message EditorSubPass
 {
     core.pb.SubPass subPass = 1;
@@ -108,6 +114,7 @@ message ModelDrawCommand
 	repeated string draw_command_paths = 2;
 	string pipeline_path = 3;
 }
+
 
 message EditorModel
 {

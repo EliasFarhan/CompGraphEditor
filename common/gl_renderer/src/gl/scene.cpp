@@ -5,7 +5,7 @@
 #include "gl/debug.h"
 #include "proto/renderer.pb.h"
 
-#include "renderer/draw_command.h"
+#include "renderer/command.h"
 
 #include "renderer/pipeline.h"
 #include "renderer/material.h"

@@ -789,12 +789,16 @@ void Editor::DrawEditorContent()
         ImGui::TreePop();
     }
 
-    open = ImGui::TreeNode("Draw Commands");
+    open = ImGui::TreeNode("Commands");
     if (ImGui::BeginPopupContextItem())
     {
         if (ImGui::Button("Create New Draw Command"))
         {
-            OpenMenuCreateNewFile(EditorType::COMMAND);
+            OpenMenuCreateNewFile(EditorType::COMMAND, ".cmd");
+        }
+        if (ImGui::Button("Create New Compute Command"))
+        {
+            OpenMenuCreateNewFile(EditorType::COMMAND, ".compcmd");
         }
         if (UpdateCreateNewFile())
         {

@@ -253,6 +253,7 @@ public:
     void Destroy();
     RenderTarget& GetRenderTarget(std::string_view attachmentName);
     std::string_view GetName() const { return name; }
+    std::unique_ptr<core::Image> GetImage(std::string_view attachmentName) override;
 private:
     std::vector<RenderTarget> targets;
     std::string name;

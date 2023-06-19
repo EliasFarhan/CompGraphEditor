@@ -439,7 +439,6 @@ bool SceneEditor::ExportAndPlayScene() const
         //Export commands
         for(int commandIndex = 0; commandIndex < editorSubPass.command_paths_size(); commandIndex++)
         {
-            auto* exportCommand = exportSubPass->add_commands();
             const auto editorCommandPath = editorSubPass.command_paths(commandIndex);
             const auto commandId = resourceManager.FindResourceByPath(editorCommandPath);
             if(commandId == INVALID_RESOURCE_ID)
@@ -448,10 +447,22 @@ bool SceneEditor::ExportAndPlayScene() const
                 return false;
             }
             const auto* editorCommand = commandEditor->GetCommand(commandId);
-            *exportCommand = editorCommand->info.draw_command();
+
+            core::pb::DrawCommand* exportDrawCommand = nullptr;
+            core::pb::ComputeCommand* exportComputeCommand = nullptr;
+            if (editorCommand->info.index() == 0)
+            {
+                exportDrawCommand = exportSubPass->add_commands();
+                *exportDrawCommand = std::get<pb::EditorDrawCommand>(editorCommand->info).draw_command();
+            }
+            else
+            {
+                exportComputeCommand = exportSubPass->add_compute_commands();
+                *exportComputeCommand = std::get<pb::EditorComputeCommand>(editorCommand->info).compute_command();
+            }
             if (editorCommand->materialId == INVALID_RESOURCE_ID)
             {
-                LogWarning(fmt::format("Could not export scene, missing material in command. Command {}", exportCommand->name()));
+                LogWarning(fmt::format("Could not export scene, missing material in command. Command {}", exportDrawCommand ? exportDrawCommand->name():exportComputeCommand->name()));
                 return false;
             }
             int exportedPipelineIndex = -1;
@@ -692,11 +703,25 @@ bool SceneEditor::ExportAndPlayScene() const
 
                     exportedPipelineIndex = pipelineIndexIt->second;
                 }
-                exportCommand->set_material_index(materialIndex);
+                if (exportDrawCommand)
+                {
+                    exportDrawCommand->set_material_index(materialIndex);
+                }
+                if(exportComputeCommand)
+                {
+                    exportComputeCommand->set_material_index(materialIndex);
+                }
             }
             else
             {
-                exportCommand->set_material_index(materialIndexIt->second);
+                if (exportDrawCommand)
+                {
+                    exportDrawCommand->set_material_index(materialIndexIt->second);
+                }
+                if (exportComputeCommand)
+                {
+                    exportComputeCommand->set_material_index(materialIndexIt->second);
+                }
             }
             //link mesh index
             if(editorCommand->meshId == INVALID_RESOURCE_ID)
@@ -737,11 +762,11 @@ bool SceneEditor::ExportAndPlayScene() const
                 *newMesh = mesh->info.mesh();
                 newMesh->set_model_index(meshModel);
                 resourceIndexMap[mesh->resourceId] = meshIndex;
-                exportCommand->set_mesh_index(meshIndex);
+                exportDrawCommand->set_mesh_index(meshIndex);
             }
             else
             {
-                exportCommand->set_mesh_index(meshIndexIt->second);
+                exportDrawCommand->set_mesh_index(meshIndexIt->second);
             }
             //link buffer
             if(editorCommand->bufferId == INVALID_RESOURCE_ID)
@@ -789,7 +814,7 @@ bool SceneEditor::ExportAndPlayScene() const
                 }
                 else
                 {
-                    exportCommand->set_buffer_index(it->second);
+                    exportDrawCommand->set_buffer_index(it->second);
                 }
             }
         }

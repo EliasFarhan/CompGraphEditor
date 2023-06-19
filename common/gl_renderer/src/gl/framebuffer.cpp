@@ -431,6 +431,21 @@ GLuint Framebuffer::GetTextureName(std::string_view textureName)
 
 std::unique_ptr<core::Image> Framebuffer::GetImage(std::string_view attachmentName)
 {
+    if(frameBufferPb_.has_depth_stencil_attachment())
+    {
+        if(frameBufferPb_.depth_stencil_attachment().name() == attachmentName)
+        {
+            return std::make_unique<Image>(depthStencilAttachment_);
+        }
+    }
+    for(int i = 0; i < frameBufferPb_.color_attachments_size(); i++)
+    {
+        if(frameBufferPb_.color_attachments(i).name() == attachmentName)
+        {
+            return std::make_unique<Image>(colorAttachments_[i]);
+        }
+    }
+    return nullptr;
 }
 
 AttachmentType GetAttachmentType(const core::pb::RenderTarget& renderTargetInfo)

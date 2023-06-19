@@ -514,18 +514,19 @@ void ModelEditor::GenerateMaterialsAndCommands(int commandIndex)
         const auto materialId = resourceManager.FindResourceByPath(materialPath);
         const auto meshId = resourceManager.FindResourceByPath(modelMesh.mesh_path());
 
-        command->info.set_mesh_path(modelMesh.mesh_path());
-        command->info.set_material_path(materialPath);
+        auto& drawCommandInfo = std::get<pb::EditorDrawCommand>(command->info);
+        drawCommandInfo.set_mesh_path(modelMesh.mesh_path());
+        drawCommandInfo.set_material_path(materialPath);
         command->materialId = materialId;
         command->meshId = meshId;
-        command->info.mutable_draw_command()->set_draw_elements(true);
+        drawCommandInfo.mutable_draw_command()->set_draw_elements(true);
         const auto& modelManager = core::GetModelManager();
         const auto& model = modelManager.GetModel(currentModelInfo.modelIndex);
         for (auto& mesh : model.GetMeshes())
         {
             if (mesh.name == modelMesh.mesh_name())
             {
-                command->info.mutable_draw_command()->set_count(mesh.indices.size());
+                drawCommandInfo.mutable_draw_command()->set_count(mesh.indices.size());
                 break;
             }
         }

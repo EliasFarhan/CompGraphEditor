@@ -5,7 +5,7 @@
 #include "vk/window.h"
 #include "vk/pipeline.h"
 
-#include "renderer/draw_command.h"
+#include "renderer/command.h"
 #include "utils/log.h"
 
 namespace vk
@@ -347,6 +347,11 @@ Pipeline& Scene::GetRaytracingPipeline(int raytracingPipelineIndex)
 TopLevelAccelerationStructure& Scene::GetAccelerationStructure(int accelerationStructureIndex)
 {
     return topLevelAccelerationStructures_[accelerationStructureIndex];
+}
+
+void Scene::Dispatch(core::ComputeCommand& command, int x, int y, int z)
+{
+    //TODO
 }
 
 Scene::ImportStatus Scene::LoadShaders(const PbRepeatField<core::pb::Shader>& shadersPb)

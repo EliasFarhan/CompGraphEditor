@@ -1,4 +1,4 @@
-#include "gl/draw_command.h"
+#include "gl/command.h"
 #include "gl/texture.h"
 
 #include "engine/scene.h"
@@ -193,5 +193,10 @@ void ComputeCommand::SetMat4(std::string_view uniformName, const glm::mat4& mat)
 void ComputeCommand::SetAngle(std::string_view uniformName, core::Radian angle)
 {
     pipeline_->SetFloat(uniformName, angle.value());
+}
+
+void ComputeCommand::Bind()
+{
+    pipeline_->Bind();
 }
 }

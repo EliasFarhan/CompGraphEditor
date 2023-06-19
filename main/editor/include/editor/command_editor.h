@@ -1,9 +1,11 @@
 #pragma once
-#include <string>
 
 #include "editor_system.h"
 #include "resource.h"
 #include "proto/editor.pb.h"
+
+#include <variant>
+#include <string>
 
 namespace editor
 {
@@ -12,7 +14,7 @@ struct CommandInfo
 {
     std::string filename;
     std::string path;
-    pb::EditorDrawCommand info;
+    std::variant<pb::EditorDrawCommand, pb::EditorComputeCommand> info;
     ResourceId resourceId = INVALID_RESOURCE_ID;
     ResourceId materialId = INVALID_RESOURCE_ID;
     ResourceId meshId = INVALID_RESOURCE_ID;

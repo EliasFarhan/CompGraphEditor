@@ -130,6 +130,8 @@ def analyze_gl_shader(shader_path: str):
             return 'float'
         if type_name == '1404':
             return 'int'
+        if type_name == '8b56':
+            return 'bool'
         return 'undefined'
 
     def get_binding(line: str):

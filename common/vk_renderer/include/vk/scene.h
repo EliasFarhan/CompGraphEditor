@@ -53,6 +53,7 @@ public:
     const RaytracingStorageImage& GetStorageImage() const { return raytracingStorageImage_; }
 
     core::BufferManager & GetBufferManager() override { return bufferManager_; }
+    void Dispatch(core::ComputeCommand& command, int x, int y, int z) override;
 protected:
     ImportStatus LoadShaders(const PbRepeatField<core::pb::Shader>& shadersPb) override;
     ImportStatus LoadPipelines(const PbRepeatField<core::pb::Pipeline>& pipelines, const PbRepeatField<core::pb::RaytracingPipeline>& raytracingPipelines) override;
@@ -66,6 +67,7 @@ protected:
     ImportStatus LoadBuffers(const PbRepeatField<core::pb::Buffer>& buffers) override;
 private:
     void ResizeWindow();
+    
     std::vector<Pipeline> pipelines_;
     std::vector<Framebuffer> framebuffers_;
 

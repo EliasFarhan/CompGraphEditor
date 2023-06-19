@@ -427,6 +427,7 @@ message ComputeCommand
 {
     int32 material_index = 1;
     Vec3i dispatch_size = 2;
+    string name = 3;
 }
 
 message SubPass

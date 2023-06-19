@@ -5,7 +5,7 @@
 #include "gl/buffer.h"
 #include "gl/texture.h"
 #include "gl/material.h"
-#include "gl/draw_command.h"
+#include "gl/command.h"
 
 #include <vector>
 

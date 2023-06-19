@@ -3,7 +3,7 @@
 #include "engine/scene.h"
 #include "renderer/pipeline.h"
 #include "engine/filesystem.h"
-#include "renderer/draw_command.h"
+#include "renderer/command.h"
 #include "renderer/framebuffer.h"
 #include "renderer/buffer.h"
 
@@ -86,10 +86,10 @@ PYBIND11_EMBEDDED_MODULE(neko2, m)
         {
             image->BindImage(bindingPoint, access);
         })
-        .def("dispatch", [](core::ComputeCommand& command, int x, int y, int z)
+        .def("dispatch", [](core::Command& command, int x, int y, int z)
         {
             auto* scene = core::GetCurrentScene();
-            scene->Dispatch(command, x, y, z);
+            scene->Dispatch(static_cast<core::ComputeCommand&>(command), x, y, z);
         });
 
     py::class_<core::DrawCommand>(m, "DrawCommand")

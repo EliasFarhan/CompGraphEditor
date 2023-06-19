@@ -1,4 +1,4 @@
-#include "renderer/draw_command.h"
+#include "renderer/command.h"
 
 namespace core
 {

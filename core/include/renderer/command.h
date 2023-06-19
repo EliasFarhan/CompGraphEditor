@@ -70,6 +70,7 @@ public:
     virtual void SetMat4(std::string_view uniformName, const glm::mat4& mat) = 0;
 
     virtual void SetAngle(std::string_view uniformName, Radian angle) = 0;
+    virtual void Bind() = 0;
 };
 
 class DrawCommand : public Command
@@ -106,7 +107,6 @@ public:
     int GetMeshIndex() const { return drawCommandInfo_.get().mesh_index(); }
     const pb::DrawCommand& GetInfo() const { return drawCommandInfo_; }
     int GetSubpassIndex() const { return subPassIndex_; }
-    virtual void Bind() = 0;
     /**
      * @brief PreDrawBind is a method that bind transform and apply all deferred changes before drawing
      */
@@ -121,7 +121,7 @@ protected:
     int subPassIndex_ = -1;
 };
 
-class ComputeCommand : core::Command
+class ComputeCommand : public Command
 {
     
 };

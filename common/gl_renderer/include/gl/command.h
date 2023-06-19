@@ -1,7 +1,6 @@
 #pragma once
 
-#include "renderer/draw_command.h"
-#include <unordered_map>
+#include "renderer/command.h"
 
 #include "material.h"
 
@@ -50,6 +49,8 @@ public:
     void SetMat3(std::string_view uniformName, const glm::mat3& mat) override;
     void SetMat4(std::string_view uniformName, const glm::mat4& mat) override;
     void SetAngle(std::string_view uniformName, core::Radian angle) override;
+    void Bind() override;
+
 private:
 
     Pipeline* pipeline_ = nullptr;

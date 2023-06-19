@@ -246,7 +246,14 @@ void RenderPassEditor::DrawCenterView()
             const auto& commandInfo = commandEditor->GetCommand(commandResource);
             if (commandInfo != nullptr)
             {
-                ImGui::Text("%s", commandInfo->info.draw_command().name().c_str());
+                if (commandInfo->info.index() == 0)
+                {
+                    ImGui::Text("%s", std::get<pb::EditorDrawCommand>(commandInfo->info).draw_command().name().c_str());
+                }
+                else
+                {
+                    ImGui::Text("%s", std::get<pb::EditorComputeCommand>(commandInfo->info).compute_command().name().c_str());
+                }
             }
         }
 

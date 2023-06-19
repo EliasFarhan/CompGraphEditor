@@ -129,4 +129,9 @@ RenderTarget& Framebuffer::GetRenderTarget(std::string_view attachmentName)
             return target.name == attachmentName;
         });
 }
+
+std::unique_ptr<core::Image> Framebuffer::GetImage(std::string_view attachmentName)
+{
+    return nullptr;
+}
 }

@@ -4,7 +4,7 @@
 #include "engine/script.h"
 #include "utils/log.h"
 
-#include "renderer/draw_command.h"
+#include "renderer/command.h"
 
 
 namespace py = pybind11;
