@@ -303,10 +303,10 @@ void Pipeline::SetMat3(std::string_view uniformName, const glm::mat3& mat)
 void Pipeline::SetBool(std::string_view uniformName, bool b)
 {
 #ifdef TRACY_ENABLE
-    TracyGpuNamedZone(setUniform, "Set Uniform Mat3", true);
+    TracyGpuNamedZone(setUniform, "Set Uniform Bool", true);
 #endif
     Bind();
-    glUniform1i(GetUniformLocation(uniformName), b);
+    glUniform1i(GetUniformLocation(uniformName), static_cast<int>(b));
     glCheckError();
 }
 

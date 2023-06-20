@@ -86,7 +86,7 @@ public:
         }
     }
 
-    void Dispatch(Command* command) override
+    void Dispatch(ComputeCommand* command) override
     {
         try
         {

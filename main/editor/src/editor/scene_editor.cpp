@@ -723,50 +723,53 @@ bool SceneEditor::ExportAndPlayScene() const
                     exportComputeCommand->set_material_index(materialIndexIt->second);
                 }
             }
-            //link mesh index
-            if(editorCommand->meshId == INVALID_RESOURCE_ID)
+            if (exportDrawCommand)
             {
-                LogWarning(fmt::format("Could not export scene, missing mesh in command. Command: {}", editorCommand->path));
-                return false;
-            }
-            auto* mesh = meshEditor->GetMesh(editorCommand->meshId);
-            //add model if not done already
-
-            int meshModel = -1;
-            if (!mesh->info.model_path().empty())
-            {
-                for (int modelIndex = 0; modelIndex < exportScene.model_paths_size(); modelIndex++)
+                //link mesh index
+                if (editorCommand->meshId == INVALID_RESOURCE_ID)
                 {
-                    auto& sceneModelPath = exportScene.model_paths(modelIndex);
-                    if (fs::equivalent(sceneModelPath, mesh->info.model_path()))
+                    LogWarning(fmt::format("Could not export scene, missing mesh in command. Command: {}", editorCommand->path));
+                    return false;
+                }
+                auto* mesh = meshEditor->GetMesh(editorCommand->meshId);
+                //add model if not done already
+
+                int meshModel = -1;
+                if (!mesh->info.model_path().empty())
+                {
+                    for (int modelIndex = 0; modelIndex < exportScene.model_paths_size(); modelIndex++)
                     {
-                        meshModel = modelIndex;
-                        break;
+                        auto& sceneModelPath = exportScene.model_paths(modelIndex);
+                        if (fs::equivalent(sceneModelPath, mesh->info.model_path()))
+                        {
+                            meshModel = modelIndex;
+                            break;
+                        }
+                    }
+                    if (meshModel == -1)
+                    {
+                        meshModel = exportScene.model_paths_size();
+                        exportScene.add_model_paths(mesh->info.model_path());
+                    }
+                    else
+                    {
+                        mesh->info.mutable_mesh()->set_model_index(meshModel);
                     }
                 }
-                if(meshModel == -1)
+                auto meshIndexIt = resourceIndexMap.find(mesh->resourceId);
+                if (meshIndexIt == resourceIndexMap.end())
                 {
-                    meshModel = exportScene.model_paths_size();
-                    exportScene.add_model_paths(mesh->info.model_path());
+                    const auto meshIndex = exportScene.meshes_size();
+                    auto* newMesh = exportScene.add_meshes();
+                    *newMesh = mesh->info.mesh();
+                    newMesh->set_model_index(meshModel);
+                    resourceIndexMap[mesh->resourceId] = meshIndex;
+                    exportDrawCommand->set_mesh_index(meshIndex);
                 }
                 else
                 {
-                    mesh->info.mutable_mesh()->set_model_index(meshModel);
+                    exportDrawCommand->set_mesh_index(meshIndexIt->second);
                 }
-            }
-            auto meshIndexIt = resourceIndexMap.find(mesh->resourceId);
-            if(meshIndexIt == resourceIndexMap.end())
-            {
-                const auto meshIndex = exportScene.meshes_size();
-                auto* newMesh = exportScene.add_meshes();
-                *newMesh = mesh->info.mesh();
-                newMesh->set_model_index(meshModel);
-                resourceIndexMap[mesh->resourceId] = meshIndex;
-                exportDrawCommand->set_mesh_index(meshIndex);
-            }
-            else
-            {
-                exportDrawCommand->set_mesh_index(meshIndexIt->second);
             }
             //link buffer
             if(editorCommand->bufferId == INVALID_RESOURCE_ID)

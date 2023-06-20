@@ -413,7 +413,11 @@ class Command:
 
 
 class ComputeCommand(Command):
-    pass
+    def bind(self):
+        pass
+
+    def dispatch(self, x: int, y: int, z: int):
+        pass
 
 
 class ModelTransformMatrix:
@@ -571,6 +575,9 @@ class System:
         pass
 
     def draw(self, draw_command: DrawCommand):
+        pass
+
+    def dispatch(self, command: ComputeCommand):
         pass
 
     def on_key_down(self, keycode: Key):

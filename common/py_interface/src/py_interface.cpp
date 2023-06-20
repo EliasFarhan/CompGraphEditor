@@ -74,6 +74,8 @@ PYBIND11_EMBEDDED_MODULE(neko2, m)
         .def("on_key_down", &core::Script::OnKeyDown)
         .def("on_mouse_motion", &core::Script::OnMouseMotion)
     ;
+
+    py::class_<core::Image>(m, "Image");
     py::class_<core::Command>(m, "Command")
         .def("set_float", &core::Command::SetFloat)
         .def("set_int", &core::Command::SetInt)
@@ -81,17 +83,34 @@ PYBIND11_EMBEDDED_MODULE(neko2, m)
         .def("set_vec3", &core::Command::SetVec3)
         .def("set_vec4", &core::Command::SetVec4)
         .def("set_mat3", &core::Command::SetMat3)
-        .def("set_mat4", &core::Command::SetMat4)
-        .def("set_image", [](core::Image* image, int bindingPoint, core::Image::AccessType access)
-        {
-            image->BindImage(bindingPoint, access);
-        })
-        .def("dispatch", [](core::Command& command, int x, int y, int z)
-        {
-            auto* scene = core::GetCurrentScene();
-            scene->Dispatch(static_cast<core::ComputeCommand&>(command), x, y, z);
-        });
+        .def("set_mat4", &core::Command::SetMat4);
 
+    py::class_<core::ComputeCommand>(m, "ComputeCommand")
+        .def("set_float", &core::ComputeCommand::SetFloat)
+        .def("set_int", &core::ComputeCommand::SetInt)
+        .def("set_bool", &core::ComputeCommand::SetBool)
+        .def("set_vec2", &core::ComputeCommand::SetVec2)
+        .def("set_vec3", &core::ComputeCommand::SetVec3)
+        .def("set_vec4", &core::ComputeCommand::SetVec4)
+        .def("set_mat3", &core::ComputeCommand::SetMat3)
+        .def("set_mat4", &core::ComputeCommand::SetMat4)
+        .def("bind", &core::ComputeCommand::Bind)
+        .def("dispatch", [](core::ComputeCommand& command, int x, int y, int z)
+            {
+                auto* scene = core::GetCurrentScene();
+                scene->Dispatch(command, x, y, z);
+            })
+        .def("set_image", [](core::ComputeCommand& command, core::Image* image, int bindingPoint, core::Image::AccessType access)
+            {
+                if (image)
+                {
+                    image->BindImage(bindingPoint, access);
+                }
+                else
+                {
+                    LogError("Image is null");
+                }
+            });
     py::class_<core::DrawCommand>(m, "DrawCommand")
         .def("set_float", &core::DrawCommand::SetFloat)
         .def("set_int", &core::DrawCommand::SetInt)
@@ -145,7 +164,7 @@ PYBIND11_EMBEDDED_MODULE(neko2, m)
             py::return_value_policy::reference)
         .def("get_material", &core::Scene::GetMaterial)
         .def("get_subpass", &core::Scene::GetSubpass)
-        .def("get_framebuffer", &core::Scene::GetFramebuffer)
+        .def("get_framebuffer", &core::Scene::GetFramebuffer, py::return_value_policy::reference)
         .def("get_camera", &core::Scene::GetCamera, py::return_value_policy::reference)
         .def_property_readonly("camera", &core::Scene::GetCamera, py::return_value_policy::reference)
         .def_property_readonly("subpass_count", &core::Scene::GetSubpassCount)
@@ -196,6 +215,7 @@ PYBIND11_EMBEDDED_MODULE(neko2, m)
         .def_readwrite("z", &glm::vec3::z)
         .def(py::init<>())
         .def(py::init<float, float, float>())
+        .def(py::init<float>())
         .def(py::init<const glm::vec2&, float>())
         .def(py::init<const glm::vec4&>())
         .def(py::self + py::self)

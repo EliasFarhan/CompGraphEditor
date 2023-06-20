@@ -179,7 +179,7 @@ void Scene::Update(float dt)
             {
                 if(script == nullptr)
                     continue;
-                script->Dispatch(&command);
+                script->Trace(&command);
             }
             command.Dispatch();
             raytracingCommand++;

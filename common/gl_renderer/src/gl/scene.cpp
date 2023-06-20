@@ -46,6 +46,24 @@ core::DrawCommand& Scene::GetDrawCommand(int subPassIndex, int drawCommandIndex)
     return drawCommands_[resultIndex + drawCommandIndex];
 }
 
+core::ComputeCommand& Scene::GetComputeCommand(int subpassIndex, int computeCommandIndex)
+{
+    int resultIndex = 0;
+    for (int i = 0; i < this->scene_.render_pass().sub_passes_size(); i++)
+    {
+        if (i < subpassIndex)
+        {
+            resultIndex += scene_.render_pass().sub_passes(i).compute_commands_size();
+        }
+        else if (i == subpassIndex)
+        {
+            break;
+
+        }
+    }
+    return computeCommands_[resultIndex + computeCommandIndex];
+}
+
 Scene::ImportStatus Scene::LoadShaders(
     const google::protobuf::RepeatedPtrField<core::pb::Shader>& shadersPb)
 {
@@ -318,6 +336,7 @@ Scene::ImportStatus Scene::LoadMaterials(const PbRepeatField<core::pb::Material>
                     if (script != nullptr)
                     {
                         script->Draw(&GetDrawCommand(i, j));
+                        glCheckError();
                     }
                 }
             }
@@ -330,10 +349,23 @@ Scene::ImportStatus Scene::LoadMaterials(const PbRepeatField<core::pb::Material>
                 if (!command.automatic_draw())
                     continue;
                 Draw(GetDrawCommand(i, j));
+                glCheckError();
             }
-        }
+            const auto computeComputeSize = subPass.compute_commands_size();
+            for(int j = 0; j < computeComputeSize; j++)
+            {
+                for (auto* script : scripts_)
+                {
+                    if (script != nullptr)
+                    {
+                        script->Dispatch(&GetComputeCommand(i, j));
 
-        glCheckError();
+                        glCheckError();
+                    }
+                }
+            }
+            
+        }
     }
 
 
@@ -568,6 +600,12 @@ Scene::ImportStatus Scene::LoadDrawCommands(const core::pb::RenderPass &renderPa
         {
             const auto& commandInfo = subpassInfo.commands(j);
             drawCommands_.emplace_back(commandInfo, i);
+        }
+
+        for(int j = 0; j < subpassInfo.compute_commands_size(); j++)
+        {
+            const auto& commandInfo = subpassInfo.compute_commands(j);
+            computeCommands_.emplace_back(commandInfo, i);
         }
     }
     return ImportStatus::SUCCESS;

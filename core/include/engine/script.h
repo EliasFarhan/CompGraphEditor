@@ -15,8 +15,9 @@
 
 namespace core
 {
-
 class Command;
+
+class ComputeCommand;
 class DrawCommand;
 
 class Script : public System
@@ -28,7 +29,8 @@ public:
     virtual void OnMouseMotion(glm::vec2 mouseMotion) {}
     virtual void OnMouseButtonDown(int mouseButton) {}
     virtual void OnMouseButtonUp(int mouseButton) {}
-    virtual void Dispatch(Command* command){}
+    virtual void Dispatch(ComputeCommand* command){}
+    virtual void Trace(Command* command){}
 };
 
 class ScriptLoaderInterface
