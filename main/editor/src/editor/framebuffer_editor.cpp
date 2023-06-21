@@ -187,6 +187,12 @@ void FramebufferEditor::DrawInspector()
     if(currentFramebufferInfo.info.has_depth_stencil_attachment())
     {
         auto* depthStencilAttachment = currentFramebufferInfo.info.mutable_depth_stencil_attachment();
+        std::string id = "Depth Stencil Attachment";
+        std::string depthStencilAttachmentName = depthStencilAttachment->name().empty() ? id : depthStencilAttachment->name();
+        if (ImGui::InputText("Depth Stencil Attachment Name", &depthStencilAttachmentName))
+        {
+            *depthStencilAttachment->mutable_name() = depthStencilAttachmentName;
+        }
         bool stencil = depthStencilAttachment->format() == core::pb::RenderTarget_Format_DEPTH_STENCIL;
         if(ImGui::Checkbox("Stencil", &stencil))
         {
@@ -227,7 +233,20 @@ void FramebufferEditor::DrawInspector()
         {
             depthStencilAttachment->set_rbo(rbo);
         }
-
+        bool fixedSize = depthStencilAttachment->size_type() == core::pb::RenderTarget_Size_FIXED_SIZE;
+        if (ImGui::Checkbox("Fixed Size", &fixedSize))
+        {
+            depthStencilAttachment->set_size_type(fixedSize ? core::pb::RenderTarget_Size_FIXED_SIZE : core::pb::RenderTarget_Size_WINDOW_SIZE);
+        }
+        if (fixedSize)
+        {
+            std::array targetSize{depthStencilAttachment->target_size().x(), depthStencilAttachment->target_size().y()};
+            if (ImGui::InputInt2("Target Size", targetSize.data()))
+            {
+                depthStencilAttachment->mutable_target_size()->set_x(targetSize[0]);
+                depthStencilAttachment->mutable_target_size()->set_y(targetSize[1]);
+            }
+        }
 
         const auto status = gl::GetAttachmentType(*depthStencilAttachment);
         if (status.error != 0)

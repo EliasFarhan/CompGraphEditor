@@ -8,6 +8,8 @@
 
 #include <glm/gtx/euler_angles.hpp>
 
+#include "gl/scene.h"
+
 #ifdef TRACY_ENABLE
 #include <tracy/TracyOpenGL.hpp>
 #endif
@@ -91,15 +93,33 @@ void DrawCommand::Bind()
     pipeline_->Bind();
     for (std::size_t textureIndex = 0; textureIndex < material_->textures.size(); textureIndex++)
     {
-        if (material_->textures[textureIndex].textureId == core::INVALID_TEXTURE_ID)
+        if (material_->textures[textureIndex].textureId == core::INVALID_TEXTURE_ID && material_->textures[textureIndex].framebufferName.empty())
         {
             LogWarning(fmt::format("Invalid texture for material {}", material_->name));
             continue;
         }
-        SetTexture(
-            material_->textures[textureIndex].uniformSamplerName,
-            textureManager.GetTexture(material_->textures[textureIndex].textureId),
-            textureIndex);
+        if (material_->textures[textureIndex].framebufferName.empty())
+        {
+            SetTexture(
+                material_->textures[textureIndex].uniformSamplerName,
+                textureManager.GetTexture(material_->textures[textureIndex].textureId),
+                textureIndex);
+        }
+        if(material_->textures[textureIndex].textureId == core::INVALID_TEXTURE_ID)
+        {
+            auto* scene = static_cast<Scene*>(core::GetCurrentScene());
+            const auto framebufferIndex = scene->GetFramebufferIndex(material_->textures[textureIndex].framebufferName);
+            if(framebufferIndex == -1)
+            {
+                LogWarning(fmt::format("Invalid framebuffer name texture for material {}, framebuffer name: {}", material_->name, material_->textures[textureIndex].framebufferName));
+                continue;
+            }
+            auto& framebuffer = static_cast<Framebuffer&>(scene->GetFramebuffer(framebufferIndex));
+            SetTexture(
+                material_->textures[textureIndex].uniformSamplerName, 
+                framebuffer.GetTextureName(material_->textures[textureIndex].attachmentName),
+                textureIndex);
+        }
     }
     if(drawCommandInfo_.get().has_model_transform())
     {

@@ -323,6 +323,15 @@ Scene::ImportStatus Scene::LoadMaterials(const PbRepeatField<core::pb::Material>
             glStencilMask(0xFF);
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
             glClear(GL_STENCIL_BUFFER_BIT);
+            if(subPass.has_viewport_size())
+            {
+                glViewport(0, 0, subPass.viewport_size().x(), subPass.viewport_size().y());
+            }
+            else
+            {
+                const auto windowSize = core::GetWindowSize();
+                glViewport(0, 0, windowSize.x, windowSize.y);
+            }
 #ifdef TRACY_ENABLE
             TracyCZoneEnd(glClearZone);
             TracyCZoneN(pySystemsDrawZone, "PySystem Draw", true);
@@ -348,7 +357,9 @@ Scene::ImportStatus Scene::LoadMaterials(const PbRepeatField<core::pb::Material>
                 const auto& command = subPass.commands(j);
                 if (!command.automatic_draw())
                     continue;
-                Draw(GetDrawCommand(i, j));
+                auto& drawCommand = GetDrawCommand(i, j);
+                drawCommand.Bind();
+                Draw(drawCommand);
                 glCheckError();
             }
             const auto computeComputeSize = subPass.compute_commands_size();
@@ -553,7 +564,6 @@ Scene::ImportStatus Scene::LoadMaterials(const PbRepeatField<core::pb::Material>
 
     void Scene::Dispatch(core::ComputeCommand& command, int x, int y, int z)
     {
-        //TODO bind pipelines
         glDispatchCompute(x, y, z);
 
         glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
@@ -590,7 +600,17 @@ Scene::ImportStatus Scene::LoadMaterials(const PbRepeatField<core::pb::Material>
         }
     }
 
-Scene::ImportStatus Scene::LoadDrawCommands(const core::pb::RenderPass &renderPass)
+    int Scene::GetFramebufferIndex(std::string_view framebufferName)
+    {
+        for(int i = 0; i < framebuffers_.size();i++)
+        {
+            if (framebuffers_[i].GetName() == framebufferName)
+                return i;
+        }
+        return -1;
+    }
+
+    Scene::ImportStatus Scene::LoadDrawCommands(const core::pb::RenderPass &renderPass)
 {
     for(int i = 0; i < renderPass.sub_passes_size(); i++)
     {

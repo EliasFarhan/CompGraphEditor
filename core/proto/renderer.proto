@@ -439,6 +439,7 @@ message SubPass
     Pipeline.Type type = 5;
     repeated RaytracingCommand raytracing_commands = 6;
     repeated ComputeCommand compute_commands = 7;
+    Vec2i viewport_size = 8;
 }
 
 message RenderPass

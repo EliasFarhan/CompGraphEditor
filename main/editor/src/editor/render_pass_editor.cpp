@@ -56,6 +56,27 @@ void RenderPassEditor::DrawInspector()
             clearColor->set_a(color[3]);
         }
 
+        if(subpassInfo->subpass().has_viewport_size())
+        {
+            std::array viewport = {subpassInfo->subpass().viewport_size().x(), subpassInfo->subpass().viewport_size().y()};
+            if(ImGui::InputInt2("Viewport Size", viewport.data()))
+            {
+                subpassInfo->mutable_subpass()->mutable_viewport_size()->set_x(viewport[0]);
+                subpassInfo->mutable_subpass()->mutable_viewport_size()->set_y(viewport[1]);
+            }
+            if (ImGui::Button("Remove Viewport Size"))
+            {
+                subpassInfo->mutable_subpass()->clear_viewport_size();
+            }
+        }
+        else
+        {
+            if(ImGui::Button("Add Viewport Size"))
+            {
+                auto* viewportSize = subpassInfo->mutable_subpass()->mutable_viewport_size();
+            }
+        }
+
         const auto& framebufferInfos = framebufferEditor->GetFramebuffers();
         const auto& framebufferPath = subpassInfo->framebuffer_path();
         if (ImGui::BeginCombo("Framebuffer", framebufferPath.empty() ? "Backbuffer" : framebufferPath.data()))

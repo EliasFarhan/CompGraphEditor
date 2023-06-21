@@ -543,6 +543,7 @@ bool SceneEditor::ExportAndPlayScene() const
                                         materialTexture->set_attachment_name(editorMaterialTexture.material_texture().attachment_name());
                                         materialTexture->set_framebuffer_name(editorMaterialTexture.material_texture().framebuffer_name());
                                         isValid = true;
+                                        materialTexture->set_sampler_name(editorMaterialTexture.material_texture().sampler_name());
                                     }
                                 }
                                 if (framebufferPb.has_depth_stencil_attachment() && !framebufferPb.depth_stencil_attachment().rbo())
@@ -552,6 +553,7 @@ bool SceneEditor::ExportAndPlayScene() const
                                         materialTexture->set_attachment_name(editorMaterialTexture.material_texture().attachment_name());
                                         materialTexture->set_framebuffer_name(editorMaterialTexture.material_texture().framebuffer_name());
                                         isValid = true;
+                                        materialTexture->set_sampler_name(editorMaterialTexture.material_texture().sampler_name());
                                     }
                                 }
                             }
@@ -652,6 +654,8 @@ bool SceneEditor::ExportAndPlayScene() const
                             return false;
                         }
                         newPipeline->set_compute_shader_index(computeShaderIndex);
+                        newMaterial->set_pipeline_index(pipelineIndex);
+                        exportedPipelineIndex = pipelineIndex;
 
                         break;
                     }

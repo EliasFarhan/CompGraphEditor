@@ -34,6 +34,7 @@ public:
     core::SceneMaterial GetMaterial(int materialIndex) override;
 
     void OnEvent(SDL_Event& event) override;
+    int GetFramebufferIndex(std::string_view framebufferName);
     core::Framebuffer& GetFramebuffer(int framebufferIndex) override { return framebuffers_[framebufferIndex]; }
     core::Pipeline& GetPipeline(int index) override { return pipelines_[index]; }
     VertexBuffer& GetVertexBuffer(int index) { return vertexBuffers_[index]; }
