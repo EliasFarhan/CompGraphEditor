@@ -121,6 +121,11 @@ class Vec3:
         self.z = 0.0
         self.length = 0.0
 
+    def __init__(self, scalar: float):
+        self.x = scalar
+        self.y = scalar
+        self.z = scalar
+
     def __init__(self, x: float, y: float, z: float):
         """Constructor with 3 floats"""
         self.x = x
@@ -328,6 +333,11 @@ class Mat4:
 
     @staticmethod
     def orthographic(width: float, height: float, near: float, far: float) -> Mat4:
+        """Return the orthographic matrix from width, height and near and far plane scalar value"""
+        return Mat4()
+
+    @staticmethod
+    def orthographic(left: float, right: float, bottom: float, top: float, near: float, far: float) -> Mat4:
         """Return the orthographic matrix from width, height and near and far plane scalar value"""
         return Mat4()
     

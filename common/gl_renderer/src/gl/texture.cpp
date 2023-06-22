@@ -111,7 +111,7 @@ bool Texture::LoadTexture(const core::pb::Texture &textureInfo)
 #ifdef TRACY_ENABLE
     ZoneScoped;
 #endif
-    stbi_set_flip_vertically_on_load(true);
+    //stbi_set_flip_vertically_on_load(true);
     const auto &filesystem = core::FilesystemLocator::get();
     std::string_view path = textureInfo.path();
     if (filesystem.FileExists(path))

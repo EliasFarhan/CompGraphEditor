@@ -333,8 +333,18 @@ PYBIND11_EMBEDDED_MODULE(neko2, m)
         .def("inverse", [](const glm::mat4& mat) { return glm::inverse(mat); })
         .def("transpose", [](const glm::mat4& mat) { return glm::transpose(mat); })
         .def_static("view", [](glm::vec3 eye, glm::vec3 center, glm::vec3 up) {return glm::lookAt(eye, center, up); })
-        .def_static("perspective", [](float fovRadian, float aspect, float near, float far) {return glm::perspective(fovRadian, aspect, near, far); })
-        .def_static("orthographic", [](float width, float height, float near, float far) {return glm::ortho(-width/2.0f, width/2.0f, -height/2.0f, height/2.0f, near, far); })
+        .def_static("perspective", [](float fovRadian, float aspect, float near, float far)
+        {
+            return glm::perspective(fovRadian, aspect, near, far);
+        })
+        .def_static("orthographic", [](float width, float height, float near, float far)
+        {
+            return glm::ortho(0.0f, width, 0.0f, height, near, far);
+        })
+        .def_static("orthographic", [](float left, float right, float bottom, float top, float near, float far)
+        {
+            return glm::ortho(left, right, bottom, top, near, far);
+        })
         .def_buffer([](glm::mat4& m) -> py::buffer_info {
         return py::buffer_info(
             &m[0],                               /* Pointer to buffer */
