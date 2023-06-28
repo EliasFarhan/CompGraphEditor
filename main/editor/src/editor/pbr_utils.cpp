@@ -539,6 +539,7 @@ void GeneratePreFilterEnvMap(std::string_view path)
     prefilterPipeline.SetCubemap("environmentMap", envCubemap, 0);
     for(GLint mip = 0; mip < maxMipLevels; mip++)
     {
+        LogDebug(fmt::format("Draw pre filter mip level: {}", mip));
         const auto mipWidth = static_cast<GLsizei>(width * std::pow(0.5, static_cast<double>(mip)));
         const auto mipHeight = static_cast<GLsizei>(height * std::pow(0.5, static_cast<double>(mip)));
 
@@ -548,11 +549,12 @@ void GeneratePreFilterEnvMap(std::string_view path)
         prefilterPipeline.SetMat4("projection", captureProjection);
         for(int i = 0; i < 6; i++)
         {
+            LogDebug(fmt::format("Draw pre filter face: {}", i));
             prefilterPipeline.SetMat4("view", captureViews[i]);
             glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
                 GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, prefilterMap, mip);
-
-            glCheckError();
+            
+            gl::CheckFramebufferStatus();
             glClear(GL_COLOR_BUFFER_BIT);
 
             glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, nullptr);

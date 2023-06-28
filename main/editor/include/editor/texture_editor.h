@@ -20,7 +20,7 @@ struct TextureInfo
     core::pb::Texture info;
     ResourceId resourceId = INVALID_RESOURCE_ID;
     core::pb::Cubemap cubemap;
-    core::TextureId textureId;
+    core::TextureId textureId = core::INVALID_TEXTURE_ID;
     KtxExportInfo ktxInfo;
 };
 

@@ -269,60 +269,38 @@ void Framebuffer::Load(const core::pb::FrameBuffer& framebufferPb)
             glGenTextures(1, &colorAttachment);
             glBindTexture(target, colorAttachment);
 
-            glTexParameteri(target, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+            glTexParameteri(target, GL_TEXTURE_MIN_FILTER, colorAttachmentInfo.mipcount() > 1 ? GL_LINEAR_MIPMAP_LINEAR : GL_LINEAR);
             glTexParameteri(target, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
             glTexParameteri(target, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
             glTexParameteri(target, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
             if(colorAttachmentInfo.cubemap())
             {
+                LogDebug(fmt::format("Generating color attachment with {} faces and {} mip levels", 6, std::max(colorAttachmentInfo.mipcount(), 1)));
                 glTexParameteri(target, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
-                for (int mip = 0; mip < std::max(colorAttachmentInfo.mipcount(), 1); mip++)
-                {
-                    const auto width = colorAttachmentInfo.size_type() == core::pb::RenderTarget_Size_WINDOW_SIZE ? windowSize.x : colorAttachmentInfo.target_size().x();
-                    const auto height = colorAttachmentInfo.size_type() == core::pb::RenderTarget_Size_WINDOW_SIZE ? windowSize.y : colorAttachmentInfo.target_size().y();
-                    const auto mipWidth = static_cast<GLsizei>(width * std::pow(0.5, static_cast<double>(mip)));
-                    const auto mipHeight = static_cast<GLsizei>(height * std::pow(0.5, static_cast<double>(mip)));
-                    for (int face = 0; face < 6; face++)
-                    {
-                        glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + face, 
-                            mip, 
-                            attachmentType.internalFormat,
-                            mipWidth,
-                            mipHeight,
-                            0,
-                            attachmentType.format,
-                            attachmentType.type,
-                            nullptr
-                        );
+                const auto width = colorAttachmentInfo.size_type() == core::pb::RenderTarget_Size_WINDOW_SIZE ? windowSize.x : colorAttachmentInfo.target_size().x();
+                const auto height = colorAttachmentInfo.size_type() == core::pb::RenderTarget_Size_WINDOW_SIZE ? windowSize.y : colorAttachmentInfo.target_size().y();
 
-                    }
-                }
+                glTexStorage2D(GL_TEXTURE_CUBE_MAP,
+                    std::max(colorAttachmentInfo.mipcount(), 1),
+                    attachmentType.internalFormat,
+                    width,
+                    height);
+                glCheckError();
+
                 glFramebufferTexture2D(GL_FRAMEBUFFER,
                     GL_COLOR_ATTACHMENT0 + i,
                     GL_TEXTURE_CUBE_MAP_POSITIVE_X,
-                    colorAttachment, 
+                    colorAttachment,
                     0);
 
                 glCheckError();
             }
             else
             {
-                for (int mip = 0; mip < std::max(colorAttachmentInfo.mipcount(), 1); mip++)
-                {
-                    const auto width = colorAttachmentInfo.size_type() == core::pb::RenderTarget_Size_WINDOW_SIZE ? windowSize.x : colorAttachmentInfo.target_size().x();
-                    const auto height = colorAttachmentInfo.size_type() == core::pb::RenderTarget_Size_WINDOW_SIZE ? windowSize.y : colorAttachmentInfo.target_size().y();
-                    const auto mipWidth = static_cast<GLsizei>(width * std::pow(0.5, static_cast<double>(mip)));
-                    const auto mipHeight = static_cast<GLsizei>(height * std::pow(0.5, static_cast<double>(mip)));
+                const auto width = colorAttachmentInfo.size_type() == core::pb::RenderTarget_Size_WINDOW_SIZE ? windowSize.x : colorAttachmentInfo.target_size().x();
+                const auto height = colorAttachmentInfo.size_type() == core::pb::RenderTarget_Size_WINDOW_SIZE ? windowSize.y : colorAttachmentInfo.target_size().y();
 
-                    glTexImage2D(GL_TEXTURE_2D, mip, attachmentType.internalFormat,
-                        mipWidth,
-                        mipHeight,
-                        0,
-                        attachmentType.format,
-                        attachmentType.type,
-                        nullptr
-                    );
-                }
+                glTexStorage2D(GL_TEXTURE_2D, std::max(colorAttachmentInfo.mipcount(), 1), attachmentType.internalFormat, width, height);
                 glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + i, target, colorAttachment, 0);
                 glCheckError();
             }
@@ -361,7 +339,7 @@ void Framebuffer::Load(const core::pb::FrameBuffer& framebufferPb)
             GL_COLOR_ATTACHMENT14,
             GL_COLOR_ATTACHMENT15,
         };
-        glDrawBuffers(framebufferPb.color_attachments_size(), &v[0]);
+        glDrawBuffers(framebufferPb.color_attachments_size(), v.data());
     }
     if(framebufferPb.has_depth_stencil_attachment())
     {
