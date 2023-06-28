@@ -141,7 +141,7 @@ void TextureEditor::DrawInspector()
     const auto fileExtension = GetFileExtension(currentTextureInfo.info.path());
     if(fileExtension == ".hdr")
     {
-        if(ImGui::Button("HDR to KTX"))
+        if(ImGui::Button("HDR Cubemap to KTX"))
         {
             HdrToKtx(currentTextureInfo);
         }

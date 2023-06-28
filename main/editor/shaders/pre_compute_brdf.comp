@@ -92,7 +92,7 @@ vec2 IntegrateBRDF(float NdotV, float roughness)
         float NdotH = max(H.z, 0.0);
         float VdotH = max(dot(V, H), 0.0);
 
-        if(NdotL > 0.0)
+        if(NdotL >= 0.0)
         {
             float G = GeometrySmith(N, V, L, roughness);
             float G_Vis = (G * VdotH) / (NdotH * NdotV);
@@ -114,7 +114,7 @@ void main()
     // get index in global work group i.e x,y position
     ivec2 pixel_coords = ivec2(gl_GlobalInvocationID.xy);
     ivec2 dims = imageSize(img_output);
-    vec2 tex_coords = vec2(pixel_coords)/vec2(dims);
+    vec2 tex_coords = (vec2(pixel_coords)+vec2(0.5))/vec2(dims);
     //
     // output to a specific pixel in the image
     imageStore(img_output, pixel_coords, vec4(IntegrateBRDF(tex_coords.x, tex_coords.y), 0.0, 0.0));
