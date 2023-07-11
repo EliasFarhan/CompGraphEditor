@@ -10,7 +10,7 @@
 namespace gpr5300
 {
 
-core::pb::Scene Scene1()
+core::pb::Scene Scene01()
 {
     core::pb::Scene scene;
 
@@ -53,7 +53,7 @@ core::pb::Scene Scene1()
 }
 
 
-core::pb::Scene Scene2()
+core::pb::Scene Scene02()
 {
     core::pb::Scene scene;
     core::pb::Shader* vertexShader = scene.add_shaders();
@@ -103,7 +103,7 @@ core::pb::Scene Scene2()
     return scene;
 }
 
-core::pb::Scene Scene3()
+core::pb::Scene Scene03()
 {
     core::pb::Scene scene;
     core::pb::Shader* vertexShader = scene.add_shaders();
@@ -177,7 +177,7 @@ core::pb::Scene Scene3()
     return scene;
 }
 
-core::pb::Scene Scene4()
+core::pb::Scene Scene04()
 {
     core::pb::Scene scene;
     core::pb::Shader* vertexShader = scene.add_shaders();
@@ -248,7 +248,7 @@ core::pb::Scene Scene4()
     return scene;
 }
 
-core::pb::Scene Scene5()
+core::pb::Scene Scene05()
 {
     core::pb::Scene scene;
     core::pb::Shader* vertexShader = scene.add_shaders();
@@ -363,7 +363,7 @@ core::pb::Scene Scene5()
     return scene;
 }
 
-core::pb::Scene Scene6()
+core::pb::Scene Scene06()
 {
     core::pb::Scene scene;
     auto* vertexShader = scene.add_shaders();
