@@ -65,6 +65,7 @@ void ImGuiManager::PostImGuiDraw()
 void ImGuiManager::End() const
 {
     const auto& driver = GetDriver();
+    ImGui_ImplVulkan_DestroyFontsTexture();
     ImGui_ImplVulkan_Shutdown();
     ImGui_ImplSDL2_Shutdown();
 
@@ -116,13 +117,7 @@ void ImGuiManager::UploadFontAtlas()
 
     vkResetCommandPool(driver.device, renderer.commandPool, 0);
 
+    ImGui_ImplVulkan_CreateFontsTexture();
 
-    const auto commandBuffer = BeginSingleTimeCommands();
-    {
-        ImGui_ImplVulkan_CreateFontsTexture(commandBuffer);
-    }
-    EndSingleTimeCommands(commandBuffer);
-
-    ImGui_ImplVulkan_DestroyFontUploadObjects();
 }
 }
