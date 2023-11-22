@@ -302,11 +302,12 @@ void ModelEditor::ImportResource(std::string_view path)
 
     editor::pb::EditorModel newModel;
     
-    auto findTextureInModelFunc = [&newModel](const std::string_view texture)
+    auto findTextureInModelFunc = [&newModel, &filesystem](const std::string_view texture)
     {
         for(int i = 0; i < newModel.textures_size(); i++)
         {
-            if(fs::equivalent(newModel.textures(i).texture_path(),texture))
+            const std::string_view texturePath = newModel.textures(i).texture_path();
+            if(filesystem.IsRegularFile(texturePath) && fs::equivalent(texturePath,texture))
             {
                 return i;
             }

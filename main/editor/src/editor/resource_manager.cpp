@@ -22,8 +22,12 @@ void ResourceManager::CheckDataFolder(const PbRepeatField<std::string>& paths)
         }
         else
         {
-            auto it = std::ranges::find_if(resources_, [&path](const Resource& resource)
+            auto it = std::ranges::find_if(resources_, [&path, &filesystem](const Resource& resource)
                 {
+                    if(!filesystem.IsRegularFile(resource.path))
+                    {
+                        return false;
+                    }
                     return fs::equivalent(resource.path, path);
                 });
             if(it != resources_.end())
@@ -50,8 +54,10 @@ ResourceId ResourceManager::FindResourceByPath(std::string_view path) const
     {
         return INVALID_RESOURCE_ID;
     }
-    const auto it = std::ranges::find_if(resources_, [path](const auto& resource)
+    const auto it = std::ranges::find_if(resources_, [path, &fileSystem](const auto& resource)
     {
+        if (!fileSystem.FileExists(resource.path))
+            return false;
         return fs::equivalent(path,resource.path);
     });
     if(it != resources_.end())

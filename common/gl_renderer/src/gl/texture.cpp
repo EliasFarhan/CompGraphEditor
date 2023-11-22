@@ -40,6 +40,13 @@ core::TextureId TextureManager::LoadTexture(const core::pb::Texture &textureInfo
                 return {};
             }
         }
+        else if(path.find(".hdr") != std::string::npos)
+        {
+            if(!newTexture.LoadHdrTexture(textureInfo))
+            {
+                return {};
+            }
+        }
         else
         {
             if(path.find(".ktx") != std::string::npos)
@@ -111,7 +118,7 @@ bool Texture::LoadTexture(const core::pb::Texture &textureInfo)
 #ifdef TRACY_ENABLE
     ZoneScoped;
 #endif
-    //stbi_set_flip_vertically_on_load(true);
+    stbi_set_flip_vertically_on_load(true);
     const auto &filesystem = core::FilesystemLocator::get();
     std::string_view path = textureInfo.path();
     if (filesystem.FileExists(path))
@@ -400,18 +407,24 @@ bool Texture::LoadKtxTexture(const core::pb::Texture& textureInfo)
 
     int minFilterMode = GL_NEAREST;
     int magFilterMode = GL_NEAREST;
+
+    bool mipmap = textureInfo.generate_mipmaps();
+    if(kTexture->numLevels > 1)
+    {
+        mipmap = true;
+    }
     switch (textureInfo.filter_mode())
     {
     case core::pb::Texture_FilteringMode_LINEAR:
     {
         magFilterMode = GL_LINEAR;
-        minFilterMode = textureInfo.generate_mipmaps() ? GL_LINEAR_MIPMAP_LINEAR : GL_LINEAR;
+        minFilterMode = mipmap ? GL_LINEAR_MIPMAP_LINEAR : GL_LINEAR;
         break;
     }
     case core::pb::Texture_FilteringMode_NEAREST:
     {
         magFilterMode = GL_NEAREST;
-        minFilterMode = textureInfo.generate_mipmaps() ? GL_NEAREST_MIPMAP_LINEAR : GL_NEAREST;
+        minFilterMode = mipmap ? GL_NEAREST_MIPMAP_LINEAR : GL_NEAREST;
         break;
     }
     default:
@@ -422,6 +435,137 @@ bool Texture::LoadKtxTexture(const core::pb::Texture& textureInfo)
     glTexParameteri(target, GL_TEXTURE_MAG_FILTER, magFilterMode);
 
     return true;
+}
+
+bool Texture::LoadHdrTexture(const core::pb::Texture& textureInfo)
+{
+#ifdef TRACY_ENABLE
+    ZoneScoped;
+#endif
+    stbi_set_flip_vertically_on_load(true);
+    const auto& filesystem = core::FilesystemLocator::get();
+    std::string_view path = textureInfo.path();
+    if (filesystem.FileExists(path))
+    {
+#ifdef TRACY_ENABLE
+        TracyCZoneN(ctx, "Load File", true);
+#endif
+        const auto file = filesystem.LoadFile(path);
+#ifdef TRACY_ENABLE
+        TracyCZoneEnd(ctx);
+
+        TracyCZoneN(ctx2, "Decompress", true);
+#endif
+        int channelInFile;
+        const auto* imageData = stbi_loadf_from_memory(file.data, file.length, &width, &height, &channelInFile, 0);
+#ifdef TRACY_ENABLE
+        TracyCZoneEnd(ctx2);
+#endif
+        if (imageData == nullptr)
+        {
+            LogError(fmt::format("Could not decode image from path: {}", path));
+            return false;
+        }
+#ifdef TRACY_ENABLE
+        ZoneNamedN(gpuUpload, "Upload to GPU", true);
+#endif
+        glGenTextures(1, &name);
+        glCheckError();
+
+        glBindTexture(GL_TEXTURE_2D, name);
+
+        GLint wrappingMode = GL_REPEAT;
+        switch (textureInfo.wrapping_mode())
+        {
+        case core::pb::Texture_WrappingMode_REPEAT:
+            wrappingMode = GL_REPEAT;
+            break;
+        case core::pb::Texture_WrappingMode_MIRROR_REPEAT:
+            wrappingMode = GL_MIRRORED_REPEAT;
+            break;
+        case core::pb::Texture_WrappingMode_CLAMP_TO_EDGE:
+            wrappingMode = GL_CLAMP_TO_EDGE;
+            break;
+        case core::pb::Texture_WrappingMode_CLAMP_TO_BORDER:
+            wrappingMode = GL_CLAMP_TO_BORDER;
+            break;
+        default:
+            break;
+        }
+
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, wrappingMode);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, wrappingMode);
+
+        int minFilterMode = GL_NEAREST;
+        int magFilterMode = GL_NEAREST;
+        switch (textureInfo.filter_mode())
+        {
+        case core::pb::Texture_FilteringMode_LINEAR:
+        {
+            magFilterMode = GL_LINEAR;
+            minFilterMode = textureInfo.generate_mipmaps() ? GL_LINEAR_MIPMAP_LINEAR : GL_LINEAR;
+            break;
+        }
+        case core::pb::Texture_FilteringMode_NEAREST:
+        {
+            magFilterMode = GL_NEAREST;
+            minFilterMode = textureInfo.generate_mipmaps() ? GL_NEAREST_MIPMAP_LINEAR : GL_NEAREST;
+            break;
+        }
+        default:
+            break;
+        }
+
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, minFilterMode);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, magFilterMode);
+#ifdef TRACY_ENABLE
+        TracyGpuNamedZone(loadTexture, "Load Texture", true);
+#endif
+        switch (channelInFile)
+        {
+        case 1:
+        {
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_R16F, width, height,
+                0,
+                GL_RED, GL_FLOAT,
+                imageData);
+            break;
+        }
+        case 2:
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_RG16F, width, height,
+                0,
+                GL_RG, GL_FLOAT,
+                imageData);
+            break;
+        case 3:
+            glTexImage2D(GL_TEXTURE_2D, 0,  GL_RGB16F, width, height,
+                0,
+                GL_RGB, GL_FLOAT,
+                imageData);
+            break;
+        case 4:
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, width, height,
+                0,
+                GL_RGBA, GL_FLOAT,
+                imageData);
+            break;
+        default:
+            LogError(fmt::format("Invalid channel count on image. Count: {}, for texture at path: {}", channelInFile, path));
+            return false;
+        }
+        glCheckError();
+        if (textureInfo.generate_mipmaps())
+        {
+#ifdef TRACY_ENABLE
+            TracyGpuNamedZone(generateMipMap, "Generate MipMap", true);
+#endif
+            glGenerateMipmap(GL_TEXTURE_2D);
+        }
+        LogDebug(fmt::format("Successfully loaded texture at path: {}", path));
+        return true;
+    }
+    LogError(fmt::format("File not found at path: {}", path));
+    return false;
 }
 
 void Texture::Destroy()

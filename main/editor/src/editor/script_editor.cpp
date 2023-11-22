@@ -7,6 +7,7 @@
 
 #include <imgui.h>
 #include <imgui_stdlib.h>
+#include <ranges>
 #include <fmt/format.h>
 
 #include <nlohmann/json.hpp>
@@ -21,12 +22,17 @@ namespace editor
 {
 void ScriptEditor::AddResource(const Resource& resource)
 {
+    if (resource.path.contains("neko2.py"))
+    {
+        return;
+    }
     ScriptInfo scriptInfo{};
     scriptInfo.resourceId = resource.resourceId;
     scriptInfo.filename = GetFilename(resource.path);
     auto module = GetFolder(resource.path);
     std::ranges::replace(module, '/', '.');
     std::ranges::replace(module, '\\', '.');
+    module = (module | std::views::split(std::string{ ".." }) | std::views::join_with(std::string{ "." })) | std::ranges::to<std::string>();
     module = fmt::format("{}.{}", module, GetFilename(resource.path, false));
     scriptInfo.info.set_module(module);
     scriptInfo.info.set_path(resource.path);
@@ -63,7 +69,6 @@ void ScriptEditor::RemoveResource(const Resource& resource)
         scriptInfos_.erase(it);
         const auto* editor = Editor::GetInstance();
         auto* sceneEditor = dynamic_cast<SceneEditor*>(editor->GetEditorSystem(EditorType::SCENE));
-
         sceneEditor->RemoveResource(resource);
     }
 }
@@ -74,6 +79,10 @@ void ScriptEditor::UpdateExistingResource(const Resource& resource)
     {
         if(scriptInfo.resourceId == resource.resourceId)
         {
+            if(resource.path.contains("neko2.py"))
+            {
+                continue;
+            }
             const auto analyzeScriptFunc = py::module_::import("scripts.script_parser").attr("analyze_script");
             try
             {

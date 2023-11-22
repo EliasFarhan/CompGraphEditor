@@ -4,7 +4,7 @@
 namespace gpr5300
 {
 
-core::pb::Scene Scene1()
+core::pb::Scene Scene01()
 {
     core::pb::Scene scene;
 
@@ -729,7 +729,7 @@ core::pb::Scene Scene11()
 void SampleBrowserProgram::Begin()
 {
     samples_ = {
-        {"scene1", Scene1()},
+        {"scene1", Scene01()},
         {"scene2", Scene2()},
         {"scene3", Scene3()},
         {"scene4", Scene4()},

@@ -56,7 +56,7 @@ private:
 
     void CubeToKtx(const TextureInfo& textureInfo);
     void HdrToKtx(const TextureInfo& textureInfo);
-    void ExportToKtx(const TextureInfo& textureInfo);
+    void ExportToKtx(const TextureInfo& textureInfo) const;
     std::vector<TextureInfo> textureInfos_;
     std::size_t currentIndex_ = -1;
 };

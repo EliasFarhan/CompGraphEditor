@@ -610,9 +610,8 @@ void TextureEditor::HdrToKtx(const TextureInfo& textureInfo)
     equirectangleToCubemap.Destroy();
 }
 
-void TextureEditor::ExportToKtx(const TextureInfo& textureInfo)
+void TextureEditor::ExportToKtx(const TextureInfo& textureInfo) const
 {
-    std::string result;
     std::string output = fmt::format("{}/{}.ktx", GetFolder(textureInfo.info.path()), GetFilename(textureInfo.info.path(), false));
     py::function exportKtx = py::module_::import("scripts.texture_ktx_exporter").attr("export_ktx");
 
@@ -623,8 +622,7 @@ void TextureEditor::ExportToKtx(const TextureInfo& textureInfo)
         textureInfo.ktxInfo.mipmap?"-mipmap":"");
     try
     {
-        result = static_cast<py::str>(exportKtx(textureInfo.info.path(), args));
-        //TODO print result stdout
+        std::string result = static_cast<py::str>(exportKtx(textureInfo.info.path(), args));
         json resultJson = json::parse(result);
         if(resultJson["status"].get<int>() != 0)
         {

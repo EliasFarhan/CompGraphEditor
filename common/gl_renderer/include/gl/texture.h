@@ -27,6 +27,7 @@ public:
     bool LoadTexture(const core::pb::Texture& textureInfo) override;
     bool LoadCubemap(const core::pb::Texture& textureInfo) override;
     bool LoadKtxTexture(const core::pb::Texture& textureInfo);
+    bool LoadHdrTexture(const core::pb::Texture& textureInfo);
     void Destroy();
 };
 
