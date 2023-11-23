@@ -706,27 +706,5 @@ void TextureEditor::ExportToKtx(const TextureInfo& textureInfo) const
     ktxTexture_WriteToNamedFile(ktxTexture(texture), output.data());
     ktxCheckError(result);
     ktxTexture_Destroy(ktxTexture(texture));
-    return;
-    py::function exportKtx = py::module_::import("scripts.texture_ktx_exporter").attr("export_ktx");
-
-    const auto args = fmt::format("-ktx2,-q,{},{},-output_file,{},{}", 
-        textureInfo.ktxInfo.quality, 
-        textureInfo.ktxInfo.uastc?"-uastc":"",
-        output,
-        textureInfo.ktxInfo.mipmap?"-mipmap":"");
-    try
-    {
-        std::string result = static_cast<py::str>(exportKtx(textureInfo.info.path(), args));
-        json resultJson = json::parse(result);
-        if(resultJson["status"].get<int>() != 0)
-        {
-            LogError(resultJson["stderr"].get<std::string>());
-        }
-        LogDebug(fmt::format("KTX exporter: {}", resultJson["args"].get<std::string>()));
-    }
-    catch (py::error_already_set& e)
-    {
-        LogError(fmt::format("Export KTX failed for file: {}\n{}", textureInfo.info.path(), e.what()));
-    }
 }
 }
