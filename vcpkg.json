@@ -5,12 +5,23 @@
         {
             "name": "sdl2",
             "features": ["vulkan"]
-        }, "glm", "glew", "stb", "fmt", "ktx",
+        }, "glm", "glew", "stb", "fmt", 
+        {
+            "name": "ktx",
+            "features": ["tools"]
+        },
         {
             "name": "imgui",
             "features": ["sdl2-binding", "opengl3-binding", "docking-experimental", "vulkan-binding"]
         },
         "physfs", "protobuf", "spdlog", "nlohmann-json", "vulkan-memory-allocator", "assimp", "zstd", "argh",
         "spirv-cross", "volk", "basisu"
+    ],
+    "builtin-baseline": "a42af01b72c28a8e1d7b48107b33e4f286a55ef6",
+    "overrides": [
+        { 
+            "name": "ktx", 
+            "version": "4.1.0#0"
+        }
     ]
 }

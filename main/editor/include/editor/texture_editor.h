@@ -7,11 +7,13 @@ namespace editor
 {
 struct KtxExportInfo
 {
-    bool uastc = false;
-    bool mipmap = false;
     int uastcLevel = 2; //(0-4)
     int quality = 128;
     int compLevel = 1;
+    bool uastc = false;
+    bool mipmap = false;
+    bool srgb = false;
+    bool compress = false;
 };
 struct TextureInfo
 {

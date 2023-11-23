@@ -37,14 +37,14 @@ core::TextureId TextureManager::LoadTexture(const core::pb::Texture &textureInfo
         {
             if(!newTexture.LoadCubemap(textureInfo))
             {
-                return {};
+                return core::INVALID_TEXTURE_ID;
             }
         }
         else if(path.find(".hdr") != std::string::npos)
         {
             if(!newTexture.LoadHdrTexture(textureInfo))
             {
-                return {};
+                return core::INVALID_TEXTURE_ID;
             }
         }
         else
@@ -53,14 +53,14 @@ core::TextureId TextureManager::LoadTexture(const core::pb::Texture &textureInfo
             {
                 if(!newTexture.LoadKtxTexture(textureInfo))
                 {
-                    return {};
+                    return core::INVALID_TEXTURE_ID;
                 }
             }
             else
             {
                 if (!newTexture.LoadTexture(textureInfo))
                 {
-                    return {};
+                    return core::INVALID_TEXTURE_ID;
                 }
             }
         }
@@ -363,18 +363,29 @@ bool Texture::LoadKtxTexture(const core::pb::Texture& textureInfo)
     KTX_error_code result = ktxTexture_CreateFromMemory(file.data, file.length,
                                                            KTX_TEXTURE_CREATE_NO_FLAGS,
                                                            &kTexture);
-    if(!CheckKtxError(result))
+    if(!ktxCheckError(result))
     {
         return false;
     }
     glGenTextures(1, &name); // Optional. GLUpload can generate a texture.
+    if(kTexture->classId == ktxTexture2_c)
+    {
+        LogDebug(fmt::format("Loading KTX2 texture: {}", path));
+    }
+    else
+    {
+        LogDebug(fmt::format("Loading KTX1 texture: {}", path));
+    }
     result = ktxTexture_GLUpload(kTexture, &name, &target, &glerror);
-    if (!CheckKtxError(result))
+    
+    if (!ktxCheckError(result))
     {
         if(result == KTX_GL_ERROR)
         {
             LogError(GetGlError(glerror));
         }
+        glDeleteTextures(1, &name);
+        name = 0;
         return false;
     }
 

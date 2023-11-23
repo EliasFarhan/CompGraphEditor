@@ -281,7 +281,7 @@ void GenerateIrradianceMap(std::string_view path)
     result = ktxTexture1_Create(&createInfo,
         KTX_TEXTURE_CREATE_ALLOC_STORAGE,
         &texture);
-    gl::CheckKtxError(result);
+    ktxCheckError(result);
 
     std::size_t faceSize = irradianceMapSize * irradianceMapSize * 4 * 4;
     void* faceBuffer = std::malloc(faceSize);
@@ -294,7 +294,7 @@ void GenerateIrradianceMap(std::string_view path)
         result = ktxTexture_SetImageFromMemory(ktxTexture(texture),
             0, 0, face,
             static_cast<const ktx_uint8_t*>(faceBuffer), faceSize);
-        gl::CheckKtxError(result);
+        ktxCheckError(result);
     }
     std::free(faceBuffer);
     ktxTexture_WriteToNamedFile(ktxTexture(texture), irradianceKtxMapPath.data());
@@ -586,7 +586,7 @@ void GeneratePreFilterEnvMap(std::string_view path)
     result = ktxTexture1_Create(&createInfo,
         KTX_TEXTURE_CREATE_ALLOC_STORAGE,
         &texture);
-    if (!gl::CheckKtxError(result))
+    if (!ktxCheckError(result))
     {
         return;
     }
@@ -604,7 +604,7 @@ void GeneratePreFilterEnvMap(std::string_view path)
             result = ktxTexture_SetImageFromMemory(ktxTexture(texture),
                 mip, 0, faceIndex,
                 static_cast<const ktx_uint8_t*>(buffer), size);
-            gl::CheckKtxError(result);
+            ktxCheckError(result);
             glCheckError();
         }
     }

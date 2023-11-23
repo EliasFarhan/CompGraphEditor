@@ -66,4 +66,5 @@ private:
 
 ResourceManager& GetResourceManager();
 
+void HelpMarker(const char* desc);
 }

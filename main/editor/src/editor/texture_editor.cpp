@@ -15,6 +15,7 @@
 #include <stb_image_write.h>
 #include <glm/ext/matrix_clip_space.hpp>
 #include <glm/ext/matrix_transform.hpp>
+#include <vulkan/vulkan_core.h>
 
 #include "pbr_utils.h"
 #include "gl/buffer.h"
@@ -162,6 +163,7 @@ void TextureEditor::DrawInspector()
         ".jpeg",
         ".png",
         ".tga",
+        ".bmp"
         }
     };
     if(std::ranges::any_of(extensions, [&fileExtension](const auto extension)
@@ -171,18 +173,23 @@ void TextureEditor::DrawInspector()
     {
         ImGui::Separator();
         ImGui::TextUnformatted("KTX Exporter");
-        ImGui::Checkbox("UASTC", &currentTextureInfo.ktxInfo.uastc);
-        ImGui::Checkbox("Mipmap", &currentTextureInfo.ktxInfo.mipmap);
-        if(currentTextureInfo.ktxInfo.uastc)
+        ImGui::Checkbox("Compress", &currentTextureInfo.ktxInfo.compress);
+        ImGui::Checkbox("SRGB", &currentTextureInfo.ktxInfo.srgb);
+        ImGui::SameLine(); HelpMarker("SRGB should be use for color textures (baseColor for example)");
+        if (currentTextureInfo.ktxInfo.compress)
         {
-            //UASTC
+            ImGui::Checkbox("UASTC", &currentTextureInfo.ktxInfo.uastc);
+            ImGui::Checkbox("Mipmap", &currentTextureInfo.ktxInfo.mipmap);
+            if (currentTextureInfo.ktxInfo.uastc)
+            {
+                //UASTC
+            }
+            else
+            {
+                //ETC1S
+            }
+            ImGui::SliderInt("Quality", &currentTextureInfo.ktxInfo.quality, 0, 255);
         }
-        else
-        {
-            //ETC1S
-        }
-        ImGui::SliderInt("Quality", &currentTextureInfo.ktxInfo.quality, 0, 255);
-
         if (ImGui::Button("Export To KTX"))
         {
             ExportToKtx(currentTextureInfo);
@@ -378,7 +385,6 @@ void TextureEditor::CubeToKtx(const TextureInfo& textureInfo)
     }
     ktxTexture1* texture;                   
     ktxTextureCreateInfo createInfo;
-    KTX_error_code result;
 
     createInfo.glInternalformat = GL_RGB8;
     createInfo.baseWidth = w;
@@ -393,10 +399,10 @@ void TextureEditor::CubeToKtx(const TextureInfo& textureInfo)
     
 
     // Call ktxTexture1_Create to create a KTX texture.
-    result = ktxTexture1_Create(&createInfo,
-        KTX_TEXTURE_CREATE_ALLOC_STORAGE,
-        &texture);
-    if(!gl::CheckKtxError(result))
+    KTX_error_code result = ktxTexture1_Create(&createInfo,
+                                               KTX_TEXTURE_CREATE_ALLOC_STORAGE,
+                                               &texture);
+    if(!ktxCheckError(result))
     {
         return;
     }
@@ -409,7 +415,7 @@ void TextureEditor::CubeToKtx(const TextureInfo& textureInfo)
         result = ktxTexture_SetImageFromMemory(ktxTexture(texture),
             0, 0, faceIndex,
             static_cast<const ktx_uint8_t*>(buffer), size);
-        gl::CheckKtxError(result);
+        ktxCheckError(result);
     }
     std::free(buffer);
     
@@ -569,7 +575,7 @@ void TextureEditor::HdrToKtx(const TextureInfo& textureInfo)
     result = ktxTexture1_Create(&createInfo,
         KTX_TEXTURE_CREATE_ALLOC_STORAGE,
         &texture);
-    if (!gl::CheckKtxError(result))
+    if (!ktxCheckError(result))
     {
         return;
     }
@@ -582,7 +588,7 @@ void TextureEditor::HdrToKtx(const TextureInfo& textureInfo)
         result = ktxTexture_SetImageFromMemory(ktxTexture(texture),
             0, 0, faceIndex,
             static_cast<const ktx_uint8_t*>(buffer), size);
-        gl::CheckKtxError(result);
+        ktxCheckError(result);
         glCheckError();
     }
     
@@ -612,7 +618,95 @@ void TextureEditor::HdrToKtx(const TextureInfo& textureInfo)
 
 void TextureEditor::ExportToKtx(const TextureInfo& textureInfo) const
 {
+    int w, h, channelCount;
+    auto* data = stbi_load(textureInfo.info.path().c_str(), &w, &h, &channelCount, 0);
     std::string output = fmt::format("{}/{}.ktx", GetFolder(textureInfo.info.path()), GetFilename(textureInfo.info.path(), false));
+    ktxTexture2* texture;
+    ktxTextureCreateInfo createInfo;
+
+    ktx_uint32_t format = VK_FORMAT_UNDEFINED;
+    switch(channelCount)
+    {
+    case 3:
+        format = textureInfo.ktxInfo.srgb?VK_FORMAT_R8G8B8_SRGB: VK_FORMAT_R8G8B8_UNORM;
+        break;
+    case 4:
+        format = textureInfo.ktxInfo.srgb ? VK_FORMAT_R8G8B8A8_SRGB : VK_FORMAT_R8G8B8A8_UNORM;
+        break;
+    case 2:
+        format = VK_FORMAT_R8G8_UNORM;
+        break;
+    case 1:
+        format = VK_FORMAT_R8_UNORM;
+    default:
+        LogError(fmt::format("Weird channel count: {} trying to export to KTX, texture: {}", channelCount, textureInfo.info.path()));
+        break;
+    }
+
+    createInfo.vkFormat = format;
+    createInfo.baseWidth = w;
+    createInfo.baseHeight = h;
+    createInfo.baseDepth = 1;
+    createInfo.numDimensions = 2;
+    createInfo.numLevels = 1;
+    createInfo.numLayers = 1;
+    createInfo.numFaces = 1;
+    createInfo.isArray = KTX_FALSE;
+    createInfo.generateMipmaps = !textureInfo.ktxInfo.mipmap && textureInfo.info.generate_mipmaps();
+
+    // Call ktxTexture1_Create to create a KTX texture.
+    KTX_error_code result = ktxTexture2_Create(&createInfo,
+        KTX_TEXTURE_CREATE_ALLOC_STORAGE,
+        &texture);
+    if (!ktxCheckError(result))
+    {
+        return;
+    }
+    result = ktxTexture_SetImageFromMemory(ktxTexture(texture), 0, 0, 0, data, 
+        static_cast<std::size_t>(w) * static_cast<std::size_t>(h) * static_cast<std::size_t>(channelCount));
+    if (!ktxCheckError(result))
+    {
+        return;
+    }
+    stbi_image_free(data);
+    if (textureInfo.ktxInfo.compress)
+    {
+        ktxBasisParams params = { 0 };
+        params.structSize = sizeof(params);
+        params.qualityLevel = textureInfo.ktxInfo.quality;
+        params.compressionLevel = KTX_ETC1S_DEFAULT_COMPRESSION_LEVEL;
+        params.uastc = textureInfo.ktxInfo.uastc;
+
+        // Set other BasisLZ/ETC1S or UASTC params to change default quality settings.
+        result = ktxTexture2_CompressBasisEx(texture, &params);
+        ktxCheckError(result);
+        if (ktxTexture2_NeedsTranscoding(texture))
+        {
+            ktx_transcode_fmt_e tf;
+            if(textureInfo.ktxInfo.uastc)
+            {
+                tf = KTX_TTF_ASTC_4x4_RGBA;
+            }
+            else
+            {
+                if (channelCount == 3 || channelCount == 4)
+                {
+                    tf = KTX_TTF_ETC;
+                }
+                else
+                {
+                    tf = KTX_TTF_BC1_OR_3;
+                }
+            }
+            ktx_transcode_flags flags = 0;
+            result = ktxTexture2_TranscodeBasis(texture, tf, flags);
+            ktxCheckError(result);
+        }
+    }
+    ktxTexture_WriteToNamedFile(ktxTexture(texture), output.data());
+    ktxCheckError(result);
+    ktxTexture_Destroy(ktxTexture(texture));
+    return;
     py::function exportKtx = py::module_::import("scripts.texture_ktx_exporter").attr("export_ktx");
 
     const auto args = fmt::format("-ktx2,-q,{},{},-output_file,{},{}", 

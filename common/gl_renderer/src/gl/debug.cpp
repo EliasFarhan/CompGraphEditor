@@ -9,64 +9,65 @@
 
 namespace gl
 {
-bool CheckKtxError(ktx_error_code_e error_code)
+bool CheckKtxError(ktx_error_code_e error_code, const char* file, int line)
 {
     switch(error_code)
     {
     case KTX_SUCCESS: 
         return true;
     case KTX_FILE_DATA_ERROR: 
-        LogError("KTX File Data Error");
+        LogError(fmt::format("KTX File Data Error: {}:{}", file, line));
         break;
     case KTX_FILE_ISPIPE: 
-        LogError("KTX File Is Pipe");
+        LogError(fmt::format("KTX File Is Pipe, {}:{}", file, line));
         break;
     case KTX_FILE_OPEN_FAILED: 
-        LogError("KTX File Open Failed");
+        LogError(fmt::format("KTX File Open Failed, {}:{}", file, line));
         break;
     case KTX_FILE_OVERFLOW: 
-        LogError("KTX File Overflow");
+        LogError(fmt::format("KTX File Overflow, {}:{}", file, line));
         break;
     case KTX_FILE_READ_ERROR:
-        LogError("KTX File Read Error");
+        LogError(fmt::format("KTX File Read Error, {}:{}", file, line));
         break;
     case KTX_FILE_SEEK_ERROR: 
-        LogError("KTX File Seek Error");
+        LogError(fmt::format("KTX File Seek Error, {}:{}", file, line));
         break;
     case KTX_FILE_UNEXPECTED_EOF:
-        LogError("KTX File Unexpected EOF");
+        LogError(fmt::format("KTX File Unexpected EOF, {}:{}", file, line));
         break;
     case KTX_FILE_WRITE_ERROR:
-        LogError("KTX File Write Error");
+        LogError(fmt::format("KTX File Write Error, {}:{}", file, line));
         break;
     case KTX_GL_ERROR:
-        LogError("KTX GL Error");
+        LogError(fmt::format("KTX GL Error, {}:{}", file, line));
         break;
     case KTX_INVALID_OPERATION:
-        LogError("KTX Invalid Operation");
+        LogError(fmt::format("KTX Invalid Operation, {}:{}", file, line));
         break;
     case KTX_INVALID_VALUE:
-        LogError("KTX Invalid Value");
+        LogError(fmt::format("KTX Invalid Value, {}:{}", file, line));
         break;
     case KTX_NOT_FOUND:
-        LogError("KTX Not Found");
+        LogError(fmt::format("KTX Not Found, {}:{}", file, line));
         break;
     case KTX_OUT_OF_MEMORY:
-        LogError("KTX Out Of Memory");
+        LogError(fmt::format("KTX Out Of Memory, {}:{}", file, line));
         break;
     case KTX_TRANSCODE_FAILED:
-        LogError("KTX Transcode Failed");
+        LogError(fmt::format("KTX Transcode Failed, {}:{}", file, line));
         break;
     case KTX_UNKNOWN_FILE_FORMAT:
-        LogError("KTX Unknown File Format"); break;
+        LogError(fmt::format("KTX Unknown File Format, {}:{}", file, line));
+        break;
     case KTX_UNSUPPORTED_TEXTURE_TYPE:
-        LogError("KTX Unsupported Texture Type");
+        LogError(fmt::format("KTX Unsupported Texture Type, {}:{}", file, line));
         break;
     case KTX_UNSUPPORTED_FEATURE:
-        LogError("KTX Unsupported Feature");
+        LogError(fmt::format("KTX Unsupported Feature, {}:{}", file, line));
         break;
     case KTX_LIBRARY_NOT_LINKED:
-        LogError("KTX Library Not Linked");
+        LogError(fmt::format("KTX Library Not Linked, {}:{}", file, line));
         break;
     default: break;
     }
