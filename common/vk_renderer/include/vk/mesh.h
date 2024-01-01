@@ -7,7 +7,7 @@
 namespace vk
 {
 
-struct VertexBuffer
+struct VertexInputBuffer
 {
     Buffer vertexBuffer;
     std::size_t verticesCount;
@@ -15,6 +15,6 @@ struct VertexBuffer
     std::size_t indicesCount;
 };
 
-VertexBuffer CreateVertexBufferFromMesh(const core::Mesh& mesh);
+VertexInputBuffer CreateVertexBufferFromMesh(const core::Mesh& mesh);
 
 }

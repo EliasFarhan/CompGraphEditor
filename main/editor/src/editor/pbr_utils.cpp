@@ -134,7 +134,7 @@ void GenerateIrradianceMap(std::string_view path)
     }
     glCheckError();
     const auto cubeMesh = core::GenerateCube(glm::vec3(2.0f), glm::vec3(0.0f));
-    gl::VertexBuffer cube{};
+    gl::VertexInputBuffer cube{};
     cube.CreateFromMesh(cubeMesh);
 
     core::pb::FrameBuffer captureFboInfo;
@@ -332,7 +332,7 @@ void GenerateIrradianceMap(std::string_view path)
     equirectangleColorAttachment->mutable_target_size()->set_y(resultH);
 
     auto quadMesh = core::GenerateQuad(glm::vec3(2.0f), glm::vec3(0.0f));
-    gl::VertexBuffer quad{};
+    gl::VertexInputBuffer quad{};
     quad.CreateFromMesh(quadMesh);
     gl::Framebuffer equirectangleFbo;
     equirectangleFbo.Load(equirectangleFboInfo);
@@ -418,7 +418,7 @@ void GeneratePreFilterEnvMap(std::string_view path)
     }
     glCheckError();
     auto cubeMesh = core::GenerateCube(glm::vec3(2.0f), glm::vec3(0.0f));
-    gl::VertexBuffer cube{};
+    gl::VertexInputBuffer cube{};
     cube.CreateFromMesh(cubeMesh);
     core::pb::FrameBuffer captureFboInfo;
     captureFboInfo.set_name("captureFBO");

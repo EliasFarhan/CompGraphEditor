@@ -28,6 +28,8 @@ struct SwapChainSupportDetails
     std::vector<VkPresentModeKHR> presentModes;
 };
 
+constexpr auto swapchainFormat = VK_FORMAT_R8G8B8A8_SRGB;
+constexpr auto swapchainColorSpace = VK_COLOR_SPACE_SRGB_NONLINEAR_KHR;
 
 constexpr std::array<const char*, 1> validationLayers = {
         "VK_LAYER_KHRONOS_validation"

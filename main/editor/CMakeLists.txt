@@ -52,13 +52,6 @@ target_precompile_headers(editor PRIVATE
         "<gl/pipeline.h>"
         "<engine/engine.h>")
 
-add_custom_command(TARGET editor PRE_BUILD
-                COMMAND ${CMAKE_COMMAND} -E copy
-                $<TARGET_FILE:basisu>
-                $<TARGET_FILE_DIR:editor>)
-add_dependencies(editor basisu)
-
-
 
 #gl player
 

@@ -6,7 +6,7 @@
 namespace vk
 {
 
-VertexBuffer CreateVertexBufferFromMesh(const core::Mesh& mesh)
+VertexInputBuffer CreateVertexBufferFromMesh(const core::Mesh& mesh)
 {
     auto& engine = GetEngine();
     const auto bufferSize = mesh.vertices.size()*sizeof(core::Vertex);

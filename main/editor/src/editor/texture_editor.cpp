@@ -478,7 +478,7 @@ void TextureEditor::HdrToKtx(const TextureInfo& textureInfo)
 
     const auto targetSize = texH / 2;
     auto cubeMesh = core::GenerateCube(glm::vec3(2.0f), glm::vec3(0.0f));
-    gl::VertexBuffer cube{};
+    gl::VertexInputBuffer cube{};
     cube.CreateFromMesh(cubeMesh);
     core::pb::FrameBuffer captureFboInfo;
     captureFboInfo.set_name("captureFBO");

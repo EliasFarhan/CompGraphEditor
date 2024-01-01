@@ -232,7 +232,7 @@ void ModelEditor::Delete()
 
 std::span<const std::string_view> ModelEditor::GetExtensions() const
 {
-    static constexpr std::array<std::string_view, 2> extensions = { ".obj", ".model"};
+    static constexpr std::array<std::string_view, 5> extensions = { ".obj", ".fbx", ".blend", ".gltf", ".model"};
     return std::span{ extensions };
 }
 

@@ -14,8 +14,15 @@
 
 namespace gl
 {
+VertexInputBuffer::~VertexInputBuffer()
+{
+    if(vao != 0)
+    {
+        LogWarning("Vertex Buffer not deallocated");
+    }
+}
 
-void VertexBuffer::CreateFromMesh(const core::Mesh& mesh)
+void VertexInputBuffer::CreateFromMesh(const core::Mesh& mesh)
 {
 #ifdef TRACY_ENABLE
     TracyGpuNamedZone(loadBuffer, "Create Vertex Buffer", true);
@@ -29,6 +36,7 @@ void VertexBuffer::CreateFromMesh(const core::Mesh& mesh)
     // 2. copy our vertices array in a buffer for OpenGL to use
     glBindBuffer(GL_ARRAY_BUFFER, vbo);
     glBufferData(GL_ARRAY_BUFFER, mesh.vertices.size() * sizeof(core::Vertex), mesh.vertices.data(), GL_STATIC_DRAW);
+
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(core::Vertex), (void*)offsetof(core::Vertex, position));
     glEnableVertexAttribArray(0);
     //bind texture coords data
@@ -50,16 +58,21 @@ void VertexBuffer::CreateFromMesh(const core::Mesh& mesh)
     glCheckError();
 }
 
-void VertexBuffer::Bind()
+void VertexInputBuffer::Bind()
 {
     glBindVertexArray(vao);
 }
 
-void VertexBuffer::Destroy()
+void VertexInputBuffer::Destroy()
 {
     if (vao != 0)
     {
         glDeleteVertexArrays(1, &vao);
+        vao = 0;
+        glDeleteBuffers(1, &vbo);
+        vbo = 0;
+        glDeleteBuffers(1, &ebo);
+        ebo = 0;
     }
 }
 

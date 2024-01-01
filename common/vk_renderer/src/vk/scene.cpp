@@ -760,18 +760,18 @@ Scene::ImportStatus Scene::LoadRenderPass(const core::pb::RenderPass& renderPass
     {
         //Pure raytracing scene
         LogDebug("Create Raytracing Storage Image for pure raytracing");
-        auto& swapchain = GetSwapchain();
+        constexpr auto imageFormat = VK_FORMAT_R8G8B8A8_UNORM;
         const auto windowSize = core::GetWindowSize();
         raytracingStorageImage_.image = CreateImage(windowSize.x,
             windowSize.y,
-            swapchain.imageFormat,
+            imageFormat,
             1,
             VK_IMAGE_TILING_OPTIMAL,
             VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_STORAGE_BIT,
             VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
             1);
         TransitionImageLayout(raytracingStorageImage_.image.image, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_GENERAL, 1, 1);
-        raytracingStorageImage_.imageView = CreateImageView(driver.device, raytracingStorageImage_.image.image, swapchain.imageFormat, VK_IMAGE_ASPECT_COLOR_BIT);
+        raytracingStorageImage_.imageView = CreateImageView(driver.device, raytracingStorageImage_.image.image, imageFormat, VK_IMAGE_ASPECT_COLOR_BIT);
         return ImportStatus::SUCCESS;
     }
     std::vector<VkSubpassDependency> dependencies;

@@ -6,6 +6,8 @@
 #include <set>
 #include <cstring>
 
+#include "vk/common.h"
+
 #ifdef TRACY_ENABLE
 #include <tracy/Tracy.hpp>
 #endif
@@ -619,7 +621,7 @@ VkSurfaceFormatKHR ChooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>
 #endif
     for (const auto& availableFormat : availableFormats)
     {
-        if (availableFormat.format == VK_FORMAT_R8G8B8A8_SRGB && availableFormat.colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR)
+        if (availableFormat.format == swapchainFormat && availableFormat.colorSpace == swapchainColorSpace)
         {
             return availableFormat;
         }

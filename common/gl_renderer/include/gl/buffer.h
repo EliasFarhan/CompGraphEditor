@@ -7,13 +7,13 @@
 namespace gl
 {
     
-class VertexBuffer final : core::VertexBuffer
+class VertexInputBuffer final : core::VertexInputBuffer
 {
 public:
+    ~VertexInputBuffer() override;
     void CreateFromMesh(const core::Mesh& mesh) override;
     void Bind() override;
     void Destroy() override;
-
 private:
     GLuint vao{};
     GLuint vbo{};

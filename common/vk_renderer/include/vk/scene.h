@@ -45,7 +45,7 @@ public:
     VkRenderPass GetCurrentRenderPass() const;
     const Texture& GetTexture(int index) const;
     core::DrawCommand& GetDrawCommand(int subPassIndex, int drawCommandIndex) override;
-    const std::vector<VertexBuffer>& GetVertexBuffers() const { return vertexBuffers_; }
+    const std::vector<VertexInputBuffer>& GetVertexBuffers() const { return vertexBuffers_; }
 
     void OnEvent(SDL_Event& event) override;
     Pipeline& GetRaytracingPipeline(int raytracingPipelineIndex);
@@ -72,7 +72,7 @@ private:
     std::vector<Framebuffer> framebuffers_;
 
     std::vector<core::Mesh> meshes_;
-    std::vector<VertexBuffer> vertexBuffers_;
+    std::vector<VertexInputBuffer> vertexBuffers_;
     std::vector<Shader> shaders_;
     std::vector<DrawCommand> drawCommands_;
     std::vector<RaytracingCommand> raytracingCommands_;

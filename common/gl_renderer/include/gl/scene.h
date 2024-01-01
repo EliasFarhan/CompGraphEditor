@@ -37,7 +37,7 @@ public:
     int GetFramebufferIndex(std::string_view framebufferName);
     core::Framebuffer& GetFramebuffer(int framebufferIndex) override { return framebuffers_[framebufferIndex]; }
     core::Pipeline& GetPipeline(int index) override { return pipelines_[index]; }
-    VertexBuffer& GetVertexBuffer(int index) { return vertexBuffers_[index]; }
+    VertexInputBuffer& GetVertexBuffer(int index) { return vertexBuffers_[index]; }
     core::DrawCommand& GetDrawCommand(int subPassIndex, int drawCommandIndex) override;
     core::ComputeCommand& GetComputeCommand(int subpassIndex, int computeCommandIndex);
 
@@ -57,7 +57,7 @@ protected:
 private:
     std::vector<Shader> shaders_;
     std::vector<Pipeline> pipelines_;
-    std::vector<VertexBuffer> vertexBuffers_;
+    std::vector<VertexInputBuffer> vertexBuffers_;
     std::vector<core::ModelIndex> modelIndices_;
     std::vector<SceneTexture> textures_;
     std::vector<Material> materials_;
