@@ -104,6 +104,24 @@ public:
         }
     }
 
+    void Trace(Command* command) override
+    {
+        try
+        {
+            PYBIND11_OVERRIDE_NAME(
+                void, /* Return type */
+                Script,      /* Parent class */
+                "trace",
+                Trace      /* Name of the function(s) */,
+                command
+            );
+        }
+        catch (py::error_already_set& e)
+        {
+            LogError(e.what());
+        }
+    }
+
     void OnKeyDown(SDL_Keycode keycode) override
     {
         try
