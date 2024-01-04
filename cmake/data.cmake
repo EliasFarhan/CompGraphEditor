@@ -120,6 +120,7 @@ function(checkvkshaders main_folder exe_name)
             "${main_folder}/data/*.rint"
             "${main_folder}/data/*.rahit"
             "${main_folder}/data/*.rcall"
+            "${main_folder}/data/*.glsl"
             )
     foreach(GLSL ${GLSL_SOURCE_FILES})
         get_filename_component(FILE_NAME ${GLSL} NAME)

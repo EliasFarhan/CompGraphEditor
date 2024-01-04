@@ -103,4 +103,11 @@ core::pb::Scene RaytracingScene01()
     return scene;
 }
 
+core::pb::Scene RaytracingScene02()
+{
+    core::pb::Scene scene{};
+
+    return scene;
+}
+
 } // namespace grp5300
