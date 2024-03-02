@@ -1,4 +1,5 @@
 #include "renderer/mesh.h"
+#include "maths/angle.h"
 
 namespace core
 {

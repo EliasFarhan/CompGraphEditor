@@ -5,6 +5,8 @@
 
 #include <set>
 #include <cstring>
+#include <vk/window.h>
+#include <vk/engine.h>
 
 #include "vk/common.h"
 

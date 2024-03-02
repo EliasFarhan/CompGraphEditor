@@ -2,6 +2,8 @@
 
 #include "utils/log.h"
 #include <fmt/core.h>
+#include <vk/engine.h>
+#include <vk/utils.h>
 
 namespace vk
 {

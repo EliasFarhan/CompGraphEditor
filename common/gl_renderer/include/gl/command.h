@@ -1,8 +1,9 @@
 #pragma once
 
 #include "renderer/command.h"
+#include "gl/material.h"
 
-#include "material.h"
+#include <GL/glew.h>
 
 
 namespace gl

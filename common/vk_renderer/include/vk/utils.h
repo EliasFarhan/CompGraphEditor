@@ -1,6 +1,7 @@
 #pragma once
 #include "engine/filesystem.h"
 #include "proto/renderer.pb.h"
+#include "common.h"
 
 #include <volk.h>
 

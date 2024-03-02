@@ -1,20 +1,11 @@
 #include "pbr_utils.h"
 
-#include <stb_image.h>
-#include <stb_image_write.h>
-
-#include "GL/glew.h"
-#include "gl/debug.h"
-
 #include "proto/renderer.pb.h"
 #include "editor_filesystem.h"
 #include "engine/filesystem.h"
 #include "utils/log.h"
 #include "renderer/pipeline.h"
 
-#include <fmt/format.h>
-#include <glm/ext/matrix_clip_space.hpp>
-#include <glm/ext/matrix_transform.hpp>
 
 #include <renderer/framebuffer.h>
 
@@ -22,6 +13,18 @@
 #include "gl/framebuffer.h"
 #include "gl/pipeline.h"
 #include "renderer/mesh.h"
+#include "scene_editor.h"
+#include "editor.h"
+
+#include <fmt/format.h>
+#include <glm/ext/matrix_clip_space.hpp>
+#include <glm/ext/matrix_transform.hpp>
+#include <stb_image.h>
+#include <stb_image_write.h>
+
+#include "GL/glew.h"
+#include "gl/debug.h"
+
 
 namespace editor
 {

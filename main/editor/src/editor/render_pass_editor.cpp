@@ -1,3 +1,7 @@
+#include "framebuffer_editor.h"
+#include "command_editor.h"
+#include "scene_editor.h"
+#include "model_editor.h"
 #include "render_pass_editor.h"
 #include "proto/renderer.pb.h"
 #include "resource.h"
@@ -6,15 +10,15 @@
 #include "utils/log.h"
 #include "command_editor.h"
 #include "editor.h"
+
 #include <fmt/format.h>
 #include <imgui.h>
+#include <imnodes.h>
+
 #include <array>
 #include <fstream>
 
-#include "framebuffer_editor.h"
-#include "command_editor.h"
-#include "scene_editor.h"
-#include "model_editor.h"
+
 
 namespace editor
 {

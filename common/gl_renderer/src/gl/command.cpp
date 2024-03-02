@@ -1,14 +1,14 @@
 #include "gl/command.h"
 #include "gl/texture.h"
-
 #include "engine/scene.h"
 #include "gl/material.h"
 #include "gl/pipeline.h"
 #include "proto/renderer.pb.h"
+#include "gl/scene.h"
 
 #include <glm/gtx/euler_angles.hpp>
 
-#include "gl/scene.h"
+#include <fmt/format.h>
 
 #ifdef TRACY_ENABLE
 #include <tracy/TracyOpenGL.hpp>

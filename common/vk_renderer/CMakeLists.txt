@@ -10,5 +10,4 @@ target_link_libraries(CommonVK PUBLIC Core volk::volk GPUOpen::VulkanMemoryAlloc
 target_compile_definitions(CommonVK PUBLIC VK_NO_PROTOTYPES)
 
 set_target_properties (CommonVK PROPERTIES FOLDER Core)
-set_target_properties(CommonVK PROPERTIES UNITY_BUILD ON)
 target_precompile_headers(CommonVK REUSE_FROM Core)

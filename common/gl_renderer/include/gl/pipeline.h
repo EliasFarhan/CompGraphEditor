@@ -1,10 +1,10 @@
 #pragma once
 
 #include "renderer/pipeline.h"
-
-#include <GL/glew.h>
+#include "gl/texture.h"
 #include "proto/renderer.pb.h"
 
+#include <GL/glew.h>
 #include <glm/vec2.hpp>
 #include <glm/vec3.hpp>
 #include <glm/vec4.hpp>
@@ -15,7 +15,6 @@
 
 namespace gl
 {
-struct Texture;
 
 struct Shader : core::Shader
 {
@@ -25,7 +24,7 @@ struct Shader : core::Shader
     void Destroy();
 };
 
-class Pipeline : public core::Pipeline
+class Pipeline final : public core::Pipeline
 {
 public:
 
@@ -53,7 +52,7 @@ public:
     void SetMat3(std::string_view uniformName, const glm::mat3& mat);
     void SetBool(std::string_view uniformName, bool b);
 
-    void SetTexture(std::string_view uniformName, const Texture& texture, GLenum textureUnit);
+    void SetTexture(std::string_view uniformName, const gl::Texture& texture, GLenum textureUnit);
     void SetTexture(std::string_view uniformName, GLuint textureName, GLenum textureUnit);
     void SetCubemap(std::string_view uniformName, GLuint textureName, GLenum textureUnit);
 

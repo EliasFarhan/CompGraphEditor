@@ -1,5 +1,6 @@
 #pragma once
 #include "maths/angle.h"
+#include <glm/vec3.hpp>
 
 namespace core
 {

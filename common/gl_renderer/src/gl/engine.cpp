@@ -1,4 +1,7 @@
 #include "gl/engine.h"
+#include "engine/filesystem.h"
+#include "gl/debug.h"
+#include "utils/log.h"
 
 #include <GL/glew.h>
 #include <glm/ext/vector_uint2.hpp>
@@ -8,8 +11,7 @@
 #include <imgui_impl_opengl3.h>
 #include <glm/vec2.hpp>
 
-#include "engine/filesystem.h"
-#include "gl/debug.h"
+#include <fmt/format.h>
 
 #ifdef TRACY_ENABLE
 #include <tracy/Tracy.hpp>

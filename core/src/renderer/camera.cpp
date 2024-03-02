@@ -1,6 +1,10 @@
 #include "renderer/camera.h"
 #include "renderer/command.h"
+#include "engine/engine.h"
+#include "engine/scene.h"
+
 #include <numbers>
+
 #include <glm/ext/matrix_clip_space.hpp>
 #include <glm/ext/matrix_transform.hpp>
 

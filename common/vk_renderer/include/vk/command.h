@@ -8,6 +8,7 @@
 
 #include <vector>
 #include <array>
+#include <renderer/pipeline.h>
 
 namespace vk
 {

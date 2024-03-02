@@ -41,7 +41,6 @@ add_dependencies(editor editor_scripts)
 
 set_target_properties (editor PROPERTIES FOLDER Main)
 set_target_properties (editor_scripts PROPERTIES FOLDER Main)
-set_target_properties(editor PROPERTIES UNITY_BUILD ON)
 target_precompile_headers(editor PRIVATE 
         "<filesystem>" 
         "<fmt/format.h>"
@@ -61,7 +60,6 @@ add_executable(gl_player ${GL_PLAYER_SRC} main/gl_player_main.cpp)
 target_include_directories(gl_player PRIVATE include/gl_player/)
 target_link_libraries(gl_player PRIVATE CommonGL CommonPy argh PhysFilesystem)
 
-set_target_properties(gl_player PROPERTIES UNITY_BUILD ON)
 set_target_properties (gl_player PROPERTIES FOLDER Main)
 add_dependencies(editor gl_player)
 target_precompile_headers(gl_player PRIVATE 
@@ -75,7 +73,6 @@ file(GLOB_RECURSE VK_PLAYER_SRC src/vk_player/*.cpp include/vk_player/*.h)
 add_executable(vk_player ${VK_PLAYER_SRC} main/vk_player_main.cpp)
 target_include_directories(vk_player PRIVATE include/vk_player/)
 target_link_libraries(vk_player PRIVATE CommonVK CommonPy argh PhysFilesystem)
-set_target_properties(vk_player PROPERTIES UNITY_BUILD ON)
 set_target_properties (vk_player PROPERTIES FOLDER Main)
 target_precompile_headers(vk_player PRIVATE
         "<engine/engine.h>"

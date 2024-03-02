@@ -3,6 +3,7 @@
 #include "gl/debug.h"
 #include "gl/texture.h"
 #include "utils/log.h"
+#include "engine/scene.h"
 
 
 #include <fmt/format.h>
@@ -310,7 +311,7 @@ void Pipeline::SetBool(std::string_view uniformName, bool b)
     glCheckError();
 }
 
-void Pipeline::SetTexture(std::string_view uniformName, const Texture& texture, GLenum textureUnit)
+void Pipeline::SetTexture(std::string_view uniformName, const gl::Texture& texture, GLenum textureUnit)
 {
 #ifdef TRACY_ENABLE
     TracyGpuNamedZone(bindTexture, "Bind Texture", true);

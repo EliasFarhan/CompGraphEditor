@@ -1,4 +1,6 @@
 #include "engine/script.h"
+#include "renderer/camera.h"
+#include <fmt/format.h>
 
 namespace core
 {

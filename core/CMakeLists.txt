@@ -11,7 +11,6 @@ if(ENABLE_PROFILER)
     target_link_libraries(Core PUBLIC TracyClient)
     target_compile_definitions(Core PUBLIC TRACY_ENABLE=1)
 endif()
-set_target_properties(Core PROPERTIES UNITY_BUILD ON)
 set_target_properties (Core PROPERTIES FOLDER Core)
 
 if(MSVC)
