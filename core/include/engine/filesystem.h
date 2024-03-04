@@ -13,19 +13,19 @@
 namespace core
 {
     
-class BufferFile
+class FileBuffer
 {
 public:
-    BufferFile() = default;
-    ~BufferFile();
-    BufferFile(const BufferFile&) = delete;
-    BufferFile& operator=(const BufferFile&) = delete;
-    BufferFile(BufferFile&& other) noexcept
+    FileBuffer() = default;
+    ~FileBuffer();
+    FileBuffer(const FileBuffer&) = delete;
+    FileBuffer& operator=(const FileBuffer&) = delete;
+    FileBuffer(FileBuffer&& other) noexcept
     {
         std::swap(data, other.data);
         std::swap(length, other.length);
     }
-    BufferFile& operator=(BufferFile&& other) noexcept
+    FileBuffer& operator=(FileBuffer&& other) noexcept
     {
         std::swap(data, other.data);
         std::swap(length, other.length);
@@ -41,7 +41,7 @@ class FilesystemInterface
 {
 public:
     virtual ~FilesystemInterface() = default;
-    [[nodiscard]] virtual BufferFile LoadFile(std::string_view path) const = 0;
+    [[nodiscard]] virtual FileBuffer LoadFile(std::string_view path) const = 0;
     [[nodiscard]] virtual bool FileExists(std::string_view) const = 0;
     [[nodiscard]] virtual bool IsRegularFile(std::string_view) const = 0;
     [[nodiscard]] virtual bool IsDirectory(std::string_view) const = 0;
@@ -51,7 +51,7 @@ public:
 class NullFilesystem final : public FilesystemInterface
 {
 public:
-    [[nodiscard]] BufferFile LoadFile(std::string_view path) const override
+    [[nodiscard]] FileBuffer LoadFile(std::string_view path) const override
     {
         assert(false);
         return {};
@@ -80,7 +80,7 @@ public:
 class DefaultFilesystem final : public FilesystemInterface
 {
 public:
-    [[nodiscard]] BufferFile LoadFile(std::string_view path) const override;
+    [[nodiscard]] FileBuffer LoadFile(std::string_view path) const override;
     [[nodiscard]] bool FileExists(std::string_view path) const override;
     [[nodiscard]] bool IsRegularFile(std::string_view path) const override;
     [[nodiscard]] bool IsDirectory(std::string_view path) const override;
@@ -105,7 +105,7 @@ public:
 class IOStream : public Assimp::IOStream
 {
 public:
-    IOStream(BufferFile&& bufferFile);
+    IOStream(FileBuffer&& bufferFile);
     size_t Read(void* pvBuffer, size_t pSize, size_t pCount) override;
     size_t Write(const void* pvBuffer, size_t pSize, size_t pCount) override;
     aiReturn Seek(size_t pOffset, aiOrigin pOrigin) override;
@@ -113,7 +113,7 @@ public:
     size_t FileSize() const override;
     void Flush() override;
 private:
-    BufferFile bufferFile_{};
+    FileBuffer bufferFile_{};
     std::size_t cursorIndex_ = 0;
 };
 

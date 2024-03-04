@@ -707,7 +707,7 @@ VkImageView CreateImageView(VkDevice device, VkImage image, VkFormat format, VkI
     return imageView;
 }
 
-std::optional<VkShaderModule> CreateShaderModule(const core::BufferFile& bufferFile, VkDevice device)
+std::optional<VkShaderModule> CreateShaderModule(const core::FileBuffer& bufferFile, VkDevice device)
 {
 #ifdef TRACY_ENABLE
     ZoneScoped;

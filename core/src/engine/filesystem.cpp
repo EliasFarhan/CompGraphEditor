@@ -14,7 +14,7 @@ namespace fs = std::filesystem;
 namespace core
 {
 
-BufferFile::~BufferFile()
+FileBuffer::~FileBuffer()
 {
     if(data != nullptr)
     {
@@ -24,13 +24,13 @@ BufferFile::~BufferFile()
     }
 }
 
-BufferFile DefaultFilesystem::LoadFile(std::string_view path) const
+FileBuffer DefaultFilesystem::LoadFile(std::string_view path) const
 {
 #ifdef TRACY_ENABLE
     ZoneScoped;
 #endif
     // allocate memory to contain file data
-    BufferFile bufferFile;
+    FileBuffer bufferFile;
     if(!FileExists(path))
     {
         return bufferFile;
@@ -96,7 +96,7 @@ void IOSystem::Close(Assimp::IOStream* pFile)
     delete pFile;
 }
 
-IOStream::IOStream(BufferFile&& bufferFile): bufferFile_(std::move(bufferFile))
+IOStream::IOStream(FileBuffer&& bufferFile): bufferFile_(std::move(bufferFile))
 {
 }
 
