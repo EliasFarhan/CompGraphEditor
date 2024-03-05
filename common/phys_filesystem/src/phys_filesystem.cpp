@@ -41,11 +41,11 @@ namespace core
         }
     }
 
-    core::BufferFile PhysFilesystem::LoadFile(std::string_view path) const
+    core::FileBuffer PhysFilesystem::LoadFile(std::string_view path) const
     {
         std::string genericPath = path.data();
         std::ranges::replace(genericPath, '\\', '/');
-        core::BufferFile newFile;
+        core::FileBuffer newFile;
         if (!FileExists(genericPath))
         {
             LogError(fmt::format("File does not exist: {}", genericPath));
