@@ -25,12 +25,18 @@ bool Job::ShouldStart() const
     return true;
 }
 
+void Job::Reset()
+{
+    hasStarted_.store(false, std::memory_order_release);
+    isDone_.store(false, std::memory_order_release);
+}
+
 void FuncJob::ExecuteImpl()
 {
     func_();
 }
 
-bool DependencyJob::ShouldStart() const
+bool FuncDependentJob::ShouldStart() const
 {
     const auto dependencyJob = dependency_.lock();
     if(dependencyJob != nullptr)

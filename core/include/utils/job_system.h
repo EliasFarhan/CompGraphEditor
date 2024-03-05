@@ -16,6 +16,7 @@ public:
     bool HasStarted() const;
     bool IsDone() const;
     virtual bool ShouldStart() const;
+    void Reset();
 protected:
     virtual void ExecuteImpl() = 0;
 private:
@@ -29,20 +30,10 @@ public:
     FuncJob(const std::function<void(void)>& func): func_(func){}
 protected:
     void ExecuteImpl() override;
-
 private:
     std::function<void(void)> func_;
 };
 
-class DependencyJob : public Job
-{
-public:
-    DependencyJob(const std::weak_ptr<Job>& dependency): dependency_(dependency){}
-    bool ShouldStart() const override;
-
-private:
-    std::weak_ptr<Job> dependency_{};
-};
 class DependenciesJob : public Job
 {
 public:
@@ -55,9 +46,18 @@ private:
     std::vector<std::weak_ptr<Job>> dependencies_{};
 };
 
-class FuncDependentJob : public FuncJob, public DependencyJob
+class FuncDependentJob : public FuncJob
 {
-    using DependencyJob::DependencyJob;
+public:
+    FuncDependentJob(std::weak_ptr<Job> dependency, const std::function<void(void)>& func) :
+        dependency_(dependency),
+        FuncJob(func)
+    {
+
+    }
+    bool ShouldStart() const override;
+private:
+    std::weak_ptr<Job> dependency_{};
 };
 
 class FuncDependenciesJob: public FuncJob, public DependenciesJob
@@ -99,6 +99,7 @@ private:
     WorkerQueue& queue_;
 };
 
+static constexpr auto MAIN_QUEUE_INDEX = -1;
 
 class JobSystem
 {
@@ -106,7 +107,7 @@ public:
     JobSystem();
     int SetupNewQueue(int threadCount);
     void Begin();
-    void AddJob(const std::shared_ptr<Job>& newJob, int queueIndex);
+    void AddJob(const std::shared_ptr<Job>& newJob, int queueIndex = MAIN_QUEUE_INDEX);
     void End();
     void ExecuteMainThread();
 private:

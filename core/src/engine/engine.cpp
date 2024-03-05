@@ -34,6 +34,7 @@ void Engine::Begin()
 #ifdef TRACY_ENABLE
     ZoneScoped;
 #endif
+    jobSystem_.Begin();
     for(auto* system: systems_)
     {
         system->Begin();
@@ -45,51 +46,41 @@ void Engine::Run()
     Begin();
     bool isOpen = true;
 
-    std::chrono::time_point<std::chrono::system_clock> clock = std::chrono::system_clock::now();
-    while(isOpen)
-    {
-#ifdef TRACY_ENABLE
-        ZoneScoped;
-#endif
-        const auto start = std::chrono::system_clock::now();
-        using seconds = std::chrono::duration<float, std::ratio<1,1>>;
-        const auto dt = std::chrono::duration_cast<seconds>(start - clock);
-        clock = start;
-
+    jobs_[(int)JobIndex::EVENT] = std::make_shared<FuncJob>([this, &isOpen](){
         //Manage SDL event
         SDL_Event event;
         while(SDL_PollEvent(&event))
         {
             switch(event.type)
             {
-            case SDL_QUIT:
-                isOpen = false;
-                break;
-            case SDL_WINDOWEVENT:
-            {
-                switch(event.window.event)
-                {
-                case SDL_WINDOWEVENT_CLOSE:
+                case SDL_QUIT:
                     isOpen = false;
                     break;
-                case SDL_WINDOWEVENT_RESIZED:
+                case SDL_WINDOWEVENT:
                 {
-                    glm::uvec2 newWindowSize;
-                    newWindowSize.x = event.window.data1;
-                    newWindowSize.y = event.window.data2;
-                    ResizeWindow(newWindowSize);
-                    auto* windowSize = config_.mutable_window_size();
-                    windowSize->set_x(newWindowSize.x);
-                    windowSize->set_y(newWindowSize.y);
+                    switch(event.window.event)
+                    {
+                        case SDL_WINDOWEVENT_CLOSE:
+                            isOpen = false;
+                            break;
+                        case SDL_WINDOWEVENT_RESIZED:
+                        {
+                            glm::uvec2 newWindowSize;
+                            newWindowSize.x = event.window.data1;
+                            newWindowSize.y = event.window.data2;
+                            ResizeWindow(newWindowSize);
+                            auto* windowSize = config_.mutable_window_size();
+                            windowSize->set_x(newWindowSize.x);
+                            windowSize->set_y(newWindowSize.y);
+                            break;
+                        }
+                        default:
+                            break;
+                    }
                     break;
                 }
                 default:
                     break;
-                }
-                break;
-            }
-            default:
-                break;
             }
             for(auto* eventInterface: onEventInterfaces)
             {
@@ -100,24 +91,57 @@ void Engine::Run()
                 ImGui_ImplSDL2_ProcessEvent(&event);
             }
         }
+    });
 
+    jobs_[(int)JobIndex::PRE_UPDATE] = std::make_shared<FuncDependentJob>(jobs_[(int)JobIndex::EVENT], [this](){
         PreUpdate();
+    });
+    using seconds = std::chrono::duration<float, std::ratio<1,1>>;
+    seconds dt;
+    jobs_[(int)JobIndex::UPDATE]  = std::make_shared<FuncDependentJob>(jobs_[(int)JobIndex::PRE_UPDATE], [this, &dt](){
         for(auto* system : systems_)
         {
             system->Update(dt.count());
         }
+    });
 
+    jobs_[(int)JobIndex::PRE_IMGUI] = std::make_shared<FuncDependentJob>(jobs_[(int)JobIndex::UPDATE], [this](){
         //Generate new ImGui frame
         PreImGuiDraw();
+    });
 
+    jobs_[(int)JobIndex::IMGUI_DRAW]  = std::make_shared<FuncDependentJob>(jobs_[(int)JobIndex::PRE_IMGUI], [this](){
         for(auto* imguiDrawInterface : imguiDrawInterfaces)
         {
             imguiDrawInterface->OnGui();
         }
-        PostImGuiDraw();
-        
+    });
 
-        SwapWindow();
+    jobs_[(int)JobIndex::POST_IMGUI]  = std::make_shared<FuncDependentJob>(jobs_[(int)JobIndex::IMGUI_DRAW] , [this](){
+        PostImGuiDraw();
+    });
+
+    jobs_[(int)JobIndex::SWAP_WINDOW] = std::make_shared<FuncDependentJob>(jobs_[(int)JobIndex::POST_IMGUI], [this](){
+       SwapWindow();
+    });
+
+    std::chrono::time_point<std::chrono::system_clock> clock = std::chrono::system_clock::now();
+    while(isOpen)
+    {
+#ifdef TRACY_ENABLE
+        ZoneScoped;
+#endif
+        const auto start = std::chrono::system_clock::now();
+
+        dt = std::chrono::duration_cast<seconds>(start - clock);
+        clock = start;
+
+        for(auto& job: jobs_)
+        {
+            job->Reset();
+            jobSystem_.AddJob(job);
+        }
+        jobSystem_.ExecuteMainThread();
 #ifdef TRACY_ENABLE
         FrameMark;
 #endif
@@ -136,7 +160,7 @@ void Engine::End()
         system->End();
     }
 
-
+    jobSystem_.End();
     const auto& fileSystem = FilesystemLocator::get();
     fileSystem.WriteString(configFilename, config_.SerializeAsString());
 

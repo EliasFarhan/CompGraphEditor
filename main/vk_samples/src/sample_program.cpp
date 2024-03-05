@@ -786,7 +786,7 @@ core::pb::Scene Scene08()
 
 void HelloVulkanProgram::Begin() 
 {
-    scene_.SetScene(RaytracingScene01());
+    scene_.SetScene(Scene02());
 
     sceneManager_.LoadScene(&scene_);
 }

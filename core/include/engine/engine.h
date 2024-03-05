@@ -8,6 +8,7 @@
 #include "proto/config.pb.h"
 #include "renderer/texture.h"
 #include "renderer/model.h"
+#include "utils/job_system.h"
 
 #include <glm/ext/vector_uint2.hpp>
 
@@ -58,8 +59,21 @@ protected:
     pb::Config config_;
 protected:
     inline static constexpr std::string_view configFilename = "config.bin";
+    enum class JobIndex
+    {
+        EVENT,
+        PRE_UPDATE,
+        UPDATE,
+        PRE_IMGUI,
+        IMGUI_DRAW,
+        POST_IMGUI,
+        SWAP_WINDOW,
+        LENGTH
+    };
+    std::array<std::shared_ptr<Job>, (int)JobIndex::LENGTH> jobs_;
 private:
     core::ModelManager modelManager_;
+    core::JobSystem jobSystem_;
     std::vector<System*> systems_;
     std::vector<OnEventInterface*> onEventInterfaces;
     std::vector<OnGuiInterface*> imguiDrawInterfaces;
