@@ -46,19 +46,7 @@ public:
     glm::uvec2 GetWindowSize() const;
     virtual TextureManager& GetTextureManager() = 0;
     ModelManager& GetModelManager();
-protected:
-    virtual void Begin();
-    virtual void End();
-    virtual void ResizeWindow(glm::uvec2) = 0;
-    virtual void PreUpdate() = 0;
-    virtual void PreImGuiDraw() = 0;
-    virtual void PostImGuiDraw() = 0;
-    virtual void SwapWindow() = 0;
 
-    SDL_Window* window_ = nullptr;
-    pb::Config config_;
-protected:
-    inline static constexpr std::string_view configFilename = "config.bin";
     enum class JobIndex
     {
         EVENT,
@@ -70,6 +58,23 @@ protected:
         SWAP_WINDOW,
         LENGTH
     };
+    std::weak_ptr<Job> GetJob(JobIndex index);
+
+protected:
+    virtual void Begin();
+    virtual void End();
+    virtual void ResizeWindow(glm::uvec2) = 0;
+    virtual void PreUpdate() = 0;
+    virtual void PreImGuiDraw() = 0;
+    virtual void PostImGuiDraw() = 0;
+    virtual void SwapWindow() = 0;
+
+
+
+    SDL_Window* window_ = nullptr;
+    pb::Config config_;
+    inline static constexpr std::string_view configFilename = "config.bin";
+
     std::array<std::shared_ptr<Job>, (int)JobIndex::LENGTH> jobs_;
 private:
     core::ModelManager modelManager_;

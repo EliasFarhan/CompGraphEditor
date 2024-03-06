@@ -105,7 +105,14 @@ class JobSystem
 {
 public:
     JobSystem();
-    int SetupNewQueue(int threadCount);
+    /**
+     * @brief SetupNewQueue is a member function that adds a new queue in the JobSystem and
+     * adds a certain number of threads attached to it. It must be called before the Begin member function
+     */
+    int SetupNewQueue(int threadCount = 1);
+    /**
+     * @brief Begin is a member function that starts the queues and threads of the JobSystem.
+     */
     void Begin();
     void AddJob(const std::shared_ptr<Job>& newJob, int queueIndex = MAIN_QUEUE_INDEX);
     void End();

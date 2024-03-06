@@ -138,7 +138,6 @@ void Engine::Run()
 
         for(auto& job: jobs_)
         {
-            job->Reset();
             jobSystem_.AddJob(job);
         }
         jobSystem_.ExecuteMainThread();
@@ -224,6 +223,11 @@ void Engine::SetWindowName(std::string_view windowName)
 glm::uvec2 Engine::GetWindowSize() const
 {
     return {config_.window_size().x(), config_.window_size().y()};
+}
+
+std::weak_ptr<Job> Engine::GetJob(Engine::JobIndex index)
+{
+    return jobs_[(int)index];
 }
 
 glm::uvec2 GetWindowSize()

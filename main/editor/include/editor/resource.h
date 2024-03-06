@@ -39,6 +39,6 @@ struct std::hash<editor::ResourceId>
 {
     std::size_t operator()(editor::ResourceId const& s) const noexcept
     {
-        return std::hash<std::uint32_t>{}(s.value); // or use boost::hash_combine
+        return std::hash<std::uint32_t>{}(s.value);
     }
 };

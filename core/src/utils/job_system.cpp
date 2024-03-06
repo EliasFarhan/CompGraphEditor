@@ -192,7 +192,8 @@ void JobSystem::Begin()
 
 void JobSystem::AddJob(const std::shared_ptr<Job>& newJob, int queueIndex)
 {
-    if(queueIndex == -1)
+    newJob->Reset();
+    if(queueIndex == MAIN_QUEUE_INDEX)
     {
         mainThreadQueue_.AddJob(newJob);
         return;
