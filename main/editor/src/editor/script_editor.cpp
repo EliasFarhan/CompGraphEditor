@@ -35,7 +35,7 @@ void ScriptEditor::AddResource(const Resource& resource)
     module = (module | std::views::split(std::string{ ".." }) | std::views::join_with(std::string{ "." })) | std::ranges::to<std::string>();
     module = fmt::format("{}.{}", module, GetFilename(resource.path, false));
     scriptInfo.info.set_module(module);
-    scriptInfo.info.set_path(resource.path);
+    scriptInfo.info.set_path(resource.path.c_str());
 
     const auto analyzeScriptFunc = py::module_::import("scripts.script_parser").attr("analyze_script");
     try
@@ -154,7 +154,7 @@ bool ScriptEditor::DrawContentList(bool unfocus)
         {
             currentIndex_ = i;
             auto& filesystem = core::FilesystemLocator::get();
-            const auto scriptContent = filesystem.LoadFile(scriptInfo.info.path());
+            const auto scriptContent = filesystem.LoadFile(core::Path(scriptInfo.info.path()));
             scriptText_ = reinterpret_cast<const char*>(scriptContent.data);
             wasFocused = true;
         }
@@ -179,7 +179,7 @@ void ScriptEditor::Save()
         return;
     }
     const auto& filesystem = core::FilesystemLocator::get();
-    filesystem.WriteString(scriptInfos_[currentIndex_].info.path(), scriptText_);
+    filesystem.WriteString(core::Path(scriptInfos_[currentIndex_].info.path()), scriptText_);
     auto& resourceManager = Editor::GetInstance()->GetResourceManager();
     auto* resource = resourceManager.GetResource(scriptInfos_[currentIndex_].resourceId);
     resourceManager.UpdateExistingResource(*resource);
@@ -211,7 +211,7 @@ void ScriptEditor::Delete()
     }
     auto* editor = Editor::GetInstance();
     auto& resourceManager = editor->GetResourceManager();
-    resourceManager.RemoveResource(scriptInfos_[currentIndex_].info.path(), true);
+    resourceManager.RemoveResource(core::Path(scriptInfos_[currentIndex_].info.path()), true);
 }
 
 std::span<const std::string_view> ScriptEditor::GetExtensions() const

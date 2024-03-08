@@ -35,7 +35,7 @@ bool Texture::LoadTexture(const core::pb::Texture& textureInfo)
     LogDebug(fmt::format("Loading texture: {}", textureInfo.path()));
     stbi_set_flip_vertically_on_load(true);
     const auto& filesystem = core::FilesystemLocator::get();
-    std::string_view path = textureInfo.path();
+    core::Path path{textureInfo.path()};
     if (!filesystem.FileExists(path))
     {
         LogError(fmt::format("File not found at path: {}", path));

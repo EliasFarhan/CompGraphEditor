@@ -9,6 +9,7 @@
 #include "renderer/texture.h"
 #include "renderer/model.h"
 #include "utils/job_system.h"
+#include "engine/filesystem.h"
 
 #include <glm/ext/vector_uint2.hpp>
 
@@ -73,7 +74,7 @@ protected:
 
     SDL_Window* window_ = nullptr;
     pb::Config config_;
-    inline static constexpr std::string_view configFilename = "config.bin";
+    inline static constexpr core::Path configFilename = "config.bin";
 
     std::array<std::shared_ptr<Job>, (int)JobIndex::LENGTH> jobs_;
 private:

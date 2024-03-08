@@ -168,7 +168,7 @@ void Editor::DrawMenuBar()
     }
 }
 
-void Editor::CreateNewFile(std::string_view path, EditorType type)
+void Editor::CreateNewFile(const core::Path &path, EditorType type)
 {
     const auto& filesystem = core::FilesystemLocator::get();
     switch (type)
@@ -240,17 +240,17 @@ void Editor::CreateNewFile(std::string_view path, EditorType type)
         {
             if (!editorSystem && editorSystem->GetEditorType() != EditorType::SCENE)
                 continue;
-            const auto subFolder = fmt::format("{}{}/{}", 
+            const core::Path subFolder { fmt::format("{}{}/{}",
                 ResourceManager::dataFolder, 
                 sceneEditor->GetCurrentSceneInfo()->info.name(), 
-                editorSystem->GetSubFolder());
+                editorSystem->GetSubFolder())};
             if (!filesystem.IsDirectory(subFolder.c_str()))
             {
                 CreateNewDirectory(subFolder);
             }
             if(editorSystem->GetEditorType() == EditorType::SCRIPT)
             {
-                CopyFileFromTo("scripts/neko2.py", fmt::format("{}/neko2.py", subFolder), true);
+                CopyFileFromTo("scripts/neko2.py", core::Path{fmt::format("{}/neko2.py", subFolder)}, true);
             }
             editorSystem->ReloadId();
         }
@@ -324,7 +324,7 @@ bool Editor::UpdateCreateNewFile()
         auto* sceneEditor = static_cast<SceneEditor*>(GetEditorSystem(EditorType::SCENE));
 
         ImGui::InputText("Filename", &newCreateFilename_);
-        std::string actualFilename = newCreateFilename_;
+        core::Path actualFilename {newCreateFilename_};
         if(actualFilename.empty())
         {
             ImGui::TextColored(ImVec4(1, 0, 0, 1), "Empty filename");

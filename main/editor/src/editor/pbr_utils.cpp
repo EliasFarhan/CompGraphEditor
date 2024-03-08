@@ -78,8 +78,8 @@ void GeneratePreComputeBrdfLUT()
     glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_FLOAT, buffer);
     glCheckError();
     stbi_flip_vertically_on_write(true);
-    const auto path = fmt::format("data/{}/textures/brdf_lut.hdr", currentScene->info.name());
-    if (!stbi_write_hdr(path.data(), texW, texH, 4, buffer))
+    const core::Path path{fmt::format("data/{}/textures/brdf_lut.hdr", currentScene->info.name())};
+    if (!stbi_write_hdr(path.c_str(), texW, texH, 4, buffer))
     {
         //Error
         LogError("Error while exporting BRDF LUT to hdr texture");
@@ -98,7 +98,7 @@ void GeneratePreComputeBrdfLUT()
 }
 
 
-void GenerateIrradianceMap(std::string_view path)
+void GenerateIrradianceMap(const core::Path& path)
 {
     const auto baseDir = GetFolder(path);
     const auto filename = GetFilename(path, false);
@@ -383,7 +383,7 @@ void GenerateIrradianceMap(std::string_view path)
     glCheckError();
 }
 
-void GeneratePreFilterEnvMap(std::string_view path)
+void GeneratePreFilterEnvMap(const core::Path& path)
 {
     const auto baseDir = GetFolder(path);
     const auto filename = GetFilename(path, false);

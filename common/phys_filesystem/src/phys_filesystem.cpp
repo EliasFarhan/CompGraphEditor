@@ -41,7 +41,7 @@ namespace core
         }
     }
 
-    core::FileBuffer PhysFilesystem::LoadFile(Path path) const
+    core::FileBuffer PhysFilesystem::LoadFile(const Path &path) const
     {
         auto genericPath = path;
         std::ranges::replace(genericPath, '\\', '/');
@@ -67,14 +67,14 @@ namespace core
         return newFile;
     }
 
-    bool PhysFilesystem::FileExists(Path path) const
+    bool PhysFilesystem::FileExists(const Path &path) const
     {
         auto genericPath = path;
         std::ranges::replace(genericPath, '\\', '/');
         return PHYSFS_exists(genericPath.c_str());
     }
 
-    bool PhysFilesystem::IsRegularFile(Path path) const
+    bool PhysFilesystem::IsRegularFile(const Path &path) const
     {
         auto genericPath = path;
         std::ranges::replace(genericPath, '\\', '/');
@@ -89,7 +89,7 @@ namespace core
         return stat.filetype == PHYSFS_FILETYPE_REGULAR;
     }
 
-    bool PhysFilesystem::IsDirectory(Path path) const
+    bool PhysFilesystem::IsDirectory(const Path &path) const
     {
         PHYSFS_Stat stat;
         if (PHYSFS_stat(path.c_str(), &stat))
@@ -101,7 +101,7 @@ namespace core
         }
         return stat.filetype == PHYSFS_FILETYPE_DIRECTORY;
     }
-    void PhysFilesystem::WriteString(Path path, std::string_view content) const
+    void PhysFilesystem::WriteString(const Path &path, std::string_view content) const
     {
 
     }

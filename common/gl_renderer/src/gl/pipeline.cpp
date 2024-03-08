@@ -49,7 +49,7 @@ void Shader::LoadShader(const core::pb::Shader &shader)
         break;
     }
     const auto &filesystem = core::FilesystemLocator::get();
-    std::string_view path = shader.path();
+    core::Path path{shader.path()};
     if (filesystem.FileExists(path))
     {
         const auto file = filesystem.LoadFile(path);

@@ -2,6 +2,7 @@
 
 #include "proto/renderer.pb.h"
 #include "renderer/mesh.h"
+#include "engine/filesystem.h"
 
 #include <assimp/Importer.hpp>
 #include <assimp/scene.h>
@@ -60,7 +61,7 @@ class ModelManager final
 {
 public:
     ModelManager();
-    ModelIndex ImportModel(std::string_view modelPath);
+    ModelIndex ImportModel(const core::Path &modelPath);
     [[nodiscard]] Model& GetModel(ModelIndex index) { return models_[index.index]; }
     [[nodiscard]] const Model& GetModel(ModelIndex index) const { return models_[index.index]; }
     void Clear();

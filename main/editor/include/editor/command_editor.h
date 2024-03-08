@@ -13,7 +13,7 @@ namespace editor
 struct CommandInfo
 {
     std::string filename;
-    std::string path;
+    core::Path path;
     std::variant<pb::EditorDrawCommand, pb::EditorComputeCommand> info;
     ResourceId resourceId = INVALID_RESOURCE_ID;
     ResourceId materialId = INVALID_RESOURCE_ID;

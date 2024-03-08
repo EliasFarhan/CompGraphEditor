@@ -1,6 +1,3 @@
-#define STB_IMAGE_IMPLEMENTATION
-#include <stb_image.h>
-
 #include "gl/texture.h"
 #include "engine/filesystem.h"
 #include "utils/log.h"
@@ -9,6 +6,8 @@
 
 #include <fmt/format.h>
 #include <ktx.h>
+#define STB_IMAGE_IMPLEMENTATION
+#include <stb_image.h>
 
 
 #include <filesystem>
@@ -121,7 +120,7 @@ bool Texture::LoadTexture(const core::pb::Texture &textureInfo)
 #endif
     stbi_set_flip_vertically_on_load(true);
     const auto &filesystem = core::FilesystemLocator::get();
-    std::string_view path = textureInfo.path();
+    core::Path path{textureInfo.path()};
     if (filesystem.FileExists(path))
     {
 #ifdef TRACY_ENABLE
@@ -140,7 +139,7 @@ bool Texture::LoadTexture(const core::pb::Texture &textureInfo)
 #endif
         if(imageData == nullptr)
         {
-            LogError(fmt::format("Could not decode image from path: {}", path));
+            LogError(fmt::format("Could not decode image from path: {}", path.c_str()));
             return false;
         }
 #ifdef TRACY_ENABLE
@@ -227,7 +226,7 @@ bool Texture::LoadTexture(const core::pb::Texture &textureInfo)
                          imageData);
             break;
         default:
-            LogError(fmt::format("Invalid channel count on image. Count: {}, for texture at path: {}", channelInFile, path));
+            LogError(fmt::format("Invalid channel count on image. Count: {}, for texture at path: {}", channelInFile, path.c_str()));
             return false;
         }
         glCheckError();
@@ -238,10 +237,10 @@ bool Texture::LoadTexture(const core::pb::Texture &textureInfo)
 #endif
             glGenerateMipmap(GL_TEXTURE_2D);
         }
-        LogDebug(fmt::format("Successfully loaded texture at path: {}", path));
+        LogDebug(fmt::format("Successfully loaded texture at path: {}", path.c_str()));
         return true;
     }
-    LogError(fmt::format("File not found at path: {}", path));
+    LogError(fmt::format("File not found at path: {}", path.c_str()));
     return false;
 }
 
@@ -254,7 +253,7 @@ bool Texture::LoadCubemap(const core::pb::Texture& textureInfo)
     target = GL_TEXTURE_CUBE_MAP;
     stbi_set_flip_vertically_on_load(false);
     const auto& filesystem = core::FilesystemLocator::get();
-    std::string_view path = textureInfo.path();
+    core::Path path{textureInfo.path()};
 
     if (filesystem.FileExists(path))
     {
@@ -262,7 +261,7 @@ bool Texture::LoadCubemap(const core::pb::Texture& textureInfo)
         const auto file = filesystem.LoadFile(path);
         if(!cubemap.ParseFromArray(file.data, file.size))
         {
-            LogError(fmt::format("Could not open proto of cubemap at: {}", path));
+            LogError(fmt::format("Could not open proto of cubemap at: {}", path.c_str()));
             return false;
         }
 
@@ -319,7 +318,7 @@ bool Texture::LoadCubemap(const core::pb::Texture& textureInfo)
         unsigned char* data = nullptr;
         for(int i = 0; i < cubemap.texture_paths_size(); i++)
         {
-            const std::string_view texturePath = cubemap.texture_paths(i);
+            const core::Path texturePath{cubemap.texture_paths(i)};
             LogDebug(fmt::format("Loading texture side: {}", texturePath));
             const auto cubeTextureFile = filesystem.LoadFile(texturePath);
             data = stbi_load_from_memory(cubeTextureFile.data, cubeTextureFile.size, &width, &height, &nrChannels, 0);
@@ -348,7 +347,7 @@ bool Texture::LoadKtxTexture(const core::pb::Texture& textureInfo)
     GLenum glerror;
 
     const auto& filesystem = core::FilesystemLocator::get();
-    std::string_view path = textureInfo.path();
+    core::Path path {textureInfo.path()};
 
     if (!filesystem.FileExists(path))
     {
@@ -456,7 +455,7 @@ bool Texture::LoadHdrTexture(const core::pb::Texture& textureInfo)
 #endif
     stbi_set_flip_vertically_on_load(true);
     const auto& filesystem = core::FilesystemLocator::get();
-    std::string_view path = textureInfo.path();
+    core::Path path{textureInfo.path()};
     if (filesystem.FileExists(path))
     {
 #ifdef TRACY_ENABLE

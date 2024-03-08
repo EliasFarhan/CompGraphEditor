@@ -66,7 +66,7 @@ void ExecutePlayer(std::string_view scenePkg)
     LogDebug(fmt::format("Executing {}", command));
 }
 
-void SceneEditor::ImportResource(std::string_view path)
+void SceneEditor::ImportResource(const core::Path &path)
 {
     //TODO Only copy scene if in another folder
     

@@ -46,7 +46,7 @@ public:
     virtual void Save(){}
     virtual void ReloadId() = 0;
     virtual void Delete() = 0;
-    virtual void ImportResource(std::string_view path);
+    virtual void ImportResource(const core::Path &path);
     [[nodiscard]] virtual std::span<const std::string_view> GetExtensions() const = 0;
     virtual void Clear() = 0;
 };

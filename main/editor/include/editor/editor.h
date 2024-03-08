@@ -33,7 +33,7 @@ public:
     ResourceManager& GetResourceManager() { return resourceManager_; }
     const ResourceManager& GetResourceManager() const { return resourceManager_; }
     static Editor* GetInstance() { return instance_; }
-    void CreateNewFile(std::string_view path, EditorType type);
+    void CreateNewFile(const core::Path &path, EditorType type);
 private:
     void OpenMenuCreateNewFile(EditorType editorType, std::string_view extension = "");
     void SaveProject() const;

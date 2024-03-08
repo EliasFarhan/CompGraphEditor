@@ -599,12 +599,12 @@ void PipelineEditor::AddResource(const Resource& resource)
 
     const auto& fileSystem = core::FilesystemLocator::get();
 
-    if (!fileSystem.IsRegularFile(resource.path.c_str()))
+    if (!fileSystem.IsRegularFile(resource.path))
     {
         LogWarning(fmt::format("Could not find pipeline file: {}", resource.path));
         return;
     }
-    std::ifstream fileIn (resource.path, std::ios::binary);
+    std::ifstream fileIn (resource.path.c_str(), std::ios::binary);
     if (!pipelineInfo.info.ParseFromIstream(&fileIn))
     {
         LogWarning(fmt::format("Could not open protobuf file: {}", resource.path));
@@ -779,7 +779,7 @@ void PipelineEditor::Save()
 {
     for(auto& pipelineInfo : pipelineInfos_)
     {
-        std::ofstream fileOut(pipelineInfo.path, std::ios::binary);
+        std::ofstream fileOut(pipelineInfo.path.c_str(), std::ios::binary);
         if (!pipelineInfo.info.SerializeToOstream(&fileOut))
         {
             LogWarning(fmt::format("Could not save pipeline at: {}", pipelineInfo.path));
@@ -884,7 +884,8 @@ void PipelineEditor::DrawCenterView()
         if(!currentPipeline.info.vertex_shader_path().empty())
         {
             ImGui::TextUnformatted("Outputs");
-            const auto* vertexShaderInfo = shaderEditor->GetShader(resourceManager.FindResourceByPath(currentPipeline.info.vertex_shader_path()));
+            const auto* vertexShaderInfo = shaderEditor->GetShader(
+                    resourceManager.FindResourceByPath(core::Path(currentPipeline.info.vertex_shader_path())));
             for (int i = 0; i < vertexShaderInfo->info.out_attributes_size(); i++)
             {
                 const auto& vertexOutput = vertexShaderInfo->info.out_attributes(i);
@@ -977,62 +978,62 @@ void PipelineEditor::ReloadPipeline(int index)
     {
         if (pipelineInfo.vertexShaderId == INVALID_RESOURCE_ID && !pipelineInfo.info.vertex_shader_path().empty())
         {
-            pipelineInfo.vertexShaderId = resourceManager.FindResourceByPath(pipelineInfo.info.vertex_shader_path());
+            pipelineInfo.vertexShaderId = resourceManager.FindResourceByPath(core::Path(pipelineInfo.info.vertex_shader_path()));
         }
 
         if (pipelineInfo.fragmentShaderId == INVALID_RESOURCE_ID && !pipelineInfo.info.fragment_shader_path().empty())
         {
-            pipelineInfo.fragmentShaderId = resourceManager.FindResourceByPath(pipelineInfo.info.fragment_shader_path());
+            pipelineInfo.fragmentShaderId = resourceManager.FindResourceByPath(core::Path(pipelineInfo.info.fragment_shader_path()));
         }
 
         if(pipelineInfo.computeShaderId == INVALID_RESOURCE_ID && !pipelineInfo.info.compute_shader_path().empty())
         {
-            pipelineInfo.computeShaderId = resourceManager.FindResourceByPath(pipelineInfo.info.compute_shader_path());
+            pipelineInfo.computeShaderId = resourceManager.FindResourceByPath(core::Path(pipelineInfo.info.compute_shader_path()));
         }
 
         if(pipelineInfo.geometryShaderId == INVALID_RESOURCE_ID && !pipelineInfo.info.geometry_shader_path().empty())
         {
-            pipelineInfo.geometryShaderId = resourceManager.FindResourceByPath(pipelineInfo.info.geometry_shader_path());
+            pipelineInfo.geometryShaderId = resourceManager.FindResourceByPath(core::Path(pipelineInfo.info.geometry_shader_path()));
         }
 
         if(pipelineInfo.tessControlShaderId == INVALID_RESOURCE_ID && !pipelineInfo.info.tess_control_shader_path().empty())
         {
-            pipelineInfo.tessControlShaderId = resourceManager.FindResourceByPath(pipelineInfo.info.tess_control_shader_path());
+            pipelineInfo.tessControlShaderId = resourceManager.FindResourceByPath(core::Path(pipelineInfo.info.tess_control_shader_path()));
         }
 
         if(pipelineInfo.tessEvalShaderId == INVALID_RESOURCE_ID && !pipelineInfo.info.tess_eval_shader_path().empty())
         {
-            pipelineInfo.tessEvalShaderId = resourceManager.FindResourceByPath(pipelineInfo.info.tess_eval_shader_path());
+            pipelineInfo.tessEvalShaderId = resourceManager.FindResourceByPath(core::Path(pipelineInfo.info.tess_eval_shader_path()));
         }
     }
     else if(pipelineInfo.info.pipeline().type() == core::pb::Pipeline_Type_COMPUTE)
     {
         if (pipelineInfo.computeShaderId == INVALID_RESOURCE_ID && !pipelineInfo.info.compute_shader_path().empty())
         {
-            pipelineInfo.computeShaderId = resourceManager.FindResourceByPath(pipelineInfo.info.compute_shader_path());
+            pipelineInfo.computeShaderId = resourceManager.FindResourceByPath(core::Path(pipelineInfo.info.compute_shader_path()));
         }
     }
     else if(pipelineInfo.info.pipeline().type() == core::pb::Pipeline_Type_RAYTRACING)
     {
         if (pipelineInfo.rayGenShaderId == INVALID_RESOURCE_ID && !pipelineInfo.raytracingInfo.ray_gen_shader_path().empty())
         {
-            pipelineInfo.rayGenShaderId = resourceManager.FindResourceByPath(pipelineInfo.raytracingInfo.ray_gen_shader_path());
+            pipelineInfo.rayGenShaderId = resourceManager.FindResourceByPath(core::Path(pipelineInfo.raytracingInfo.ray_gen_shader_path()));
         }
         if (pipelineInfo.missHitShaderId == INVALID_RESOURCE_ID && !pipelineInfo.raytracingInfo.miss_hit_shader_path().empty())
         {
-            pipelineInfo.missHitShaderId = resourceManager.FindResourceByPath(pipelineInfo.raytracingInfo.miss_hit_shader_path());
+            pipelineInfo.missHitShaderId = resourceManager.FindResourceByPath(core::Path(pipelineInfo.raytracingInfo.miss_hit_shader_path()));
         }
         if (pipelineInfo.closestHitShaderId == INVALID_RESOURCE_ID && !pipelineInfo.raytracingInfo.closest_hit_shader_path().empty())
         {
-            pipelineInfo.closestHitShaderId = resourceManager.FindResourceByPath(pipelineInfo.raytracingInfo.closest_hit_shader_path());
+            pipelineInfo.closestHitShaderId = resourceManager.FindResourceByPath(core::Path(pipelineInfo.raytracingInfo.closest_hit_shader_path()));
         }
         if (pipelineInfo.anyHitShaderId == INVALID_RESOURCE_ID && !pipelineInfo.raytracingInfo.any_hit_shader_path().empty())
         {
-            pipelineInfo.anyHitShaderId = resourceManager.FindResourceByPath(pipelineInfo.raytracingInfo.any_hit_shader_path());
+            pipelineInfo.anyHitShaderId = resourceManager.FindResourceByPath(core::Path(pipelineInfo.raytracingInfo.any_hit_shader_path()));
         }
         if (pipelineInfo.intersectionHitShaderId == INVALID_RESOURCE_ID && !pipelineInfo.raytracingInfo.intersection_hit_shader_path().empty())
         {
-            pipelineInfo.intersectionHitShaderId = resourceManager.FindResourceByPath(pipelineInfo.raytracingInfo.intersection_hit_shader_path());
+            pipelineInfo.intersectionHitShaderId = resourceManager.FindResourceByPath(core::Path(pipelineInfo.raytracingInfo.intersection_hit_shader_path()));
         }
     }
     std::vector<core::pb::Sampler> samplers;

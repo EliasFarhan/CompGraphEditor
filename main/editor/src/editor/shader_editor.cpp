@@ -266,7 +266,7 @@ bool ShaderEditor::DrawContentList(bool unfocus)
             currentIndex_ = i;
             wasFocused = true;
             auto& filesystem = core::FilesystemLocator::get();
-            std::string_view shaderPath = shaderInfo.info.path();
+            core::Path shaderPath{shaderInfo.info.path()};
             if (filesystem.FileExists(shaderPath))
             {
                 const auto shaderContent = filesystem.LoadFile(shaderPath);
@@ -288,7 +288,7 @@ void ShaderEditor::Save()
         return;
     }
     const auto& filesystem = core::FilesystemLocator::get();
-    filesystem.WriteString(shaderInfos_[currentIndex_].info.path(), shaderText_);
+    filesystem.WriteString(core::Path(shaderInfos_[currentIndex_].info.path()), shaderText_);
     auto& resourceManager = Editor::GetInstance()->GetResourceManager();
     auto* resource = resourceManager.GetResource(shaderInfos_[currentIndex_].resourceId);
     resourceManager.UpdateExistingResource(*resource);
@@ -319,7 +319,7 @@ void ShaderEditor::Delete()
     }
     auto* editor = Editor::GetInstance();
     auto& resourceManager = editor->GetResourceManager();
-    resourceManager.RemoveResource(shaderInfos_[currentIndex_].info.path(), true);
+    resourceManager.RemoveResource(core::Path(shaderInfos_[currentIndex_].info.path()), true);
 }
 
 std::span<const std::string_view> ShaderEditor::GetExtensions() const

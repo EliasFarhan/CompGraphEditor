@@ -10,7 +10,7 @@ namespace editor
 struct SceneInfo
 {
     std::string filename;
-    std::string path;
+    core::Path path;
     editor::pb::EditorScene info;
     ResourceId resourceId = INVALID_RESOURCE_ID;
     ResourceId renderPassId = INVALID_RESOURCE_ID;
@@ -19,7 +19,7 @@ struct SceneInfo
 class SceneEditor final : public EditorSystem
 {
 public:
-    void ImportResource(std::string_view path) override;
+    void ImportResource(const core::Path &path) override;
     void AddResource(const Resource& resource) override;
     void RemoveResource(const Resource& resource) override;
     void UpdateExistingResource(const Resource& resource) override;

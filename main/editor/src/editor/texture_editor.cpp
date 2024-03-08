@@ -36,7 +36,7 @@ void TextureEditor::DrawInspector()
     auto& currentTextureInfo = textureInfos_[currentIndex_];
     ImGui::Text("Filename: %s", currentTextureInfo.filename.c_str());
 
-    if(GetFileExtension(currentTextureInfo.filename) == ".cube")
+    if(GetFileExtension(core::Path(currentTextureInfo.filename)) == ".cube")
     {
         //choose cubemap textures
         static constexpr std::array<std::string_view, core::pb::Cubemap::LENGTH> cubemapSides
@@ -61,12 +61,12 @@ void TextureEditor::DrawInspector()
             {
                 for(std::size_t textureIndex = 0; textureIndex < textureInfos_.size(); textureIndex++)
                 {
-                    auto& otherTexturePath = textureInfos_[textureIndex].info.path();
+                    core::Path otherTexturePath{textureInfos_[textureIndex].info.path()};
                     if(GetFileExtension(otherTexturePath) == ".cube")
                     {
                         continue;
                     }
-                    const bool selected = !texturePath->empty() && fs::equivalent(*texturePath, otherTexturePath);
+                    const bool selected = !texturePath->empty() && fs::equivalent(*texturePath, otherTexturePath.c_str());
                     if(ImGui::Selectable(textureInfos_[textureIndex].filename.data(), selected))
                     {
                         *texturePath = otherTexturePath;
@@ -139,7 +139,7 @@ void TextureEditor::DrawInspector()
     {
         currentTextureInfo.info.set_gamma_correction(gammaCorrection);
     }
-    const auto fileExtension = GetFileExtension(currentTextureInfo.info.path());
+    const auto fileExtension = GetFileExtension(currentTextureInfo.info.path().c_str());
     if(fileExtension == ".hdr")
     {
         if(ImGui::Button("HDR Cubemap to KTX"))
@@ -148,11 +148,11 @@ void TextureEditor::DrawInspector()
         }
         if(ImGui::Button("Generate Irradiance Map"))
         {
-            GenerateIrradianceMap(currentTextureInfo.info.path());
+            GenerateIrradianceMap(currentTextureInfo.info.path().c_str());
         }
         if(ImGui::Button("Generate Pre-Filter Environment Map"))
         {
-            GeneratePreFilterEnvMap(currentTextureInfo.info.path());
+            GeneratePreFilterEnvMap(currentTextureInfo.info.path().c_str());
         }
     }
 
@@ -255,7 +255,7 @@ void TextureEditor::Save()
 {
     for(auto& textureInfo : textureInfos_)
     {
-        if(GetFileExtension(textureInfo.info.path()) == ".cube")
+        if(GetFileExtension(textureInfo.info.path().c_str()) == ".cube")
         {
             std::ofstream cubeOut(textureInfo.info.path(), std::ios::binary);
             if (!textureInfo.cubemap.SerializeToOstream(&cubeOut))
@@ -263,7 +263,7 @@ void TextureEditor::Save()
                 LogWarning(fmt::format("Could not save cubemap info at: {}", textureInfo.info.path()));
             }
         }
-        std::ofstream fileOut(textureInfo.infoPath, std::ios::binary);
+        std::ofstream fileOut(textureInfo.infoPath.c_str(), std::ios::binary);
         if (!textureInfo.info.SerializeToOstream(&fileOut))
         {
             LogWarning(fmt::format("Could not save texture info at: {}", textureInfo.infoPath));
@@ -277,16 +277,16 @@ void TextureEditor::AddResource(const Resource &resource)
     TextureInfo textureInfo{};
     textureInfo.resourceId = resource.resourceId;
     textureInfo.filename = GetFilename(resource.path);
-    textureInfo.info.set_path(resource.path);
+    textureInfo.info.set_path(resource.path.c_str());
     textureInfo.infoPath = resource.path + ".meta";
     if(filesystem.FileExists(textureInfo.infoPath))
     {
-        std::ifstream metaFile(textureInfo.infoPath,std::ios::binary);
+        std::ifstream metaFile(textureInfo.infoPath.c_str(),std::ios::binary);
         textureInfo.info.ParseFromIstream(&metaFile);
     }
     if(GetFileExtension(resource.path) == ".cube")
     {
-        std::ifstream cubemapFile(resource.path, std::ios::binary);
+        std::ifstream cubemapFile(resource.path.c_str(), std::ios::binary);
         textureInfo.cubemap.ParseFromIstream(&cubemapFile);
     }
     auto& textureManager = core::GetTextureManager();
@@ -341,7 +341,7 @@ void TextureEditor::Delete()
     }
     auto* editor = Editor::GetInstance();
     auto& resourceManager = editor->GetResourceManager();
-    resourceManager.RemoveResource(textureInfos_[currentIndex_].info.path(), true);
+    resourceManager.RemoveResource(core::Path(textureInfos_[currentIndex_].info.path()), true);
 }
 
 std::span<const std::string_view> TextureEditor::GetExtensions() const
@@ -370,7 +370,11 @@ void TextureEditor::Clear()
 void TextureEditor::CubeToKtx(const TextureInfo& textureInfo)
 {
 
-    const auto ktxPath = fmt::format("{}/{}.ktx", GetFolder(textureInfo.info.path()), GetFilename(textureInfo.info.path(), false));
+    const core::Path ktxPath{
+        fmt::format("{}/{}.ktx",
+                    GetFolder(core::Path(textureInfo.info.path())),
+                    GetFilename(textureInfo.info.path(), false))
+    };
 
     gl::Texture cubemap;
     cubemap.LoadCubemap(textureInfo.info);
@@ -423,7 +427,7 @@ void TextureEditor::CubeToKtx(const TextureInfo& textureInfo)
     // Repeat for the other 15 slices of the base level and all other levels
     // up to createInfo.numLevels.
     
-    ktxTexture_WriteToNamedFile(ktxTexture(texture), ktxPath.data());
+    ktxTexture_WriteToNamedFile(ktxTexture(texture), ktxPath.c_str());
     ktxTexture_Destroy(ktxTexture(texture));
     cubemap.Destroy();
 
@@ -439,10 +443,10 @@ void TextureEditor::CubeToKtx(const TextureInfo& textureInfo)
 
 void TextureEditor::HdrToKtx(const TextureInfo& textureInfo)
 {
-    const auto& path = textureInfo.info.path();
+    const core::Path path {textureInfo.info.path()};
     const auto baseDir = GetFolder(path);
     const auto filename = GetFilename(path, false);
-    const auto ktxMapPath = fmt::format("{}/{}.ktx", baseDir, filename);
+    const core::Path ktxMapPath{fmt::format("{}/{}.ktx", baseDir, filename)};
 
     auto& filesystem = core::FilesystemLocator::get();
     auto envMapFile = filesystem.LoadFile(path);
@@ -598,7 +602,7 @@ void TextureEditor::HdrToKtx(const TextureInfo& textureInfo)
     // Repeat for the other 15 slices of the base level and all other levels
     // up to createInfo.numLevels.
 
-    ktxTexture_WriteToNamedFile(ktxTexture(texture), ktxMapPath.data());
+    ktxTexture_WriteToNamedFile(ktxTexture(texture), ktxMapPath.c_str());
     ktxTexture_Destroy(ktxTexture(texture));
 
     auto& resourceManager = GetResourceManager();
@@ -620,7 +624,8 @@ void TextureEditor::ExportToKtx(const TextureInfo& textureInfo) const
 {
     int w, h, channelCount;
     auto* data = stbi_load(textureInfo.info.path().c_str(), &w, &h, &channelCount, 0);
-    std::string output = fmt::format("{}/{}.ktx", GetFolder(textureInfo.info.path()), GetFilename(textureInfo.info.path(), false));
+    std::string output = fmt::format("{}/{}.ktx", GetFolder(core::Path(textureInfo.info.path())),
+                                     GetFilename(textureInfo.info.path(), false));
     ktxTexture2* texture;
     ktxTextureCreateInfo createInfo;
 

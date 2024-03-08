@@ -9,7 +9,7 @@ namespace editor
 
 struct MaterialInfo
 {
-    std::string path;
+    core::Path path;
     std::string filename;
     pb::EditorMaterial info;
     ResourceId resourceId = INVALID_RESOURCE_ID;

@@ -176,7 +176,7 @@ Scene::ImportStatus Scene::LoadMaterials(const PbRepeatField<core::pb::Material>
         const auto modelsSize = models.size();
         for (int i = 0; i < modelsSize; i++)
         {
-            modelIndices_.push_back(modelManager.ImportModel(models.Get(i)));
+            modelIndices_.push_back(modelManager.ImportModel(core::Path(models.Get(i))));
         }
 
         return ImportStatus::SUCCESS;

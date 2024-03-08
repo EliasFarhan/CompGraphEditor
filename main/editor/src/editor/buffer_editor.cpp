@@ -26,7 +26,7 @@ void BufferEditor::AddResource(const Resource& resource)
         LogWarning(fmt::format("Could not find buffer file: {}", resource.path));
         return;
     }
-    std::ifstream fileIn(resource.path, std::ios::binary);
+    std::ifstream fileIn(resource.path.c_str(), std::ios::binary);
     if (!bufferInfo.info.ParseFromIstream(&fileIn))
     {
         LogWarning(fmt::format("Could not open protobuf file: {}", resource.path));
@@ -158,7 +158,7 @@ void BufferEditor::Save()
 {
     for (auto& bufferInfo : buffersInfo_)
     {
-        std::ofstream fileOut(bufferInfo.path, std::ios::binary);
+        std::ofstream fileOut(bufferInfo.path.c_str(), std::ios::binary);
         if (!bufferInfo.info.SerializeToOstream(&fileOut))
         {
             LogWarning(fmt::format("Could not save buffer at: {}", bufferInfo.path));

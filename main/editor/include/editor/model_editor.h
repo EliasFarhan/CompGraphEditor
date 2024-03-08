@@ -16,7 +16,7 @@ struct ModelDrawCommand
 
 struct ModelInfo
 {
-    std::string path;
+    core::Path path;
     std::string filename;
     editor::pb::EditorModel info;
     core::ModelIndex modelIndex;
@@ -39,7 +39,7 @@ public:
     void Delete() override;
     [[nodiscard]] std::span<const std::string_view> GetExtensions() const override;
     ModelInfo* GetModel(ResourceId resourceId);
-    void ImportResource(std::string_view path) override;
+    void ImportResource(const core::Path &path) override;
     const auto& GetModels() const { return modelInfos_; }
     void Clear() override;
 private:

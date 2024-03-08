@@ -24,7 +24,7 @@ FileBuffer::~FileBuffer()
     }
 }
 
-FileBuffer DefaultFilesystem::LoadFile(Path path) const
+FileBuffer DefaultFilesystem::LoadFile(const Path &path) const
 {
 #ifdef TRACY_ENABLE
     ZoneScoped;
@@ -53,21 +53,21 @@ FileBuffer DefaultFilesystem::LoadFile(Path path) const
     return bufferFile;
 }
 
-bool DefaultFilesystem::FileExists(Path path) const
+bool DefaultFilesystem::FileExists(const Path &path) const
 {
     return fs::exists(path.c_str());
 }
 
-bool DefaultFilesystem::IsRegularFile(Path path) const
+bool DefaultFilesystem::IsRegularFile(const Path &path) const
 {
     return fs::is_regular_file(path.c_str());
 }
 
-bool DefaultFilesystem::IsDirectory(Path path) const
+bool DefaultFilesystem::IsDirectory(const Path &path) const
 {
     return fs::is_directory(path.c_str());
 }
-void DefaultFilesystem::WriteString(Path path, std::string_view content) const
+void DefaultFilesystem::WriteString(const Path &path, std::string_view content) const
 {
     std::ofstream outFile(path.c_str(), std::ofstream::binary);
     outFile << content;
@@ -149,40 +149,6 @@ void IOStream::Flush()
 {
 }
 
-Path::Path(std::string_view path)
-{
-    std::strncpy(path_.data(), path.data(), std::min(path_.size(), path.size()));
-}
-
-Path::Path(const char *path)
-{
-    std::strncpy(path_.data(), path, path_.size());
-}
-
-const char *Path::c_str() const
-{
-    return path_.data();
-}
-
-Path::operator std::string_view() const
-{
-    return {c_str(), size()};
-}
-
-bool Path::operator==(const Path &other) const
-{
-    return std::strcmp(path_.data(), other.path_.data()) == 0;
-}
-
-std::size_t Path::size() const
-{
-    return std::min(std::strlen(path_.data()), MAX_PATH_LENGTH);
-}
-
-Path::Path(const std::string &path)
-{
-    std::strncpy(path_.data(), path.data(), std::min(path_.size(), path.size()));
-}
 
 
 }

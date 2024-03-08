@@ -10,7 +10,7 @@ namespace editor
 
 struct MeshInfo
 {
-    std::string path;
+    core::Path path;
     std::string filename;
     editor::pb::EditorMesh info;
     ResourceId resourceId = INVALID_RESOURCE_ID;

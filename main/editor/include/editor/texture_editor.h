@@ -18,7 +18,7 @@ struct KtxExportInfo
 struct TextureInfo
 {
     std::string filename;
-    std::string infoPath;
+    core::Path infoPath;
     core::pb::Texture info;
     ResourceId resourceId = INVALID_RESOURCE_ID;
     core::pb::Cubemap cubemap;

@@ -117,14 +117,14 @@ ModelManager::ModelManager()
     importer_.SetIOHandler(new IOSystem());
 }
 
-ModelIndex ModelManager::ImportModel(std::string_view modelPath)
+ModelIndex ModelManager::ImportModel(const core::Path &modelPath)
 {
 
 #ifdef TRACY_ENABLE
     ZoneScoped;
 #endif
 
-    const auto it = modelNamesMap_.find(modelPath.data());
+    const auto it = modelNamesMap_.find(modelPath.c_str());
     if(it != modelNamesMap_.end())
     {
         return it->second;
@@ -137,7 +137,7 @@ ModelIndex ModelManager::ImportModel(std::string_view modelPath)
         LogError(fmt::format("Could not find: {}", modelPath));
         return INVALID_MODEL_INDEX;
     }
-    const auto* scene = importer_.ReadFile(modelPath.data(),
+    const auto* scene = importer_.ReadFile(modelPath.c_str(),
         aiProcess_CalcTangentSpace | aiProcess_Triangulate | aiProcess_GenNormals | aiProcess_FlipUVs);
     
     if(scene == nullptr)
@@ -146,7 +146,7 @@ ModelIndex ModelManager::ImportModel(std::string_view modelPath)
         return INVALID_MODEL_INDEX;
     }
     const auto modelIndex = ImportScene(scene);
-    modelNamesMap_[modelPath.data()] = modelIndex;
+    modelNamesMap_[modelPath.c_str()] = modelIndex;
     return modelIndex;
 
 }
