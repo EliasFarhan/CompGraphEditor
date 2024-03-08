@@ -1,17 +1,46 @@
 #pragma once
 
+#include "utils/locator.h"
 
 #include <assimp/IOSystem.hpp>
 #include <assimp/IOStream.hpp>
 
-#include "utils/locator.h"
 #include <cassert>
 #include <string_view>
+#include <array>
 
 
 
 namespace core
 {
+
+class Path
+{
+public:
+    Path() = default;
+    Path(const std::string& path);
+    Path(std::string_view path);
+    Path(const char* path);
+    [[nodiscard]] const char* c_str() const;
+    explicit operator std::string_view() const;
+    bool operator==(const Path& other) const;
+
+    using iterator = char*;
+    using const_iterator = const char*;
+
+    // Class methods
+    std::size_t size() const;
+    const_iterator cbegin() const { return path_.data(); }
+    const_iterator cend() const { return path_.data() + size(); }
+    const_iterator begin() const { return cbegin(); }
+    const_iterator end() const { return cend(); }
+    iterator begin() { return path_.data(); }
+    iterator end() { return path_.data() + size(); }
+
+    static constexpr std::size_t MAX_PATH_LENGTH = 48;
+private:
+    std::array<char, MAX_PATH_LENGTH> path_{};
+};
     
 class FileBuffer
 {
@@ -23,55 +52,54 @@ public:
     FileBuffer(FileBuffer&& other) noexcept
     {
         std::swap(data, other.data);
-        std::swap(length, other.length);
+        std::swap(size, other.size);
     }
     FileBuffer& operator=(FileBuffer&& other) noexcept
     {
         std::swap(data, other.data);
-        std::swap(length, other.length);
+        std::swap(size, other.size);
         return *this;
     }
 
-
     unsigned char* data = nullptr;
-    std::size_t length = 0;
+    std::size_t size = 0;
 };
 
 class FilesystemInterface
 {
 public:
     virtual ~FilesystemInterface() = default;
-    [[nodiscard]] virtual FileBuffer LoadFile(std::string_view path) const = 0;
-    [[nodiscard]] virtual bool FileExists(std::string_view) const = 0;
-    [[nodiscard]] virtual bool IsRegularFile(std::string_view) const = 0;
-    [[nodiscard]] virtual bool IsDirectory(std::string_view) const = 0;
-    virtual void WriteString(std::string_view path, std::string_view content) const = 0;
+    [[nodiscard]] virtual FileBuffer LoadFile(Path path) const = 0;
+    [[nodiscard]] virtual bool FileExists(Path path) const = 0;
+    [[nodiscard]] virtual bool IsRegularFile(Path path) const = 0;
+    [[nodiscard]] virtual bool IsDirectory(Path path) const = 0;
+    virtual void WriteString(Path path, std::string_view content) const = 0;
 };
 
 class NullFilesystem final : public FilesystemInterface
 {
 public:
-    [[nodiscard]] FileBuffer LoadFile(std::string_view path) const override
+    [[nodiscard]] FileBuffer LoadFile(Path path) const override
     {
         assert(false);
         return {};
     }
-    [[nodiscard]] bool FileExists(std::string_view) const override
+    [[nodiscard]] bool FileExists(Path path) const override
     {
         assert(false);
         return false;
     }
-    [[nodiscard]] bool IsRegularFile(std::string_view) const override
+    [[nodiscard]] bool IsRegularFile(Path path) const override
     {
         assert(false);
         return false;
     }
-    [[nodiscard]] bool IsDirectory(std::string_view) const override
+    [[nodiscard]] bool IsDirectory(Path path) const override
     {
         assert(false);
         return false;
     }
-    void WriteString(std::string_view path, std::string_view content) const override
+    void WriteString(Path path, std::string_view content) const override
     {
         assert(false);
     }
@@ -80,11 +108,11 @@ public:
 class DefaultFilesystem final : public FilesystemInterface
 {
 public:
-    [[nodiscard]] FileBuffer LoadFile(std::string_view path) const override;
-    [[nodiscard]] bool FileExists(std::string_view path) const override;
-    [[nodiscard]] bool IsRegularFile(std::string_view path) const override;
-    [[nodiscard]] bool IsDirectory(std::string_view path) const override;
-    void WriteString(std::string_view path, std::string_view content) const override;
+    [[nodiscard]] FileBuffer LoadFile(Path path) const override;
+    [[nodiscard]] bool FileExists(Path path) const override;
+    [[nodiscard]] bool IsRegularFile(Path path) const override;
+    [[nodiscard]] bool IsDirectory(Path path) const override;
+    void WriteString(Path path, std::string_view content) const override;
 };
 
 
@@ -118,3 +146,12 @@ private:
 };
 
 } // namespace core
+
+template<>
+struct std::hash<core::Path>
+{
+    std::size_t operator()(core::Path const& s) const noexcept
+    {
+        return std::hash<std::string_view>{}((std::string_view)s);
+    }
+};

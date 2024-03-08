@@ -35,7 +35,7 @@ void ModelEditor::AddResource(const Resource& resource)
     modelInfo.filename = GetFilename(resource.path);
 
     const auto& fileSystem = core::FilesystemLocator::get();
-    if (!fileSystem.IsRegularFile(resource.path))
+    if (!fileSystem.IsRegularFile(resource.path.c_str()))
     {
         LogWarning(fmt::format("Could not find model file: {}", resource.path));
         return;
@@ -307,7 +307,7 @@ void ModelEditor::ImportResource(std::string_view path)
         for(int i = 0; i < newModel.textures_size(); i++)
         {
             const std::string_view texturePath = newModel.textures(i).texture_path();
-            if(filesystem.IsRegularFile(texturePath) && fs::equivalent(texturePath,texture))
+            if(filesystem.IsRegularFile(texturePath) && fs::equivalent(texturePath, texture))
             {
                 return i;
             }
@@ -329,7 +329,7 @@ void ModelEditor::ImportResource(std::string_view path)
         const auto textureDstPath = fmt::format("{}{}", dstFolder, textureName);
 
         int index = -1;
-        if(filesystem.FileExists(textureDstPath))
+        if(filesystem.FileExists(textureDstPath.c_str()))
         {
             index = findTextureInModelFunc(textureDstPath);
         }
@@ -410,7 +410,7 @@ void ModelEditor::ImportResource(std::string_view path)
     newModel.set_model_path(modelDstPath);
 
     auto modelInfoPath = fmt::format("{}{}.model", dstFolder, GetFilename(path, false));
-    filesystem.WriteString(modelInfoPath, newModel.SerializeAsString());
+    filesystem.WriteString(modelInfoPath.c_str(), newModel.SerializeAsString());
     resourceManager.AddResource(modelInfoPath);
     sceneEditor->AddResource(*resourceManager.GetResource(resourceManager.FindResourceByPath(modelInfoPath)));
 

@@ -112,7 +112,7 @@ void GenerateIrradianceMap(std::string_view path)
     int channel;
 
     stbi_set_flip_vertically_on_load(true);
-    auto* envMapData = stbi_loadf_from_memory(envMapFile.data, envMapFile.length, &texW, &texH, &channel, 4);
+    auto* envMapData = stbi_loadf_from_memory(envMapFile.data, envMapFile.size, &texW, &texH, &channel, 4);
 
     unsigned int envMap;
     if (envMapData)
@@ -396,7 +396,7 @@ void GeneratePreFilterEnvMap(std::string_view path)
     int channel;
 
     stbi_set_flip_vertically_on_load(true);
-    auto* envMapData = stbi_loadf_from_memory(envMapFile.data, envMapFile.length, &texW, &texH, &channel, 4);
+    auto* envMapData = stbi_loadf_from_memory(envMapFile.data, envMapFile.size, &texW, &texH, &channel, 4);
 
     unsigned int envMap;
     if (envMapData)

@@ -244,8 +244,10 @@ void Editor::CreateNewFile(std::string_view path, EditorType type)
                 ResourceManager::dataFolder, 
                 sceneEditor->GetCurrentSceneInfo()->info.name(), 
                 editorSystem->GetSubFolder());
-            if (!filesystem.IsDirectory(subFolder))
+            if (!filesystem.IsDirectory(subFolder.c_str()))
+            {
                 CreateNewDirectory(subFolder);
+            }
             if(editorSystem->GetEditorType() == EditorType::SCRIPT)
             {
                 CopyFileFromTo("scripts/neko2.py", fmt::format("{}/neko2.py", subFolder), true);
@@ -389,7 +391,7 @@ bool Editor::UpdateCreateNewFile()
                 ResourceManager::dataFolder,
                 sceneInfo ? sceneInfo->info.name() : newCreateFilename_,
                 editorSystem->GetSubFolder(),
-                actualFilename);
+                actualFilename.c_str());
         }
         if (!filesystem.FileExists(path))
         {

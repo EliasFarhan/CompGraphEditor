@@ -20,11 +20,11 @@ FileBuffer::~FileBuffer()
     {
         std::free(data);
         data = nullptr;
-        length = 0;
+        size = 0;
     }
 }
 
-FileBuffer DefaultFilesystem::LoadFile(std::string_view path) const
+FileBuffer DefaultFilesystem::LoadFile(Path path) const
 {
 #ifdef TRACY_ENABLE
     ZoneScoped;
@@ -35,7 +35,7 @@ FileBuffer DefaultFilesystem::LoadFile(std::string_view path) const
     {
         return bufferFile;
     }
-    const std::ifstream file(path.data(), std::ifstream::binary);
+    const std::ifstream file(path.c_str(), std::ifstream::binary);
     // get pointer to associated buffer object
     std::filebuf* pbuf = file.rdbuf();
 
@@ -49,34 +49,34 @@ FileBuffer DefaultFilesystem::LoadFile(std::string_view path) const
     // get file data
     pbuf->sgetn(reinterpret_cast<char*>(bufferFile.data), size);
     bufferFile.data[size] = 0;
-    bufferFile.length = size;
+    bufferFile.size = size;
     return bufferFile;
 }
 
-bool DefaultFilesystem::FileExists(std::string_view path) const
+bool DefaultFilesystem::FileExists(Path path) const
 {
-    return fs::exists(path);
+    return fs::exists(path.c_str());
 }
 
-bool DefaultFilesystem::IsRegularFile(std::string_view path) const
+bool DefaultFilesystem::IsRegularFile(Path path) const
 {
-    return fs::is_regular_file(path);
+    return fs::is_regular_file(path.c_str());
 }
 
-bool DefaultFilesystem::IsDirectory(std::string_view path) const
+bool DefaultFilesystem::IsDirectory(Path path) const
 {
-    return fs::is_directory(path);
+    return fs::is_directory(path.c_str());
 }
-void DefaultFilesystem::WriteString(std::string_view path, std::string_view content) const
+void DefaultFilesystem::WriteString(Path path, std::string_view content) const
 {
-    std::ofstream outFile(path.data(), std::ofstream::binary);
+    std::ofstream outFile(path.c_str(), std::ofstream::binary);
     outFile << content;
 }
 
 bool IOSystem::Exists(const char* pFile) const
 {
     const auto& filesystem = FilesystemLocator::get();
-    return filesystem.FileExists(pFile);
+    return filesystem.FileExists(Path(pFile));
 }
 
 char IOSystem::getOsSeparator() const
@@ -88,7 +88,7 @@ Assimp::IOStream* IOSystem::Open(const char* pFile, const char* pMode)
 {
     const auto& filesystem = FilesystemLocator::get();
 
-    return new IOStream(filesystem.LoadFile(pFile));
+    return new IOStream(filesystem.LoadFile(Path(pFile)));
 }
 
 void IOSystem::Close(Assimp::IOStream* pFile)
@@ -104,9 +104,9 @@ size_t IOStream::Read(void* pvBuffer, size_t pSize, size_t pCount)
 {
     const auto totalReadSize = pSize * pCount;
     auto readSize = totalReadSize;
-    if(totalReadSize > bufferFile_.length - cursorIndex_)
+    if(totalReadSize > bufferFile_.size - cursorIndex_)
     {
-        readSize = bufferFile_.length - cursorIndex_;
+        readSize = bufferFile_.size - cursorIndex_;
     }
     std::memcpy(pvBuffer, bufferFile_.data + cursorIndex_, readSize);
     return readSize;
@@ -128,7 +128,7 @@ aiReturn IOStream::Seek(size_t pOffset, aiOrigin pOrigin)
         cursorIndex_ += pOffset;
         break;
     case aiOrigin_END: 
-        cursorIndex_ = bufferFile_.length - pOffset;
+        cursorIndex_ = bufferFile_.size - pOffset;
         break;
     default: ;
     }
@@ -142,10 +142,47 @@ size_t IOStream::Tell() const
 
 size_t IOStream::FileSize() const
 {
-    return bufferFile_.length;
+    return bufferFile_.size;
 }
 
 void IOStream::Flush()
 {
 }
+
+Path::Path(std::string_view path)
+{
+    std::strncpy(path_.data(), path.data(), std::min(path_.size(), path.size()));
+}
+
+Path::Path(const char *path)
+{
+    std::strncpy(path_.data(), path, path_.size());
+}
+
+const char *Path::c_str() const
+{
+    return path_.data();
+}
+
+Path::operator std::string_view() const
+{
+    return {c_str(), size()};
+}
+
+bool Path::operator==(const Path &other) const
+{
+    return std::strcmp(path_.data(), other.path_.data()) == 0;
+}
+
+std::size_t Path::size() const
+{
+    return std::min(std::strlen(path_.data()), MAX_PATH_LENGTH);
+}
+
+Path::Path(const std::string &path)
+{
+    std::strncpy(path_.data(), path.data(), std::min(path_.size(), path.size()));
+}
+
+
 }

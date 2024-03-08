@@ -100,13 +100,13 @@ int main([[maybe_unused]] int argc, char** argv)
     }
     const core::DefaultFilesystem filesystem;
 
-    const auto filebuffer = filesystem.LoadFile(cmd[1]);
+    const auto filebuffer = filesystem.LoadFile(cmd[1].c_str());
 
     try
     {
         const spirv_cross::Compiler compiler(
-            reinterpret_cast<std::uint32_t*>(filebuffer.data), 
-            filebuffer.length/sizeof(std::uint32_t));
+            reinterpret_cast<std::uint32_t*>(filebuffer.data),
+            filebuffer.size / sizeof(std::uint32_t));
 
         auto shaderResources = compiler.get_shader_resources();
 

@@ -70,7 +70,7 @@ void Player::OnGui()
                 filesystem.AddMount(scene, "", 1);
                 core::pb::Scene newScene;
                 const auto file = filesystem.LoadFile("root.scene");
-                newScene.ParseFromArray(file.data, file.length);
+                newScene.ParseFromArray(file.data, file.size);
                 playerScene_.SetScene(newScene);
                 sceneManager_.LoadScene(&playerScene_);
                 sceneLoaded_ = true;
@@ -92,7 +92,7 @@ void Player::SetScene(std::string_view path)
     filesystem.AddMount(path, "", 1);
     core::pb::Scene newScene;
     const auto file = filesystem.LoadFile("root.scene");
-    newScene.ParseFromArray(file.data, file.length);
+    newScene.ParseFromArray(file.data, file.size);
     playerScene_.SetScene(newScene);
     sceneLoaded_ = true;
 }

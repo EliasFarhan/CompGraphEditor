@@ -44,7 +44,7 @@ bool Texture::LoadTexture(const core::pb::Texture& textureInfo)
     const auto file = filesystem.LoadFile(path);
     constexpr int requiredChannels = 4;
     int channelInFile;
-    auto* imageData = stbi_load_from_memory(file.data, file.length, &width, &height, &channelInFile, requiredChannels);
+    auto* imageData = stbi_load_from_memory(file.data, file.size, &width, &height, &channelInFile, requiredChannels);
     if (imageData == nullptr)
     {
         LogError(fmt::format("Could not decode image from path: {}", path));

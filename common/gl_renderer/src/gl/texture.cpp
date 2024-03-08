@@ -10,6 +10,7 @@
 #include <fmt/format.h>
 #include <ktx.h>
 
+
 #include <filesystem>
 
 namespace fs = std::filesystem;
@@ -133,7 +134,7 @@ bool Texture::LoadTexture(const core::pb::Texture &textureInfo)
         TracyCZoneN(ctx2, "Decompress", true);
 #endif
         int channelInFile;
-        const auto* imageData = stbi_load_from_memory(file.data, file.length, &width, &height, &channelInFile, 0);
+        const auto* imageData = stbi_load_from_memory(file.data, file.size, &width, &height, &channelInFile, 0);
 #ifdef TRACY_ENABLE
         TracyCZoneEnd(ctx2);
 #endif
@@ -259,7 +260,7 @@ bool Texture::LoadCubemap(const core::pb::Texture& textureInfo)
     {
         core::pb::Cubemap cubemap;
         const auto file = filesystem.LoadFile(path);
-        if(!cubemap.ParseFromArray(file.data, file.length))
+        if(!cubemap.ParseFromArray(file.data, file.size))
         {
             LogError(fmt::format("Could not open proto of cubemap at: {}", path));
             return false;
@@ -321,7 +322,7 @@ bool Texture::LoadCubemap(const core::pb::Texture& textureInfo)
             const std::string_view texturePath = cubemap.texture_paths(i);
             LogDebug(fmt::format("Loading texture side: {}", texturePath));
             const auto cubeTextureFile = filesystem.LoadFile(texturePath);
-            data = stbi_load_from_memory(cubeTextureFile.data, cubeTextureFile.length, &width, &height, &nrChannels, 0);
+            data = stbi_load_from_memory(cubeTextureFile.data, cubeTextureFile.size, &width, &height, &nrChannels, 0);
             if(data == nullptr)
             {
                 LogError(fmt::format("Could not parse side texture: {} for cubemap: {}", texturePath, path));
@@ -360,9 +361,9 @@ bool Texture::LoadKtxTexture(const core::pb::Texture& textureInfo)
     {
         return false;
     }
-    KTX_error_code result = ktxTexture_CreateFromMemory(file.data, file.length,
-                                                           KTX_TEXTURE_CREATE_NO_FLAGS,
-                                                           &kTexture);
+    KTX_error_code result = ktxTexture_CreateFromMemory(file.data, file.size,
+                                                        KTX_TEXTURE_CREATE_NO_FLAGS,
+                                                        &kTexture);
     if(!ktxCheckError(result))
     {
         return false;
@@ -468,7 +469,7 @@ bool Texture::LoadHdrTexture(const core::pb::Texture& textureInfo)
         TracyCZoneN(ctx2, "Decompress", true);
 #endif
         int channelInFile;
-        const auto* imageData = stbi_loadf_from_memory(file.data, file.length, &width, &height, &channelInFile, 0);
+        const auto* imageData = stbi_loadf_from_memory(file.data, file.size, &width, &height, &channelInFile, 0);
 #ifdef TRACY_ENABLE
         TracyCZoneEnd(ctx2);
 #endif

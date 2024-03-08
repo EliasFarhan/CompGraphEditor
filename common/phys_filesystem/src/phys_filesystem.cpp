@@ -41,25 +41,25 @@ namespace core
         }
     }
 
-    core::FileBuffer PhysFilesystem::LoadFile(std::string_view path) const
+    core::FileBuffer PhysFilesystem::LoadFile(Path path) const
     {
-        std::string genericPath = path.data();
+        auto genericPath = path;
         std::ranges::replace(genericPath, '\\', '/');
         core::FileBuffer newFile;
         if (!FileExists(genericPath))
         {
-            LogError(fmt::format("File does not exist: {}", genericPath));
+            LogError(fmt::format("File does not exist: {}", genericPath.c_str()));
             return newFile;
         }
-        auto* file = PHYSFS_openRead(genericPath.data());
-        newFile.length = PHYSFS_fileLength(file);
+        auto* file = PHYSFS_openRead(genericPath.c_str());
+        newFile.size = PHYSFS_fileLength(file);
         newFile.data = static_cast<unsigned char*>(
-            std::malloc(newFile.length + 1));
-        newFile.data[newFile.length] = 0;
-        if (PHYSFS_readBytes(file, newFile.data, newFile.length) == -1)
+            std::malloc(newFile.size + 1));
+        newFile.data[newFile.size] = 0;
+        if (PHYSFS_readBytes(file, newFile.data, newFile.size) == -1)
         {
             LogError(fmt::format("Physfs could not read file: {}\nLog: {}",
-                genericPath, static_cast<int>(PHYSFS_getLastErrorCode())));
+                genericPath.c_str(), static_cast<int>(PHYSFS_getLastErrorCode())));
             PHYSFS_close(file);
             return {};
         }
@@ -67,41 +67,41 @@ namespace core
         return newFile;
     }
 
-    bool PhysFilesystem::FileExists(std::string_view path) const
+    bool PhysFilesystem::FileExists(Path path) const
     {
-        std::string genericPath = path.data();
+        auto genericPath = path;
         std::ranges::replace(genericPath, '\\', '/');
-        return PHYSFS_exists(genericPath.data());
+        return PHYSFS_exists(genericPath.c_str());
     }
 
-    bool PhysFilesystem::IsRegularFile(std::string_view path) const
+    bool PhysFilesystem::IsRegularFile(Path path) const
     {
-        std::string genericPath = path.data();
+        auto genericPath = path;
         std::ranges::replace(genericPath, '\\', '/');
         PHYSFS_Stat stat;
-        if (PHYSFS_stat(genericPath.data(), &stat))
+        if (PHYSFS_stat(genericPath.c_str(), &stat))
         {
             LogError(fmt::format(
                 "PhysFS could not get stat of file: {}\nLog: {}",
-                genericPath, static_cast<int>(PHYSFS_getLastErrorCode())));
+                genericPath.c_str(), static_cast<int>(PHYSFS_getLastErrorCode())));
             return false;
         }
         return stat.filetype == PHYSFS_FILETYPE_REGULAR;
     }
 
-    bool PhysFilesystem::IsDirectory(std::string_view path) const
+    bool PhysFilesystem::IsDirectory(Path path) const
     {
         PHYSFS_Stat stat;
-        if (PHYSFS_stat(path.data(), &stat))
+        if (PHYSFS_stat(path.c_str(), &stat))
         {
             LogError(fmt::format(
                 "PhysFS could not get stat of file: {}\nLog: {}",
-                path, static_cast<int>(PHYSFS_getLastErrorCode())));
+                path.c_str(), static_cast<int>(PHYSFS_getLastErrorCode())));
             return false;
         }
         return stat.filetype == PHYSFS_FILETYPE_DIRECTORY;
     }
-    void PhysFilesystem::WriteString(std::string_view path, std::string_view content) const
+    void PhysFilesystem::WriteString(Path path, std::string_view content) const
     {
 
     }

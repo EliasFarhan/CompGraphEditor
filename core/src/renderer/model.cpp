@@ -131,7 +131,7 @@ ModelIndex ModelManager::ImportModel(std::string_view modelPath)
     }
 
     const auto& filesystem = core::FilesystemLocator::get();
-    const auto exists = filesystem.FileExists(modelPath);
+    const auto exists = filesystem.FileExists(Path(modelPath));
     if (!exists)
     {
         LogError(fmt::format("Could not find: {}", modelPath));

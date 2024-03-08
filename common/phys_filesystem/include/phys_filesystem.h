@@ -14,11 +14,11 @@ namespace core
         void Begin();
         void End();
         void AddMount(std::string_view dir, std::string_view mountPoint, int append) const;
-        [[nodiscard]] core::FileBuffer LoadFile(std::string_view path) const override;
-        [[nodiscard]] bool FileExists(std::string_view path) const override;
-        [[nodiscard]] bool IsRegularFile(std::string_view path) const override;
-        [[nodiscard]] bool IsDirectory(std::string_view path) const override;
-        void WriteString(std::string_view path, std::string_view content) const override;
+        [[nodiscard]] core::FileBuffer LoadFile(Path path) const override;
+        [[nodiscard]] bool FileExists(Path path) const override;
+        [[nodiscard]] bool IsRegularFile(Path path) const override;
+        [[nodiscard]] bool IsDirectory(Path path) const override;
+        void WriteString(Path path, std::string_view content) const override;
     private:
         std::string argv0_;
 

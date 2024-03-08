@@ -714,7 +714,7 @@ std::optional<VkShaderModule> CreateShaderModule(const core::FileBuffer& bufferF
 #endif
     VkShaderModuleCreateInfo createInfo{};
     createInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
-    createInfo.codeSize = bufferFile.length;
+    createInfo.codeSize = bufferFile.size;
     createInfo.pCode = reinterpret_cast<const uint32_t*>(bufferFile.data);
     VkShaderModule shaderModule;
     if (vkCreateShaderModule(device, &createInfo, nullptr, &shaderModule) != VK_SUCCESS)

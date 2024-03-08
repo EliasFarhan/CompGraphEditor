@@ -159,7 +159,7 @@ void MeshEditor::AddResource(const Resource &resource)
     const auto extension = GetFileExtension(resource.path);
 
     const auto& fileSystem = core::FilesystemLocator::get();
-    if (!fileSystem.IsRegularFile(resource.path))
+    if (!fileSystem.IsRegularFile(resource.path.c_str()))
     {
         LogWarning(fmt::format("Could not find mesh file: {}", resource.path));
         return;

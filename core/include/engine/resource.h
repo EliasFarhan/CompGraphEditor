@@ -20,10 +20,9 @@ constexpr ResourceId INVALID_RESOURCE_ID = {};
 
 struct Resource
 {
-    std::string path;
+    Path path{};
     ResourceId resourceId = INVALID_RESOURCE_ID;
     int fileIndex = -1;
-    int jobIndex = -1;
     bool hasLoaded = false;
 };
 

@@ -66,7 +66,7 @@ ResourceId ResourceManager::AddResource(std::string_view path)
         return INVALID_RESOURCE_ID;
 
     const auto& filesystem = core::FilesystemLocator::get();
-    if(!filesystem.FileExists(path))
+    if(!filesystem.FileExists(Path(path)))
     {
         LogWarning(fmt::format("Adding unexisting resource: {}", path));
         return INVALID_RESOURCE_ID;
@@ -76,7 +76,7 @@ ResourceId ResourceManager::AddResource(std::string_view path)
     {
         if (!filesystem.FileExists(resource.path))
             return false;
-        return fs::equivalent(path, resource.path);
+        return fs::equivalent(path.data(), resource.path.c_str());
     });
     if(it != resources_.end())
     {
@@ -86,7 +86,7 @@ ResourceId ResourceManager::AddResource(std::string_view path)
     const auto resourceId = (ResourceId)resources_.size();
     resources_.emplace_back();
     Resource& newResource = resources_.back();
-    newResource.path = path;
+    newResource.path = Path(path);
     newResource.resourceId = resourceId;
 
     // adding a new loading job
@@ -121,7 +121,7 @@ void ResourceManager::LoadingResourceJob::ExecuteImpl()
     ZoneScoped;
 #endif
     const auto& filesystem = core::FilesystemLocator::get();
-    fileBuffer_ = filesystem.LoadFile(path_);
+    fileBuffer_ = filesystem.LoadFile(Path(path_));
     //add moving job to the ResourceManager
     auto* resourceManager = GetResourceManager();
     std::scoped_lock lock(resourceManager->resourceLoadMutex_);

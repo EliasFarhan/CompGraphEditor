@@ -161,7 +161,7 @@ void Engine::End()
 
     jobSystem_.End();
     const auto& fileSystem = FilesystemLocator::get();
-    fileSystem.WriteString(configFilename, config_.SerializeAsString());
+    fileSystem.WriteString(Path(configFilename), config_.SerializeAsString());
 
 }
 
@@ -194,9 +194,9 @@ Engine::Engine()
     instance = this;
     const auto& fileSystem = FilesystemLocator::get();
 
-    if(fileSystem.IsRegularFile(configFilename))
+    if(fileSystem.IsRegularFile(Path(configFilename)))
     {
-        const auto file = fileSystem.LoadFile(configFilename);
+        const auto file = fileSystem.LoadFile(Path(configFilename));
         config_.ParseFromString(reinterpret_cast<const char*>(file.data));
         
     }
