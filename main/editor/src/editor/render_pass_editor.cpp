@@ -87,10 +87,11 @@ void RenderPassEditor::DrawInspector()
         {
             for (std::size_t framebufferIndex = 0; framebufferIndex < framebufferInfos.size(); framebufferIndex++)
             {
-                if(ImGui::Selectable(framebufferInfos[framebufferIndex].filename.data(), 
-                    framebufferPath.empty()?false:fs::equivalent(framebufferInfos[framebufferIndex].path, framebufferPath)))
+                if(ImGui::Selectable(framebufferInfos[framebufferIndex].filename.data(),
+                                     !framebufferPath.empty() &&
+                                     fs::equivalent(framebufferInfos[framebufferIndex].path.c_str(), framebufferPath)))
                 {
-                    subpassInfo->set_framebuffer_path(framebufferInfos[framebufferIndex].path);
+                    subpassInfo->set_framebuffer_path(framebufferInfos[framebufferIndex].path.c_str());
                 }
             }
             ImGui::EndCombo();
@@ -103,7 +104,7 @@ void RenderPassEditor::DrawInspector()
         std::vector<int> removedCommandIndices;
         for (int commandIndex = 0; commandIndex < subpassInfo->command_paths_size(); commandIndex++)
         {
-            auto commandPath = subpassInfo->command_paths(commandIndex);
+            core::Path commandPath {subpassInfo->command_paths(commandIndex)};
             const auto commandId = resourceManager.FindResourceByPath(commandPath);
             if (!commandPath.empty() && commandId == INVALID_RESOURCE_ID)
             {
@@ -126,7 +127,7 @@ void RenderPassEditor::DrawInspector()
                     {
                         if (ImGui::Selectable(availableCommand.filename.c_str(), availableCommand.resourceId == commandId))
                         {
-                            subpassInfo->set_command_paths(commandIndex, availableCommand.path);
+                            subpassInfo->set_command_paths(commandIndex, availableCommand.path.c_str());
                         }
                     }
                     ImGui::EndCombo();
@@ -266,7 +267,7 @@ void RenderPassEditor::DrawCenterView()
         ImGui::TextUnformatted("Commands:");
         for(int commandIndex = 0; commandIndex < subpass.command_paths_size(); commandIndex++)
         {
-            const auto& commandPath = subpass.command_paths(commandIndex);
+            const core::Path commandPath{subpass.command_paths(commandIndex)};
             const auto commandResource = resourceManager.FindResourceByPath(commandPath);
             const auto& commandInfo = commandEditor->GetCommand(commandResource);
             if (commandInfo != nullptr)
@@ -307,7 +308,7 @@ void RenderPassEditor::Save()
 {
     for (auto& renderPassInfo : renderPassInfos_)
     {
-        std::ofstream fileOut(renderPassInfo.path, std::ios::binary);
+        std::ofstream fileOut(renderPassInfo.path.c_str(), std::ios::binary);
         if (!renderPassInfo.info.SerializeToOstream(&fileOut))
         {
             LogWarning(fmt::format("Could not save render pass at: {}", renderPassInfo.path));
@@ -329,7 +330,7 @@ void RenderPassEditor::AddResource(const Resource& resource)
         LogWarning(fmt::format("Could not find render pass file: {}", resource.path));
         return;
     }
-    std::ifstream fileIn(resource.path, std::ios::binary);
+    std::ifstream fileIn(resource.path.c_str(), std::ios::binary);
     if (!renderPassInfo.info.ParsePartialFromIstream(&fileIn))
     {
         LogWarning(fmt::format("Could not open render pass protobuf file: {}", resource.path));

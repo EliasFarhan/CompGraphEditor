@@ -44,13 +44,13 @@ private:
     void DrawInspector();
     static void DrawLogWindow();
     void UpdateFileDialog();
-    void LoadFileIntoEditor(std::string_view path);
+    void LoadFileIntoEditor(const core::Path &path);
     void RecursiveSceneFileReload();
     void OpenFileBrowserDialog(std::span<const std::string_view> extensions);
 
 
 
-    EditorSystem* FindEditorSystem(std::string_view path) const;
+    EditorSystem* FindEditorSystem(const core::Path &path) const;
     
     ResourceManager resourceManager_;
     ImGui::FileBrowser fileDialog_;

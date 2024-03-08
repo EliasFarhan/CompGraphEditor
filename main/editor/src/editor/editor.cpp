@@ -352,17 +352,17 @@ bool Editor::UpdateCreateNewFile()
                         }
                         ImGui::EndCombo();
                     }
-                    actualFilename += extensions[currentExtensionCreateFileIndex_];
+                    actualFilename += extensions[currentExtensionCreateFileIndex_].data();
                 }
                 else
                 {
-                    actualFilename += extensions[0];
+                    actualFilename += extensions[0].data();
                 }
             }
         }
         else
         {
-            actualFilename += newCreateExtension_;
+            actualFilename += newCreateExtension_.data();
         }
         const auto* sceneInfo = sceneEditor->GetCurrentSceneInfo();
         if(sceneInfo == nullptr)
@@ -374,24 +374,24 @@ bool Editor::UpdateCreateNewFile()
                 return false;
             }
         }
-        std::string path;
+        core::Path path;
         static bool isVulkanScene = false;
         
         if(currentCreateFileSystem_ == EditorType::SCENE)
         {
-            path = fmt::format("{}/{}/{}",
+            path = core::Path(fmt::format("{}/{}/{}",
                 ResourceManager::dataFolder,
                 newCreateFilename_,
-                actualFilename);
+                actualFilename));
             ImGui::Checkbox("Vulkan", &isVulkanScene);
         }
         else
         {
-            path = fmt::format("{}{}/{}{}",
+            path = core::Path(fmt::format("{}{}/{}{}",
                 ResourceManager::dataFolder,
                 sceneInfo ? sceneInfo->info.name() : newCreateFilename_,
                 editorSystem->GetSubFolder(),
-                actualFilename.c_str());
+                actualFilename.c_str()));
         }
         if (!filesystem.FileExists(path))
         {
@@ -454,7 +454,7 @@ void Editor::UpdateFileDialog()
 
     if (fileDialog_.HasSelected())
     {
-        const auto path = fs::relative(fileDialog_.GetSelected()).string();
+        const core::Path path = core::Path(fs::relative(fileDialog_.GetSelected()).string());
 
         LogDebug(fmt::format("Selected filename: {}", path));
         LoadFileIntoEditor(path);
@@ -574,7 +574,7 @@ void Editor::OnEvent(SDL_Event& event)
     }
 
 }
-void Editor::LoadFileIntoEditor(std::string_view path)
+void Editor::LoadFileIntoEditor(const core::Path &path)
 {
 
     EditorSystem* editorSystem = FindEditorSystem(path);
@@ -613,7 +613,8 @@ void Editor::LoadFileIntoEditor(std::string_view path)
     editorSystem->ImportResource(path);
     if(isScene)
     {
-        CopyFileFromTo("scripts/neko2.py", fmt::format("data/{}/scripts/neko2.py", sceneEditor->GetCurrentSceneInfo()->info.name()));
+        CopyFileFromTo("scripts/neko2.py", core::Path(
+                fmt::format("data/{}/scripts/neko2.py", sceneEditor->GetCurrentSceneInfo()->info.name())));
         for(auto& tmp: editorSystems_)
         {
             if(tmp)
@@ -628,15 +629,15 @@ void Editor::LoadFileIntoEditor(std::string_view path)
         {
             if (!editorSystem && editorSystem->GetEditorType() != EditorType::SCENE)
                 continue;
-            const auto subFolder = fmt::format("{}{}/{}",
+            const core::Path subFolder{ fmt::format("{}{}/{}",
                 ResourceManager::dataFolder,
                 sceneEditor->GetCurrentSceneInfo()->info.name(),
-                editorSystem->GetSubFolder());
+                editorSystem->GetSubFolder())};
             if (!filesystem.IsDirectory(subFolder))
                 CreateNewDirectory(subFolder);
             if (editorSystem->GetEditorType() == EditorType::SCRIPT)
             {
-                CopyFileFromTo("scripts/neko2.py", fmt::format("{}/neko2.py", subFolder), true);
+                CopyFileFromTo("scripts/neko2.py", core::Path(fmt::format("{}/neko2.py", subFolder)), true);
             }
             editorSystem->ReloadId();
         }
@@ -666,16 +667,16 @@ void Editor::RecursiveSceneFileReload()
             {
                 if(folderContentPath.extension() == ".scene" || folderContentPath.extension() == ".pkg")
                     continue;
-                const auto filePath = folderContentPath.string();
+                const auto filePath = core::Path(folderContentPath.string());
                 if (std::ranges::none_of(sceneInfo->info.resources(),
                     [&folderContentPath, &filePath](const auto& path)
                     {
                         if (!fs::exists(path))
                             return false;
-                        return fs::equivalent(filePath, path);
+                        return fs::equivalent(filePath.c_str(), path);
                     }))
                 {
-                    sceneInfo->info.add_resources(filePath);
+                    sceneInfo->info.add_resources(filePath.c_str());
                     resourceManager_.AddResource(filePath);
                 }
             }
@@ -1040,7 +1041,7 @@ EditorSystem* Editor::GetEditorSystem(EditorType type) const
     return editorSystems_[static_cast<int>(type)].get();
 }
 
-EditorSystem* Editor::FindEditorSystem(std::string_view path) const
+EditorSystem* Editor::FindEditorSystem(const core::Path &path) const
 {
     EditorSystem* editorSystem = nullptr;
     const auto extension = GetFileExtension(path);

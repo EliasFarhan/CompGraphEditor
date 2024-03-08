@@ -39,6 +39,10 @@ public:
     {
         return { path_.data(), size() };
     }
+    constexpr explicit operator std::string() const
+    {
+        return path_.data();
+    }
     constexpr bool operator==(const Path& other) const
     {
         return std::char_traits<char>::compare(path_.data(), other.path_.data(), size()) == 0;
@@ -61,6 +65,15 @@ public:
         *(result.path_.data()+oldSize+other.path_.size()) = 0;
         return result;
     }
+
+    constexpr Path& operator+=(const Path& other)
+    {
+        const auto oldSize = size();
+        std::char_traits<char>::copy(path_.data()+size(), other.path_.data(), other.path_.size());
+        *(path_.data()+oldSize+other.path_.size()) = 0;
+        return *this;
+    }
+
 
     [[nodiscard]] bool contains(const Path& path) const
     {

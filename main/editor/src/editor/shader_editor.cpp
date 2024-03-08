@@ -73,7 +73,7 @@ void ShaderEditor::AddResource(const Resource& resource)
     shaderInfo.correctVertexInput = CheckVertexInput(shaderInfo.info);
     shaderInfo.filename = GetFilename(resource.path);
     shaderInfo.resourceId = resource.resourceId;
-    shaderInfo.info.set_path(resource.path);
+    shaderInfo.info.set_path(resource.path.c_str());
     shaderInfos_.push_back(shaderInfo);
 }
 void ShaderEditor::RemoveResource(const Resource& resource)

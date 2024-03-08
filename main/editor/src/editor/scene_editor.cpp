@@ -82,17 +82,20 @@ void SceneEditor::AddResource(const Resource& resource)
     const auto& filesystem = core::FilesystemLocator::get();
     if (!CheckExtensions(resource.extension))
     {
-        if (resource.path.find("neko2.py") != std::string::npos || resource.path.find("__pycache__") != std::string::npos)
+        if (resource.path.contains("neko2.py") || resource.path.contains("__pycache__"))
         {
             return;
         }
         //Adding a resource to the list
         const auto* sceneInfo = GetCurrentSceneInfo();
-        if (std::ranges::none_of(sceneInfo->info.resources(), [&resource](const auto& path) {return path == resource.path; }))
+        if (std::ranges::none_of(sceneInfo->info.resources(), [&resource](const auto& path)
+            {
+                return path == resource.path.c_str();
+            }))
         {
             if (filesystem.FileExists(resource.path))
             {
-                GetCurrentSceneInfo()->info.add_resources(resource.path);
+                GetCurrentSceneInfo()->info.add_resources(resource.path.c_str());
             }
         }
         return;
@@ -110,7 +113,7 @@ void SceneEditor::AddResource(const Resource& resource)
             LogWarning(fmt::format("Could not find scene file: {}", resource.path));
             return;
         }
-        std::ifstream fileIn(resource.path, std::ios::binary);
+        std::ifstream fileIn(resource.path.c_str(), std::ios::binary);
         if (!sceneInfo.info.ParseFromIstream(&fileIn))
         {
             LogWarning(fmt::format("Could not open protobuf file: {}", resource.path));
@@ -128,7 +131,7 @@ void SceneEditor::AddResource(const Resource& resource)
     
     for(int i = 0; i < sceneInfo.info.resources_size(); i++)
     {
-        const auto& resourcePath = sceneInfo.info.resources(i);
+        const core::Path resourcePath {sceneInfo.info.resources(i)};
         if(!filesystem.FileExists(resourcePath))
         {
             unexistingResources.push_back(i);
@@ -157,7 +160,7 @@ void SceneEditor::RemoveResource(const Resource& resource)
         auto* resources = GetCurrentSceneInfo()->info.mutable_resources();
         for(int i = 0; i < resources->size(); i++)
         {
-            if(resources->Get(i) == resource.path)
+            if(resources->Get(i) == resource.path.c_str())
             {
                 resources->erase(resources->begin() + i);
                 return;
@@ -212,7 +215,7 @@ void SceneEditor::DrawInspector()
             if(ImGui::Selectable(renderPass.filename.c_str(), renderPass.resourceId == currentScene.renderPassId))
             {
                 currentScene.renderPassId = renderPass.resourceId;
-                currentScene.info.set_render_pass_path(renderPass.path);
+                currentScene.info.set_render_pass_path(renderPass.path.c_str());
             }
         }
         ImGui::EndCombo();
@@ -223,13 +226,15 @@ void SceneEditor::DrawInspector()
     std::vector<int> removedScripts;
     for (int i = 0; i < currentScene.info.py_system_paths_size(); i++)
     {
-        const auto& pySystemPath = currentScene.info.py_system_paths(i);
+        const core::Path pySystemPath {currentScene.info.py_system_paths(i)};
         std::string name = fmt::format("Script: {}", i);
         const ScriptInfo* scriptInfo = nullptr;
         ResourceId pySystemId = INVALID_RESOURCE_ID;
         if (!pySystemPath.empty())
         {
-            if (!std::ranges::any_of(core::GetNativeScriptClassNames(), [&pySystemPath](const auto nativeScript) {return nativeScript == pySystemPath; }))
+            if (!std::ranges::any_of(core::GetNativeScriptClassNames(), [&pySystemPath](const auto nativeScript)
+                {
+                return nativeScript == pySystemPath; }))
             {
                 pySystemId = resourceManager.FindResourceByPath(pySystemPath);
                 if (pySystemId == INVALID_RESOURCE_ID)
@@ -354,7 +359,7 @@ void SceneEditor::Save()
 {
     for (auto& sceneInfo : sceneInfos_)
     {
-        std::ofstream fileOut(sceneInfo.path, std::ios::binary);
+        std::ofstream fileOut(sceneInfo.path.c_str(), std::ios::binary);
         if (!sceneInfo.info.SerializeToOstream(&fileOut))
         {
             LogWarning(fmt::format("Could not save scene at: {}", sceneInfo.path));
@@ -408,7 +413,7 @@ bool SceneEditor::ExportAndPlayScene() const
         const auto& editorSubPass = currentRenderPass->info.sub_passes(subPassIndex);
 
         //export framebuffer
-        const auto& framebufferPath = editorSubPass.framebuffer_path();
+        const core::Path framebufferPath {editorSubPass.framebuffer_path()};
         if(!framebufferPath.empty())
         {
             const auto framebufferId = resourceManager.FindResourceByPath(framebufferPath);
@@ -439,7 +444,7 @@ bool SceneEditor::ExportAndPlayScene() const
         //Export commands
         for(int commandIndex = 0; commandIndex < editorSubPass.command_paths_size(); commandIndex++)
         {
-            const auto editorCommandPath = editorSubPass.command_paths(commandIndex);
+            const core::Path editorCommandPath {editorSubPass.command_paths(commandIndex)};
             const auto commandId = resourceManager.FindResourceByPath(editorCommandPath);
             if(commandId == INVALID_RESOURCE_ID)
             {
@@ -494,7 +499,7 @@ bool SceneEditor::ExportAndPlayScene() const
 
                     if (editorMaterialTexture.material_texture().attachment_name().empty())
                     {
-                        auto textureId = resourceManager.FindResourceByPath(editorMaterialTexture.texture_name());
+                        auto textureId = resourceManager.FindResourceByPath(core::Path(editorMaterialTexture.texture_name()));
                         if (textureId == INVALID_RESOURCE_ID)
                         {
                             LogWarning(fmt::format("Could not export scene. Missing texture in material sampler, Material: {} Sampler: {}",
@@ -508,7 +513,7 @@ bool SceneEditor::ExportAndPlayScene() const
                             const auto index = exportScene.textures_size();
                             auto* textureInfo = textureEditor->GetTexture(textureId);
                             *exportScene.add_textures() = textureInfo->info;
-                            if (GetFileExtension(textureInfo->info.path()) == ".cube")
+                            if (GetFileExtension(core::Path(textureInfo->info.path())) == ".cube")
                             {
                                 for (auto& cubeTexture : textureInfo->cubemap.texture_paths())
                                 {
@@ -828,7 +833,7 @@ bool SceneEditor::ExportAndPlayScene() const
     }
     for(int i = 0; i < currentScene.info.py_system_paths_size();i++)
     {
-        const auto& pySystemPath = currentScene.info.py_system_paths(i);
+        const core::Path pySystemPath = core::Path(currentScene.info.py_system_paths(i));
         if(std::ranges::any_of(core::GetNativeScriptClassNames(), [&pySystemPath](auto nativeScript){return nativeScript == pySystemPath;}))
         {
             auto* newSystem = exportScene.add_systems();
@@ -843,9 +848,9 @@ bool SceneEditor::ExportAndPlayScene() const
             *exportScene.add_systems() = pySystemInfo->info;
         }
     }
-    constexpr std::string_view exportScenePath = "root.scene";
+    constexpr core::Path exportScenePath = "root.scene";
     //Write scene
-    std::ofstream fileOut(exportScenePath.data(), std::ios::binary);
+    std::ofstream fileOut(exportScenePath.c_str(), std::ios::binary);
     if (!exportScene.SerializeToOstream(&fileOut))
     {
         LogWarning(fmt::format("Could not save scene for export at: {}", exportScenePath));
@@ -854,7 +859,7 @@ bool SceneEditor::ExportAndPlayScene() const
     fileOut.close(); //force write
     //Create scene json
     json sceneJson;
-    sceneJson["scene"] = exportScenePath.data();
+    sceneJson["scene"] = exportScenePath.c_str();
     std::vector<std::string> shaderPaths;
     shaderPaths.reserve(exportScene.shaders_size());
     for(int i = 0; i < exportScene.shaders_size(); i++)
@@ -890,7 +895,8 @@ bool SceneEditor::ExportAndPlayScene() const
     std::vector<std::string> others;
     for(auto& objFile : objPaths)
     {
-        const auto modelPath = fmt::format("{}/{}.model", GetFolder(objFile), GetFilename(objFile, false));
+        const core::Path modelPath{
+            fmt::format("{}/{}.model", GetFolder(core::Path(objFile)), GetFilename(objFile, false))};
         const auto modelId = resourceManager.FindResourceByPath(modelPath);
         auto* model = modelEditor->GetModel(modelId);
         for(int i = 0; i < model->info.mtl_paths_size(); i++)
@@ -924,7 +930,7 @@ void SceneEditor::ReloadId()
     {
         if (sceneInfo.renderPassId == INVALID_RESOURCE_ID && !sceneInfo.info.render_pass_path().empty())
         {
-            sceneInfo.renderPassId = resourceManager.FindResourceByPath(sceneInfo.info.render_pass_path());
+            sceneInfo.renderPassId = resourceManager.FindResourceByPath((core::Path)sceneInfo.info.render_pass_path());
         }
     }
 }

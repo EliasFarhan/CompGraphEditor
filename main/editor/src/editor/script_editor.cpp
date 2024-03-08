@@ -29,7 +29,7 @@ void ScriptEditor::AddResource(const Resource& resource)
     ScriptInfo scriptInfo{};
     scriptInfo.resourceId = resource.resourceId;
     scriptInfo.filename = GetFilename(resource.path);
-    auto module = GetFolder(resource.path);
+    std::string module = (std::string)GetFolder(resource.path);
     std::ranges::replace(module, '/', '.');
     std::ranges::replace(module, '\\', '.');
     module = (module | std::views::split(std::string{ ".." }) | std::views::join_with(std::string{ "." })) | std::ranges::to<std::string>();
