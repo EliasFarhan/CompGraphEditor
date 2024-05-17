@@ -46,7 +46,7 @@ bool FuncDependentJob::ShouldStart() const
     return false;
 }
 
-bool DependenciesJob::ShouldStart() const
+bool FuncDependenciesJob::ShouldStart() const
 {
     bool shouldStart = true;
     for (auto& dependency : dependencies_)
@@ -61,7 +61,7 @@ bool DependenciesJob::ShouldStart() const
     return shouldStart;
 }
 
-void DependenciesJob::AddDependency(const std::weak_ptr<Job>& dependency)
+void FuncDependenciesJob::AddDependency(const std::weak_ptr<Job>& dependency)
 {
     //TODO check if dependency is not cyclic
     dependencies_.push_back(dependency);
@@ -231,6 +231,13 @@ void JobSystem::ExecuteMainThread()
 
 JobSystem* GetJobSystem()
 {
+    if(instance == nullptr)
+    {
+        // Instance should not be nullptr
+        // It means the JobSystem was not instanced somewhere
+        std::terminate();
+    }
     return instance;
 }
+
 }

@@ -5,9 +5,11 @@
 #include <thread>
 #include <queue>
 #include <shared_mutex>
+#include <utility>
 
 namespace core
 {
+
 class Job
 {
 public:
@@ -34,23 +36,11 @@ private:
     std::function<void(void)> func_;
 };
 
-class DependenciesJob : public Job
-{
-public:
-    DependenciesJob(std::initializer_list<std::weak_ptr<Job>> dependencies) : dependencies_(dependencies) {}
-    [[nodiscard]] bool ShouldStart() const override;
-
-    void AddDependency(const std::weak_ptr<Job>& dependency);
-
-private:
-    std::vector<std::weak_ptr<Job>> dependencies_{};
-};
-
 class FuncDependentJob : public FuncJob
 {
 public:
     FuncDependentJob(std::weak_ptr<Job> dependency, const std::function<void(void)>& func) :
-        dependency_(dependency),
+        dependency_(std::move(dependency)),
         FuncJob(func)
     {
 
@@ -60,9 +50,21 @@ private:
     std::weak_ptr<Job> dependency_{};
 };
 
-class FuncDependenciesJob: public FuncJob, public DependenciesJob
+class FuncDependenciesJob: public FuncJob
 {
-    using DependenciesJob::DependenciesJob;
+public:
+    FuncDependenciesJob(std::initializer_list<std::weak_ptr<Job>> dependencies, const std::function<void(void)>& func):
+    FuncJob(func), dependencies_(dependencies)
+    {}
+    [[nodiscard]] bool ShouldStart() const override;
+
+    void AddDependency(const std::weak_ptr<Job>& dependency);
+protected:
+    void ExecuteImpl() override
+    {
+        FuncJob::ExecuteImpl();
+    }
+    std::vector<std::weak_ptr<Job>> dependencies_{};
 };
 
 class WorkerQueue

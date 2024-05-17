@@ -59,7 +59,7 @@ void ImGuiManager::PostImGuiDraw()
 {
     auto& renderer = GetRenderer();
     ImGui::Render();
-    //ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), renderer.commandBuffers[renderer.imageIndex]);
+    ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), renderer.commandBuffers[renderer.imageIndex]);
 }
 
 void ImGuiManager::End() const

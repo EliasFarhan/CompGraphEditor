@@ -23,3 +23,9 @@ else()
 endif()
 
 target_precompile_headers(Core PRIVATE "${CMAKE_CURRENT_BINARY_DIR}/proto/renderer.pb.h" "<array>" "<vector>" "<string>" "<filesystem>")
+
+file(GLOB TEST_FILES test/*.cpp)
+add_executable(CoreTest ${TEST_FILES})
+target_link_libraries(CoreTest Core GTest::gtest GTest::gtest_main)
+include(GoogleTest)
+gtest_add_tests(TARGET CoreTest)
