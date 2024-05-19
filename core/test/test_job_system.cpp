@@ -63,3 +63,19 @@ TEST(CoreLib, DependenciesJob)
     job.Execute();
     EXPECT_TRUE(job.IsDone());
 }
+
+TEST(CoreLib, CyclicDependenciesJob)
+{
+    auto parentJob1 = std::make_shared<core::FuncDependenciesJob>( [](){} );
+    auto parentJob2 = std::make_shared<core::FuncDependentJob>( parentJob1, [](){} );
+    auto parentJob3 = std::make_shared<core::FuncJob>( [](){} );
+
+    EXPECT_FALSE(parentJob1->AddDependency(parentJob2));
+    EXPECT_TRUE(parentJob1->AddDependency(parentJob3));
+
+    auto parentJob4 = std::make_shared<core::FuncDependenciesJob>(
+            std::initializer_list<std::weak_ptr<core::Job>> {parentJob2},
+            [](){} );
+    EXPECT_FALSE(parentJob1->AddDependency(parentJob4));
+
+}

@@ -31,6 +31,11 @@ void Job::Reset()
     isDone_.store(false, std::memory_order_release);
 }
 
+bool Job::CheckDependency(const Job *ptr) const
+{
+    return false;
+}
+
 void FuncJob::ExecuteImpl()
 {
     func_();
@@ -42,6 +47,19 @@ bool FuncDependentJob::ShouldStart() const
     if(dependencyJob != nullptr)
     {
         return dependencyJob->HasStarted();
+    }
+    return false;
+}
+
+bool FuncDependentJob::CheckDependency(const Job *ptr) const
+{
+    if(ptr == this)
+    {
+        return true;
+    }
+    auto dep = dependency_.lock();
+    if(dep != nullptr) {
+        return dep->CheckDependency(ptr);
     }
     return false;
 }
@@ -61,10 +79,31 @@ bool FuncDependenciesJob::ShouldStart() const
     return shouldStart;
 }
 
-void FuncDependenciesJob::AddDependency(const std::weak_ptr<Job>& dependency)
+bool FuncDependenciesJob::AddDependency(const std::weak_ptr<Job>& dependency)
 {
-    //TODO check if dependency is not cyclic
+    auto newDependency = dependency.lock();
+    if(newDependency == nullptr || newDependency->CheckDependency(this))
+    {
+        return false;
+    }
     dependencies_.push_back(dependency);
+    return true;
+}
+
+bool FuncDependenciesJob::CheckDependency(const Job *ptr) const
+{
+    if(ptr == this)
+    {
+        return true;
+    }
+    for(auto& dependency: dependencies_)
+    {
+        if(dependency.lock()->CheckDependency(ptr))
+        {
+            return true;
+        }
+    }
+    return false;
 }
 
 void WorkerQueue::Begin()

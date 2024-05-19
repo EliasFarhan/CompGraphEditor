@@ -19,8 +19,17 @@ public:
     bool IsDone() const;
     virtual bool ShouldStart() const;
     void Reset();
+
+    /**
+     * \brief CheckDependency is a member function used to check if the arg ptr is already a dependency
+     * @param ptr
+     * @return false if not a dependency
+     */
+    virtual bool CheckDependency(const Job *ptr) const;
+
 protected:
     virtual void ExecuteImpl() = 0;
+
 private:
     std::atomic<bool> hasStarted_{ false };
     std::atomic<bool> isDone_{ false };
@@ -46,6 +55,8 @@ public:
 
     }
     bool ShouldStart() const override;
+protected:
+    bool CheckDependency(const Job *ptr) const override;
 private:
     std::weak_ptr<Job> dependency_{};
 };
@@ -53,17 +64,16 @@ private:
 class FuncDependenciesJob: public FuncJob
 {
 public:
+    FuncDependenciesJob(const std::function<void(void)>& func): FuncJob(func)
+    {}
     FuncDependenciesJob(std::initializer_list<std::weak_ptr<Job>> dependencies, const std::function<void(void)>& func):
     FuncJob(func), dependencies_(dependencies)
     {}
     [[nodiscard]] bool ShouldStart() const override;
 
-    void AddDependency(const std::weak_ptr<Job>& dependency);
+    bool AddDependency(const std::weak_ptr<Job>& dependency);
 protected:
-    void ExecuteImpl() override
-    {
-        FuncJob::ExecuteImpl();
-    }
+    bool CheckDependency(const Job *ptr) const override;
     std::vector<std::weak_ptr<Job>> dependencies_{};
 };
 
