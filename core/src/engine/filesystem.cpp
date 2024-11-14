@@ -24,7 +24,7 @@ FileBuffer::~FileBuffer()
     }
 }
 
-FileBuffer DefaultFilesystem::LoadFile(const Path &path) const
+FileBuffer DefaultFilesystem::LoadFile(std::string_view path) const
 {
 #ifdef TRACY_ENABLE
     ZoneScoped;
@@ -35,7 +35,7 @@ FileBuffer DefaultFilesystem::LoadFile(const Path &path) const
     {
         return bufferFile;
     }
-    const std::ifstream file(path.c_str(), std::ifstream::binary);
+    const std::ifstream file(path.data(), std::ifstream::binary);
     // get pointer to associated buffer object
     std::filebuf* pbuf = file.rdbuf();
 
@@ -53,30 +53,30 @@ FileBuffer DefaultFilesystem::LoadFile(const Path &path) const
     return bufferFile;
 }
 
-bool DefaultFilesystem::FileExists(const Path &path) const
+bool DefaultFilesystem::FileExists(std::string_view path) const
 {
-    return fs::exists(path.c_str());
+    return fs::exists(path.data());
 }
 
-bool DefaultFilesystem::IsRegularFile(const Path &path) const
+bool DefaultFilesystem::IsRegularFile(std::string_view path) const
 {
-    return fs::is_regular_file(path.c_str());
+    return fs::is_regular_file(path.data());
 }
 
-bool DefaultFilesystem::IsDirectory(const Path &path) const
+bool DefaultFilesystem::IsDirectory(std::string_view path) const
 {
-    return fs::is_directory(path.c_str());
+    return fs::is_directory(path.data());
 }
-void DefaultFilesystem::WriteString(const Path &path, std::string_view content) const
+void DefaultFilesystem::WriteString(std::string_view path, std::string_view content) const
 {
-    std::ofstream outFile(path.c_str(), std::ofstream::binary);
+    std::ofstream outFile(path.data(), std::ofstream::binary);
     outFile << content;
 }
 
 bool IOSystem::Exists(const char* pFile) const
 {
     const auto& filesystem = FilesystemLocator::get();
-    return filesystem.FileExists(Path(pFile));
+    return filesystem.FileExists(pFile);
 }
 
 char IOSystem::getOsSeparator() const
@@ -88,7 +88,7 @@ Assimp::IOStream* IOSystem::Open(const char* pFile, const char* pMode)
 {
     const auto& filesystem = FilesystemLocator::get();
 
-    return new IOStream(filesystem.LoadFile(Path(pFile)));
+    return new IOStream(filesystem.LoadFile(pFile));
 }
 
 void IOSystem::Close(Assimp::IOStream* pFile)

@@ -8,6 +8,10 @@
 
 #include <fmt/format.h>
 
+#ifdef TRACY_ENABLE
+#include <tracy/Tracy.hpp>
+#include <tracy/TracyOpenGL.hpp>
+#endif
 
 namespace gl
 {
@@ -49,7 +53,7 @@ void Shader::LoadShader(const core::pb::Shader &shader)
         break;
     }
     const auto &filesystem = core::FilesystemLocator::get();
-    core::Path path{shader.path()};
+    std::string_view path{shader.path()};
     if (filesystem.FileExists(path))
     {
         const auto file = filesystem.LoadFile(path);
@@ -66,16 +70,16 @@ void Shader::LoadShader(const core::pb::Shader &shader)
             char infoLog[infoLogSize];
             glGetShaderInfoLog(shaderName, infoLogSize, nullptr, infoLog);
             LogError(fmt::format("Shader compilation failed with this log:\n{}\nShader Path:\n{}",
-                              infoLog, path));
+                              infoLog, path.data()));
             glDeleteShader(shaderName);
             return;
         }
         name = shaderName;
-        LogDebug(fmt::format("Successfully loaded shader: {} with name: {}", path, name));
+        LogDebug(fmt::format("Successfully loaded shader: {} with name: {}", path.data(), name));
     }
     else
     {
-        LogError(fmt::format("File not found: {}", path));
+        LogError(fmt::format("File not found: {}", path.data()));
     }
     glCheckError();
 }

@@ -13,7 +13,7 @@ namespace editor
 
 struct RenderPassInfo
 {
-    core::Path path;
+    std::string path;
     std::string filename;
     editor::pb::EditorRenderPass info;
     ResourceId resourceId = INVALID_RESOURCE_ID;

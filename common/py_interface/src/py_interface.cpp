@@ -566,7 +566,7 @@ Script* PyManager::LoadScript(std::string_view path, std::string_view module, st
         return nativeScript;
     }
     const auto& filesystem = FilesystemLocator::get();
-    if(!filesystem.FileExists(Path(path)))
+    if(!filesystem.FileExists(path))
     {
         LogError(fmt::format("Could not find script file at path: {}", path));
         return nullptr;

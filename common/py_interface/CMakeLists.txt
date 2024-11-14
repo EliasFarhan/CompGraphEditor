@@ -7,8 +7,4 @@ set_target_properties (CommonPy PROPERTIES FOLDER Core)
 target_precompile_headers(CommonPy PRIVATE 
     "<pybind11/pybind11.h>" 
     "<pybind11/embed.h>"
-    "<pybind11/operators.h>" 
-    "<proto/renderer.pb.h>"
-    "<renderer/command.h>"
-    "<renderer/pipeline.h>"
-    "<engine/scene.h>")
+    "<pybind11/operators.h>")

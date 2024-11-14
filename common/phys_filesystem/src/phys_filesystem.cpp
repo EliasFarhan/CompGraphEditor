@@ -41,17 +41,17 @@ namespace core
         }
     }
 
-    core::FileBuffer PhysFilesystem::LoadFile(const Path &path) const
+    core::FileBuffer PhysFilesystem::LoadFile(std::string_view path) const
     {
-        auto genericPath = path;
+        std::string genericPath = path.data();
         std::ranges::replace(genericPath, '\\', '/');
         core::FileBuffer newFile;
         if (!FileExists(genericPath))
         {
-            LogError(fmt::format("File does not exist: {}", genericPath.c_str()));
+            LogError(fmt::format("File does not exist: {}", genericPath.data()));
             return newFile;
         }
-        auto* file = PHYSFS_openRead(genericPath.c_str());
+        auto* file = PHYSFS_openRead(genericPath.data());
         newFile.size = PHYSFS_fileLength(file);
         newFile.data = static_cast<unsigned char*>(
             std::malloc(newFile.size + 1));
@@ -67,16 +67,16 @@ namespace core
         return newFile;
     }
 
-    bool PhysFilesystem::FileExists(const Path &path) const
+    bool PhysFilesystem::FileExists(std::string_view path) const
     {
-        auto genericPath = path;
+        std::string genericPath = path.data();
         std::ranges::replace(genericPath, '\\', '/');
         return PHYSFS_exists(genericPath.c_str());
     }
 
-    bool PhysFilesystem::IsRegularFile(const Path &path) const
+    bool PhysFilesystem::IsRegularFile(std::string_view path) const
     {
-        auto genericPath = path;
+        std::string genericPath = path.data();
         std::ranges::replace(genericPath, '\\', '/');
         PHYSFS_Stat stat;
         if (PHYSFS_stat(genericPath.c_str(), &stat))
@@ -89,19 +89,19 @@ namespace core
         return stat.filetype == PHYSFS_FILETYPE_REGULAR;
     }
 
-    bool PhysFilesystem::IsDirectory(const Path &path) const
+    bool PhysFilesystem::IsDirectory(std::string_view path) const
     {
         PHYSFS_Stat stat;
-        if (PHYSFS_stat(path.c_str(), &stat))
+        if (PHYSFS_stat(path.data(), &stat))
         {
             LogError(fmt::format(
                 "PhysFS could not get stat of file: {}\nLog: {}",
-                path.c_str(), static_cast<int>(PHYSFS_getLastErrorCode())));
+                path.data(), static_cast<int>(PHYSFS_getLastErrorCode())));
             return false;
         }
         return stat.filetype == PHYSFS_FILETYPE_DIRECTORY;
     }
-    void PhysFilesystem::WriteString(const Path &path, std::string_view content) const
+    void PhysFilesystem::WriteString(std::string_view path, std::string_view content) const
     {
 
     }

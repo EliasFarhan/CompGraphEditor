@@ -35,10 +35,10 @@ bool Texture::LoadTexture(const core::pb::Texture& textureInfo)
     LogDebug(fmt::format("Loading texture: {}", textureInfo.path()));
     stbi_set_flip_vertically_on_load(true);
     const auto& filesystem = core::FilesystemLocator::get();
-    core::Path path{textureInfo.path()};
+    std::string_view path{textureInfo.path()};
     if (!filesystem.FileExists(path))
     {
-        LogError(fmt::format("File not found at path: {}", path));
+        LogError(fmt::format("File not found at path: {}", path.data()));
         return false;
     }
     const auto file = filesystem.LoadFile(path);
@@ -47,7 +47,7 @@ bool Texture::LoadTexture(const core::pb::Texture& textureInfo)
     auto* imageData = stbi_load_from_memory(file.data, file.size, &width, &height, &channelInFile, requiredChannels);
     if (imageData == nullptr)
     {
-        LogError(fmt::format("Could not decode image from path: {}", path));
+        LogError(fmt::format("Could not decode image from path: {}", path.data()));
         return false;
     }
     if(requiredChannels != 0)
@@ -99,7 +99,7 @@ bool Texture::LoadTexture(const core::pb::Texture& textureInfo)
         break;
     }
     default:
-        LogError(fmt::format("Invalid channel count on image. Count: {}, for texture at path: {}", channelInFile, path));
+        LogError(fmt::format("Invalid channel count on image. Count: {}, for texture at path: {}", channelInFile, path.data()));
         return false;
     }
     image = CreateImage(width, height, format, 1,

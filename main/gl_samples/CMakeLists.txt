@@ -9,7 +9,3 @@ target_link_libraries(gl_samples PRIVATE Core CommonGL CommonPy argh)
 set_target_properties (gl_samples PROPERTIES FOLDER Main)
 set_target_properties (gl_samples_DATA PROPERTIES FOLDER Main)
 set_target_properties (gl_samples_ShadersCheck PROPERTIES FOLDER Main)
-
-target_precompile_headers(gl_samples PRIVATE 
-        "<gl/engine.h>"
-        "<py_interface.h>")

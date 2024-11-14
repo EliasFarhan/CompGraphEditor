@@ -16,7 +16,7 @@ void ResourceManager::CheckDataFolder(const PbRepeatField<std::string>& paths)
     // Remove deleted file
     for(auto& pathStr : paths)
     {
-        const core::Path path{pathStr};
+        std::string_view path{pathStr};
         if(!filesystem.IsRegularFile(path))
         {
             RemoveResource(path);
@@ -29,7 +29,7 @@ void ResourceManager::CheckDataFolder(const PbRepeatField<std::string>& paths)
                     {
                         return false;
                     }
-                    return fs::equivalent(resource.path.c_str(), path.c_str());
+                    return fs::equivalent(resource.path.c_str(), path.data());
                 });
             if(it != resources_.end())
             {
@@ -46,7 +46,7 @@ void ResourceManager::CheckDataFolder(const PbRepeatField<std::string>& paths)
     }
 }
 
-ResourceId ResourceManager::FindResourceByPath(const core::Path &path) const
+ResourceId ResourceManager::FindResourceByPath(std::string_view path) const
 {
     if (path.empty())
         return INVALID_RESOURCE_ID;
@@ -59,7 +59,7 @@ ResourceId ResourceManager::FindResourceByPath(const core::Path &path) const
     {
         if (!fileSystem.FileExists(resource.path))
             return false;
-        return fs::equivalent(path.c_str(),resource.path.c_str());
+        return fs::equivalent(path.data(),resource.path.c_str());
     });
     if(it != resources_.end())
     {
@@ -93,12 +93,12 @@ void ResourceManager::RemoveResource(const Resource &resource)
         resourceChange->RemoveResource(resource);
     }
 }
-void ResourceManager::AddResource(const core::Path &path)
+void ResourceManager::AddResource(std::string_view path)
 {
     const auto& filesystem = core::FilesystemLocator::get();
     if(!filesystem.FileExists(path))
     {
-        LogWarning(fmt::format("Adding unexisting resource: {}", path));
+        LogWarning(fmt::format("Adding unexisting resource: {}", path.data()));
         return;
     }
     Resource newResource{};
@@ -115,7 +115,7 @@ void ResourceManager::AddResource(const core::Path &path)
 
 }
 
-void ResourceManager::RemoveResource(const core::Path &path, bool deleteFile)
+void ResourceManager::RemoveResource(std::string_view path, bool deleteFile)
 {
     const auto resourceId = FindResourceByPath(path);
     if(resourceId != INVALID_RESOURCE_ID)

@@ -33,7 +33,7 @@ public:
     ResourceManager& GetResourceManager() { return resourceManager_; }
     const ResourceManager& GetResourceManager() const { return resourceManager_; }
     static Editor* GetInstance() { return instance_; }
-    void CreateNewFile(const core::Path &path, EditorType type);
+    void CreateNewFile(std::string_view path, EditorType type);
 private:
     void OpenMenuCreateNewFile(EditorType editorType, std::string_view extension = "");
     void SaveProject() const;
@@ -44,13 +44,13 @@ private:
     void DrawInspector();
     static void DrawLogWindow();
     void UpdateFileDialog();
-    void LoadFileIntoEditor(const core::Path &path);
+    void LoadFileIntoEditor(std::string_view path);
     void RecursiveSceneFileReload();
     void OpenFileBrowserDialog(std::span<const std::string_view> extensions);
 
 
 
-    EditorSystem* FindEditorSystem(const core::Path &path) const;
+    EditorSystem* FindEditorSystem(std::string_view path) const;
     
     ResourceManager resourceManager_;
     ImGui::FileBrowser fileDialog_;

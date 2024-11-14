@@ -17,7 +17,11 @@
         "physfs", "protobuf", "spdlog", "nlohmann-json", "vulkan-memory-allocator", "assimp", "zstd", "argh",
         "spirv-cross", "volk", "basisu", "gtest"
     ],
-    "builtin-baseline": "a42af01b72c28a8e1d7b48107b33e4f286a55ef6",
+    "features":
+    {
+        "profiling": {"description": "Profiling", "dependencies": ["tracy"] }
+    },
+    "builtin-baseline": "89f00b3b8611028566a5264afce725cdfdfddbb4",
     "overrides": [
         { 
             "name": "ktx", 

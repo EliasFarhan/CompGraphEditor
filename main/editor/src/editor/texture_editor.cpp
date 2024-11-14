@@ -36,7 +36,7 @@ void TextureEditor::DrawInspector()
     auto& currentTextureInfo = textureInfos_[currentIndex_];
     ImGui::Text("Filename: %s", currentTextureInfo.filename.c_str());
 
-    if(GetFileExtension(core::Path(currentTextureInfo.filename)) == ".cube")
+    if(GetFileExtension(currentTextureInfo.filename) == ".cube")
     {
         //choose cubemap textures
         static constexpr std::array<std::string_view, core::pb::Cubemap::LENGTH> cubemapSides
@@ -61,12 +61,12 @@ void TextureEditor::DrawInspector()
             {
                 for(std::size_t textureIndex = 0; textureIndex < textureInfos_.size(); textureIndex++)
                 {
-                    core::Path otherTexturePath{textureInfos_[textureIndex].info.path()};
+                    std::string_view otherTexturePath{textureInfos_[textureIndex].info.path()};
                     if(GetFileExtension(otherTexturePath) == ".cube")
                     {
                         continue;
                     }
-                    const bool selected = !texturePath->empty() && fs::equivalent(*texturePath, otherTexturePath.c_str());
+                    const bool selected = !texturePath->empty() && fs::equivalent(*texturePath, otherTexturePath.data());
                     if(ImGui::Selectable(textureInfos_[textureIndex].filename.data(), selected))
                     {
                         *texturePath = otherTexturePath;
@@ -266,7 +266,7 @@ void TextureEditor::Save()
         std::ofstream fileOut(textureInfo.infoPath.c_str(), std::ios::binary);
         if (!textureInfo.info.SerializeToOstream(&fileOut))
         {
-            LogWarning(fmt::format("Could not save texture info at: {}", textureInfo.infoPath));
+            LogWarning(fmt::format("Could not save texture info at: {}", textureInfo.infoPath.c_str()));
         }
     }
 }
@@ -341,7 +341,7 @@ void TextureEditor::Delete()
     }
     auto* editor = Editor::GetInstance();
     auto& resourceManager = editor->GetResourceManager();
-    resourceManager.RemoveResource(core::Path(textureInfos_[currentIndex_].info.path()), true);
+    resourceManager.RemoveResource(textureInfos_[currentIndex_].info.path(), true);
 }
 
 std::span<const std::string_view> TextureEditor::GetExtensions() const
@@ -370,9 +370,9 @@ void TextureEditor::Clear()
 void TextureEditor::CubeToKtx(const TextureInfo& textureInfo)
 {
 
-    const core::Path ktxPath{
+    const std::string ktxPath{
         fmt::format("{}/{}.ktx",
-                    GetFolder(core::Path(textureInfo.info.path())),
+                    GetFolder(textureInfo.info.path()).c_str(),
                     GetFilename(textureInfo.info.path(), false))
     };
 
@@ -443,10 +443,10 @@ void TextureEditor::CubeToKtx(const TextureInfo& textureInfo)
 
 void TextureEditor::HdrToKtx(const TextureInfo& textureInfo)
 {
-    const core::Path path {textureInfo.info.path()};
+    const std::string_view path {textureInfo.info.path()};
     const auto baseDir = GetFolder(path);
     const auto filename = GetFilename(path, false);
-    const core::Path ktxMapPath{fmt::format("{}/{}.ktx", baseDir, filename)};
+    const std::string ktxMapPath{fmt::format("{}/{}.ktx", baseDir.c_str(), filename)};
 
     auto& filesystem = core::FilesystemLocator::get();
     auto envMapFile = filesystem.LoadFile(path);
@@ -624,7 +624,7 @@ void TextureEditor::ExportToKtx(const TextureInfo& textureInfo) const
 {
     int w, h, channelCount;
     auto* data = stbi_load(textureInfo.info.path().c_str(), &w, &h, &channelCount, 0);
-    std::string output = fmt::format("{}/{}.ktx", GetFolder(core::Path(textureInfo.info.path())),
+    std::string output = fmt::format("{}/{}.ktx", GetFolder(textureInfo.info.path()).c_str(),
                                      GetFilename(textureInfo.info.path(), false));
     ktxTexture2* texture;
     ktxTextureCreateInfo createInfo;

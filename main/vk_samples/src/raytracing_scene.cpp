@@ -1,4 +1,5 @@
 #include "raytracing_scene.h"
+#include <glm/mat4x4.hpp>
 
 namespace gpr5300
 {

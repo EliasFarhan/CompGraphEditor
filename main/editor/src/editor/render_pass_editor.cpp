@@ -104,7 +104,7 @@ void RenderPassEditor::DrawInspector()
         std::vector<int> removedCommandIndices;
         for (int commandIndex = 0; commandIndex < subpassInfo->command_paths_size(); commandIndex++)
         {
-            core::Path commandPath {subpassInfo->command_paths(commandIndex)};
+            std::string_view commandPath {subpassInfo->command_paths(commandIndex)};
             const auto commandId = resourceManager.FindResourceByPath(commandPath);
             if (!commandPath.empty() && commandId == INVALID_RESOURCE_ID)
             {
@@ -267,7 +267,7 @@ void RenderPassEditor::DrawCenterView()
         ImGui::TextUnformatted("Commands:");
         for(int commandIndex = 0; commandIndex < subpass.command_paths_size(); commandIndex++)
         {
-            const core::Path commandPath{subpass.command_paths(commandIndex)};
+            const std::string commandPath{subpass.command_paths(commandIndex)};
             const auto commandResource = resourceManager.FindResourceByPath(commandPath);
             const auto& commandInfo = commandEditor->GetCommand(commandResource);
             if (commandInfo != nullptr)
@@ -311,7 +311,7 @@ void RenderPassEditor::Save()
         std::ofstream fileOut(renderPassInfo.path.c_str(), std::ios::binary);
         if (!renderPassInfo.info.SerializeToOstream(&fileOut))
         {
-            LogWarning(fmt::format("Could not save render pass at: {}", renderPassInfo.path));
+            LogWarning(fmt::format("Could not save render pass at: {}", renderPassInfo.path.c_str()));
         }
     }
 }
@@ -327,13 +327,13 @@ void RenderPassEditor::AddResource(const Resource& resource)
 
     if (!fileSystem.IsRegularFile(resource.path.c_str()))
     {
-        LogWarning(fmt::format("Could not find render pass file: {}", resource.path));
+        LogWarning(fmt::format("Could not find render pass file: {}", resource.path.c_str()));
         return;
     }
     std::ifstream fileIn(resource.path.c_str(), std::ios::binary);
     if (!renderPassInfo.info.ParsePartialFromIstream(&fileIn))
     {
-        LogWarning(fmt::format("Could not open render pass protobuf file: {}", resource.path));
+        LogWarning(fmt::format("Could not open render pass protobuf file: {}", resource.path.c_str()));
         return;
     }
     renderPassInfos_.push_back(renderPassInfo);

@@ -7,7 +7,7 @@ namespace editor
 
 struct BufferInfo
 {
-    core::Path path;
+    std::string path;
     std::string filename;
     core::pb::Buffer info;
     ResourceId resourceId = INVALID_RESOURCE_ID;

@@ -151,7 +151,7 @@ void Engine::PreImGuiDraw()
 #endif
     ImGui_ImplOpenGL3_NewFrame();
     glCheckError();
-    ImGui_ImplSDL2_NewFrame(window_);
+    ImGui_ImplSDL2_NewFrame();
     ImGui::NewFrame();
 }
 

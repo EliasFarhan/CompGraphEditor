@@ -2,6 +2,7 @@
 #include "proto/renderer.pb.h"
 #include "resource.h"
 #include "editor_system.h"
+#include "renderer/texture.h"
 
 namespace editor
 {
@@ -18,7 +19,7 @@ struct KtxExportInfo
 struct TextureInfo
 {
     std::string filename;
-    core::Path infoPath;
+    std::string infoPath;
     core::pb::Texture info;
     ResourceId resourceId = INVALID_RESOURCE_ID;
     core::pb::Cubemap cubemap;

@@ -23,13 +23,13 @@ void FramebufferEditor::AddResource(const Resource& resource)
 
     if (!fileSystem.IsRegularFile(resource.path))
     {
-        LogWarning(fmt::format("Could not find framebuffer file: {}", resource.path));
+        LogWarning(fmt::format("Could not find framebuffer file: {}", resource.path.c_str()));
         return;
     }
     std::ifstream fileIn(resource.path.c_str(), std::ios::binary);
     if (!framebufferInfo.info.ParseFromIstream(&fileIn))
     {
-        LogWarning(fmt::format("Could not open protobuf file: {}", resource.path));
+        LogWarning(fmt::format("Could not open protobuf file: {}", resource.path.c_str()));
         return;
     }
     if(framebufferInfo.info.name().empty())
@@ -304,7 +304,7 @@ void FramebufferEditor::Save()
         std::ofstream fileOut(framebufferInfo.path.c_str(), std::ios::binary);
         if (!framebufferInfo.info.SerializeToOstream(&fileOut))
         {
-            LogWarning(fmt::format("Could not save framebuffer at: {}", framebufferInfo.path));
+            LogWarning(fmt::format("Could not save framebuffer at: {}", framebufferInfo.path.c_str()));
         }
 
     }

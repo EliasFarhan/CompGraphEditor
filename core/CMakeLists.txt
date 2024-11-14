@@ -1,16 +1,17 @@
 file(GLOB_RECURSE CORE_FILES src/*.cpp include/*.h)
 add_library(Core STATIC ${CORE_FILES})
-target_include_directories(Core PUBLIC include/ ${STB_INCLUDE_DIRS} ${Python3_INCLUDE_DIRS})
+target_include_directories(Core PUBLIC include/ ${STB_INCLUDE_DIRS} ${Python3_INCLUDE_DIRS} ${CMAKE_CURRENT_BINARY_DIR}/)
 generate_proto(Core)
 
 set_target_properties (CoreProto PROPERTIES FOLDER Core)
+target_compile_definitions(Core PUBLIC GLM_ENABLE_EXPERIMENTAL)
 target_link_libraries(Core PUBLIC glm::glm SDL2::SDL2 SDL2::SDL2main imgui::imgui 
-    pybind11::embed ${Python3_LIBRARIES} spdlog::spdlog KTX::ktx assimp::assimp)
+    pybind11::embed ${Python3_LIBRARIES} spdlog::spdlog KTX::ktx assimp::assimp fmt::fmt)
 
-if(ENABLE_PROFILER)
-    target_link_libraries(Core PUBLIC TracyClient)
+if(ENABLE_PROFILING)
+    target_link_libraries(Core PUBLIC Tracy::TracyClient)
     target_compile_definitions(Core PUBLIC TRACY_ENABLE=1)
-endif()
+endif(ENABLE_PROFILING)
 set_target_properties (Core PROPERTIES FOLDER Core)
 
 if(MSVC)
@@ -22,7 +23,7 @@ else()
     target_link_options(Core PUBLIC -flto)
 endif()
 
-target_precompile_headers(Core PRIVATE "${CMAKE_CURRENT_BINARY_DIR}/proto/renderer.pb.h" "<array>" "<vector>" "<string>" "<filesystem>")
+target_precompile_headers(Core PRIVATE "<array>" "<vector>" "<string>" "<filesystem>")
 
 file(GLOB TEST_FILES test/*.cpp)
 add_executable(CoreTest ${TEST_FILES})

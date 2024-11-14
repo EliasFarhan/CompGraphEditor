@@ -49,7 +49,7 @@ void MaterialEditor::DrawInspector()
     for(int i = 0; i < currentMaterialInfo.info.textures_size(); i++)
     {
         auto* materialTexture = currentMaterialInfo.info.mutable_textures(i);
-        core::Path texturePath{materialTexture->texture_name()};
+        std::string_view texturePath{materialTexture->texture_name()};
         const auto& fbAttachment = materialTexture->material_texture().attachment_name();
         if (!texturePath.empty())
         {
@@ -63,7 +63,7 @@ void MaterialEditor::DrawInspector()
         }
         if(ImGui::BeginCombo(materialTexture->material_texture().sampler_name().c_str(), 
             texturePath.empty() && fbAttachment.empty() ?
-            "Empty texture" : texturePath.empty()?fbAttachment.data():texturePath.c_str()))
+            "Empty texture" : texturePath.empty()?fbAttachment.data():texturePath.data()))
         {
             for(const auto& texture : textureEditor->GetTextures())
             {
@@ -292,7 +292,7 @@ void MaterialEditor::Save()
         std::ofstream fileOut(materialInfo.path.c_str(), std::ios::binary);
         if (!materialInfo.info.SerializeToOstream(&fileOut))
         {
-            LogWarning(fmt::format("Could not save material at: {}", materialInfo.path));
+            LogWarning(fmt::format("Could not save material at: {}", materialInfo.path.c_str()));
         }
         
     }
@@ -308,13 +308,13 @@ void MaterialEditor::AddResource(const Resource &resource)
 
     if (!fileSystem.IsRegularFile(resource.path.c_str()))
     {
-        LogWarning(fmt::format("Could not find material file: {}", resource.path));
+        LogWarning(fmt::format("Could not find material file: {}", resource.path.c_str()));
         return;
     }
     std::ifstream fileIn(resource.path.c_str(), std::ios::binary);
     if (!materialInfo.info.ParsePartialFromIstream(&fileIn))
     {
-        LogWarning(fmt::format("Could not open protobuf file: {}", resource.path));
+        LogWarning(fmt::format("Could not open protobuf file: {}", resource.path.c_str()));
         return;
     }
     if(materialInfo.info.material().name().empty())
@@ -393,7 +393,7 @@ void MaterialEditor::ReloadId()
     {
         if (currentMaterialInfo.pipelineId == INVALID_RESOURCE_ID && !currentMaterialInfo.info.pipeline_path().empty())
         {
-            currentMaterialInfo.pipelineId = resourceManager.FindResourceByPath(core::Path(currentMaterialInfo.info.pipeline_path()));
+            currentMaterialInfo.pipelineId = resourceManager.FindResourceByPath(currentMaterialInfo.info.pipeline_path());
             const auto* pipeline = pipelineEditor->GetPipeline(currentMaterialInfo.pipelineId);
             if (pipeline != nullptr)
             {

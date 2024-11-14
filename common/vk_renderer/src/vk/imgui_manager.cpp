@@ -43,7 +43,7 @@ void ImGuiManager::Begin()
     ImGui_ImplVulkan_LoadFunctions([](const char* function_name, void* vulkan_instance) {
         return vkGetInstanceProcAddr(*(reinterpret_cast<VkInstance*>(vulkan_instance)), function_name);
         }, &driver.instance);
-    ImGui_ImplVulkan_Init(&initInfo, renderPass);
+    ImGui_ImplVulkan_Init(&initInfo);
 
     UploadFontAtlas();
 }

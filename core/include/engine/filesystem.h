@@ -15,89 +15,6 @@
 namespace core
 {
 
-class Path
-{
-public:
-    constexpr Path() = default;
-    explicit constexpr Path(const std::string& path)
-    {
-        std::char_traits<char>::copy(path_.data(), path.c_str(), std::min(path_.size(), path.size()));
-    }
-    explicit constexpr Path(std::string_view path)
-    {
-        std::char_traits<char>::copy(path_.data(), path.data(), std::min(path_.size(), path.size()));
-    }
-    constexpr Path(const char* path)
-    {
-        std::char_traits<char>::copy(path_.data(), path, std::min(path_.size(), std::char_traits<char>::length(path)));
-    }
-    [[nodiscard]] constexpr const char* c_str() const
-    {
-        return path_.data();
-    }
-    constexpr operator std::string_view() const
-    {
-        return { path_.data(), size() };
-    }
-    constexpr explicit operator std::string() const
-    {
-        return path_.data();
-    }
-    constexpr bool operator==(const Path& other) const
-    {
-        return std::char_traits<char>::compare(path_.data(), other.path_.data(), size()) == 0;
-    }
-    [[nodiscard]] constexpr std::size_t size() const
-    {
-        return std::char_traits<char>::length(path_.data());
-    }
-
-    [[nodiscard]] constexpr bool empty() const
-    {
-        return size() == 0;
-    }
-    [[nodiscard]] constexpr Path operator+(const Path& other) const
-    {
-        Path result{};
-        std::char_traits<char>::copy(result.path_.data(), path_.data(), path_.size());
-        const auto oldSize = result.size();
-        std::char_traits<char>::copy(result.path_.data()+result.size(), other.path_.data(), other.path_.size());
-        *(result.path_.data()+oldSize+other.path_.size()) = 0;
-        return result;
-    }
-
-    constexpr Path& operator+=(const Path& other)
-    {
-        const auto oldSize = size();
-        std::char_traits<char>::copy(path_.data()+size(), other.path_.data(), other.path_.size());
-        *(path_.data()+oldSize+other.path_.size()) = 0;
-        return *this;
-    }
-
-
-    [[nodiscard]] bool contains(const Path& path) const
-    {
-        return std::strstr(path_.data(), path.path_.data()) != nullptr;
-    }
-
-    using iterator = char*;
-    using const_iterator = const char*;
-
-
-    const_iterator cbegin() const { return path_.data(); }
-    const_iterator cend() const { return path_.data() + size(); }
-    const_iterator begin() const { return cbegin(); }
-    const_iterator end() const { return cend(); }
-    iterator begin() { return path_.data(); }
-    iterator end() { return path_.data() + size(); }
-
-    static constexpr std::size_t MAX_PATH_LENGTH = 48;
-private:
-    std::array<char, MAX_PATH_LENGTH> path_{};
-};
-
-
-
     
 class FileBuffer
 {
@@ -126,37 +43,37 @@ class FilesystemInterface
 {
 public:
     virtual ~FilesystemInterface() = default;
-    [[nodiscard]] virtual FileBuffer LoadFile(const Path &path) const = 0;
-    [[nodiscard]] virtual bool FileExists(const Path &path) const = 0;
-    [[nodiscard]] virtual bool IsRegularFile(const Path &path) const = 0;
-    [[nodiscard]] virtual bool IsDirectory(const Path &path) const = 0;
-    virtual void WriteString(const Path &path, std::string_view content) const = 0;
+    [[nodiscard]] virtual FileBuffer LoadFile(std::string_view path) const = 0;
+    [[nodiscard]] virtual bool FileExists(std::string_view path) const = 0;
+    [[nodiscard]] virtual bool IsRegularFile(std::string_view path) const = 0;
+    [[nodiscard]] virtual bool IsDirectory(std::string_view path) const = 0;
+    virtual void WriteString(std::string_view path, std::string_view content) const = 0;
 };
 
 class NullFilesystem final : public FilesystemInterface
 {
 public:
-    [[nodiscard]] FileBuffer LoadFile(const Path &path) const override
+    [[nodiscard]] FileBuffer LoadFile(std::string_view path) const override
     {
         assert(false);
         return {};
     }
-    [[nodiscard]] bool FileExists(const Path &path) const override
+    [[nodiscard]] bool FileExists(std::string_view path) const override
     {
         assert(false);
         return false;
     }
-    [[nodiscard]] bool IsRegularFile(const Path &path) const override
+    [[nodiscard]] bool IsRegularFile(std::string_view path) const override
     {
         assert(false);
         return false;
     }
-    [[nodiscard]] bool IsDirectory(const Path &path) const override
+    [[nodiscard]] bool IsDirectory(std::string_view path) const override
     {
         assert(false);
         return false;
     }
-    void WriteString(const Path &path, std::string_view content) const override
+    void WriteString(std::string_view path, std::string_view content) const override
     {
         assert(false);
     }
@@ -165,11 +82,11 @@ public:
 class DefaultFilesystem final : public FilesystemInterface
 {
 public:
-    [[nodiscard]] FileBuffer LoadFile(const Path &path) const override;
-    [[nodiscard]] bool FileExists(const Path &path) const override;
-    [[nodiscard]] bool IsRegularFile(const Path &path) const override;
-    [[nodiscard]] bool IsDirectory(const Path &path) const override;
-    void WriteString(const Path &path, std::string_view content) const override;
+    [[nodiscard]] FileBuffer LoadFile(std::string_view path) const override;
+    [[nodiscard]] bool FileExists(std::string_view path) const override;
+    [[nodiscard]] bool IsRegularFile(std::string_view path) const override;
+    [[nodiscard]] bool IsDirectory(std::string_view path) const override;
+    void WriteString(std::string_view path, std::string_view content) const override;
 };
 
 
@@ -204,27 +121,3 @@ private:
 
 } // namespace core
 
-template<>
-struct std::hash<core::Path>
-{
-    std::size_t operator()(core::Path const& s) const noexcept
-    {
-        return std::hash<std::string_view>{}((std::string_view)s);
-    }
-};
-
-template<>
-struct fmt::formatter<core::Path>
-{
-    template<typename ParseContext>
-    constexpr auto parse(ParseContext& ctx)
-    {
-        return ctx.begin();
-    }
-
-    template<typename FormatContext>
-    auto format(core::Path const& number, FormatContext& ctx)
-    {
-        return fmt::format_to(ctx.out(), "{}", number.c_str());
-    }
-};

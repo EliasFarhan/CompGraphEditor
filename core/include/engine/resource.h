@@ -4,6 +4,10 @@
 #include "engine/system.h"
 #include "utils/job_system.h"
 
+#ifdef TRACY_ENABLE
+#include <tracy/Tracy.hpp>
+#endif
+
 namespace core
 {
 
@@ -20,7 +24,7 @@ constexpr ResourceId INVALID_RESOURCE_ID = {};
 
 struct Resource
 {
-    Path path{};
+    std::string path{};
     ResourceId resourceId = INVALID_RESOURCE_ID;
     int fileIndex = -1;
     bool hasLoaded = false;

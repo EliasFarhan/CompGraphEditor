@@ -11,6 +11,7 @@
 #include <span>
 #include <array>
 #include <vector>
+#include <unordered_map>
 
 namespace core
 {
@@ -61,7 +62,7 @@ class ModelManager final
 {
 public:
     ModelManager();
-    ModelIndex ImportModel(const core::Path &modelPath);
+    ModelIndex ImportModel(std::string_view modelPath);
     [[nodiscard]] Model& GetModel(ModelIndex index) { return models_[index.index]; }
     [[nodiscard]] const Model& GetModel(ModelIndex index) const { return models_[index.index]; }
     void Clear();

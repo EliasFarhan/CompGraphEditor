@@ -1,9 +1,10 @@
 #pragma once
+#include <engine/filesystem.h>
 #include <string_view>
 
 namespace editor
 {
 void GeneratePreComputeBrdfLUT();
-void GenerateIrradianceMap(const core::Path& path);
-void GeneratePreFilterEnvMap(const core::Path& path);
+void GenerateIrradianceMap(std::string_view path);
+void GeneratePreFilterEnvMap(std::string_view path);
 } // namespace gpr5300

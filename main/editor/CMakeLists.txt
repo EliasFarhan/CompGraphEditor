@@ -44,12 +44,8 @@ set_target_properties (editor_scripts PROPERTIES FOLDER Main)
 target_precompile_headers(editor PRIVATE 
         "<filesystem>" 
         "<fmt/format.h>"
-        "<nlohmann/json.hpp>" 
-        "<proto/renderer.pb.h>" 
-        "<proto/editor.pb.h>"
-        "<pybind11/pybind11.h>"
-        "<gl/pipeline.h>"
-        "<engine/engine.h>")
+        "<nlohmann/json.hpp>"
+        "<pybind11/pybind11.h>")
 
 
 #gl player
@@ -62,9 +58,6 @@ target_link_libraries(gl_player PRIVATE CommonGL CommonPy argh PhysFilesystem)
 
 set_target_properties (gl_player PROPERTIES FOLDER Main)
 add_dependencies(editor gl_player)
-target_precompile_headers(gl_player PRIVATE 
-        "<engine/engine.h>"
-        "<py_interface.h>")
 
 #vk player
 
@@ -74,9 +67,6 @@ add_executable(vk_player ${VK_PLAYER_SRC} main/vk_player_main.cpp)
 target_include_directories(vk_player PRIVATE include/vk_player/)
 target_link_libraries(vk_player PRIVATE CommonVK CommonPy argh PhysFilesystem)
 set_target_properties (vk_player PROPERTIES FOLDER Main)
-target_precompile_headers(vk_player PRIVATE
-        "<engine/engine.h>"
-        "<py_interface.h>")
 
 
 #vk shader analyzer

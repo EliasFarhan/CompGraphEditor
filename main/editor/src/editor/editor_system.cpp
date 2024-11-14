@@ -9,11 +9,11 @@
 namespace editor
 {
 
-void EditorSystem::ImportResource(const core::Path &path)
+void EditorSystem::ImportResource(std::string_view path)
 {
     const auto& sceneName = GetSceneEditor()->GetCurrentSceneInfo()->info.name();
-    const core::Path dstPath{fmt::format("{}{}/{}{}",
-        ResourceManager::dataFolder,
+    const std::string dstPath{fmt::format("{}{}/{}{}",
+        ResourceManager::dataFolder.data(),
         sceneName,
         GetSubFolder(),
         GetFilename(path))};

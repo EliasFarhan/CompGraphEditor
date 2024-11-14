@@ -55,7 +55,6 @@ public:
 
     }
     bool ShouldStart() const override;
-protected:
     bool CheckDependency(const Job *ptr) const override;
 private:
     std::weak_ptr<Job> dependency_{};

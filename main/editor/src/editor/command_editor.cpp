@@ -31,7 +31,7 @@ void CommandEditor::AddResource(const Resource& resource)
         const auto& fileSystem = core::FilesystemLocator::get();
         if (!fileSystem.IsRegularFile(resource.path.c_str()))
         {
-            LogWarning(fmt::format("Could not find command file: {}", resource.path));
+            LogWarning(fmt::format("Could not find command file: {}", resource.path.c_str()));
             return;
         }
         std::ifstream fileIn(resource.path.c_str(), std::ios::binary);
@@ -39,7 +39,7 @@ void CommandEditor::AddResource(const Resource& resource)
         auto& info = std::get<pb::EditorDrawCommand>(commandInfo.info);
         if (!info.ParseFromIstream(&fileIn))
         {
-            LogWarning(fmt::format("Could not open protobuf file: {}", resource.path));
+            LogWarning(fmt::format("Could not open protobuf file: {}", resource.path.c_str()));
             return;
         }
         if (info.draw_command().name().empty())
@@ -52,7 +52,7 @@ void CommandEditor::AddResource(const Resource& resource)
         const auto& fileSystem = core::FilesystemLocator::get();
         if (!fileSystem.IsRegularFile(resource.path.c_str()))
         {
-            LogWarning(fmt::format("Could not find command file: {}", resource.path));
+            LogWarning(fmt::format("Could not find command file: {}", resource.path.c_str()));
             return;
         }
         std::ifstream fileIn(resource.path.c_str(), std::ios::binary);
@@ -60,7 +60,7 @@ void CommandEditor::AddResource(const Resource& resource)
         auto& info = std::get<pb::EditorComputeCommand>(commandInfo.info);
         if (!info.ParseFromIstream(&fileIn))
         {
-            LogWarning(fmt::format("Could not open protobuf file: {}", resource.path));
+            LogWarning(fmt::format("Could not open protobuf file: {}", resource.path.c_str()));
             return;
         }
         if (info.compute_command().name().empty())
@@ -210,9 +210,9 @@ void CommandEditor::DrawInspector()
         if (ssbo.binding() != -1)
         {
             const auto buffers = bufferEditor->GetBuffers();
-            const core::Path currentBufferPath{drawCommandInfo.buffer_path()};
+            std::string_view currentBufferPath{drawCommandInfo.buffer_path()};
 
-            if (ImGui::BeginCombo("Storage Buffer", currentBufferPath.empty() ? "No Buffer" : currentBufferPath.c_str()))
+            if (ImGui::BeginCombo("Storage Buffer", currentBufferPath.empty() ? "No Buffer" : currentBufferPath.data()))
             {
                 for (const auto& buffer : buffers)
                 {
@@ -390,14 +390,14 @@ void CommandEditor::Save()
         {
             if (!std::get<pb::EditorDrawCommand>(commandInfo.info).SerializeToOstream(&fileOut))
             {
-                LogWarning(fmt::format("Could not save command at: {}", commandInfo.path));
+                LogWarning(fmt::format("Could not save command at: {}", commandInfo.path.c_str()));
             }
         }
         else
         {
             if (!std::get<pb::EditorComputeCommand>(commandInfo.info).SerializeToOstream(&fileOut))
             {
-                LogWarning(fmt::format("Could not save command at: {}", commandInfo.path));
+                LogWarning(fmt::format("Could not save command at: {}", commandInfo.path.c_str()));
             }
         }
 
@@ -423,20 +423,20 @@ void CommandEditor::ReloadId()
     const auto& resourceManager = editor->GetResourceManager();
     for (auto& commandInfo : commandInfos_)
     {
-        core::Path materialPath;
-        core::Path meshPath;
-        core::Path bufferPath;
+        std::string materialPath;
+        std::string meshPath;
+        std::string bufferPath;
         if(commandInfo.info.index() == 0)
         {
             const auto& drawCommandInfo = std::get<pb::EditorDrawCommand>(commandInfo.info);
-            materialPath = core::Path(drawCommandInfo.material_path());
-            meshPath = core::Path(drawCommandInfo.mesh_path());
-            bufferPath = core::Path(drawCommandInfo.buffer_path());
+            materialPath = drawCommandInfo.material_path();
+            meshPath = drawCommandInfo.mesh_path();
+            bufferPath = drawCommandInfo.buffer_path();
         }
         else
         {
             const auto& drawCommandInfo = std::get<pb::EditorComputeCommand>(commandInfo.info);
-            materialPath = core::Path(drawCommandInfo.material_path());
+            materialPath = drawCommandInfo.material_path();
         }
         if (commandInfo.materialId == INVALID_RESOURCE_ID && !materialPath.empty())
         {

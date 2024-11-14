@@ -17,6 +17,7 @@
 #ifdef TRACY_ENABLE
 #include <tracy/Tracy.hpp>
 #include <tracy/TracyC.h>
+#include <tracy/TracyOpenGL.hpp>
 #endif
 
 namespace gl
@@ -176,7 +177,7 @@ Scene::ImportStatus Scene::LoadMaterials(const PbRepeatField<core::pb::Material>
         const auto modelsSize = models.size();
         for (int i = 0; i < modelsSize; i++)
         {
-            modelIndices_.push_back(modelManager.ImportModel(core::Path(models.Get(i))));
+            modelIndices_.push_back(modelManager.ImportModel(models.Get(i)));
         }
 
         return ImportStatus::SUCCESS;

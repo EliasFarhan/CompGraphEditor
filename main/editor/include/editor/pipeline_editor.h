@@ -7,7 +7,7 @@ namespace editor
 
 struct PipelineInfo
 {
-    core::Path path;
+    std::string path;
     std::string filename;
     pb::EditorPipeline info;
     pb::EditorRaytracingPipeline raytracingInfo;

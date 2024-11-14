@@ -1,6 +1,10 @@
 #include "renderer/mesh.h"
 #include "maths/angle.h"
 
+#ifdef TRACY_ENABLE
+#include <tracy/Tracy.hpp>
+#endif
+
 namespace core
 {
     

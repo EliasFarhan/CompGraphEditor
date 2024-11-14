@@ -8,7 +8,7 @@ namespace editor
 struct FramebufferInfo
 {
     std::string filename;
-    core::Path path;
+    std::string path;
     core::pb::FrameBuffer info;
     ResourceId resourceId;
 };

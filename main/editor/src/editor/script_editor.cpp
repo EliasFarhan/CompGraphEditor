@@ -53,7 +53,7 @@ void ScriptEditor::AddResource(const Resource& resource)
     }
     catch(py::error_already_set& e)
     {
-        LogWarning(fmt::format("Could not analyze script: {}\n{}", resource.path, e.what()));
+        LogWarning(fmt::format("Could not analyze script: {}\n{}", resource.path.c_str(), e.what()));
     }
     scriptInfos_.push_back(scriptInfo);
 }
@@ -99,7 +99,7 @@ void ScriptEditor::UpdateExistingResource(const Resource& resource)
             }
             catch (py::error_already_set& e)
             {
-                LogWarning(fmt::format("Could not analyze script: {}\n{}", resource.path, e.what()));
+                LogWarning(fmt::format("Could not analyze script: {}\n{}", resource.path.c_str(), e.what()));
             }
         }
     }
@@ -154,7 +154,7 @@ bool ScriptEditor::DrawContentList(bool unfocus)
         {
             currentIndex_ = i;
             auto& filesystem = core::FilesystemLocator::get();
-            const auto scriptContent = filesystem.LoadFile(core::Path(scriptInfo.info.path()));
+            const auto scriptContent = filesystem.LoadFile(scriptInfo.info.path());
             scriptText_ = reinterpret_cast<const char*>(scriptContent.data);
             wasFocused = true;
         }
@@ -179,7 +179,7 @@ void ScriptEditor::Save()
         return;
     }
     const auto& filesystem = core::FilesystemLocator::get();
-    filesystem.WriteString(core::Path(scriptInfos_[currentIndex_].info.path()), scriptText_);
+    filesystem.WriteString(scriptInfos_[currentIndex_].info.path(), scriptText_);
     auto& resourceManager = Editor::GetInstance()->GetResourceManager();
     auto* resource = resourceManager.GetResource(scriptInfos_[currentIndex_].resourceId);
     resourceManager.UpdateExistingResource(*resource);
@@ -211,7 +211,7 @@ void ScriptEditor::Delete()
     }
     auto* editor = Editor::GetInstance();
     auto& resourceManager = editor->GetResourceManager();
-    resourceManager.RemoveResource(core::Path(scriptInfos_[currentIndex_].info.path()), true);
+    resourceManager.RemoveResource(scriptInfos_[currentIndex_].info.path(), true);
 }
 
 std::span<const std::string_view> ScriptEditor::GetExtensions() const

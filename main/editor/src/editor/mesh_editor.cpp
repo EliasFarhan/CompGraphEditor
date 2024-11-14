@@ -144,7 +144,7 @@ void MeshEditor::Save()
         std::ofstream fileOut(meshInfo.path.c_str(), std::ios::binary);
         if (!meshInfo.info.SerializeToOstream(&fileOut))
         {
-            LogWarning(fmt::format("Could not save mesh at: {}", meshInfo.path));
+            LogWarning(fmt::format("Could not save mesh at: {}", meshInfo.path.c_str()));
         }
         
     }
@@ -161,13 +161,13 @@ void MeshEditor::AddResource(const Resource &resource)
     const auto& fileSystem = core::FilesystemLocator::get();
     if (!fileSystem.IsRegularFile(resource.path.c_str()))
     {
-        LogWarning(fmt::format("Could not find mesh file: {}", resource.path));
+        LogWarning(fmt::format("Could not find mesh file: {}", resource.path.c_str()));
         return;
     }
     std::ifstream fileIn(resource.path.c_str(), std::ios::binary);
     if (!meshInfo.info.ParseFromIstream(&fileIn))
     {
-        LogWarning(fmt::format("Could not open protobuf file: {}", resource.path));
+        LogWarning(fmt::format("Could not open protobuf file: {}", resource.path.c_str()));
         return;
     }
     

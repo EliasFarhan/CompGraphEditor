@@ -7,15 +7,15 @@
 namespace editor
 {
 
-std::string GetFileExtension(core::Path path)
+std::string GetFileExtension(std::string_view path)
 {
-    const fs::path p = path.c_str();
+    const fs::path p = path.data();
     return p.extension().string();
 }
 
-fs::file_time_type GetLastTimeWrite(const core::Path &path)
+fs::file_time_type GetLastTimeWrite(std::string_view path)
 {
-    const fs::path p = path.c_str();
+    const fs::path p = path.data();
     return fs::exists(p)?last_write_time(p): fs::file_time_type{};
 }
 std::string GetFilename(std::string_view path, bool withExtension)
@@ -23,33 +23,33 @@ std::string GetFilename(std::string_view path, bool withExtension)
     const fs::path p = path;
     return withExtension?p.filename().string() : p.stem().string();
 }
-bool CopyFileFromTo(const core::Path &srcPath, const core::Path &dstPath, bool forceOverwrite)
+bool CopyFileFromTo(std::string_view srcPath, std::string_view dstPath, bool forceOverwrite)
 {
     try
     {
-        fs::copy(srcPath.c_str(), dstPath.c_str(), forceOverwrite?fs::copy_options::overwrite_existing:fs::copy_options::skip_existing);
+        fs::copy(srcPath.data(), dstPath.data(), forceOverwrite?fs::copy_options::overwrite_existing:fs::copy_options::skip_existing);
     }
     catch (fs::filesystem_error& e)
     {
-        LogError(fmt::format("Could not copy from {} to {}\n{}", srcPath, dstPath, e.what()));
+        LogError(fmt::format("Could not copy from {} to {}\n{}", srcPath.data(), dstPath.data(), e.what()));
         return false;
     }
     return true;
 }
-bool CreateNewDirectory(const core::Path &newDir)
+bool CreateNewDirectory(std::string_view newDir)
 {
-    return fs::create_directories(newDir.c_str());
+    return fs::create_directories(newDir.data());
 }
 
-bool RemoveFile(const core::Path &path)
+bool RemoveFile(std::string_view path)
 {
-    const fs::path p = path.c_str();
+    const fs::path p = path.data();
     return fs::remove(p);
 }
 
-core::Path GetFolder(const core::Path &path)
+std::string GetFolder(std::string_view path)
 {
-    const fs::path p = path.c_str();
-    return core::Path{p.parent_path().string()};
+    const fs::path p = path.data();
+    return p.parent_path().string();
 }
 }

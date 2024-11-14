@@ -1,3 +1,9 @@
+
+option(ENABLE_PROFILING "Enable Tracy Profiling" OFF)
+if(ENABLE_PROFILING)
+    list(APPEND VCPKG_MANIFEST_FEATURES "profiling")
+endif (ENABLE_PROFILING)
+
 cmake_minimum_required (VERSION 3.18)
 project(Neko2)
 
@@ -25,9 +31,12 @@ find_package(argh CONFIG REQUIRED)
 find_package(nlohmann_json CONFIG REQUIRED)
 find_package(spirv_cross_core CONFIG REQUIRED)
 find_package(spirv_cross_reflect CONFIG REQUIRED)
+find_package(fmt CONFIG REQUIRED)
+if(ENABLE_PROFILING)
+    find_package(Tracy CONFIG REQUIRED)
+endif (ENABLE_PROFILING)
 
 include_directories(external/include)
-option(ENABLE_PROFILER "Enable Tracy Profiling" OFF)
 
 
 add_subdirectory(core/)

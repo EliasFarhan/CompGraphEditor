@@ -78,7 +78,7 @@ void GeneratePreComputeBrdfLUT()
     glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_FLOAT, buffer);
     glCheckError();
     stbi_flip_vertically_on_write(true);
-    const core::Path path{fmt::format("data/{}/textures/brdf_lut.hdr", currentScene->info.name())};
+    const auto path{fmt::format("data/{}/textures/brdf_lut.hdr", currentScene->info.name())};
     if (!stbi_write_hdr(path.c_str(), texW, texH, 4, buffer))
     {
         //Error
@@ -98,12 +98,12 @@ void GeneratePreComputeBrdfLUT()
 }
 
 
-void GenerateIrradianceMap(const core::Path& path)
+void GenerateIrradianceMap(std::string_view path)
 {
     const auto baseDir = GetFolder(path);
     const auto filename = GetFilename(path, false);
-    const auto irradianceMapPath = fmt::format("{}/{}_irrmap.hdr", baseDir, filename);
-    const auto irradianceKtxMapPath = fmt::format("{}/{}_irrmap.ktx", baseDir, filename);
+    const auto irradianceMapPath = fmt::format("{}/{}_irrmap.hdr", baseDir.c_str(), filename);
+    const auto irradianceKtxMapPath = fmt::format("{}/{}_irrmap.ktx", baseDir.c_str(), filename);
 
     auto& filesystem = core::FilesystemLocator::get();
     auto envMapFile = filesystem.LoadFile(path);
@@ -383,11 +383,11 @@ void GenerateIrradianceMap(const core::Path& path)
     glCheckError();
 }
 
-void GeneratePreFilterEnvMap(const core::Path& path)
+void GeneratePreFilterEnvMap(std::string_view path)
 {
     const auto baseDir = GetFolder(path);
     const auto filename = GetFilename(path, false);
-    const auto preFilterEnvMapPath = fmt::format("{}/{}_prefilter.ktx", baseDir, filename);
+    const auto preFilterEnvMapPath = fmt::format("{}/{}_prefilter.ktx", baseDir.c_str(), filename);
 
     auto& filesystem = core::FilesystemLocator::get();
     auto envMapFile = filesystem.LoadFile(path);

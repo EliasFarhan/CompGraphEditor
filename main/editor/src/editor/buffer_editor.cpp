@@ -23,13 +23,13 @@ void BufferEditor::AddResource(const Resource& resource)
     const auto& fileSystem = core::FilesystemLocator::get();
     if (!fileSystem.IsRegularFile(resource.path.c_str()))
     {
-        LogWarning(fmt::format("Could not find buffer file: {}", resource.path));
+        LogWarning(fmt::format("Could not find buffer file: {}", resource.path.c_str()));
         return;
     }
     std::ifstream fileIn(resource.path.c_str(), std::ios::binary);
     if (!bufferInfo.info.ParseFromIstream(&fileIn))
     {
-        LogWarning(fmt::format("Could not open protobuf file: {}", resource.path));
+        LogWarning(fmt::format("Could not open protobuf file: {}", resource.path.c_str()));
         return;
     }
 
@@ -161,7 +161,7 @@ void BufferEditor::Save()
         std::ofstream fileOut(bufferInfo.path.c_str(), std::ios::binary);
         if (!bufferInfo.info.SerializeToOstream(&fileOut))
         {
-            LogWarning(fmt::format("Could not save buffer at: {}", bufferInfo.path));
+            LogWarning(fmt::format("Could not save buffer at: {}", bufferInfo.path.c_str()));
         }
 
     }

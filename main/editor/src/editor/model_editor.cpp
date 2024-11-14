@@ -37,22 +37,22 @@ void ModelEditor::AddResource(const Resource& resource)
     const auto& fileSystem = core::FilesystemLocator::get();
     if (!fileSystem.IsRegularFile(resource.path.c_str()))
     {
-        LogWarning(fmt::format("Could not find model file: {}", resource.path));
+        LogWarning(fmt::format("Could not find model file: {}", resource.path.c_str()));
         return;
     }
     std::ifstream fileIn(resource.path.c_str(), std::ios::binary);
     if (!modelInfo.info.ParseFromIstream(&fileIn))
     {
-        LogWarning(fmt::format("Could not open protobuf file: {}", resource.path));
+        LogWarning(fmt::format("Could not open protobuf file: {}", resource.path.c_str()));
         return;
     }
     auto& modelManager = core::GetModelManager();
-    const core::Path modelPath {modelInfo.info.model_path()};
+    std::string_view modelPath {modelInfo.info.model_path()};
 
     modelInfo.modelIndex = modelManager.ImportModel(modelPath);
     if (modelInfo.modelIndex == core::INVALID_MODEL_INDEX)
     {
-        LogError(fmt::format("Error parsing obj file: {}", modelPath));
+        LogError(fmt::format("Error parsing obj file: {}", modelPath.data()));
         return;
 
     }
@@ -205,7 +205,7 @@ void ModelEditor::Save()
         std::ofstream fileOut(modelInfo.path.c_str(), std::ios::binary);
         if (!modelInfo.info.SerializeToOstream(&fileOut))
         {
-            LogWarning(fmt::format("Could not save model at: {}", modelInfo.path));
+            LogWarning(fmt::format("Could not save model at: {}", modelInfo.path.c_str()));
         }
 
     }
@@ -249,7 +249,7 @@ ModelInfo* ModelEditor::GetModel(ResourceId resourceId)
     return nullptr;
 }
 
-void ModelEditor::ImportResource(const core::Path &path)
+void ModelEditor::ImportResource(std::string_view path)
 {
     auto& filesystem = core::FilesystemLocator::get();
     if(GetFileExtension(path) != ".obj")
@@ -263,7 +263,7 @@ void ModelEditor::ImportResource(const core::Path &path)
 
     if (modelId == core::INVALID_MODEL_INDEX)
     {
-        LogError(fmt::format("Error parsing obj file: {}", path));
+        LogError(fmt::format("Error parsing obj file: {}", path.data()));
         return;
 
     }
@@ -276,7 +276,7 @@ void ModelEditor::ImportResource(const core::Path &path)
         auto mtlList = materialsJson["materials"];
         for(auto& mtlPath: mtlList)
         {
-            LogDebug(fmt::format("Material file: {} in obj file: {}", mtlPath.get<std::string>(), path));
+            LogDebug(fmt::format("Material file: {} in obj file: {}", mtlPath.get<std::string>(), path.data()));
             mtlFiles.push_back(mtlPath);
         }
     }
@@ -291,23 +291,23 @@ void ModelEditor::ImportResource(const core::Path &path)
     const auto srcFolder = GetFolder(path);
 
     const auto& sceneName = GetSceneEditor()->GetCurrentSceneInfo()->info.name();
-    const core::Path dstFolder {fmt::format("{}{}/{}{}/",
-        ResourceManager::dataFolder, 
+    std::string dstFolder {fmt::format("{}{}/{}{}/",
+        ResourceManager::dataFolder.data(),
         sceneName, 
         GetSubFolder(), 
-        GetFilename(path, false))};
+        GetFilename(path, false).c_str())};
     auto* editor = Editor::GetInstance();
     auto& resourceManager = editor->GetResourceManager();
     CreateNewDirectory(dstFolder);
 
     editor::pb::EditorModel newModel;
     
-    auto findTextureInModelFunc = [&newModel, &filesystem](const core::Path& texture)
+    auto findTextureInModelFunc = [&newModel, &filesystem](std::string_view texture)
     {
         for(int i = 0; i < newModel.textures_size(); i++)
         {
-            const core::Path texturePath{newModel.textures(i).texture_path()};
-            if(filesystem.IsRegularFile(texturePath) && fs::equivalent(texturePath.c_str(), texture.c_str()))
+            std::string_view texturePath{newModel.textures(i).texture_path()};
+            if(filesystem.IsRegularFile(texturePath) && fs::equivalent(texturePath.data(), texture.data()))
             {
                 return i;
             }
@@ -325,8 +325,8 @@ void ModelEditor::ImportResource(const core::Path &path)
         {
             return;
         }
-        const core::Path textureSrcPath{fmt::format("{}/{}", srcFolder, textureName)};
-        const core::Path textureDstPath{fmt::format("{}{}", dstFolder, textureName)};
+        const std::string textureSrcPath{fmt::format("{}/{}", srcFolder.c_str(), textureName)};
+        const std::string textureDstPath{fmt::format("{}{}", dstFolder.c_str(), textureName)};
 
         int index = -1;
         if(filesystem.FileExists(textureDstPath.c_str()))
@@ -337,7 +337,7 @@ void ModelEditor::ImportResource(const core::Path &path)
         {
             if (!CopyFileFromTo(textureSrcPath, textureDstPath))
             {
-                LogError(fmt::format("Could not copy texture from {} to {}", textureSrcPath, textureDstPath));
+                LogError(fmt::format("Could not copy texture from {} to {}", textureSrcPath.c_str(), textureDstPath.c_str()));
                 return;
             }
             resourceManager.AddResource(textureDstPath);
@@ -368,13 +368,13 @@ void ModelEditor::ImportResource(const core::Path &path)
             loadMaterialTextureFunc(material.textures[i], static_cast<core::pb::TextureType>(i), newMaterial);
         }
     }
-    core::Path modelDstPath {fmt::format("{}{}", dstFolder, GetFilename(path))};
+    std::string modelDstPath {fmt::format("{}{}", dstFolder, GetFilename(path))};
 
     auto meshes = model.GetMeshes();
     for (auto& shape : meshes)
     {
         
-        core::Path meshInfoDstPath { fmt::format("{}{}.mesh", dstFolder, shape.name)};
+        std::string meshInfoDstPath { fmt::format("{}{}.mesh", dstFolder, shape.name)};
         auto meshInfoId = resourceManager.FindResourceByPath(meshInfoDstPath);
         if (meshInfoId == INVALID_RESOURCE_ID)
         {
@@ -395,8 +395,8 @@ void ModelEditor::ImportResource(const core::Path &path)
 
     for (std::string_view mtlPath : mtlFiles)
     {
-        core::Path mtlSrcPath {fmt::format("{}/{}", srcFolder, GetFilename(mtlPath))};
-        core::Path mtlDstPath {fmt::format("{}{}", dstFolder, GetFilename(mtlPath))};
+        std::string mtlSrcPath {fmt::format("{}/{}", srcFolder, GetFilename(mtlPath))};
+        std::string mtlDstPath {fmt::format("{}{}", dstFolder, GetFilename(mtlPath))};
         CopyFileFromTo(mtlSrcPath, mtlDstPath);
         *newModel.add_mtl_paths() = mtlDstPath;
     }
@@ -409,7 +409,7 @@ void ModelEditor::ImportResource(const core::Path &path)
 
     newModel.set_model_path(modelDstPath.c_str());
 
-    core::Path modelInfoPath {fmt::format("{}{}.model", dstFolder, GetFilename(path, false))};
+    std::string modelInfoPath {fmt::format("{}{}.model", dstFolder, GetFilename(path, false))};
     filesystem.WriteString(modelInfoPath, newModel.SerializeAsString());
     resourceManager.AddResource(modelInfoPath);
     sceneEditor->AddResource(*resourceManager.GetResource(resourceManager.FindResourceByPath(modelInfoPath)));
@@ -452,10 +452,10 @@ void ModelEditor::GenerateMaterialsAndCommands(int commandIndex)
             drawCommandInfo->add_material_paths();
         }
         //create new material, or reset old one
-        auto materialId = resourceManager.FindResourceByPath(core::Path(drawCommandInfo->material_paths(modelMaterialIndex)));
+        auto materialId = resourceManager.FindResourceByPath(drawCommandInfo->material_paths(modelMaterialIndex));
         if (materialId == INVALID_RESOURCE_ID)
         {
-            core::Path materialPath {
+            auto materialPath {
                 fmt::format("{}/{}_{}.mat",
                             baseDir,
                             currentModelInfo.info.materials(modelMaterialIndex).material_name(), pipelineName)
@@ -503,10 +503,10 @@ void ModelEditor::GenerateMaterialsAndCommands(int commandIndex)
             drawCommandInfo->add_draw_command_paths();
         }
         //create new command, or reset old one
-        auto commandId = resourceManager.FindResourceByPath(core::Path(drawCommandInfo->draw_command_paths(meshIndex)));
+        auto commandId = resourceManager.FindResourceByPath(drawCommandInfo->draw_command_paths(meshIndex));
         if (commandId == INVALID_RESOURCE_ID)
         {
-            core::Path commandPath {fmt::format("{}/{}_{}.cmd", baseDir, currentModelInfo.info.meshes(meshIndex).mesh_name(), pipelineName)};
+            auto commandPath {fmt::format("{}/{}_{}.cmd", baseDir, currentModelInfo.info.meshes(meshIndex).mesh_name(), pipelineName)};
             editor->CreateNewFile(commandPath, EditorType::COMMAND);
             drawCommandInfo->set_draw_command_paths(meshIndex, commandPath.c_str());
             commandId = resourceManager.FindResourceByPath(commandPath);
@@ -516,9 +516,9 @@ void ModelEditor::GenerateMaterialsAndCommands(int commandIndex)
         auto* command = commandEditor->GetCommand(commandId);
 
         auto modelMaterialName = modelMesh.material_name();
-        core::Path materialPath {fmt::format("{}/{}_{}.mat", baseDir, modelMaterialName, pipelineName)};
+        auto materialPath {fmt::format("{}/{}_{}.mat", baseDir, modelMaterialName, pipelineName)};
         const auto materialId = resourceManager.FindResourceByPath(materialPath);
-        const auto meshId = resourceManager.FindResourceByPath(core::Path(modelMesh.mesh_path()));
+        const auto meshId = resourceManager.FindResourceByPath(modelMesh.mesh_path());
 
         auto& drawCommandInfo = std::get<pb::EditorDrawCommand>(command->info);
         drawCommandInfo.set_mesh_path(modelMesh.mesh_path());
@@ -569,19 +569,19 @@ void ModelEditor::ReloadDrawCommands(std::size_t modelIndex)
             }
             if(drawCommand.materialIds[j] == INVALID_RESOURCE_ID)
             {
-                drawCommand.materialIds[j] = resourceManager.FindResourceByPath(core::Path(drawCommandInfo.material_paths(j)));
+                drawCommand.materialIds[j] = resourceManager.FindResourceByPath(drawCommandInfo.material_paths(j));
             }
         }
         for(int j = 0; j < drawCommandInfo.draw_command_paths_size(); j++)
         {
             if(drawCommand.drawCommandIds[j] == INVALID_RESOURCE_ID)
             {
-                drawCommand.drawCommandIds[j] = resourceManager.FindResourceByPath(core::Path(drawCommandInfo.draw_command_paths(j)));
+                drawCommand.drawCommandIds[j] = resourceManager.FindResourceByPath(drawCommandInfo.draw_command_paths(j));
             }
         }
         if(drawCommand.pipelineId == INVALID_RESOURCE_ID)
         {
-            drawCommand.pipelineId = resourceManager.FindResourceByPath(core::Path(drawCommandInfo.pipeline_path()));
+            drawCommand.pipelineId = resourceManager.FindResourceByPath(drawCommandInfo.pipeline_path());
         }
     }
 }

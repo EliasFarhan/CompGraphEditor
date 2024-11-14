@@ -18,7 +18,7 @@ constexpr ResourceId INVALID_RESOURCE_ID = {};
 struct Resource
 {
     ResourceId resourceId = INVALID_RESOURCE_ID;
-    core::Path path;
+    std::string path;
     std::string extension;
     fs::file_time_type lastTimeWrite;
 };

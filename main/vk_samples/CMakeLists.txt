@@ -9,8 +9,3 @@ target_link_libraries(vk_samples PRIVATE Core CommonVK CommonPy argh)
 set_target_properties (vk_samples PROPERTIES FOLDER Main)
 set_target_properties (vk_samples_DATA PROPERTIES FOLDER Main)
 set_target_properties (vk_samples_ShadersCheck PROPERTIES FOLDER Main)
-
-target_precompile_headers(vk_samples PRIVATE 
-        "<vk/engine.h>"
-        "<py_interface.h>"
-        "<argh.h>")

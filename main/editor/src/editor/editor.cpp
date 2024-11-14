@@ -168,7 +168,7 @@ void Editor::DrawMenuBar()
     }
 }
 
-void Editor::CreateNewFile(const core::Path &path, EditorType type)
+void Editor::CreateNewFile(std::string_view path, EditorType type)
 {
     const auto& filesystem = core::FilesystemLocator::get();
     switch (type)
@@ -240,8 +240,8 @@ void Editor::CreateNewFile(const core::Path &path, EditorType type)
         {
             if (!editorSystem && editorSystem->GetEditorType() != EditorType::SCENE)
                 continue;
-            const core::Path subFolder { fmt::format("{}{}/{}",
-                ResourceManager::dataFolder, 
+            std::string subFolder { fmt::format("{}{}/{}",
+                ResourceManager::dataFolder.data(),
                 sceneEditor->GetCurrentSceneInfo()->info.name(), 
                 editorSystem->GetSubFolder())};
             if (!filesystem.IsDirectory(subFolder.c_str()))
@@ -250,7 +250,7 @@ void Editor::CreateNewFile(const core::Path &path, EditorType type)
             }
             if(editorSystem->GetEditorType() == EditorType::SCRIPT)
             {
-                CopyFileFromTo("scripts/neko2.py", core::Path{fmt::format("{}/neko2.py", subFolder)}, true);
+                CopyFileFromTo("scripts/neko2.py", fmt::format("{}/neko2.py", subFolder.c_str()), true);
             }
             editorSystem->ReloadId();
         }
@@ -324,7 +324,7 @@ bool Editor::UpdateCreateNewFile()
         auto* sceneEditor = static_cast<SceneEditor*>(GetEditorSystem(EditorType::SCENE));
 
         ImGui::InputText("Filename", &newCreateFilename_);
-        core::Path actualFilename {newCreateFilename_};
+        std::string actualFilename {newCreateFilename_};
         if(actualFilename.empty())
         {
             ImGui::TextColored(ImVec4(1, 0, 0, 1), "Empty filename");
@@ -374,24 +374,24 @@ bool Editor::UpdateCreateNewFile()
                 return false;
             }
         }
-        core::Path path;
+        std::string path;
         static bool isVulkanScene = false;
         
         if(currentCreateFileSystem_ == EditorType::SCENE)
         {
-            path = core::Path(fmt::format("{}/{}/{}",
-                ResourceManager::dataFolder,
+            path = fmt::format("{}/{}/{}",
+                ResourceManager::dataFolder.data(),
                 newCreateFilename_,
-                actualFilename));
+                actualFilename.c_str());
             ImGui::Checkbox("Vulkan", &isVulkanScene);
         }
         else
         {
-            path = core::Path(fmt::format("{}{}/{}{}",
-                ResourceManager::dataFolder,
+            path = fmt::format("{}{}/{}{}",
+                ResourceManager::dataFolder.data(),
                 sceneInfo ? sceneInfo->info.name() : newCreateFilename_,
                 editorSystem->GetSubFolder(),
-                actualFilename.c_str()));
+                actualFilename.c_str());
         }
         if (!filesystem.FileExists(path))
         {
@@ -454,9 +454,9 @@ void Editor::UpdateFileDialog()
 
     if (fileDialog_.HasSelected())
     {
-        const core::Path path = core::Path(fs::relative(fileDialog_.GetSelected()).string());
+        const auto path = fs::relative(fileDialog_.GetSelected()).string();
 
-        LogDebug(fmt::format("Selected filename: {}", path));
+        LogDebug(fmt::format("Selected filename: {}", path.c_str()));
         LoadFileIntoEditor(path);
         fileDialog_.ClearSelected();
     }
@@ -574,13 +574,13 @@ void Editor::OnEvent(SDL_Event& event)
     }
 
 }
-void Editor::LoadFileIntoEditor(const core::Path &path)
+void Editor::LoadFileIntoEditor(std::string_view path)
 {
 
     EditorSystem* editorSystem = FindEditorSystem(path);
     if (editorSystem == nullptr)
     {
-        LogError(fmt::format("Could not find appropriated editor system for file: {}", path));
+        LogError(fmt::format("Could not find appropriated editor system for file: {}", path.data()));
         return;
     }
     auto* sceneEditor = GetSceneEditor();
@@ -613,8 +613,8 @@ void Editor::LoadFileIntoEditor(const core::Path &path)
     editorSystem->ImportResource(path);
     if(isScene)
     {
-        CopyFileFromTo("scripts/neko2.py", core::Path(
-                fmt::format("data/{}/scripts/neko2.py", sceneEditor->GetCurrentSceneInfo()->info.name())));
+        CopyFileFromTo("scripts/neko2.py",
+                fmt::format("data/{}/scripts/neko2.py", sceneEditor->GetCurrentSceneInfo()->info.name()));
         for(auto& tmp: editorSystems_)
         {
             if(tmp)
@@ -629,7 +629,7 @@ void Editor::LoadFileIntoEditor(const core::Path &path)
         {
             if (!editorSystem && editorSystem->GetEditorType() != EditorType::SCENE)
                 continue;
-            const core::Path subFolder{ fmt::format("{}{}/{}",
+            const auto subFolder{ fmt::format("{}{}/{}",
                 ResourceManager::dataFolder,
                 sceneEditor->GetCurrentSceneInfo()->info.name(),
                 editorSystem->GetSubFolder())};
@@ -637,7 +637,7 @@ void Editor::LoadFileIntoEditor(const core::Path &path)
                 CreateNewDirectory(subFolder);
             if (editorSystem->GetEditorType() == EditorType::SCRIPT)
             {
-                CopyFileFromTo("scripts/neko2.py", core::Path(fmt::format("{}/neko2.py", subFolder)), true);
+                CopyFileFromTo("scripts/neko2.py", fmt::format("{}/neko2.py", subFolder), true);
             }
             editorSystem->ReloadId();
         }
@@ -667,7 +667,7 @@ void Editor::RecursiveSceneFileReload()
             {
                 if(folderContentPath.extension() == ".scene" || folderContentPath.extension() == ".pkg")
                     continue;
-                const auto filePath = core::Path(folderContentPath.string());
+                const auto filePath = folderContentPath.string();
                 if (std::ranges::none_of(sceneInfo->info.resources(),
                     [&folderContentPath, &filePath](const auto& path)
                     {
@@ -1041,7 +1041,7 @@ EditorSystem* Editor::GetEditorSystem(EditorType type) const
     return editorSystems_[static_cast<int>(type)].get();
 }
 
-EditorSystem* Editor::FindEditorSystem(const core::Path &path) const
+EditorSystem* Editor::FindEditorSystem(std::string_view path) const
 {
     EditorSystem* editorSystem = nullptr;
     const auto extension = GetFileExtension(path);
