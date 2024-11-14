@@ -1,9 +1,6 @@
 [submodule "external/pybind11"]
 	path = external/pybind11
 	url = https://github.com/pybind/pybind11.git
-[submodule "external/imnodes"]
-	path = external/imnodes
-	url = https://github.com/EliasFarhan/imnodes.git
 [submodule "external/NekoLib"]
 	path = external/NekoLib
 	url = https://github.com/EliasFarhan/NekoLib.git
