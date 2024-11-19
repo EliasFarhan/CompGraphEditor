@@ -168,64 +168,66 @@ bool MaterialEditor::DrawContentList(bool unfocus) {
 
 void MaterialEditor::DrawCenterView()
 {
-    if (currentIndex_ >= materialInfos_.size())
-        return;
-    const auto* editor = Editor::GetInstance();
-    const auto* pipelineEditor = dynamic_cast<PipelineEditor*>(editor->GetEditorSystem(EditorType::PIPELINE));
-    const auto& resourceManager = editor->GetResourceManager();
+	if (currentIndex_ >= materialInfos_.size())
+		return;
+	const auto* editor = Editor::GetInstance();
+	const auto* pipelineEditor = dynamic_cast<PipelineEditor*>(editor->GetEditorSystem(EditorType::PIPELINE));
+	const auto& resourceManager = editor->GetResourceManager();
 
-    const auto& currentMaterial = materialInfos_[currentIndex_];
+	const auto& currentMaterial = materialInfos_[currentIndex_];
 
-    constexpr auto textureBaseIndex = 100;
-    constexpr auto uniformsBaseIndex = 200;
-    constexpr int samplerBaseIndex = 300;
+	constexpr auto textureBaseIndex = 100;
+	constexpr auto uniformsBaseIndex = 200;
+	constexpr int samplerBaseIndex = 300;
 
-    std::vector<std::pair<int, int>> links;
-    links.reserve(currentMaterial.info.textures_size() + currentMaterial.info.material().uniforms_size());
+	std::vector<std::pair<int, int>> links;
+	links.reserve(currentMaterial.info.textures_size() + currentMaterial.info.material().uniforms_size());
 
-    ImNodes::BeginNodeEditor();
+	ImNodes::BeginNodeEditor();
+	if(currentMaterial.info.textures_size() != 0)
+	{
+		ImNodes::BeginNode(0);
+		ImNodes::BeginNodeTitleBar();
+		ImGui::TextUnformatted("Textures");
+		ImNodes::EndNodeTitleBar();
+		for (int i = 0; i < currentMaterial.info.textures_size(); i++)
+		{
+			const auto& materialTexture = currentMaterial.info.textures(i);
+			ImNodes::BeginOutputAttribute(textureBaseIndex + i);
+			auto textureName = GetFilename(materialTexture.texture_name());
+			const auto textureType = aiTextureTypeToString(static_cast<aiTextureType>(materialTexture.texture_type()));
+			ImGui::Text("%s %s", textureName.c_str(), textureType);
+			ImNodes::EndOutputAttribute();
+		}
+		ImNodes::EndNode();
+		ImNodes::SetNodeGridSpacePos(0, { 50, 50 });
+	}
 
-    ImNodes::BeginNode(0);
-    ImNodes::BeginNodeTitleBar();
-    ImGui::TextUnformatted("Textures");
-    ImNodes::EndNodeTitleBar();
-    for(int i = 0; i < currentMaterial.info.textures_size(); i++)
-    {
-        const auto& materialTexture = currentMaterial.info.textures(i);
-        ImNodes::BeginOutputAttribute(textureBaseIndex+i);
-        auto textureName = GetFilename(materialTexture.texture_name());
-        const auto textureType = aiTextureTypeToString(static_cast<aiTextureType>(materialTexture.texture_type()));
-        ImGui::Text("%s %s", textureName.c_str(), textureType);
-        ImNodes::EndOutputAttribute();
-    }
-    ImNodes::EndNode();
+	if(currentMaterial.pipelineId != INVALID_RESOURCE_ID && pipelineEditor->GetPipeline(currentMaterial.pipelineId)->info.pipeline().uniforms_size() != 0)
+	{
+		ImNodes::BeginNode(1);
+		ImNodes::BeginNodeTitleBar();
+		ImGui::TextUnformatted(currentMaterial.pipelineId != INVALID_RESOURCE_ID ? "Uniforms" : "Missing Pipeline Id");
+		ImNodes::EndNodeTitleBar();
+		if (currentMaterial.pipelineId != INVALID_RESOURCE_ID)
+		{
+			const auto* pipeline = pipelineEditor->GetPipeline(currentMaterial.pipelineId);
+			for (int i = 0; i < pipeline->info.pipeline().uniforms_size(); i++)
+			{
+				const auto& uniform = pipeline->info.pipeline().uniforms(i);
+				if (uniform.type() == core::pb::Attribute_Type_SAMPLER2D
+					|| uniform.type() == core::pb::Attribute_Type_SAMPLERCUBE)
+					continue;
+				ImNodes::BeginOutputAttribute(uniformsBaseIndex + i);
+				ImGui::Text("%s %s", uniform.type_name().c_str(), uniform.name().c_str());
+				ImNodes::EndOutputAttribute();
+				links.emplace_back(0, uniformsBaseIndex + i);
 
-    ImNodes::SetNodeGridSpacePos(0, { 50,50 });
-
-    ImNodes::BeginNode(1);
-    
-    ImNodes::BeginNodeTitleBar();
-    
-    ImGui::TextUnformatted(currentMaterial.pipelineId != INVALID_RESOURCE_ID ?"Uniforms" : "Missing Pipeline Id");
-    ImNodes::EndNodeTitleBar();
-    if (currentMaterial.pipelineId != INVALID_RESOURCE_ID)
-    {
-        const auto* pipeline = pipelineEditor->GetPipeline(currentMaterial.pipelineId);
-        for (int i = 0; i < pipeline->info.pipeline().uniforms_size(); i++)
-        {
-            const auto& uniform = pipeline->info.pipeline().uniforms(i);
-            if (uniform.type() == core::pb::Attribute_Type_SAMPLER2D || uniform.type() == core::pb::Attribute_Type_SAMPLERCUBE)
-                continue;
-            ImNodes::BeginOutputAttribute(uniformsBaseIndex + i);
-            ImGui::Text("%s %s", uniform.type_name().c_str(), uniform.name().c_str());
-            ImNodes::EndOutputAttribute();
-            links.emplace_back(0, uniformsBaseIndex + i);
-
-        }
-    }
-    ImNodes::EndNode();
-    ImNodes::SetNodeGridSpacePos(1, { 50,250 });
-
+			}
+		}
+		ImNodes::EndNode();
+		ImNodes::SetNodeGridSpacePos(1, { 50, 250 });
+	}
     ImNodes::BeginNode(2);
     ImNodes::BeginNodeTitleBar();
     ImGui::TextUnformatted("Material");
@@ -267,7 +269,6 @@ void MaterialEditor::DrawCenterView()
         }
     }
     ImNodes::EndNode();
-
     ImNodes::SetNodeGridSpacePos(2, { 300,150 });
 
     for (std::size_t i = 0; i < links.size(); i++)

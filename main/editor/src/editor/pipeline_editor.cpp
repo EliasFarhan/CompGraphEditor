@@ -851,24 +851,24 @@ void PipelineEditor::DrawCenterView()
         constexpr int vertexOutputBaseIndex = 300;
         constexpr int uniformsBaseIndex = 200;
 
-        ImNodes::BeginNode(-1);
-        ImNodes::BeginNodeTitleBar();
-        ImGui::TextUnformatted("Vertex Inputs");
-        ImNodes::EndNodeTitleBar();
-        for (int i = 0; i < currentPipeline.info.pipeline().in_vertex_attributes_size(); i++)
-        {
+		if(currentPipeline.info.pipeline().in_vertex_attributes_size() != 0)
+		{
+			ImNodes::BeginNode(-1);
+			ImNodes::BeginNodeTitleBar();
+			ImGui::TextUnformatted("Vertex Inputs");
+			ImNodes::EndNodeTitleBar();
+			for (int i = 0; i < currentPipeline.info.pipeline().in_vertex_attributes_size(); i++)
+			{
 
-            ImNodes::BeginOutputAttribute(vertexInputBaseIndex + i + 1);
-            const auto& vertexInput = currentPipeline.info.pipeline().in_vertex_attributes(i);
-            ImGui::Text("%s %s", vertexInput.type_name().c_str(), vertexInput.name().c_str());
-            ImNodes::EndOutputAttribute();
-            links.emplace_back(vertexInputBaseIndex, vertexInputBaseIndex + i + 1);
-        }
-        ImNodes::EndNode();
-
-
-        ImNodes::SetNodeGridSpacePos(-1, {50,50});
-
+				ImNodes::BeginOutputAttribute(vertexInputBaseIndex + i + 1);
+				const auto& vertexInput = currentPipeline.info.pipeline().in_vertex_attributes(i);
+				ImGui::Text("%s %s", vertexInput.type_name().c_str(), vertexInput.name().c_str());
+				ImNodes::EndOutputAttribute();
+				links.emplace_back(vertexInputBaseIndex, vertexInputBaseIndex + i + 1);
+			}
+			ImNodes::EndNode();
+			ImNodes::SetNodeGridSpacePos(-1, { 50, 50 });
+		}
         //Vertex Shader Node
         ImNodes::BeginNode(0);
         ImNodes::BeginNodeTitleBar();
@@ -915,34 +915,46 @@ void PipelineEditor::DrawCenterView()
         ImNodes::SetNodeGridSpacePos(1, { 450.0f,150 });
         
 
-        ImNodes::BeginNode(-2);
-        ImNodes::BeginNodeTitleBar();
-        ImGui::TextUnformatted("Uniforms");
-        ImNodes::EndNodeTitleBar();
-        for (int i = 0; i < currentPipeline.info.pipeline().uniforms_size(); i++)
-        {
-            const int uniformIndex = uniformsBaseIndex + i + 5;
-            ImNodes::BeginOutputAttribute(uniformIndex);
-            const auto& uniform = currentPipeline.info.pipeline().uniforms(i);
-            ImGui::Text("%s %s", uniform.type_name().c_str(), uniform.name().c_str());
-            ImNodes::EndOutputAttribute();
-            int shaderIndex = uniformsBaseIndex;
-            switch(currentPipeline.info.pipeline().uniforms(i).stage())
-            {
-            case core::pb::VERTEX: break;
-            case core::pb::FRAGMENT: shaderIndex += 1; break;
-            case core::pb::GEOMETRY: shaderIndex += 2; break;
-            case core::pb::TESSELATION_CONTROL: shaderIndex += 3; break;
-            case core::pb::TESSELATION_EVAL: shaderIndex += 4; break;
-            default: break;
-            }
-            links.emplace_back(shaderIndex, uniformIndex);
-        }
+		if(currentPipeline.info.pipeline().uniforms_size() != 0)
+		{
+			ImNodes::BeginNode(-2);
+			ImNodes::BeginNodeTitleBar();
+			ImGui::TextUnformatted("Uniforms");
+			ImNodes::EndNodeTitleBar();
+			for (int i = 0; i < currentPipeline.info.pipeline().uniforms_size(); i++)
+			{
+				const int uniformIndex = uniformsBaseIndex + i + 5;
+				ImNodes::BeginOutputAttribute(uniformIndex);
+				const auto& uniform = currentPipeline.info.pipeline().uniforms(i);
+				ImGui::Text("%s %s", uniform.type_name().c_str(), uniform.name().c_str());
+				ImNodes::EndOutputAttribute();
+				int shaderIndex = uniformsBaseIndex;
+				switch (currentPipeline.info.pipeline().uniforms(i).stage())
+				{
+				case core::pb::VERTEX:
+					break;
+				case core::pb::FRAGMENT:
+					shaderIndex += 1;
+					break;
+				case core::pb::GEOMETRY:
+					shaderIndex += 2;
+					break;
+				case core::pb::TESSELATION_CONTROL:
+					shaderIndex += 3;
+					break;
+				case core::pb::TESSELATION_EVAL:
+					shaderIndex += 4;
+					break;
+				default:
+					break;
+				}
+				links.emplace_back(shaderIndex, uniformIndex);
+			}
 
-        ImNodes::EndNode();
+			ImNodes::EndNode();
 
-        ImNodes::SetNodeGridSpacePos(-2, { 50.0f,250.0f });
-
+        	ImNodes::SetNodeGridSpacePos(-2, { 50.0f,250.0f });
+		}
         //TODO add geometry shader node if shader exists
         //TODO add tesselation control shader node if shader exists
         //TODO add tesselation eval shader node if shader exists
