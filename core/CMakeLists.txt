@@ -6,7 +6,7 @@ generate_proto(Core)
 set_target_properties (CoreProto PROPERTIES FOLDER Core)
 target_compile_definitions(Core PUBLIC GLM_ENABLE_EXPERIMENTAL)
 target_link_libraries(Core PUBLIC glm::glm SDL2::SDL2 SDL2::SDL2main imgui::imgui 
-    pybind11::embed ${Python3_LIBRARIES} spdlog::spdlog KTX::ktx assimp::assimp fmt::fmt)
+     spdlog::spdlog KTX::ktx assimp::assimp fmt::fmt NekoCore)
 
 if(ENABLE_PROFILING)
     target_link_libraries(Core PUBLIC Tracy::TracyClient)
@@ -24,9 +24,3 @@ else()
 endif()
 
 target_precompile_headers(Core PRIVATE "<array>" "<vector>" "<string>" "<filesystem>")
-
-file(GLOB TEST_FILES test/*.cpp)
-add_executable(CoreTest ${TEST_FILES})
-target_link_libraries(CoreTest Core GTest::gtest GTest::gtest_main)
-include(GoogleTest)
-gtest_add_tests(TARGET CoreTest)

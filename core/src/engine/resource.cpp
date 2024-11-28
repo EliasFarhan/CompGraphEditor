@@ -1,5 +1,5 @@
 #include "engine/resource.h"
-#include "utils/job_system.h"
+
 #include "utils/log.h"
 
 #include <fmt/format.h>
@@ -23,8 +23,7 @@ ResourceManager::ResourceManager()
 
 void ResourceManager::Begin()
 {
-    auto* jobSystem = GetJobSystem();
-    resourceLoadQueue_ = jobSystem->SetupNewQueue();
+    resourceLoadQueue_ = neko::JobSystem::SetupNewQueue();
 }
 
 void ResourceManager::Update(float dt)
@@ -90,8 +89,9 @@ ResourceId ResourceManager::AddResource(std::string_view path)
     newResource.resourceId = resourceId;
 
     // adding a new loading job
-    auto* jobSystem = GetJobSystem();
-    jobSystem->AddJob(std::make_shared<LoadingResourceJob>(path, resourceId));
+    auto loadingJob = std::make_unique<LoadingResourceJob>(path, resourceId);
+    neko::JobSystem::AddJob(loadingJob.get());
+    loadingResourceJobs_.push(std::move(loadingJob));
 
     return resourceId;
 }

@@ -15,9 +15,7 @@ set_property( GLOBAL PROPERTY USE_FOLDERS ON)
 include(cmake/data.cmake)
 include(cmake/proto.cmake)
 
-enable_testing()
 
-find_package(GTest CONFIG REQUIRED)
 find_package(glm CONFIG REQUIRED)
 find_package(SDL2 CONFIG REQUIRED)
 find_package(imgui CONFIG REQUIRED)
