@@ -16,7 +16,7 @@ set_target_properties (Core PROPERTIES FOLDER Core)
 
 if(MSVC)
     target_compile_definitions(Core PUBLIC WIN32_LEAN_AND_MEAN)
-    target_compile_options(Core PUBLIC /arch:AVX2 /Oi /GL /fp:fast)
+    target_compile_options(Core PUBLIC /Oi /GL /fp:fast)
     target_link_options(Core PUBLIC /LTCG)
 else()
     target_compile_options(Core PUBLIC -march=haswell -ffast-math -flto)
