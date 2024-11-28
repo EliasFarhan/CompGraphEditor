@@ -34,7 +34,7 @@ void Engine::Begin()
 #ifdef TRACY_ENABLE
     ZoneScoped;
 #endif
-    jobSystem_.Begin();
+    neko::JobSystem::Begin();
     for(auto* system: systems_)
     {
         system->Begin();
@@ -46,7 +46,7 @@ void Engine::Run()
     Begin();
     bool isOpen = true;
 
-    jobs_[(int)JobIndex::EVENT] = std::make_shared<FuncJob>([this, &isOpen](){
+    jobs_[(int)JobIndex::EVENT] = std::make_unique<neko::FuncJob>([this, &isOpen](){
         //Manage SDL event
         SDL_Event event;
         while(SDL_PollEvent(&event))
@@ -93,35 +93,35 @@ void Engine::Run()
         }
     });
 
-    jobs_[(int)JobIndex::PRE_UPDATE] = std::make_shared<FuncDependentJob>(jobs_[(int)JobIndex::EVENT], [this](){
+    jobs_[(int)JobIndex::PRE_UPDATE] = std::make_unique<neko::FuncDependentJob>(jobs_[(int)JobIndex::EVENT].get(), [this](){
         PreUpdate();
     });
     using seconds = std::chrono::duration<float, std::ratio<1,1>>;
     seconds dt;
-    jobs_[(int)JobIndex::UPDATE]  = std::make_shared<FuncDependentJob>(jobs_[(int)JobIndex::PRE_UPDATE], [this, &dt](){
+    jobs_[(int)JobIndex::UPDATE]  = std::make_unique<neko::FuncDependentJob>(jobs_[(int)JobIndex::PRE_UPDATE].get(), [this, &dt](){
         for(auto* system : systems_)
         {
             system->Update(dt.count());
         }
     });
 
-    jobs_[(int)JobIndex::PRE_IMGUI] = std::make_shared<FuncDependentJob>(jobs_[(int)JobIndex::UPDATE], [this](){
+    jobs_[(int)JobIndex::PRE_IMGUI] = std::make_unique<neko::FuncDependentJob>(jobs_[(int)JobIndex::UPDATE].get(), [this](){
         //Generate new ImGui frame
         PreImGuiDraw();
     });
 
-    jobs_[(int)JobIndex::IMGUI_DRAW]  = std::make_shared<FuncDependentJob>(jobs_[(int)JobIndex::PRE_IMGUI], [this](){
+    jobs_[(int)JobIndex::IMGUI_DRAW]  = std::make_unique<neko::FuncDependentJob>(jobs_[(int)JobIndex::PRE_IMGUI].get(), [this](){
         for(auto* imguiDrawInterface : imguiDrawInterfaces)
         {
             imguiDrawInterface->OnGui();
         }
     });
 
-    jobs_[(int)JobIndex::POST_IMGUI]  = std::make_shared<FuncDependentJob>(jobs_[(int)JobIndex::IMGUI_DRAW] , [this](){
+    jobs_[(int)JobIndex::POST_IMGUI]  = std::make_unique<neko::FuncDependentJob>(jobs_[(int)JobIndex::IMGUI_DRAW].get() , [this](){
         PostImGuiDraw();
     });
 
-    jobs_[(int)JobIndex::SWAP_WINDOW] = std::make_shared<FuncDependentJob>(jobs_[(int)JobIndex::POST_IMGUI], [this](){
+    jobs_[(int)JobIndex::SWAP_WINDOW] = std::make_unique<neko::FuncDependentJob>(jobs_[(int)JobIndex::POST_IMGUI].get(), [this](){
        SwapWindow();
     });
 
@@ -138,9 +138,9 @@ void Engine::Run()
 
         for(auto& job: jobs_)
         {
-            jobSystem_.AddJob(job);
+            neko::JobSystem::AddJob(job.get());
         }
-        jobSystem_.ExecuteMainThread();
+        neko::JobSystem::ExecuteMainThread();
 #ifdef TRACY_ENABLE
         FrameMark;
 #endif
@@ -159,7 +159,7 @@ void Engine::End()
         system->End();
     }
 
-    jobSystem_.End();
+    neko::JobSystem::End();
     const auto& fileSystem = FilesystemLocator::get();
     fileSystem.WriteString(configFilename, config_.SerializeAsString());
 
@@ -225,9 +225,9 @@ glm::uvec2 Engine::GetWindowSize() const
     return {config_.window_size().x(), config_.window_size().y()};
 }
 
-std::weak_ptr<Job> Engine::GetJob(Engine::JobIndex index)
+neko::Job* Engine::GetJob(Engine::JobIndex index)
 {
-    return jobs_[(int)index];
+    return jobs_[(int)index].get();
 }
 
 glm::uvec2 GetWindowSize()

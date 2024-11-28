@@ -15,7 +15,7 @@
             "features": ["sdl2-binding", "opengl3-binding", "docking-experimental", "vulkan-binding"]
         },
         "physfs", "protobuf", "spdlog", "nlohmann-json", "vulkan-memory-allocator", "assimp", "zstd", "argh",
-        "spirv-cross", "volk", "basisu", "gtest"
+        "spirv-cross", "volk", "basisu"
     ],
     "features":
     {

@@ -454,7 +454,7 @@ void Editor::UpdateFileDialog()
 
     if (fileDialog_.HasSelected())
     {
-        const auto path = fs::relative(fileDialog_.GetSelected()).string();
+        const auto path = fileDialog_.GetSelected().string();
 
         LogDebug(fmt::format("Selected filename: {}", path.c_str()));
         LoadFileIntoEditor(path);

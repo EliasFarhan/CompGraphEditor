@@ -8,7 +8,7 @@
 #include "proto/config.pb.h"
 #include "renderer/texture.h"
 #include "renderer/model.h"
-#include "utils/job_system.h"
+#include "thread/job_system.h"
 #include "engine/filesystem.h"
 
 #include <glm/ext/vector_uint2.hpp>
@@ -59,7 +59,7 @@ public:
         SWAP_WINDOW,
         LENGTH
     };
-    std::weak_ptr<Job> GetJob(JobIndex index);
+    neko::Job* GetJob(JobIndex index);
 
 protected:
     virtual void Begin();
@@ -76,10 +76,9 @@ protected:
     pb::Config config_;
     static constexpr std::string_view configFilename = "config.bin";
 
-    std::array<std::shared_ptr<Job>, (int)JobIndex::LENGTH> jobs_;
+    std::array<std::unique_ptr<neko::Job>, (int)JobIndex::LENGTH> jobs_;
 private:
     core::ModelManager modelManager_;
-    core::JobSystem jobSystem_;
     std::vector<System*> systems_;
     std::vector<OnEventInterface*> onEventInterfaces;
     std::vector<OnGuiInterface*> imguiDrawInterfaces;

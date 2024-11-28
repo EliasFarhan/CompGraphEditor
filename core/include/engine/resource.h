@@ -2,7 +2,10 @@
 
 #include "engine/filesystem.h"
 #include "engine/system.h"
-#include "utils/job_system.h"
+
+#include <thread/job_system.h>
+
+#include <queue>
 
 #ifdef TRACY_ENABLE
 #include <tracy/Tracy.hpp>
@@ -46,7 +49,7 @@ public:
     [[nodiscard]] bool HasLoaded(ResourceId resourceId) const;
     FileBuffer* GetFileBuffer(ResourceId resourceId);
 protected:
-    class LoadingResourceJob : public Job
+    class LoadingResourceJob : public neko::Job
     {
     public:
         LoadingResourceJob(std::string_view path, ResourceId resourceId);
@@ -57,7 +60,7 @@ protected:
         ResourceId resourceId_;
         FileBuffer fileBuffer_{};
     };
-    class MoveFileBufferJob : public Job
+    class MoveFileBufferJob : public neko::Job
     {
     public:
         MoveFileBufferJob(FileBuffer&& filebuffer, ResourceId resourceId);
@@ -69,6 +72,7 @@ protected:
     };
     std::vector<Resource> resources_;
     std::vector<FileBuffer> fileBuffers_;
+    std::queue<std::unique_ptr<LoadingResourceJob>> loadingResourceJobs_;
     std::queue<std::unique_ptr<MoveFileBufferJob>> moveFileBufferJobs_;
     int resourceLoadQueue_ = 0;
 #ifdef TRACY_ENABLE
