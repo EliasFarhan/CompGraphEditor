@@ -597,9 +597,8 @@ void PipelineEditor::AddResource(const Resource& resource)
     pipelineInfo.resourceId = resource.resourceId;
     pipelineInfo.path = resource.path;
 
-    const auto& fileSystem = core::FilesystemLocator::get();
 
-    if (!fileSystem.IsRegularFile(resource.path))
+    if (!core::IsRegularFile(resource.path))
     {
         LogWarning(fmt::format("Could not find pipeline file: {}", resource.path.c_str()));
         return;

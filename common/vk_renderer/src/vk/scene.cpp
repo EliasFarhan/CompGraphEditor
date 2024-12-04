@@ -358,10 +358,9 @@ Scene::ImportStatus Scene::LoadShaders(const PbRepeatField<core::pb::Shader>& sh
 {
     LogDebug("Load Shaders");
     const auto& driver = GetDriver();
-    const auto& filesystem = core::FilesystemLocator::get();
     for (auto& shaderPb : shadersPb)
     {
-        const auto shaderFile = filesystem.LoadFile(shaderPb.path().c_str());
+        const auto shaderFile = core::LoadFile(shaderPb.path().c_str());
         auto shaderModule = CreateShaderModule(shaderFile, driver.device);
         if (!shaderModule)
             return ImportStatus::FAILURE;

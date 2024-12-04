@@ -12,20 +12,19 @@ namespace editor
 
 void ResourceManager::CheckDataFolder(const PbRepeatField<std::string>& paths)
 {
-    auto& filesystem = core::FilesystemLocator::get();
     // Remove deleted file
     for(auto& pathStr : paths)
     {
         std::string_view path{pathStr};
-        if(!filesystem.IsRegularFile(path))
+        if(!core::IsRegularFile(path))
         {
             RemoveResource(path);
         }
         else
         {
-            auto it = std::ranges::find_if(resources_, [&path, &filesystem](const Resource& resource)
+            auto it = std::ranges::find_if(resources_, [&path](const Resource& resource)
                 {
-                    if(!filesystem.IsRegularFile(resource.path))
+                    if(!core::IsRegularFile(resource.path))
                     {
                         return false;
                     }
@@ -50,14 +49,13 @@ ResourceId ResourceManager::FindResourceByPath(std::string_view path) const
 {
     if (path.empty())
         return INVALID_RESOURCE_ID;
-    const auto& fileSystem = core::FilesystemLocator::get();
-    if(!fileSystem.FileExists(path))
+    if(!core::FileExists(path))
     {
         return INVALID_RESOURCE_ID;
     }
-    const auto it = std::ranges::find_if(resources_, [path, &fileSystem](const auto& resource)
+    const auto it = std::ranges::find_if(resources_, [path](const auto& resource)
     {
-        if (!fileSystem.FileExists(resource.path))
+        if (!core::FileExists(resource.path))
             return false;
         return fs::equivalent(path.data(),resource.path.c_str());
     });
@@ -95,8 +93,7 @@ void ResourceManager::RemoveResource(const Resource &resource)
 }
 void ResourceManager::AddResource(std::string_view path)
 {
-    const auto& filesystem = core::FilesystemLocator::get();
-    if(!filesystem.FileExists(path))
+    if(!core::FileExists(path))
     {
         LogWarning(fmt::format("Adding unexisting resource: {}", path.data()));
         return;

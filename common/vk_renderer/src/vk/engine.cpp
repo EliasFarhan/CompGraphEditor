@@ -17,9 +17,8 @@ static Engine* instance = nullptr;
 Engine::Engine() : window_(config_)
 {
     instance = this;
-    const auto& fileSystem = core::FilesystemLocator::get();
 
-    if (!fileSystem.IsRegularFile(configFilename) || 
+    if (!core::IsRegularFile(configFilename) ||
         config_.major_version() == 0 || 
         config_.minor_version() < 3)
     {

@@ -24,7 +24,6 @@ static Engine* instance = nullptr;
 Engine::Engine() 
 {
     instance = this;
-    const auto& fileSystem = core::FilesystemLocator::get();
 
     if (config_.major_version() == 0)
     {

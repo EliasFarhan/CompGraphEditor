@@ -160,8 +160,7 @@ void Engine::End()
     }
 
     neko::JobSystem::End();
-    const auto& fileSystem = FilesystemLocator::get();
-    fileSystem.WriteString(configFilename, config_.SerializeAsString());
+    WriteString(configFilename, config_.SerializeAsString());
 
 }
 
@@ -192,11 +191,10 @@ Engine::Engine()
     ZoneScoped;
 #endif
     instance = this;
-    const auto& fileSystem = FilesystemLocator::get();
 
-    if(fileSystem.IsRegularFile(configFilename))
+    if(IsRegularFile(configFilename))
     {
-        const auto file = fileSystem.LoadFile(configFilename);
+        const auto file = LoadFile(configFilename);
         config_.ParseFromString(reinterpret_cast<const char*>(file.data));
         
     }

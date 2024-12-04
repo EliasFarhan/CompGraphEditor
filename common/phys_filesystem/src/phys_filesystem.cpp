@@ -31,7 +31,7 @@ namespace core
         }
     }
 
-    void PhysFilesystem::AddMount(std::string_view dir, std::string_view mountPoint, int append) const
+    void AddMount(std::string_view dir, std::string_view mountPoint, int append)
     {
         if (!PHYSFS_mount(dir.data(), mountPoint.data(), append))
         {

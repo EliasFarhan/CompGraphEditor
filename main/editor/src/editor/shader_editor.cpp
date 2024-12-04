@@ -265,11 +265,10 @@ bool ShaderEditor::DrawContentList(bool unfocus)
         {
             currentIndex_ = i;
             wasFocused = true;
-            auto& filesystem = core::FilesystemLocator::get();
             std::string_view shaderPath{shaderInfo.info.path()};
-            if (filesystem.FileExists(shaderPath))
+            if (core::FileExists(shaderPath))
             {
-                const auto shaderContent = filesystem.LoadFile(shaderPath);
+                const auto shaderContent = core::LoadFile(shaderPath);
                 shaderText_ = reinterpret_cast<const char*>(shaderContent.data);
             }
             else
@@ -287,8 +286,7 @@ void ShaderEditor::Save()
     {
         return;
     }
-    const auto& filesystem = core::FilesystemLocator::get();
-    filesystem.WriteString(shaderInfos_[currentIndex_].info.path(), shaderText_);
+    core::WriteString(shaderInfos_[currentIndex_].info.path(), shaderText_);
     auto& resourceManager = Editor::GetInstance()->GetResourceManager();
     auto* resource = resourceManager.GetResource(shaderInfos_[currentIndex_].resourceId);
     resourceManager.UpdateExistingResource(*resource);

@@ -11,7 +11,7 @@ int main([[maybe_unused]]int argc, char** argv)
 {
     core::PhysFilesystem physFilesystem(argv[0]);
     physFilesystem.Begin();
-    core::FilesystemLocator::provide(&physFilesystem);
+    core::SetFileSystem(&physFilesystem);
 
     argh::parser cmdl(argv);
     vk::Engine engine;

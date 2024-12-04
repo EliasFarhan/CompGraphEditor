@@ -8,11 +8,17 @@
 #include <tracy/Tracy.hpp>
 #endif
 
-namespace fs = std::filesystem;
 
 
 namespace core
 {
+
+namespace
+{
+DefaultFilesystem defaultFilesystem;
+FilesystemInterface* filesystem = &defaultFilesystem;
+}
+namespace fs = std::filesystem;
 
 FileBuffer::~FileBuffer()
 {
@@ -72,11 +78,35 @@ void DefaultFilesystem::WriteString(std::string_view path, std::string_view cont
     std::ofstream outFile(path.data(), std::ofstream::binary);
     outFile << content;
 }
+void SetFileSystem(FilesystemInterface *fs)
+{
+    filesystem = fs;
+}
+
+FileBuffer LoadFile(std::string_view path)
+{
+    return filesystem->LoadFile(path);
+}
+bool FileExists(std::string_view path)
+{
+    return filesystem->FileExists(path);
+}
+bool IsRegularFile(std::string_view path)
+{
+    return filesystem->IsRegularFile(path);
+}
+bool IsDirectory(std::string_view path)
+{
+    return filesystem->IsDirectory(path);
+}
+void WriteString(std::string_view path, std::string_view content)
+{
+    filesystem->WriteString(path, content);
+}
 
 bool IOSystem::Exists(const char* pFile) const
 {
-    const auto& filesystem = FilesystemLocator::get();
-    return filesystem.FileExists(pFile);
+    return filesystem->FileExists(pFile);
 }
 
 char IOSystem::getOsSeparator() const
@@ -86,9 +116,7 @@ char IOSystem::getOsSeparator() const
 
 Assimp::IOStream* IOSystem::Open(const char* pFile, const char* pMode)
 {
-    const auto& filesystem = FilesystemLocator::get();
-
-    return new IOStream(filesystem.LoadFile(pFile));
+    return new IOStream(filesystem->LoadFile(pFile));
 }
 
 void IOSystem::Close(Assimp::IOStream* pFile)

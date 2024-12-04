@@ -52,11 +52,10 @@ void Shader::LoadShader(const core::pb::Shader &shader)
     default:
         break;
     }
-    const auto &filesystem = core::FilesystemLocator::get();
     std::string_view path{shader.path()};
-    if (filesystem.FileExists(path))
+    if (core::FileExists(path))
     {
-        const auto file = filesystem.LoadFile(path);
+        const auto file = core::LoadFile(path);
         const GLuint shaderName = glCreateShader(glType);
 
         glShaderSource(shaderName, 1, reinterpret_cast<const GLchar *const *>( &file.data), nullptr);

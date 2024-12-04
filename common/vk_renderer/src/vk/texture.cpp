@@ -34,14 +34,13 @@ bool Texture::LoadTexture(const core::pb::Texture& textureInfo)
 {
     LogDebug(fmt::format("Loading texture: {}", textureInfo.path()));
     stbi_set_flip_vertically_on_load(true);
-    const auto& filesystem = core::FilesystemLocator::get();
     std::string_view path{textureInfo.path()};
-    if (!filesystem.FileExists(path))
+    if (!core::FileExists(path))
     {
         LogError(fmt::format("File not found at path: {}", path.data()));
         return false;
     }
-    const auto file = filesystem.LoadFile(path);
+    const auto file = core::LoadFile(path);
     constexpr int requiredChannels = 4;
     int channelInFile;
     auto* imageData = stbi_load_from_memory(file.data, file.size, &width, &height, &channelInFile, requiredChannels);

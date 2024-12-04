@@ -105,8 +105,7 @@ void GenerateIrradianceMap(std::string_view path)
     const auto irradianceMapPath = fmt::format("{}/{}_irrmap.hdr", baseDir.c_str(), filename);
     const auto irradianceKtxMapPath = fmt::format("{}/{}_irrmap.ktx", baseDir.c_str(), filename);
 
-    auto& filesystem = core::FilesystemLocator::get();
-    auto envMapFile = filesystem.LoadFile(path);
+    auto envMapFile = core::LoadFile(path);
     int texW;
     int texH;
     int channel;
@@ -389,8 +388,7 @@ void GeneratePreFilterEnvMap(std::string_view path)
     const auto filename = GetFilename(path, false);
     const auto preFilterEnvMapPath = fmt::format("{}/{}_prefilter.ktx", baseDir.c_str(), filename);
 
-    auto& filesystem = core::FilesystemLocator::get();
-    auto envMapFile = filesystem.LoadFile(path);
+    auto envMapFile = core::LoadFile(path);
     int texW;
     int texH;
     int channel;

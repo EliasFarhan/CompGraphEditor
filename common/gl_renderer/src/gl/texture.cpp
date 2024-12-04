@@ -120,14 +120,13 @@ bool Texture::LoadTexture(const core::pb::Texture &textureInfo)
     ZoneScoped;
 #endif
     stbi_set_flip_vertically_on_load(true);
-    const auto &filesystem = core::FilesystemLocator::get();
     std::string_view path{textureInfo.path()};
-    if (filesystem.FileExists(path))
+    if (core::FileExists(path))
     {
 #ifdef TRACY_ENABLE
         TracyCZoneN(ctx, "Load File", true);
 #endif
-        const auto file = filesystem.LoadFile(path);
+        const auto file = core::LoadFile(path);
 #ifdef TRACY_ENABLE
         TracyCZoneEnd(ctx);
 
@@ -253,13 +252,12 @@ bool Texture::LoadCubemap(const core::pb::Texture& textureInfo)
 #endif
     target = GL_TEXTURE_CUBE_MAP;
     stbi_set_flip_vertically_on_load(false);
-    const auto& filesystem = core::FilesystemLocator::get();
     std::string_view path{textureInfo.path()};
 
-    if (filesystem.FileExists(path))
+    if (core::FileExists(path))
     {
         core::pb::Cubemap cubemap;
-        const auto file = filesystem.LoadFile(path);
+        const auto file = core::LoadFile(path);
         if(!cubemap.ParseFromArray(file.data, file.size))
         {
             LogError(fmt::format("Could not open proto of cubemap at: {}", path.data()));
@@ -321,7 +319,7 @@ bool Texture::LoadCubemap(const core::pb::Texture& textureInfo)
         {
             const std::string_view texturePath{cubemap.texture_paths(i)};
             LogDebug(fmt::format("Loading texture side: {}", texturePath.data()));
-            const auto cubeTextureFile = filesystem.LoadFile(texturePath);
+            const auto cubeTextureFile = core::LoadFile(texturePath);
             data = stbi_load_from_memory(cubeTextureFile.data, cubeTextureFile.size, &width, &height, &nrChannels, 0);
             if(data == nullptr)
             {
@@ -347,16 +345,15 @@ bool Texture::LoadKtxTexture(const core::pb::Texture& textureInfo)
     ktxTexture* kTexture;
     GLenum glerror;
 
-    const auto& filesystem = core::FilesystemLocator::get();
     std::string_view path {textureInfo.path()};
 
-    if (!filesystem.FileExists(path))
+    if (!core::FileExists(path))
     {
         LogError(fmt::format("File not found at path: {}", path.data()));
         return false;
     }
 
-    const auto file = filesystem.LoadFile(path);
+    const auto file = core::LoadFile(path);
     if(file.data == nullptr)
     {
         return false;
@@ -455,14 +452,13 @@ bool Texture::LoadHdrTexture(const core::pb::Texture& textureInfo)
     ZoneScoped;
 #endif
     stbi_set_flip_vertically_on_load(true);
-    const auto& filesystem = core::FilesystemLocator::get();
     std::string_view path{textureInfo.path()};
-    if (filesystem.FileExists(path))
+    if (core::FileExists(path))
     {
 #ifdef TRACY_ENABLE
         TracyCZoneN(ctx, "Load File", true);
 #endif
-        const auto file = filesystem.LoadFile(path);
+        const auto file = core::LoadFile(path);
 #ifdef TRACY_ENABLE
         TracyCZoneEnd(ctx);
 

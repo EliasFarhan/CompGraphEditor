@@ -323,9 +323,8 @@ void RenderPassEditor::AddResource(const Resource& resource)
     renderPassInfo.resourceId = resource.resourceId;
     renderPassInfo.filename = GetFilename(resource.path);
 
-    const auto& fileSystem = core::FilesystemLocator::get();
 
-    if (!fileSystem.IsRegularFile(resource.path.c_str()))
+    if (!core::IsRegularFile(resource.path.c_str()))
     {
         LogWarning(fmt::format("Could not find render pass file: {}", resource.path.c_str()));
         return;

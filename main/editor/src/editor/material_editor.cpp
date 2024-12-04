@@ -305,9 +305,8 @@ void MaterialEditor::AddResource(const Resource &resource)
     materialInfo.filename = GetFilename(resource.path);
     materialInfo.resourceId = resource.resourceId;
     materialInfo.path = resource.path;
-    const auto& fileSystem = core::FilesystemLocator::get();
 
-    if (!fileSystem.IsRegularFile(resource.path.c_str()))
+    if (!core::IsRegularFile(resource.path.c_str()))
     {
         LogWarning(fmt::format("Could not find material file: {}", resource.path.c_str()));
         return;

@@ -66,10 +66,9 @@ void Player::OnGui()
         {
             if (ImGui::Selectable(scene.c_str()))
             {
-                auto& filesystem = dynamic_cast<core::PhysFilesystem&>(core::FilesystemLocator::get());
-                filesystem.AddMount(scene, "", 1);
+                core::AddMount(scene, "", 1);
                 core::pb::Scene newScene;
-                const auto file = filesystem.LoadFile("root.scene");
+                const auto file = core::LoadFile("root.scene");
                 newScene.ParseFromArray(file.data, file.size);
                 playerScene_.SetScene(newScene);
                 sceneManager_.LoadScene(&playerScene_);
@@ -88,10 +87,9 @@ void Player::OnEvent(SDL_Event& event)
 
 void Player::SetScene(std::string_view path)
 {
-    auto& filesystem = dynamic_cast<core::PhysFilesystem&>(core::FilesystemLocator::get());
-    filesystem.AddMount(path, "", 1);
+    core::AddMount(path, "", 1);
     core::pb::Scene newScene;
-    const auto file = filesystem.LoadFile("root.scene");
+    const auto file = core::LoadFile("root.scene");
     newScene.ParseFromArray(file.data, file.size);
     playerScene_.SetScene(newScene);
     sceneLoaded_ = true;

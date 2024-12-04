@@ -10,7 +10,7 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char** argv)
 {
     core::PhysFilesystem physFilesystem(argv[0]);
     physFilesystem.Begin();
-    core::FilesystemLocator::provide(&physFilesystem);
+    core::SetFileSystem(&physFilesystem);
 
     argh::parser cmdl(argv);
 

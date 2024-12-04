@@ -50,8 +50,7 @@ void Editor::Begin()
     editorSystems_[static_cast<std::size_t>(EditorType::BUFFER)] = std::make_unique<BufferEditor>();
     resourceManager_.RegisterResourceChange(this);
     py::initialize_interpreter();
-    const auto& filesystem = core::FilesystemLocator::get();
-    if (!filesystem.IsDirectory(ResourceManager::dataFolder))
+    if (!core::IsDirectory(ResourceManager::dataFolder))
     {
         CreateNewDirectory(ResourceManager::dataFolder);
     }
@@ -170,12 +169,11 @@ void Editor::DrawMenuBar()
 
 void Editor::CreateNewFile(std::string_view path, EditorType type)
 {
-    const auto& filesystem = core::FilesystemLocator::get();
     switch (type)
     {
     case EditorType::SHADER:
     {
-        filesystem.WriteString(path, "#version 310 es\nprecision highp float;\nvoid main() {}");
+        core::WriteString(path, "#version 310 es\nprecision highp float;\nvoid main() {}");
         resourceManager_.AddResource(path);
         break;
     }
@@ -193,7 +191,7 @@ void Editor::CreateNewFile(std::string_view path, EditorType type)
         emptyPipeline.set_blending_source_factor(core::pb::Pipeline_BlendFunc_SRC_ALPHA);
         emptyPipeline.set_blending_destination_factor(core::pb::Pipeline_BlendFunc_ONE_MINUS_SRC_ALPHA);
 
-        filesystem.WriteString(path, emptyPipeline.SerializeAsString());
+        core::WriteString(path, emptyPipeline.SerializeAsString());
         resourceManager_.AddResource(path);
         break;
     }
@@ -204,14 +202,14 @@ void Editor::CreateNewFile(std::string_view path, EditorType type)
         scale->set_x(1.0f);
         scale->set_y(1.0f);
         scale->set_z(1.0f);
-        filesystem.WriteString(path, emptyMesh.SerializeAsString());
+        core::WriteString(path, emptyMesh.SerializeAsString());
         resourceManager_.AddResource(path);
         break;
     }
     case EditorType::MATERIAL: 
     {
         const core::pb::Material emptyMaterial;
-        filesystem.WriteString(path, emptyMaterial.SerializeAsString());
+        core::WriteString(path, emptyMaterial.SerializeAsString());
         resourceManager_.AddResource(path);
         break;
     }
@@ -233,7 +231,7 @@ void Editor::CreateNewFile(std::string_view path, EditorType type)
         core::pb::Scene emptyScene;
         emptyScene.set_name(GetFilename(path, false));
         CreateNewDirectory(GetFolder(path));
-        filesystem.WriteString(path, emptyScene.SerializeAsString());
+        core::WriteString(path, emptyScene.SerializeAsString());
         resourceManager_.AddResource(path);
         sceneEditor->SetCurrentScene();
         for (const auto& editorSystem : editorSystems_)
@@ -244,7 +242,7 @@ void Editor::CreateNewFile(std::string_view path, EditorType type)
                 ResourceManager::dataFolder.data(),
                 sceneEditor->GetCurrentSceneInfo()->info.name(), 
                 editorSystem->GetSubFolder())};
-            if (!filesystem.IsDirectory(subFolder.c_str()))
+            if (!core::IsDirectory(subFolder.c_str()))
             {
                 CreateNewDirectory(subFolder);
             }
@@ -259,21 +257,21 @@ void Editor::CreateNewFile(std::string_view path, EditorType type)
     case EditorType::RENDER_PASS:
     {
         const core::pb::RenderPass emptyRenderPass;
-        filesystem.WriteString(path, emptyRenderPass.SerializeAsString());
+        core::WriteString(path, emptyRenderPass.SerializeAsString());
         resourceManager_.AddResource(path);
         break;
     }
     case EditorType::COMMAND:
     {
         core::pb::DrawCommand emptyDrawCommand;
-        filesystem.WriteString(path, emptyDrawCommand.SerializeAsString());
+        core::WriteString(path, emptyDrawCommand.SerializeAsString());
         resourceManager_.AddResource(path);
         break;
     }
     case EditorType::FRAMEBUFFER:
     {
         core::pb::FrameBuffer emptyFramebuffer;
-        filesystem.WriteString(path, emptyFramebuffer.SerializeAsString());
+        core::WriteString(path, emptyFramebuffer.SerializeAsString());
         resourceManager_.AddResource(path);
         break;
     }
@@ -283,13 +281,13 @@ void Editor::CreateNewFile(std::string_view path, EditorType type)
         emptyBuffer.set_type(core::pb::Attribute_Type_CUSTOM);
         emptyBuffer.set_count(-1);
         const auto content = emptyBuffer.SerializeAsString();
-        filesystem.WriteString(path, content);
+        core::WriteString(path, content);
         resourceManager_.AddResource(path);
         break;
     }
     case EditorType::SCRIPT: 
     {
-        filesystem.WriteString(path, "from neko2 import *\n");
+        core::WriteString(path, "from neko2 import *\n");
         resourceManager_.AddResource(path);
         break;
     }
@@ -298,7 +296,7 @@ void Editor::CreateNewFile(std::string_view path, EditorType type)
         if(GetFileExtension(path) == ".cube")
         {
             core::pb::Cubemap emptyCubemap;
-            filesystem.WriteString(path, emptyCubemap.SerializeAsString());
+            core::WriteString(path, emptyCubemap.SerializeAsString());
             resourceManager_.AddResource(path);
         }
         break;
@@ -318,7 +316,6 @@ bool Editor::UpdateCreateNewFile()
 {
     if (ImGui::BeginPopupModal("Create New File"))
     {
-        const auto& filesystem = core::FilesystemLocator::get();
         auto* editorSystem = editorSystems_[static_cast<int>(currentCreateFileSystem_)].get();
         const auto extensions = editorSystem->GetExtensions();
         auto* sceneEditor = static_cast<SceneEditor*>(GetEditorSystem(EditorType::SCENE));
@@ -393,7 +390,7 @@ bool Editor::UpdateCreateNewFile()
                 editorSystem->GetSubFolder(),
                 actualFilename.c_str());
         }
-        if (!filesystem.FileExists(path))
+        if (!core::FileExists(path))
         {
             ImGui::Text("%s", path.c_str());
             if (ImGui::Button("Confirm"))
@@ -624,7 +621,6 @@ void Editor::LoadFileIntoEditor(std::string_view path)
         }
 
         RecursiveSceneFileReload();
-        const auto& filesystem = core::FilesystemLocator::get();
         for (const auto& editorSystem : editorSystems_)
         {
             if (!editorSystem && editorSystem->GetEditorType() != EditorType::SCENE)
@@ -633,7 +629,7 @@ void Editor::LoadFileIntoEditor(std::string_view path)
                 ResourceManager::dataFolder,
                 sceneEditor->GetCurrentSceneInfo()->info.name(),
                 editorSystem->GetSubFolder())};
-            if (!filesystem.IsDirectory(subFolder))
+            if (!core::IsDirectory(subFolder))
                 CreateNewDirectory(subFolder);
             if (editorSystem->GetEditorType() == EditorType::SCRIPT)
             {

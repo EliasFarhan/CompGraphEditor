@@ -273,13 +273,12 @@ void TextureEditor::Save()
 
 void TextureEditor::AddResource(const Resource &resource)
 {
-    auto& filesystem = core::FilesystemLocator::get();
     TextureInfo textureInfo{};
     textureInfo.resourceId = resource.resourceId;
     textureInfo.filename = GetFilename(resource.path);
     textureInfo.info.set_path(resource.path.c_str());
     textureInfo.infoPath = resource.path + ".meta";
-    if(filesystem.FileExists(textureInfo.infoPath))
+    if(core::FileExists(textureInfo.infoPath))
     {
         std::ifstream metaFile(textureInfo.infoPath.c_str(),std::ios::binary);
         textureInfo.info.ParseFromIstream(&metaFile);
@@ -448,8 +447,7 @@ void TextureEditor::HdrToKtx(const TextureInfo& textureInfo)
     const auto filename = GetFilename(path, false);
     const std::string ktxMapPath{fmt::format("{}/{}.ktx", baseDir.c_str(), filename)};
 
-    auto& filesystem = core::FilesystemLocator::get();
-    auto envMapFile = filesystem.LoadFile(path);
+    auto envMapFile = core::LoadFile(path);
     int texW;
     int texH;
     int channel;

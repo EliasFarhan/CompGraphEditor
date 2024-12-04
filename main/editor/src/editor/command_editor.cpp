@@ -28,8 +28,7 @@ void CommandEditor::AddResource(const Resource& resource)
     const auto extension = GetFileExtension(resource.path);
     if (extension == ".cmd")
     {
-        const auto& fileSystem = core::FilesystemLocator::get();
-        if (!fileSystem.IsRegularFile(resource.path.c_str()))
+        if (!core::IsRegularFile(resource.path.c_str()))
         {
             LogWarning(fmt::format("Could not find command file: {}", resource.path.c_str()));
             return;
@@ -49,8 +48,7 @@ void CommandEditor::AddResource(const Resource& resource)
     }
     else if(extension ==".compcmd")
     {
-        const auto& fileSystem = core::FilesystemLocator::get();
-        if (!fileSystem.IsRegularFile(resource.path.c_str()))
+        if (!core::IsRegularFile(resource.path.c_str()))
         {
             LogWarning(fmt::format("Could not find command file: {}", resource.path.c_str()));
             return;

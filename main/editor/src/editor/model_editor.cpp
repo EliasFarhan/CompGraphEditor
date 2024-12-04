@@ -34,8 +34,7 @@ void ModelEditor::AddResource(const Resource& resource)
     modelInfo.resourceId = resource.resourceId;
     modelInfo.filename = GetFilename(resource.path);
 
-    const auto& fileSystem = core::FilesystemLocator::get();
-    if (!fileSystem.IsRegularFile(resource.path.c_str()))
+    if (!core::IsRegularFile(resource.path.c_str()))
     {
         LogWarning(fmt::format("Could not find model file: {}", resource.path.c_str()));
         return;
@@ -76,7 +75,6 @@ void ModelEditor::DrawInspector()
     {
         return;
     }
-    auto& filesystem = core::FilesystemLocator::get();
     auto& currentModelInfo = modelInfos_[currentIndex_];
     const auto baseDir = GetFolder(currentModelInfo.path);
     auto* editor = Editor::GetInstance();
@@ -251,7 +249,6 @@ ModelInfo* ModelEditor::GetModel(ResourceId resourceId)
 
 void ModelEditor::ImportResource(std::string_view path)
 {
-    auto& filesystem = core::FilesystemLocator::get();
     if(GetFileExtension(path) != ".obj")
     {
         LogError("Can only import obj file");
@@ -302,12 +299,12 @@ void ModelEditor::ImportResource(std::string_view path)
 
     editor::pb::EditorModel newModel;
     
-    auto findTextureInModelFunc = [&newModel, &filesystem](std::string_view texture)
+    auto findTextureInModelFunc = [&newModel](std::string_view texture)
     {
         for(int i = 0; i < newModel.textures_size(); i++)
         {
             std::string_view texturePath{newModel.textures(i).texture_path()};
-            if(filesystem.IsRegularFile(texturePath) && fs::equivalent(texturePath.data(), texture.data()))
+            if(core::IsRegularFile(texturePath) && fs::equivalent(texturePath.data(), texture.data()))
             {
                 return i;
             }
@@ -329,7 +326,7 @@ void ModelEditor::ImportResource(std::string_view path)
         const std::string textureDstPath{fmt::format("{}{}", dstFolder.c_str(), textureName)};
 
         int index = -1;
-        if(filesystem.FileExists(textureDstPath.c_str()))
+        if(core::FileExists(textureDstPath.c_str()))
         {
             index = findTextureInModelFunc(textureDstPath);
         }
@@ -410,7 +407,7 @@ void ModelEditor::ImportResource(std::string_view path)
     newModel.set_model_path(modelDstPath.c_str());
 
     std::string modelInfoPath {fmt::format("{}{}.model", dstFolder, GetFilename(path, false))};
-    filesystem.WriteString(modelInfoPath, newModel.SerializeAsString());
+    core::WriteString(modelInfoPath, newModel.SerializeAsString());
     resourceManager.AddResource(modelInfoPath);
     sceneEditor->AddResource(*resourceManager.GetResource(resourceManager.FindResourceByPath(modelInfoPath)));
 

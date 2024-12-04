@@ -19,9 +19,8 @@ void FramebufferEditor::AddResource(const Resource& resource)
     framebufferInfo.resourceId = resource.resourceId;
     framebufferInfo.path = resource.path;
 
-    const auto& fileSystem = core::FilesystemLocator::get();
 
-    if (!fileSystem.IsRegularFile(resource.path))
+    if (!core::IsRegularFile(resource.path))
     {
         LogWarning(fmt::format("Could not find framebuffer file: {}", resource.path.c_str()));
         return;

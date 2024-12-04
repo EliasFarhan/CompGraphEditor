@@ -1,6 +1,5 @@
 #pragma once
 
-#include "utils/locator.h"
 
 #include <assimp/IOSystem.hpp>
 #include <assimp/IOStream.hpp>
@@ -50,34 +49,6 @@ public:
     virtual void WriteString(std::string_view path, std::string_view content) const = 0;
 };
 
-class NullFilesystem final : public FilesystemInterface
-{
-public:
-    [[nodiscard]] FileBuffer LoadFile(std::string_view path) const override
-    {
-        assert(false);
-        return {};
-    }
-    [[nodiscard]] bool FileExists(std::string_view path) const override
-    {
-        assert(false);
-        return false;
-    }
-    [[nodiscard]] bool IsRegularFile(std::string_view path) const override
-    {
-        assert(false);
-        return false;
-    }
-    [[nodiscard]] bool IsDirectory(std::string_view path) const override
-    {
-        assert(false);
-        return false;
-    }
-    void WriteString(std::string_view path, std::string_view content) const override
-    {
-        assert(false);
-    }
-};
 
 class DefaultFilesystem final : public FilesystemInterface
 {
@@ -89,8 +60,12 @@ public:
     void WriteString(std::string_view path, std::string_view content) const override;
 };
 
-
-using FilesystemLocator = Locator<FilesystemInterface, NullFilesystem>;
+void SetFileSystem(FilesystemInterface* fs);
+FileBuffer LoadFile(std::string_view path);
+bool FileExists(std::string_view path);
+bool IsRegularFile(std::string_view path);
+bool IsDirectory(std::string_view path);
+void WriteString(std::string_view path, std::string_view content);
 
 /**
  * \brief IOSystem is our own implementation for Assimp IO handling using our own filesystem

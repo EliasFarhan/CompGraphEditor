@@ -79,7 +79,6 @@ void SceneEditor::ImportResource(std::string_view path)
 void SceneEditor::AddResource(const Resource& resource)
 {
 
-    const auto& filesystem = core::FilesystemLocator::get();
     if (!CheckExtensions(resource.extension))
     {
         if (resource.path.contains("neko2.py") || resource.path.contains("__pycache__"))
@@ -93,7 +92,7 @@ void SceneEditor::AddResource(const Resource& resource)
                 return path == resource.path.c_str();
             }))
         {
-            if (filesystem.FileExists(resource.path))
+            if (core::FileExists(resource.path))
             {
                 GetCurrentSceneInfo()->info.add_resources(resource.path.c_str());
             }
@@ -107,8 +106,7 @@ void SceneEditor::AddResource(const Resource& resource)
     const auto extension = GetFileExtension(resource.path);
     if (extension == ".scene")
     {
-        const auto& fileSystem = core::FilesystemLocator::get();
-        if (!fileSystem.IsRegularFile(resource.path))
+        if (!core::IsRegularFile(resource.path))
         {
             LogWarning(fmt::format("Could not find scene file: {}", resource.path.c_str()));
             return;
@@ -132,7 +130,7 @@ void SceneEditor::AddResource(const Resource& resource)
     for(int i = 0; i < sceneInfo.info.resources_size(); i++)
     {
         std::string_view resourcePath {sceneInfo.info.resources(i)};
-        if(!filesystem.FileExists(resourcePath))
+        if(!core::FileExists(resourcePath))
         {
             unexistingResources.push_back(i);
             continue;

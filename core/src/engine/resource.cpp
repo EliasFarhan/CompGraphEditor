@@ -64,16 +64,15 @@ ResourceId ResourceManager::AddResource(std::string_view path)
     if (path.empty())
         return INVALID_RESOURCE_ID;
 
-    const auto& filesystem = core::FilesystemLocator::get();
-    if(!filesystem.FileExists(path))
+    if(!FileExists(path))
     {
         LogWarning(fmt::format("Adding unexisting resource: {}", path));
         return INVALID_RESOURCE_ID;
     }
 
-    const auto it = std::ranges::find_if(resources_, [path, &filesystem](const auto& resource)
+    const auto it = std::ranges::find_if(resources_, [path](const auto& resource)
     {
-        if (!filesystem.FileExists(resource.path))
+        if (!FileExists(resource.path))
             return false;
         return fs::equivalent(path.data(), resource.path.c_str());
     });
@@ -120,8 +119,7 @@ void ResourceManager::LoadingResourceJob::ExecuteImpl()
 #ifdef TRACY_ENABLE
     ZoneScoped;
 #endif
-    const auto& filesystem = core::FilesystemLocator::get();
-    fileBuffer_ = filesystem.LoadFile(path_);
+    fileBuffer_ = LoadFile(path_);
     //add moving job to the ResourceManager
     auto* resourceManager = GetResourceManager();
     std::scoped_lock lock(resourceManager->resourceLoadMutex_);

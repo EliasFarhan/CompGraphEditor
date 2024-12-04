@@ -153,8 +153,7 @@ bool ScriptEditor::DrawContentList(bool unfocus)
         if (ImGui::Selectable(scriptInfo.filename.data(), currentIndex_ == i))
         {
             currentIndex_ = i;
-            auto& filesystem = core::FilesystemLocator::get();
-            const auto scriptContent = filesystem.LoadFile(scriptInfo.info.path());
+            const auto scriptContent = core::LoadFile(scriptInfo.info.path());
             scriptText_ = reinterpret_cast<const char*>(scriptContent.data);
             wasFocused = true;
         }
@@ -178,8 +177,7 @@ void ScriptEditor::Save()
     {
         return;
     }
-    const auto& filesystem = core::FilesystemLocator::get();
-    filesystem.WriteString(scriptInfos_[currentIndex_].info.path(), scriptText_);
+    core::WriteString(scriptInfos_[currentIndex_].info.path(), scriptText_);
     auto& resourceManager = Editor::GetInstance()->GetResourceManager();
     auto* resource = resourceManager.GetResource(scriptInfos_[currentIndex_].resourceId);
     resourceManager.UpdateExistingResource(*resource);
