@@ -1,3 +1,4 @@
+
 find_package(sol2 CONFIG REQUIRED)
 
 add_library(CommonLua STATIC include/lua_interface.h src/lua_interface.cpp)
