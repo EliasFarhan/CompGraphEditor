@@ -16,7 +16,6 @@ public:
 
 	void End() override;
 
-	void ImportScript(std::string_view module, std::string_view className, std::unique_ptr<Script> script) override;
 private:
 	std::unique_ptr<sol::state> luaState_;
 };
