@@ -12,6 +12,7 @@ function(copydata main_folder exe_name)
             "${main_folder}/data/*.bin"
             "${main_folder}/data/*.rpass"
             "${main_folder}/data/*.py"
+            "${main_folder}/data/*.lua"
             )
     foreach(DATA ${DATA_FILES})
         get_filename_component(FILE_NAME ${DATA} NAME)
@@ -23,7 +24,11 @@ function(copydata main_folder exe_name)
 		
 		if("${EXTENSION}" STREQUAL ".py")
 			source_group("Script Files\\${RELATIVE_PATH}" FILES "${DATA}")
-		endif()
+        endif()
+
+        if("${EXTENSION}" STREQUAL ".lua")
+            source_group("Script Files\\${RELATIVE_PATH}" FILES "${DATA}")
+        endif()
         #MESSAGE("Data OUT PATH: ${DATA_OUTPUT}")
         add_custom_command(
                 OUTPUT ${DATA_OUTPUT}
