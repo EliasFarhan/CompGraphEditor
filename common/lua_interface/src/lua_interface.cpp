@@ -14,11 +14,11 @@ void ImplementBinding(sol::state& lua)
 {
 	auto module = lua["neko2"].get_or_create<sol::table>();
 	module.new_usertype<core::Script>("System",
-		"begin", &core::Script::Begin,
-		"update", &core::Script::Update,
-		"end", &core::Script::End,
-		"draw", &core::Script::Draw,
-		"dispatch", &core::Script::Dispatch,
+		"on_begin", &core::Script::Begin,
+		"on_update", &core::Script::Update,
+		"on_end", &core::Script::End,
+		"on_draw", &core::Script::Draw,
+		"on_dispatch", &core::Script::Dispatch,
 		"on_key_up", &core::Script::OnKeyUp,
 		"on_key_down", &core::Script::OnKeyDown,
 		"on_mouse_motion", &core::Script::OnMouseMotion);
@@ -195,13 +195,13 @@ Script* LuaManager::LoadScript(std::string_view path, std::string_view module, s
 	if(!loadResult.valid())
 	{
 		sol::error err = loadResult;
-		LogError(fmt::format("Erro loading lua script: {}", err.what()));
+		LogError(fmt::format("Error loading lua script: {}", err.what()));
 		return nullptr;
 	}
-	luaState_->script(fmt::format("{} = neko2.{}.new()", module, className));
-	luaState_->script(fmt::format("{}:begin()", module));
+	luaState_->script(fmt::format("instance = {}.new()", className));
+	luaState_->script("instance:begin()");
 
-	return (*luaState_)[module];
+	return (*luaState_)["instance"];
 }
 
 void LuaManager::Begin()
