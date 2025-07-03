@@ -1,6 +1,6 @@
 #include "vk/imgui_manager.h"
 
-#include <imgui_impl_sdl2.h>
+#include <imgui_impl_sdl3.h>
 #include <imgui_impl_vulkan.h>
 
 #include "utils/log.h"
@@ -21,7 +21,7 @@ void ImGuiManager::Begin()
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
     auto& window = GetWindow();
-    ImGui_ImplSDL2_InitForVulkan(window.GetSdlWindow());
+    ImGui_ImplSDL3_InitForVulkan(window.GetSdlWindow());
 
 
     InitDescriptorPool();
@@ -51,7 +51,7 @@ void ImGuiManager::Begin()
 void ImGuiManager::PreImGuiDraw()
 {
     ImGui_ImplVulkan_NewFrame();
-    ImGui_ImplSDL2_NewFrame();
+    ImGui_ImplSDL3_NewFrame();
     ImGui::NewFrame();
 }
 
@@ -67,7 +67,7 @@ void ImGuiManager::End() const
     const auto& driver = GetDriver();
     ImGui_ImplVulkan_DestroyFontsTexture();
     ImGui_ImplVulkan_Shutdown();
-    ImGui_ImplSDL2_Shutdown();
+    ImGui_ImplSDL3_Shutdown();
 
     vkDestroyDescriptorPool(driver.device, descriptorPool_, nullptr);
 

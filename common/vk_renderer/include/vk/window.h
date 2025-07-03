@@ -1,7 +1,7 @@
 #pragma once
 #include "proto/config.pb.h"
 #include <volk.h>
-#include <SDL.h>
+#include <SDL3/SDL.h>
 
 #include <vector>
 #include <cstdint>

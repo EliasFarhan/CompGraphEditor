@@ -103,7 +103,7 @@ core::pb::Scene Scene02()
     return scene;
 }
 
-core::pb::Scene Scene03()
+core::pb::Scene Scene03()d
 {
     core::pb::Scene scene;
     core::pb::Shader* vertexShader = scene.add_shaders();

@@ -91,16 +91,16 @@ void CameraSystem::OnKeyDown(SDL_Keycode keycode)
 {
     switch(keycode)
     {
-    case SDLK_a:
+    case SDLK_A:
         keys_[0] = true;
         break;
-    case SDLK_d:
+    case SDLK_D:
         keys_[1] = true;
         break;
-    case SDLK_w:
+    case SDLK_W:
         keys_[2] = true;
         break;
-    case SDLK_s:
+    case SDLK_S:
         keys_[3] = true;
         break;
     default:
@@ -112,16 +112,16 @@ void CameraSystem::OnKeyUp(SDL_Keycode keycode)
 {
     switch(keycode)
     {
-    case SDLK_a:
+    case SDLK_A:
         keys_[0] = false;
         break;
-    case SDLK_d:
+    case SDLK_D:
         keys_[1] = false;
         break;
-    case SDLK_w:
+    case SDLK_W:
         keys_[2] = false;
         break;
-    case SDLK_s:
+    case SDLK_S:
         keys_[3] = false;
         break;
     default:

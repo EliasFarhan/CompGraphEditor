@@ -4,7 +4,7 @@
 #include "vk/engine.h"
 
 #include <fmt/core.h>
-#include <SDL_vulkan.h>
+#include <SDL3/SDL_vulkan.h>
 
 
 namespace vk
@@ -51,8 +51,6 @@ void Window::CreateWindow() {
     }
     window_ = SDL_CreateWindow(
             config_.window_name().c_str(),
-            SDL_WINDOWPOS_UNDEFINED,
-            SDL_WINDOWPOS_UNDEFINED,
             config_.window_size().x(),
             config_.window_size().y(),
             windowFlags
@@ -91,7 +89,7 @@ void Window::CreateInstance()
     instanceCreateInfo.pApplicationInfo = &appInfo;
 
     unsigned int count;
-    if (!SDL_Vulkan_GetInstanceExtensions(window_, &count, nullptr))
+    if (!SDL_Vulkan_GetInstanceExtensions(&count))
     {
         LogError("[Error] SDL Vulkan, Could not get extensions count");
         std::terminate();
@@ -108,7 +106,7 @@ void Window::CreateInstance()
     std::vector<const char*> extensionNames(extensionCount);
 
     // get names of required extensions
-    if (!SDL_Vulkan_GetInstanceExtensions(window_, &count, &extensionNames[0]))
+    if (!SDL_Vulkan_GetInstanceExtensions(&count))
     {
         LogError("SDL Vulkan, Cannot get instance extensions");
         std::terminate();
@@ -270,7 +268,7 @@ void Window::CreateLogicalDevice() {
 void Window::CreateSurface()
 {
     LogDebug("Creating Surface");
-    if (!SDL_Vulkan_CreateSurface(window_, driver_.instance, &driver_.surface))
+    if (!SDL_Vulkan_CreateSurface(window_, driver_.instance, nullptr, &driver_.surface))
     {
         LogError("[Vulkan] Failed to create a window surface!");
         std::terminate();

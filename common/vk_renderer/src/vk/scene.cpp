@@ -323,18 +323,11 @@ void Scene::OnEvent(SDL_Event& event)
     core::Scene::OnEvent(event);
     switch (event.type)
     {
-    case SDL_WINDOWEVENT:
-    {
-        switch (event.window.event)
-        {
-        case SDL_WINDOWEVENT_RESIZED:
-            ResizeWindow();
-            break;
-        default: break;
-        }
+    case SDL_EVENT_WINDOW_RESIZED:
+        ResizeWindow();
         break;
-    }
-    default: break;
+    default:
+        break;
     }
     
 }

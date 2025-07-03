@@ -17,7 +17,7 @@ include(cmake/proto.cmake)
 
 
 find_package(glm CONFIG REQUIRED)
-find_package(SDL2 CONFIG REQUIRED)
+find_package(SDL3 CONFIG REQUIRED)
 find_package(imgui CONFIG REQUIRED)
 find_package(spdlog CONFIG REQUIRED)
 find_path(STB_INCLUDE_DIRS "stb_image.h")

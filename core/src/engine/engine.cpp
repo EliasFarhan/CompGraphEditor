@@ -6,7 +6,7 @@
 
 #include <chrono>
 #include <cassert>
-#include <imgui_impl_sdl2.h>
+#include <imgui_impl_sdl3.h>
 #include <glm/vec2.hpp>
 
 #include "utils/log.h"
@@ -53,30 +53,21 @@ void Engine::Run()
         {
             switch(event.type)
             {
-                case SDL_QUIT:
+                case SDL_EVENT_QUIT:
                     isOpen = false;
                     break;
-                case SDL_WINDOWEVENT:
-                {
-                    switch(event.window.event)
-                    {
-                        case SDL_WINDOWEVENT_CLOSE:
-                            isOpen = false;
-                            break;
-                        case SDL_WINDOWEVENT_RESIZED:
-                        {
-                            glm::uvec2 newWindowSize;
-                            newWindowSize.x = event.window.data1;
-                            newWindowSize.y = event.window.data2;
-                            ResizeWindow(newWindowSize);
-                            auto* windowSize = config_.mutable_window_size();
-                            windowSize->set_x(newWindowSize.x);
-                            windowSize->set_y(newWindowSize.y);
-                            break;
-                        }
-                        default:
-                            break;
-                    }
+
+                case SDL_EVENT_WINDOW_CLOSE_REQUESTED:
+                    isOpen = false;
+                    break;
+                case SDL_EVENT_WINDOW_RESIZED: {
+                    glm::uvec2 newWindowSize;
+                    newWindowSize.x = event.window.data1;
+                    newWindowSize.y = event.window.data2;
+                    ResizeWindow(newWindowSize);
+                    auto* windowSize = config_.mutable_window_size();
+                    windowSize->set_x(newWindowSize.x);
+                    windowSize->set_y(newWindowSize.y);
                     break;
                 }
                 default:
@@ -88,7 +79,7 @@ void Engine::Run()
             }
             if (!config_.no_imgui())
             {
-                ImGui_ImplSDL2_ProcessEvent(&event);
+                ImGui_ImplSDL3_ProcessEvent(&event);
             }
         }
     });

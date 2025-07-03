@@ -8,7 +8,7 @@
 #include "renderer/framebuffer.h"
 #include "renderer/model.h"
 
-#include <SDL.h>
+#include <SDL3/SDL.h>
 #include <fmt/format.h>
 
 
@@ -114,29 +114,29 @@ void Scene::OnEvent(SDL_Event& event)
 {
     switch(event.type)
     {
-    case SDL_KEYDOWN:
+    case SDL_EVENT_KEY_DOWN:
     {
         for (auto* script : scripts_)
         {
             if (script != nullptr)
             {
-                script->OnKeyDown(event.key.keysym.sym);
+                script->OnKeyDown(event.key.key);
             }
         }
         break;
     }
-    case SDL_KEYUP:
+    case SDL_EVENT_KEY_UP:
     {
         for (auto* script : scripts_)
         {
             if (script != nullptr)
             {
-                script->OnKeyUp(event.key.keysym.sym);
+                script->OnKeyUp(event.key.key);
             }
         }
         break;
     }
-    case SDL_MOUSEMOTION:
+    case SDL_EVENT_MOUSE_MOTION:
     {
         const glm::vec2 mouseMotion(event.motion.xrel, event.motion.yrel);
         for (auto* script : scripts_)

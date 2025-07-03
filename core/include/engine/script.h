@@ -1,7 +1,7 @@
 #pragma once
 
 #include <glm/vec2.hpp>
-#include <SDL2/SDL_keycode.h>
+#include <SDL3/SDL_keycode.h>
 
 #include "utils/locator.h"
 #include "utils/log.h"

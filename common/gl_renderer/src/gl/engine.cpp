@@ -7,7 +7,7 @@
 #include <glm/ext/vector_uint2.hpp>
 
 #include <imgui.h>
-#include <imgui_impl_sdl2.h>
+#include <imgui_impl_sdl3.h>
 #include <imgui_impl_opengl3.h>
 #include <glm/vec2.hpp>
 
@@ -56,7 +56,7 @@ void Engine::Begin()
 #ifdef TRACY_ENABLE
     ZoneScoped;
 #endif
-    SDL_Init(SDL_INIT_VIDEO | SDL_INIT_GAMECONTROLLER);
+    SDL_Init(SDL_INIT_VIDEO | SDL_INIT_GAMEPAD);
     // Set our OpenGL version.
 
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, config_.es()? SDL_GL_CONTEXT_PROFILE_ES:SDL_GL_CONTEXT_PROFILE_CORE);
@@ -73,8 +73,6 @@ void Engine::Begin()
     const auto windowSize = glm::ivec2(config_.window_size().x(), config_.window_size().y());
     window_ = SDL_CreateWindow(
         config_.window_name().c_str(),
-        SDL_WINDOWPOS_UNDEFINED,
-        SDL_WINDOWPOS_UNDEFINED,
         windowSize.x,
         windowSize.y,
         SDL_WINDOW_RESIZABLE | SDL_WINDOW_OPENGL
@@ -104,7 +102,7 @@ void Engine::Begin()
     // Setup Dear ImGui style
     //ImGui::StyleColorsDark();
     ImGui::StyleColorsClassic();
-    ImGui_ImplSDL2_InitForOpenGL(window_, glRenderContext_);
+    ImGui_ImplSDL3_InitForOpenGL(window_, glRenderContext_);
     ImGui_ImplOpenGL3_Init("#version 300 es");
 
     core::Engine::Begin();
@@ -119,9 +117,9 @@ void Engine::End()
     core::Engine::End();
 
     ImGui_ImplOpenGL3_Shutdown();
-    ImGui_ImplSDL2_Shutdown();
+    ImGui_ImplSDL3_Shutdown();
     ImGui::DestroyContext();
-    SDL_GL_DeleteContext(glRenderContext_);
+    SDL_GL_DestroyContext(glRenderContext_);
     SDL_DestroyWindow(window_);
     SDL_Quit();
 }
@@ -150,7 +148,7 @@ void Engine::PreImGuiDraw()
 #endif
     ImGui_ImplOpenGL3_NewFrame();
     glCheckError();
-    ImGui_ImplSDL2_NewFrame();
+    ImGui_ImplSDL3_NewFrame();
     ImGui::NewFrame();
 }
 

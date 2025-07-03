@@ -3,7 +3,7 @@
     "version-string": "1.0",
     "dependencies": [
         {
-            "name": "sdl2",
+            "name": "sdl3",
             "features": ["vulkan"]
         }, "glm", "glew", "stb", "fmt", 
         {
@@ -12,16 +12,16 @@
         },
         {
             "name": "imgui",
-            "features": ["sdl2-binding", "opengl3-binding", "docking-experimental", "vulkan-binding"]
+            "features": ["sdl3-binding", "sdlgpu3-binding", "opengl3-binding", "docking-experimental", "vulkan-binding"]
         },
         "physfs", "protobuf", "spdlog", "nlohmann-json", "vulkan-memory-allocator", "assimp", "zstd", "argh",
-        "spirv-cross", "volk", "sol2", "lua"
+        "spirv-cross", "volk", "flatbuffers"
     ],
     "features":
     {
         "profiling": {"description": "Profiling", "dependencies": ["tracy"] }
     },
-    "builtin-baseline": "89f00b3b8611028566a5264afce725cdfdfddbb4",
+    "builtin-baseline": "f75c836a67777a86a2c1116a28b179827f028b66",
     "overrides": [
         { 
             "name": "ktx", 

@@ -6,6 +6,7 @@
 #include "renderer/command.h"
 #include "renderer/framebuffer.h"
 #include "renderer/buffer.h"
+#include "maths/angle.h"
 
 #include <pybind11/pybind11.h>
 #include <pybind11/embed.h>
@@ -15,8 +16,8 @@
 #include <glm/vec4.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <fmt/format.h>
+#include <SDL3/SDL_keycode.h>
 
-#include "maths/angle.h"
 
 struct TypeInfo
 {
@@ -384,33 +385,33 @@ PYBIND11_EMBEDDED_MODULE(neko2, m)
         .value("READ_WRITE", core::Image::AccessType::READ_WRITE)
     .export_values();
 
-    py::enum_<SDL_KeyCode>(m, "Key", py::arithmetic())
-        .value("A", SDLK_a)
-        .value("B", SDLK_b)
-        .value("C", SDLK_c)
-        .value("D", SDLK_d)
-        .value("E", SDLK_e)
-        .value("F", SDLK_f)
-        .value("G", SDLK_g)
-        .value("H", SDLK_h)
-        .value("I", SDLK_i)
-        .value("J", SDLK_j)
-        .value("K", SDLK_k)
-        .value("L", SDLK_l)
-        .value("M", SDLK_m)
-        .value("N", SDLK_n)
-        .value("O", SDLK_o)
-        .value("P", SDLK_p)
-        .value("Q", SDLK_q)
-        .value("R", SDLK_r)
-        .value("S", SDLK_s)
-        .value("T", SDLK_t)
-        .value("U", SDLK_u)
-        .value("V", SDLK_v)
-        .value("W", SDLK_w)
-        .value("X", SDLK_x)
-        .value("Y", SDLK_y)
-        .value("Z", SDLK_z)
+    py::enum_<SDL_Keycode>(m, "Key", py::arithmetic())
+        .value("A", SDLK_A)
+        .value("B", SDLK_B)
+        .value("C", SDLK_C)
+        .value("D", SDLK_D)
+        .value("E", SDLK_E)
+        .value("F", SDLK_F)
+        .value("G", SDLK_G)
+        .value("H", SDLK_H)
+        .value("I", SDLK_I)
+        .value("J", SDLK_J)
+        .value("K", SDLK_K)
+        .value("L", SDLK_L)
+        .value("M", SDLK_M)
+        .value("N", SDLK_N)
+        .value("O", SDLK_O)
+        .value("P", SDLK_P)
+        .value("Q", SDLK_Q)
+        .value("R", SDLK_R)
+        .value("S", SDLK_S)
+        .value("T", SDLK_T)
+        .value("U", SDLK_U)
+        .value("V", SDLK_V)
+        .value("W", SDLK_W)
+        .value("X", SDLK_X)
+        .value("Y", SDLK_Y)
+        .value("Z", SDLK_Z)
         .value("BACKSPACE", SDLK_BACKSPACE)
         .value("DELETE", SDLK_DELETE)
         .value("UP", SDLK_UP)

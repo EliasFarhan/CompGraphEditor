@@ -5,7 +5,7 @@ generate_proto(Core)
 
 set_target_properties (CoreProto PROPERTIES FOLDER Core)
 target_compile_definitions(Core PUBLIC GLM_ENABLE_EXPERIMENTAL)
-target_link_libraries(Core PUBLIC glm::glm SDL2::SDL2 SDL2::SDL2main imgui::imgui 
+target_link_libraries(Core PUBLIC glm::glm SDL3::SDL3 imgui::imgui
      spdlog::spdlog KTX::ktx assimp::assimp fmt::fmt NekoCore)
 
 if(ENABLE_PROFILING)
