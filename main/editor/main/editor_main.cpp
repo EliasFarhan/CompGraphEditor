@@ -1,5 +1,5 @@
 #include <argh.h>
-#include <SDL_main.h>
+#include <SDL3/SDL_main.h>
 #include "engine/engine.h"
 #include "engine/filesystem.h"
 #include "editor.h"

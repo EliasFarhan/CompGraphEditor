@@ -6,7 +6,7 @@
 #include "engine/filesystem.h"
 #include "vk/engine.h"
 
-#include <SDL_main.h>
+#include <SDL3/SDL_main.h>
 
 #include "py_interface.h"
 #include "sample_program.h"

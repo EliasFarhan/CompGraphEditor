@@ -88,40 +88,42 @@ void Window::CreateInstance()
     instanceCreateInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
     instanceCreateInfo.pApplicationInfo = &appInfo;
 
-    unsigned int count;
-    if (!SDL_Vulkan_GetInstanceExtensions(&count))
-    {
-        LogError("[Error] SDL Vulkan, Could not get extensions count");
-        std::terminate();
-    }
 
-    const char* const additionalExtensions[] =
+
+
+    std::array<std::string_view, 2> additionalExtensions =
             {
                     VK_EXT_DEBUG_REPORT_EXTENSION_NAME, // example additional extension
                     VK_EXT_DEBUG_UTILS_EXTENSION_NAME //adding validation layers
             };
-    const size_t additionalExtensionsCount =
-            sizeof(additionalExtensions) / sizeof(additionalExtensions[0]);
-    const size_t extensionCount = count + additionalExtensionsCount;
-    std::vector<const char*> extensionNames(extensionCount);
 
+    std::vector<const char*> extensionNames;
+    unsigned int count;
     // get names of required extensions
-    if (!SDL_Vulkan_GetInstanceExtensions(&count))
+    if (auto* sdlExtensionNames = SDL_Vulkan_GetInstanceExtensions(&count))
+    {
+        extensionNames.resize(count+additionalExtensions.size());
+        for (size_t i = 0; i < count; i++)
+        {
+            extensionNames[i] = sdlExtensionNames[i];
+        }
+    }
+    else
     {
         LogError("SDL Vulkan, Cannot get instance extensions");
         std::terminate();
     }
 
     // copy additional extensions after required extensions
-    for (size_t i = 0; i < additionalExtensionsCount; i++)
+    for (size_t i = 0; i < additionalExtensions.size(); i++)
     {
-        extensionNames[i + count] = additionalExtensions[i];
+        extensionNames[i + count] = additionalExtensions[i].data();
     }
-    SDL_Vulkan_GetInstanceExtensions(window_, &count, &extensionNames[0]);
 
     LogDebug("Vulkan extensions:");
     for (auto& extension : extensionNames)
     {
+        if (extension == nullptr) continue;
         LogDebug(extension);
     }
 

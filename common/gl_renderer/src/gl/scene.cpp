@@ -579,23 +579,19 @@ Scene::ImportStatus Scene::LoadMaterials(const PbRepeatField<core::pb::Material>
         core::Scene::OnEvent(event);
         switch (event.type)
         {
-            case SDL_WINDOWEVENT:
+            case SDL_EVENT_WINDOW_RESIZED:
             {
-                switch (event.window.event)
+                glm::uvec2 newWindowSize;
+                newWindowSize.x = event.window.data1;
+                newWindowSize.y = event.window.data2;
+                for (auto& framebuffer : framebuffers_)
                 {
-                    case SDL_WINDOWEVENT_RESIZED:
-                    {
-                        glm::uvec2 newWindowSize;
-                        newWindowSize.x = event.window.data1;
-                        newWindowSize.y = event.window.data2;
-                        for (auto& framebuffer : framebuffers_)
-                        {
-                            framebuffer.Resize(newWindowSize);
-                        }
-                        break;
-                    }
+                    framebuffer.Resize(newWindowSize);
                 }
+                break;
             }
+
+
         }
     }
 

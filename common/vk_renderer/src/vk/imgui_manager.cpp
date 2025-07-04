@@ -40,7 +40,7 @@ void ImGuiManager::Begin()
     initInfo.Subpass = 0;
     
     const auto& renderPass = GetCurrentRenderPass();
-    ImGui_ImplVulkan_LoadFunctions([](const char* function_name, void* vulkan_instance) {
+    ImGui_ImplVulkan_LoadFunctions(VK_VERSION_1_3, [](const char* function_name, void* vulkan_instance) {
         return vkGetInstanceProcAddr(*(reinterpret_cast<VkInstance*>(vulkan_instance)), function_name);
         }, &driver.instance);
     ImGui_ImplVulkan_Init(&initInfo);

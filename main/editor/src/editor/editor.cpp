@@ -3,7 +3,7 @@
 #include "utils/log.h"
 #include <imgui.h>
 #include <imgui_stdlib.h>
-#include <SDL.h>
+#include <SDL3/SDL.h>
 #include <pybind11/embed.h>
 #include <fmt/format.h>
 #include "engine/filesystem.h"
@@ -487,32 +487,24 @@ void Editor::OnEvent(SDL_Event& event)
 {
     switch (event.type)
     {
-    case SDL_QUIT:
+    case SDL_EVENT_QUIT:
         SaveProject();
         break;
-    case SDL_WINDOWEVENT:
+    case SDL_EVENT_WINDOW_FOCUS_GAINED:
     {
-        switch (event.window.event)
-        {
-        case SDL_WINDOWEVENT_FOCUS_GAINED:
-        {
-            const auto* sceneInfo = GetSceneEditor()->GetCurrentSceneInfo();
-            if (sceneInfo == nullptr)
-                break;
-            resourceManager_.CheckDataFolder(sceneInfo->info.resources());
-            RecursiveSceneFileReload();
+        const auto* sceneInfo = GetSceneEditor()->GetCurrentSceneInfo();
+        if (sceneInfo == nullptr)
             break;
-        }
-        default:break;
-        }
+        resourceManager_.CheckDataFolder(sceneInfo->info.resources());
+        RecursiveSceneFileReload();
         break;
     }
-    case SDL_KEYDOWN:
+    case SDL_EVENT_KEY_DOWN:
     {
-        const Uint8* state = SDL_GetKeyboardState(nullptr);
-        switch (event.key.keysym.sym)
+        const bool* state = SDL_GetKeyboardState(nullptr);
+        switch (event.key.key)
         {
-        case SDLK_e:
+        case SDLK_E:
         {
             if (state[SDL_SCANCODE_LCTRL])
             {
@@ -520,7 +512,7 @@ void Editor::OnEvent(SDL_Event& event)
             }
                 break;
         }
-        case SDLK_n:
+        case SDLK_N:
         {
             if (state[SDL_SCANCODE_LCTRL])
             {
@@ -529,7 +521,7 @@ void Editor::OnEvent(SDL_Event& event)
             }
             break;
         }
-        case SDLK_s:
+        case SDLK_S:
         {
             
             if (state[SDL_SCANCODE_LCTRL]) 
@@ -538,7 +530,7 @@ void Editor::OnEvent(SDL_Event& event)
             }
             break;
         }
-        case SDLK_o:
+        case SDLK_O:
         {
             if (state[SDL_SCANCODE_LCTRL])
             {

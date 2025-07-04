@@ -3,7 +3,7 @@
 #include "py_interface.h"
 #include "engine/filesystem.h"
 
-#include <SDL_main.h>
+#include <SDL3/SDL_main.h>
 #include <argh.h>
 #include <fmt/format.h>
 

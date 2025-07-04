@@ -235,7 +235,7 @@ void TextureEditor::DrawCenterView()
         auto& texture = textureManager.GetTexture(currentTextureInfo.textureId);
         if (texture.target == GL_TEXTURE_2D)
         {
-            ImGui::Image(reinterpret_cast<ImTextureID>(static_cast<std::intptr_t>(texture.name)),
+            ImGui::Image(texture.name,
                 ImGui::GetContentRegionAvail());
         }
     }

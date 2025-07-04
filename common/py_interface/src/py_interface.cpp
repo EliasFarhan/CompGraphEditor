@@ -385,50 +385,51 @@ PYBIND11_EMBEDDED_MODULE(neko2, m)
         .value("READ_WRITE", core::Image::AccessType::READ_WRITE)
     .export_values();
 
-    py::enum_<SDL_Keycode>(m, "Key", py::arithmetic())
-        .value("A", SDLK_A)
-        .value("B", SDLK_B)
-        .value("C", SDLK_C)
-        .value("D", SDLK_D)
-        .value("E", SDLK_E)
-        .value("F", SDLK_F)
-        .value("G", SDLK_G)
-        .value("H", SDLK_H)
-        .value("I", SDLK_I)
-        .value("J", SDLK_J)
-        .value("K", SDLK_K)
-        .value("L", SDLK_L)
-        .value("M", SDLK_M)
-        .value("N", SDLK_N)
-        .value("O", SDLK_O)
-        .value("P", SDLK_P)
-        .value("Q", SDLK_Q)
-        .value("R", SDLK_R)
-        .value("S", SDLK_S)
-        .value("T", SDLK_T)
-        .value("U", SDLK_U)
-        .value("V", SDLK_V)
-        .value("W", SDLK_W)
-        .value("X", SDLK_X)
-        .value("Y", SDLK_Y)
-        .value("Z", SDLK_Z)
-        .value("BACKSPACE", SDLK_BACKSPACE)
-        .value("DELETE", SDLK_DELETE)
-        .value("UP", SDLK_UP)
-        .value("DOWN", SDLK_DOWN)
-        .value("LEFT", SDLK_LEFT)
-        .value("RIGHT", SDLK_RIGHT)
-        .value("ESCAPE", SDLK_ESCAPE)
-        .value("LALT", SDLK_LALT)
-        .value("RALT", SDLK_RALT)
-        .value("LCTRL", SDLK_LCTRL)
-        .value("RCTRL", SDLK_RCTRL)
-        .value("LSHIFT", SDLK_LSHIFT)
-        .value("RSHIFT", SDLK_RSHIFT)
-        .value("SPACE", SDLK_SPACE)
-        .value("RETURN", SDLK_RETURN)
-    .export_values()
+    py::dict keyAttrs;
+        keyAttrs["A"] = py::int_(SDLK_A);
+        keyAttrs["B"] = py::int_(SDLK_B);
+        keyAttrs["C"] = py::int_(SDLK_C);
+        keyAttrs["D"] = py::int_(SDLK_D);
+        keyAttrs["E"] = py::int_(SDLK_E);
+        keyAttrs["F"] = py::int_(SDLK_F);
+        keyAttrs["G"] = py::int_(SDLK_G);
+        keyAttrs["H"] = py::int_(SDLK_H);
+        keyAttrs["I"] = py::int_(SDLK_I);
+        keyAttrs["J"] = py::int_(SDLK_J);
+        keyAttrs["K"] = py::int_(SDLK_K);
+        keyAttrs["L"] = py::int_(SDLK_L);
+        keyAttrs["M"] = py::int_(SDLK_M);
+        keyAttrs["N"] = py::int_(SDLK_N);
+        keyAttrs["O"] = py::int_(SDLK_O);
+        keyAttrs["P"] = py::int_(SDLK_P);
+        keyAttrs["Q"] = py::int_(SDLK_Q);
+        keyAttrs["R"] = py::int_(SDLK_R);
+        keyAttrs["S"] = py::int_(SDLK_S);
+        keyAttrs["T"] = py::int_(SDLK_T);
+        keyAttrs["U"] = py::int_(SDLK_U);
+        keyAttrs["V"] = py::int_(SDLK_V);
+        keyAttrs["W"] = py::int_(SDLK_W);
+        keyAttrs["X"] = py::int_(SDLK_X);
+        keyAttrs["Y"] = py::int_(SDLK_Y);
+        keyAttrs["Z"] = py::int_(SDLK_Z);
+        keyAttrs["BACKSPACE"] =SDLK_BACKSPACE;
+        keyAttrs["DELETE"] =SDLK_DELETE;
+        keyAttrs["UP"] =SDLK_UP;
+        keyAttrs["DOWN"] =SDLK_DOWN;
+        keyAttrs["LEFT"] =SDLK_LEFT;
+        keyAttrs["RIGHT"] =SDLK_RIGHT;
+        keyAttrs["ESCAPE"] =SDLK_ESCAPE;
+        keyAttrs["LALT"] =SDLK_LALT;
+        keyAttrs["RALT"] =SDLK_RALT;
+        keyAttrs["LCTRL"] =SDLK_LCTRL;
+        keyAttrs["RCTRL"] =SDLK_RCTRL;
+        keyAttrs["LSHIFT"] =SDLK_LSHIFT;
+        keyAttrs["RSHIFT"] =SDLK_RSHIFT;
+        keyAttrs["SPACE"] =SDLK_SPACE;
+        keyAttrs["RETURN"] = SDLK_RETURN;
         ;
+    py::object keycodeClass = py::type::of(py::object())("Key", py::make_tuple(), keyAttrs);
+    m.attr("Key") = keycodeClass;
 
     py::enum_<core::Camera::ProjectionType>(m, "ProjectionType")
         .value("PERSPECTIVE", core::Camera::ProjectionType::PERSPECTIVE)
