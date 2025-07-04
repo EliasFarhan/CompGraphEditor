@@ -7,3 +7,6 @@
 [submodule "external/imnodes"]
 	path = external/imnodes
 	url = https://github.com/Nelarius/imnodes.git
+[submodule "external/wasm3"]
+	path = external/wasm3
+	url = https://github.com/wasm3/wasm3.git

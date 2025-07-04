@@ -1,0 +1,2 @@
+add_executable(wasm_main wasm_main.cpp)
+target_link_libraries(wasm_main CommonWasm)
