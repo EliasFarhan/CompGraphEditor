@@ -12,7 +12,7 @@ function(copydata main_folder exe_name)
             "${main_folder}/data/*.bin"
             "${main_folder}/data/*.rpass"
             "${main_folder}/data/*.py"
-            "${main_folder}/data/*.lua"
+            "${main_folder}/data/*.wasm"
             )
     foreach(DATA ${DATA_FILES})
         get_filename_component(FILE_NAME ${DATA} NAME)

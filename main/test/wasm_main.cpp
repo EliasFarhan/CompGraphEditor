@@ -13,6 +13,13 @@ int main(int argc, char** argv) {
     }
     wasm3::wasm_module mod = env.parse_module(wasm_file);
     runtime.load(mod);
+
+    wasm3::wasm_function begin_fn = runtime.find_function("begin");
+    begin_fn.call();
+
+
+    wasm3::wasm_function update_fn = runtime.find_function("update");
+    update_fn.call(0.1f);
   }
   catch(std::runtime_error &e) {
     std::cerr << "WASM3 error: " << e.what() << std::endl;
