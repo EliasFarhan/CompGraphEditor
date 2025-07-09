@@ -41,5 +41,6 @@ public:
 private:
   wasm3::wasm_environment env;
   wasm3::wasm_runtime runtime = env.new_runtime(1024);
+  std::unique_ptr<WasmSystem> wasmSystem_ = nullptr;
 };
 }
