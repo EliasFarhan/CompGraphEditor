@@ -4,19 +4,21 @@
 namespace core
 {
 
-WasmSystem::WasmSystem() {
-
+WasmSystem::WasmSystem(wasm3::wasm_runtime &runtime)
+    : begin_fn(runtime.find_function("begin")),
+update_fn(runtime.find_function("update")), end_fn(runtime.find_function("end"))
+{
 }
 void WasmSystem::Begin()
 {
-
+  begin_fn.call();
 }
 void WasmSystem::Update(float dt)
 {
-
+  update_fn.call(dt);
 }
 void WasmSystem::End() {
-
+  end_fn.call();
 }
 void WasmSystem::Draw(DrawCommand *sceneDrawCommand)
 {
@@ -45,7 +47,15 @@ void WasmSystem::Dispatch(ComputeCommand *command) {
 
 }
 
-void WasmSystem::Trace(Command *command) {
+void WasmSystem::Trace(Command *command) {}
+
+Script *WasmManager::LoadScript(std::string_view path, std::string_view module,
+                                std::string_view className) {
+  auto* nativeScript = MinimalScriptLoader::LoadScript(path, module, className);
+  if (nativeScript != nullptr) {
+    nativeScript->Begin();
+    return nativeScript;
+  }
 
 }
 } // namespace core
