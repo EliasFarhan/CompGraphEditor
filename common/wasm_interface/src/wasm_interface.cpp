@@ -6,34 +6,87 @@
 
 namespace core
 {
-
 void LinkFunctions(wasm3::wasm_module &module)
 {
-    module.link("*", "bind_draw_command", bind_draw_command);
-    module.link("*", "set_float", set_float);
-    module.link("*", "draw", draw);
+    module.link_optional("*", "bind_draw_command", bind_draw_command);
+    module.link_optional("*", "set_mat4", set_mat4);
+    module.link_optional("*", "set_float", set_float);
+    module.link_optional("*", "draw", draw);
+    module.link_optional("*", "get_aspect", get_aspect);
+
 }
 
-WasmSystem::WasmSystem(wasm3::wasm_runtime& runtime, std::string_view moduleName, std::string_view beginFuncName,
-                       std::string_view updateFuncName, std::string_view endFuncName) :
-    begin_fn(runtime.find_function(beginFuncName.data())), update_fn(runtime.find_function(updateFuncName.data())),
-    end_fn(runtime.find_function(endFuncName.data()))
+WasmSystem::WasmSystem(wasm3::wasm_environment& env,
+        wasm3::wasm_runtime& runtime,
+        const FileBuffer& wasmFile,
+    std::string_view moduleName) :
+    module_(env.parse_module(wasmFile.data, wasmFile.size))
 {
+    runtime.load(module_);
+    LinkFunctions(module_);
+    const auto beginFuncName = std::format("{}_begin", moduleName);
+    const auto updateFuncName = std::format("{}_update", moduleName);
+    const auto endFuncName = std::format("{}_end", moduleName);
+
     try
     {
-        auto drawFuncName = std::format("{}_draw", moduleName);
+        begin_fn = runtime.find_function(beginFuncName.data());
+    }
+    catch (const wasm3::error& e)
+    {
+        LogWarning(std::format("Could not load {} in {}", beginFuncName, moduleName));
+    }
+    try
+    {
+        update_fn = runtime.find_function(updateFuncName.data());
+    }
+    catch (const wasm3::error& e)
+    {
+        LogWarning(std::format("Could not load {} in {}", updateFuncName, moduleName));
+    }
+    try
+    {
+        end_fn = runtime.find_function(endFuncName.data());
+    }
+    catch (const wasm3::error& e)
+    {
+        LogWarning(std::format("Could not load {} in {}", endFuncName, moduleName));
+    }
+
+    const auto drawFuncName = std::format("{}_draw", moduleName);
+    try
+    {
         draw_fn = runtime.find_function(drawFuncName.data());
     }
     catch (const wasm3::error& e)
     {
+        LogDebug(std::format("No {} function", drawFuncName));
     }
 }
 
-void WasmSystem::Begin() { begin_fn.call(); }
+void WasmSystem::Begin()
+{
+    if (begin_fn.has_value())
+    {
+        begin_fn->call();
+    }
+}
 
-void WasmSystem::Update(float dt) { update_fn.call(dt); }
+void WasmSystem::Update(float dt)
+{
+    if (update_fn.has_value())
+    {
+        update_fn->call(dt);
+    }
+}
 
-void WasmSystem::End() { end_fn.call(); }
+void WasmSystem::End()
+{
+    if (end_fn.has_value())
+    {
+        end_fn->call();
+    }
+}
 
 void WasmSystem::Draw(DrawCommand* sceneDrawCommand)
 {
@@ -79,14 +132,8 @@ Script* WasmManager::LoadScript(std::string_view path, std::string_view module, 
             LogError(std::format("Failed to open wasm file {}", path));
             return nullptr;
         }
-        wasm3::wasm_module mod = env.parse_module(wasmFile.data, wasmFile.size);
-        runtime.load(mod);
-        LinkFunctions(mod);
 
-        const auto beginFuncName = std::format("{}_begin", module);
-        const auto endFuncName = std::format("{}_end", module);
-        const auto updateFuncName = std::format("{}_update", module);
-        wasmSystem = std::make_unique<WasmSystem>(runtime, module, beginFuncName, updateFuncName, endFuncName);
+        wasmSystem = std::make_unique<WasmSystem>(env,runtime, wasmFile, module);
     }
     catch (wasm3::error& e)
     {

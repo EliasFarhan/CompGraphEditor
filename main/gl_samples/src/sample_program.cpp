@@ -292,8 +292,8 @@ core::pb::Scene Scene6()
 
     auto* pySystem = scene.add_systems();
     pySystem->set_class_("Scene06");
-    pySystem->set_module("data.scripts.scene06");
-    pySystem->set_path("data/scripts/scene06.py");
+    pySystem->set_module("scene06");
+    pySystem->set_path("data/scripts/scene06.wasm");
     return scene;
 }
 
@@ -746,7 +746,7 @@ void SampleBrowserProgram::Begin()
         sample.scene.SetScene(sample.sceneInfo);
     }
 
-    currentIndex_ = 0;
+    currentIndex_ = 5;
     sceneManager_.LoadScene(&samples_[currentIndex_].scene);
 }
 

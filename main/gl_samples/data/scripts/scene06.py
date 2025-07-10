@@ -15,7 +15,8 @@ class Scene06(System):
             Vec3(1.3, -2.0, -2.5),
             Vec3(1.5, 2.0, -2.5),
             Vec3(1.5, 0.2, -1.5),
-            Vec3(-1.3, 1.0, -1.5)]
+            Vec3(-1.3, 1.0, -1.5)
+                          ]
 
     def update(self, dt: float):
         self.t += dt

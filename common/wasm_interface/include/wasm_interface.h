@@ -1,14 +1,18 @@
 #pragma once
-#include <wasm3_cpp.h>
+
+#include "engine/filesystem.h"
 #include "engine/script.h"
+#include <wasm3_cpp.h>
 
 namespace core
 {
 class WasmSystem final : public Script
 {
 public:
-    explicit WasmSystem(wasm3::wasm_runtime& runtime, std::string_view moduleName, std::string_view beginFuncName,
-                        std::string_view updateFuncName, std::string_view endFuncName);
+    explicit WasmSystem(wasm3::wasm_environment& env,
+        wasm3::wasm_runtime& runtime,
+        const FileBuffer& wasmFile,
+        std::string_view moduleName);
     void Begin() override;
     void Update(float dt) override;
     void End() override;
@@ -22,9 +26,10 @@ public:
     void Trace(Command* command) override;
 
 private:
-    wasm3::wasm_function begin_fn;
-    wasm3::wasm_function update_fn;
-    wasm3::wasm_function end_fn;
+    wasm3::wasm_module module_;
+    std::optional<wasm3::wasm_function> begin_fn;
+    std::optional<wasm3::wasm_function> update_fn;
+    std::optional<wasm3::wasm_function> end_fn;
     std::optional<wasm3::wasm_function> draw_fn;
     std::optional<wasm3::wasm_function> on_key_down_fn;
     std::optional<wasm3::wasm_function> on_key_up_fn;
@@ -44,7 +49,7 @@ public:
 
 private:
     wasm3::wasm_environment env;
-    wasm3::wasm_runtime runtime = env.new_runtime(1024);
+    wasm3::wasm_runtime runtime = env.new_runtime(1024*1024);
     std::vector<std::unique_ptr<WasmSystem>> wasmSystems_;
 };
 } // namespace core
