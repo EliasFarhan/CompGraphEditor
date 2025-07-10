@@ -1,32 +1,34 @@
-#include "wasm/neko2.h"
 #include <emscripten.h>
+#include "wasm/neko2.h"
+
+#include <cmath>
+#include <cstdio>
 
 #define GLM_ENABLE_EXPERIMENTAL
-#define WASM_EXPORT __attribute__((used)) __attribute__((visibility("default")))
 
 extern "C"
 {
 
 static float t = 0.0f;
 
-EMSCRIPTEN_KEEPALIVE void begin()
+EMSCRIPTEN_KEEPALIVE void scene03_begin()
 {
     t = 0.0f;
 }
 
-EMSCRIPTEN_KEEPALIVE void update(float dt)
+EMSCRIPTEN_KEEPALIVE void scene03_update(float dt)
 {
     t += dt;
 }
 
-EMSCRIPTEN_KEEPALIVE void draw(neko2::draw::DrawCommand* draw_command)
+EMSCRIPTEN_KEEPALIVE void scene03_draw(int64_t draw_command)
 {
-    neko2::draw::bind(draw_command);
-    neko2::draw::set_float(draw_command, "value", (std::sin(t)+1.0f)/2.0f);
-    neko2::draw::draw(draw_command);
+    bind_draw_command(draw_command);
+    set_float(draw_command, "value", (std::sin(t)+1.0f)/2.0f);
+    draw(draw_command);
 }
 
-EMSCRIPTEN_KEEPALIVE void end()
+EMSCRIPTEN_KEEPALIVE void scene03_end()
 {
 
 }

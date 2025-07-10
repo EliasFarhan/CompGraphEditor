@@ -1,16 +1,11 @@
 #pragma once
 #define GLM_ENABLE_EXPERIMENTAL
-#include "renderer/command.h"
 
-namespace neko2 {
+#include <cstdint>
 
-namespace draw {
-struct DrawCommand {
-  core::DrawCommand* drawCommand;
-};
-
-extern void bind(DrawCommand* drawCommand);
-extern void set_float(DrawCommand* drawCommand, std::string_view name, float value);
-extern void draw(DrawCommand* drawCommand);
-}
+extern "C"
+{
+    void bind_draw_command(int64_t drawCommand);
+    void set_float(int64_t drawCommand, const void* name, float value);
+    void draw(int64_t drawCommand);
 }

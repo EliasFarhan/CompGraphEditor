@@ -1,6 +1,6 @@
 #include "gl/engine.h"
 #include "sample_program.h"
-#include "py_interface.h"
+#include "wasm_interface.h"
 #include "engine/filesystem.h"
 
 #include <SDL3/SDL_main.h>
@@ -18,7 +18,7 @@ int main([[maybe_unused]]int argc, char** argv)
         engine.SetVersion(major, minor, cmdl[{ "-es", "--es" }]);
     }
     engine.SetWindowName("OpenGL Samples");
-    core::PyManager pyManager;
+    core::WasmManager wasmManager;
     core::ImportNativeScript();
 
     gpr5300::SampleBrowserProgram triangleProgram;
