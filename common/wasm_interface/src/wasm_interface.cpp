@@ -9,10 +9,14 @@ namespace core
 void LinkFunctions(wasm3::wasm_module &module)
 {
     module.link_optional("*", "bind_draw_command", bind_draw_command);
-    module.link_optional("*", "set_mat4", set_mat4);
+    module.link_optional("*", "set_mat4_local", set_mat4_local);
+    module.link_optional("*", "set_mat4_host", set_mat4_host);
     module.link_optional("*", "set_float", set_float);
     module.link_optional("*", "draw", draw);
     module.link_optional("*", "get_aspect", get_aspect);
+    module.link_optional("*", "get_scene_camera", get_scene_camera);
+    module.link_optional("*", "get_view", get_view);
+    module.link_optional("*", "get_projection", get_projection);
 
 }
 
@@ -60,7 +64,7 @@ WasmSystem::WasmSystem(wasm3::wasm_environment& env,
     }
     catch (const wasm3::error& e)
     {
-        LogDebug(std::format("No {} function", drawFuncName));
+        LogDebug(std::format("No {} function, error: {}", drawFuncName, e.what()));
     }
 }
 

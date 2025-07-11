@@ -1,8 +1,10 @@
 #pragma once
 
-
+#include <array>
 #include <glm/vec3.hpp>
 #include <glm/mat4x4.hpp>
+#include <glm/ext/matrix_clip_space.hpp>
+#include <glm/ext/matrix_transform.hpp>
 
 #include "engine/script.h"
 
@@ -30,6 +32,7 @@ struct Camera
     float orthographicHalfHeight = 1.0f;
 
     [[nodiscard]] glm::mat4 GetView() const;
+
     [[nodiscard]] glm::mat4 GetProjection() const;
 };
 

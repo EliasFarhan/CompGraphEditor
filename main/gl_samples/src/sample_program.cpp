@@ -362,9 +362,9 @@ core::pb::Scene Scene7()
     cameraPySystem->set_module("cppmodule");
 
     auto* scenePySystem = scene.add_systems();
-    scenePySystem->set_path("data/scripts/scene07.py");
+    scenePySystem->set_path("data/scripts/scene07.wasm");
     scenePySystem->set_class_("Scene07");
-    scenePySystem->set_module("data.scripts.scene07");
+    scenePySystem->set_module("scene07");
 
     return scene;
 }
@@ -746,7 +746,7 @@ void SampleBrowserProgram::Begin()
         sample.scene.SetScene(sample.sceneInfo);
     }
 
-    currentIndex_ = 5;
+    currentIndex_ = 6;
     sceneManager_.LoadScene(&samples_[currentIndex_].scene);
 }
 

@@ -12,6 +12,13 @@ const float PI = std::numbers::pi_v<float>;
 
 namespace core
 {
+
+static CameraSystem* cameraSystem = nullptr;
+CameraSystem* GetCameraSystem()
+{
+    return cameraSystem;
+}
+
 glm::mat4 Camera::GetView() const
 {
     return glm::lookAt(position, position + direction, up);
@@ -26,13 +33,6 @@ glm::mat4 Camera::GetProjection() const
     default: break;
     }
     return glm::mat4(1.0f);
-}
-
-
-static CameraSystem* cameraSystem = nullptr;
-CameraSystem* GetCameraSystem()
-{
-    return cameraSystem;
 }
 
 void CameraSystem::Begin()
