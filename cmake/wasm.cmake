@@ -25,7 +25,7 @@ function(compilescript main_folder exe_name)
                 OUTPUT ${DATA_OUTPUT}
                 COMMAND ${EMCC} ${DATA} -o ${DATA_OUTPUT} -I${CMAKE_SOURCE_DIR}/common/wasm_interface/include/
                 -I${CMAKE_SOURCE_DIR}/core/include -I${CMAKE_BINARY_DIR}/core/ -I${CMAKE_BINARY_DIR}/vcpkg_installed/x64-windows/include
-                -std=c++20 -s STANDALONE_WASM -s ERROR_ON_UNDEFINED_SYMBOLS=0 --emit-symbol-map
+                -std=c++20 -s STANDALONE_WASM -s ERROR_ON_UNDEFINED_SYMBOLS=0
                 DEPENDS ${DATA})
         list(APPEND Data_OUTPUT_FILES ${DATA_OUTPUT})
     endforeach(DATA)

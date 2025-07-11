@@ -57,3 +57,8 @@ int64_t get_projection(int64_t camera)
     projection = reinterpret_cast<core::Camera*>(camera)->GetProjection();
     return reinterpret_cast<int64_t>(&projection);
 }
+
+int32_t get_subpass_index(int64_t drawCommand)
+{
+    return reinterpret_cast<core::DrawCommand*>(drawCommand)->GetSubpassIndex();
+}

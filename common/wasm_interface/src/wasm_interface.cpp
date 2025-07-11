@@ -17,6 +17,7 @@ void LinkFunctions(wasm3::wasm_module &module)
     module.link_optional("*", "get_scene_camera", get_scene_camera);
     module.link_optional("*", "get_view", get_view);
     module.link_optional("*", "get_projection", get_projection);
+    module.link_optional("*", "get_subpass_index", get_subpass_index);
 
 }
 

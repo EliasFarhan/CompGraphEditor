@@ -16,6 +16,7 @@ extern "C"
     int64_t get_scene_camera();
     int64_t get_view(int64_t camera);
     int64_t get_projection(int64_t camera);
+    int32_t get_subpass_index(int64_t drawCommand);
 }
 
 template<typename T>

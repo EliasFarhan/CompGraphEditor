@@ -469,9 +469,9 @@ core::pb::Scene Scene8()
     cameraPySystem->set_module("cppmodule");
 
     auto* scenePySystem = scene.add_systems();
-    scenePySystem->set_path("data/scripts/scene08.py");
+    scenePySystem->set_path("data/scripts/scene08.wasm");
     scenePySystem->set_class_("Scene08");
-    scenePySystem->set_module("data.scripts.scene08");
+    scenePySystem->set_module("scene08");
 
     return scene;
 }
@@ -569,9 +569,9 @@ core::pb::Scene Scene9()
     cameraPySystem->set_module("cppmodule");
 
     auto* scenePySystem = scene.add_systems();
-    scenePySystem->set_path("data/scripts/scene09.py");
+    scenePySystem->set_path("data/scripts/scene09.wasm");
     scenePySystem->set_class_("Scene09");
-    scenePySystem->set_module("data.scripts.scene09");
+    scenePySystem->set_module("scene09");
 
     return scene;
 }
@@ -639,9 +639,9 @@ core::pb::Scene Scene10()
     cameraPySystem->set_module("cppmodule");
 
     auto* scenePySystem = scene.add_systems();
-    scenePySystem->set_path("data/scripts/scene10.py");
+    scenePySystem->set_path("data/scripts/scene10.wasm");
     scenePySystem->set_class_("UniformInstancingScene");
-    scenePySystem->set_module("data.scripts.scene10");
+    scenePySystem->set_module("scene10");
 
 
     return scene;
@@ -719,9 +719,9 @@ core::pb::Scene Scene11()
     cameraPySystem->set_module("cppmodule");
 
     auto* scenePySystem = scene.add_systems();
-    scenePySystem->set_path("data/scripts/scene11.py");
+    scenePySystem->set_path("data/scripts/scene11.wasm");
     scenePySystem->set_class_("UniformInstancingScene");
-    scenePySystem->set_module("data.scripts.scene11");
+    scenePySystem->set_module("scene11");
 
     return scene;
 }
@@ -746,7 +746,7 @@ void SampleBrowserProgram::Begin()
         sample.scene.SetScene(sample.sceneInfo);
     }
 
-    currentIndex_ = 6;
+    currentIndex_ = 7;
     sceneManager_.LoadScene(&samples_[currentIndex_].scene);
 }
 
