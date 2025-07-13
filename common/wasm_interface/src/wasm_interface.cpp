@@ -23,6 +23,7 @@ void LinkFunctions(wasm3::wasm_module &module)
     module.link_optional("*", "get_name", get_name);
     module.link_optional("*", "set_vec3_local", set_vec3_local);
     module.link_optional("*", "set_vec3_host", set_vec3_host);
+    module.link_optional("*", "draw_instanced", draw_instanced);
 
 }
 

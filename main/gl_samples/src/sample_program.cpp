@@ -640,7 +640,7 @@ core::pb::Scene Scene10()
 
     auto* scenePySystem = scene.add_systems();
     scenePySystem->set_path("data/scripts/scene10.wasm");
-    scenePySystem->set_class_("UniformInstancingScene");
+    scenePySystem->set_class_("Scene10");
     scenePySystem->set_module("scene10");
 
 
@@ -746,7 +746,7 @@ void SampleBrowserProgram::Begin()
         sample.scene.SetScene(sample.sceneInfo);
     }
 
-    currentIndex_ = 8;
+    currentIndex_ = 9;
     sceneManager_.LoadScene(&samples_[currentIndex_].scene);
 }
 

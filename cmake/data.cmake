@@ -83,9 +83,9 @@ function(checkshaders main_folder exe_name)
         #MESSAGE("GLSL OUT PATH: ${GLSL_OUTPUT}")
         add_custom_command(
                 OUTPUT ${GLSL_OUTPUT}
-                COMMAND ${EMCC} ${GLSL} -o ${GLSL_OUTPUT}
+                COMMAND ${CMAKE_COMMAND} -E copy
                 ${main_folder}/${PATH_NAME}/${FILE_NAME}
-                "${CMAKE_CURRENT_BINARY_DIR}/${PATH_NAME}/${FILE_NAME}"
+                ${GLSL_OUTPUT}
                 COMMAND ${GLSL_VALIDATOR}  ${GLSL}
                 DEPENDS ${GLSL})
         list(APPEND GLSL_OUTPUT_FILES ${GLSL_OUTPUT})

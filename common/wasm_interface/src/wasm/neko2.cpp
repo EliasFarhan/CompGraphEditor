@@ -88,3 +88,10 @@ void fill_camera_position(int64_t camera, void* position)
 {
     *static_cast<glm::vec3*>(position) = reinterpret_cast<core::Camera*>(camera)->position;
 }
+
+void draw_instanced(int64_t drawCommand, int64_t count)
+{
+    auto* scene = core::GetCurrentScene();
+    reinterpret_cast<core::DrawCommand*>(drawCommand)->PreDrawBind();
+    scene->Draw(*reinterpret_cast<core::DrawCommand*>(drawCommand), count);
+}

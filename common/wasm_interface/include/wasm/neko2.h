@@ -3,6 +3,7 @@
 #include <glm/mat4x4.hpp>
 #include <cstdint>
 
+#include "GL/glew.h"
 #include "renderer/camera.h"
 
 extern "C"
@@ -14,6 +15,7 @@ extern "C"
     void set_mat4_host(int64_t drawCommand, const void* name, int64_t value);
     void set_vec3_host(int64_t drawCommand, const void* name, int64_t value);
     void draw(int64_t drawCommand);
+    void draw_instanced(int64_t drawCommand, int64_t count);
     float get_aspect();
     int64_t get_scene_camera();
     void fill_camera_view(int64_t camera, void* viewMat);
@@ -32,7 +34,7 @@ void set_vec3(int64_t drawCommand, const void* name, T value)
     {
         set_vec3_local(drawCommand, name, value);
     }
-    else if constexpr (std::is_convertible_v<T, glm::vec3>)
+    else if constexpr (std::is_convertible_v<std::remove_cvref_t<T>, glm::vec3>)
     {
         set_vec3_local(drawCommand, name, &value);
     }
@@ -53,7 +55,7 @@ void set_mat4(int64_t drawCommand, const void* name, T value)
     {
         set_mat4_host(drawCommand, name, value);
     }
-    else if constexpr (std::is_convertible_v<T, glm::mat4>)
+    else if constexpr (std::is_convertible_v<std::remove_cvref_t<T>, glm::mat4>)
     {
         set_mat4_local(drawCommand, name, &value);
     }

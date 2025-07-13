@@ -21,11 +21,5 @@
     {
         "profiling": {"description": "Profiling", "dependencies": ["tracy"] }
     },
-    "builtin-baseline": "f75c836a67777a86a2c1116a28b179827f028b66",
-    "overrides": [
-        { 
-            "name": "ktx", 
-            "version": "4.1.0#0"
-        }
-    ]
+    "builtin-baseline": "f75c836a67777a86a2c1116a28b179827f028b66"
 }
