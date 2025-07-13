@@ -16,10 +16,10 @@ extern "C"
 	{
 		const auto camera = get_scene_camera();
 		bind_draw_command(drawCommand);
-		set_mat4(drawCommand, "view", get_view(camera));
-		set_mat4(drawCommand, "projection", get_projection(camera));
+		set_mat4(drawCommand, "view", get_camera_view(camera));
+		set_mat4(drawCommand, "projection", get_camera_projection(camera));
 		glm::mat4 model = glm::mat4(1.0f);
-		set_mat4(drawCommand, "model", &model);
+		set_mat4(drawCommand, "model", model);
 		draw(drawCommand);
 	}
 

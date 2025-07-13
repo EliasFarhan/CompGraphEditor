@@ -746,7 +746,7 @@ void SampleBrowserProgram::Begin()
         sample.scene.SetScene(sample.sceneInfo);
     }
 
-    currentIndex_ = 7;
+    currentIndex_ = 8;
     sceneManager_.LoadScene(&samples_[currentIndex_].scene);
 }
 

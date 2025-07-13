@@ -43,16 +43,16 @@ extern "C"
 		bind_draw_command(drawCommand);
 		auto view = glm::mat4(1.0f);
 		view = glm::translate(view, glm::vec3(0,0,-5));
-		set_mat4(drawCommand, "view", &view);
+		set_mat4(drawCommand, "view", view);
 		auto projection = glm::perspective(glm::radians(45.0f), get_aspect(), 0.1f, 100.0f);
-		set_mat4(drawCommand, "projection", &projection);
+		set_mat4(drawCommand, "projection", projection);
 		for (auto& position : positions)
 		{
 			auto model = glm::mat4(1.0f);
 			model = glm::translate(model, position);
 			model = glm::rotate(model, t, glm::vec3(0, 0, 1));
 			model = glm::rotate(model, t, glm::vec3(0, 1, 0));
-			set_mat4(drawCommand, "model", &model);
+			set_mat4(drawCommand, "model", model);
 			draw(drawCommand);
 		}
 	}

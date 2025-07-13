@@ -26,10 +26,20 @@ void set_mat4_local(int64_t drawCommand, const void* name, const void* value)
     reinterpret_cast<core::DrawCommand*>(drawCommand)->SetMat4(static_cast<const char*>(name), *mat);
 }
 
+void set_vec3_local(int64_t drawCommand, const void* name, const void* value)
+{
+    auto* v = static_cast<const glm::vec3*>(value);
+    reinterpret_cast<core::DrawCommand*>(drawCommand)->SetVec3(static_cast<const char*>(name), *v);
+}
 void set_mat4_host(int64_t drawCommand, const void* name, int64_t value)
 {
     auto* mat = reinterpret_cast<const glm::mat4*>(value);
     reinterpret_cast<core::DrawCommand*>(drawCommand)->SetMat4(static_cast<const char*>(name), *mat);
+}
+void set_vec3_host(int64_t drawCommand, const void* name, int64_t value)
+{
+    auto* v = reinterpret_cast<const glm::vec3*>(value);
+    reinterpret_cast<core::DrawCommand*>(drawCommand)->SetVec3(static_cast<const char*>(name), *v);
 }
 
 float get_aspect()
@@ -44,21 +54,37 @@ int64_t get_scene_camera()
     return reinterpret_cast<int64_t>(&scene->GetCamera());
 }
 
-int64_t get_view(int64_t camera)
+
+void fill_camera_view(int64_t camera, void* viewMat)
 {
-    static glm::mat4 view;
-    view = reinterpret_cast<core::Camera*>(camera)->GetView();
-    return reinterpret_cast<int64_t>(&view);
+   *static_cast<glm::mat4*>(viewMat) = reinterpret_cast<core::Camera*>(camera)->GetView();
 }
 
-int64_t get_projection(int64_t camera)
+void fill_camera_projection(int64_t camera, void* projMat)
 {
-    static glm::mat4 projection;
-    projection = reinterpret_cast<core::Camera*>(camera)->GetProjection();
-    return reinterpret_cast<int64_t>(&projection);
+    *static_cast<glm::mat4*>(projMat) = reinterpret_cast<core::Camera*>(camera)->GetProjection();
 }
+
 
 int32_t get_subpass_index(int64_t drawCommand)
 {
     return reinterpret_cast<core::DrawCommand*>(drawCommand)->GetSubpassIndex();
+}
+
+int64_t get_name(int64_t drawCommand)
+{
+    const auto* drawCommandPtr = reinterpret_cast<core::DrawCommand*>(drawCommand);
+    return reinterpret_cast<int64_t>(drawCommandPtr->GetName().data());
+}
+
+int32_t name_equals(int64_t hostString, const void* localString)
+{
+    const std::string_view hostName = reinterpret_cast<const char*>(hostString);
+    const std::string_view localName = static_cast<const char*>(localString);
+    return hostName == localName;
+}
+
+void fill_camera_position(int64_t camera, void* position)
+{
+    *static_cast<glm::vec3*>(position) = reinterpret_cast<core::Camera*>(camera)->position;
 }

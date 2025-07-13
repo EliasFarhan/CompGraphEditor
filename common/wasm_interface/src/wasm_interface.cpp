@@ -15,9 +15,14 @@ void LinkFunctions(wasm3::wasm_module &module)
     module.link_optional("*", "draw", draw);
     module.link_optional("*", "get_aspect", get_aspect);
     module.link_optional("*", "get_scene_camera", get_scene_camera);
-    module.link_optional("*", "get_view", get_view);
-    module.link_optional("*", "get_projection", get_projection);
+    module.link_optional("*", "fill_camera_view", fill_camera_view);
+    module.link_optional("*", "fill_camera_projection", fill_camera_projection);
     module.link_optional("*", "get_subpass_index", get_subpass_index);
+    module.link_optional("*", "fill_camera_position", fill_camera_position);
+    module.link_optional("*", "name_equals", name_equals);
+    module.link_optional("*", "get_name", get_name);
+    module.link_optional("*", "set_vec3_local", set_vec3_local);
+    module.link_optional("*", "set_vec3_host", set_vec3_host);
 
 }
 
