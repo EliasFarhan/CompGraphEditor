@@ -4,7 +4,7 @@
 #include "scene_editor.h"
 #include "engine/filesystem.h"
 #include "utils/log.h"
-#include <fmt/format.h>
+#include <format>
 #include <imgui_stdlib.h>
 #include <fstream>
 
@@ -219,7 +219,7 @@ void PipelineEditor::DrawInspector()
             {
                 currentPipelineInfo.info.mutable_pipeline()->set_stencil_func_mask(stencilFuncMask);
             }
-            const auto stencilFuncCommand = fmt::format("glStencilFunc(GL_{},{},0x{:X});", stencilFuncTxt[currentPipelineInfo.info.pipeline().stencil_func()], stencilRef, stencilFuncMask);
+            const auto stencilFuncCommand = std::format("glStencilFunc(GL_{},{},0x{:X});", stencilFuncTxt[currentPipelineInfo.info.pipeline().stencil_func()], stencilRef, stencilFuncMask);
             ImGui::Text("%s", stencilFuncCommand.data());
             //Stencil op
             static constexpr std::array<std::string_view, 8> stencilOpTxt =
@@ -267,7 +267,7 @@ void PipelineEditor::DrawInspector()
                 }
                 ImGui::EndCombo();
             }
-            const auto stencilOpCommand = fmt::format("glStencilOp(GL_{}, GL_{}, GL_{});",
+            const auto stencilOpCommand = std::format("glStencilOp(GL_{}, GL_{}, GL_{});",
                 stencilOpTxt[currentPipelineInfo.info.pipeline().stencil_source_fail()],
                 stencilOpTxt[currentPipelineInfo.info.pipeline().stencil_depth_fail()],
                 stencilOpTxt[currentPipelineInfo.info.pipeline().stencil_depth_pass()]);
@@ -278,7 +278,7 @@ void PipelineEditor::DrawInspector()
             {
                 currentPipelineInfo.info.mutable_pipeline()->set_stencil_mask(stencilMask);
             }
-            const auto stencilMaskCommand = fmt::format("glStencilMask(0x{:X});", currentPipelineInfo.info.pipeline().stencil_mask());
+            const auto stencilMaskCommand = std::format("glStencilMask(0x{:X});", currentPipelineInfo.info.pipeline().stencil_mask());
             ImGui::Text("%s", stencilMaskCommand.data());
         }
 
@@ -336,7 +336,7 @@ void PipelineEditor::DrawInspector()
                 }
                 ImGui::EndCombo();
             }
-            const auto blendFuncCommand = fmt::format("glBlendFunc(GL_{}, GL_{});", 
+            const auto blendFuncCommand = std::format("glBlendFunc(GL_{}, GL_{});", 
                 blendFuncTxt[currentPipelineInfo.info.pipeline().blending_source_factor()],
                 blendFuncTxt[currentPipelineInfo.info.pipeline().blending_destination_factor()]);
             ImGui::Text("%s", blendFuncCommand.c_str());
@@ -395,7 +395,7 @@ void PipelineEditor::DrawInspector()
                 ImGui::TableSetColumnIndex(0);
                 ImGui::Text("Name: %s", sampler->name().c_str());
                 ImGui::TableSetColumnIndex(1);
-                const auto comboId = fmt::format("Sampler Texture Type {}", i);
+                const auto comboId = std::format("Sampler Texture Type {}", i);
                 ImGui::PushID(comboId.data());
                 auto textureTypeTxt = aiTextureTypeToString(static_cast<aiTextureType>(sampler->type()));
                 if(ImGui::BeginCombo("Texture Type", textureTypeTxt))
@@ -428,7 +428,7 @@ void PipelineEditor::DrawInspector()
             for (int i = 0; i < currentPipelineInfo.info.pipeline().uniforms_size(); i++)
             {
                 const auto& uniformInfo = currentPipelineInfo.info.mutable_pipeline()->uniforms(i);
-                const auto text = fmt::format("Name: {} Type: {}", uniformInfo.name(), uniformInfo.type_name());
+                const auto text = std::format("Name: {} Type: {}", uniformInfo.name(), uniformInfo.type_name());
                 ImGui::Selectable(text.c_str(), false);
             }
             
@@ -440,7 +440,7 @@ void PipelineEditor::DrawInspector()
             for (int i = 0; i < currentPipelineInfo.info.pipeline().in_vertex_attributes_size(); i++)
             {
                 const auto& inAttributeInfo = currentPipelineInfo.info.mutable_pipeline()->in_vertex_attributes(i);
-                const auto text = fmt::format("Name: {} Type: {}", inAttributeInfo.name(), inAttributeInfo.type_name());
+                const auto text = std::format("Name: {} Type: {}", inAttributeInfo.name(), inAttributeInfo.type_name());
                 ImGui::Selectable(text.c_str(), false);
             }
             ImGui::EndListBox();
@@ -600,13 +600,13 @@ void PipelineEditor::AddResource(const Resource& resource)
 
     if (!core::IsRegularFile(resource.path))
     {
-        LogWarning(fmt::format("Could not find pipeline file: {}", resource.path.c_str()));
+        LogWarning(std::format("Could not find pipeline file: {}", resource.path.c_str()));
         return;
     }
     std::ifstream fileIn (resource.path.c_str(), std::ios::binary);
     if (!pipelineInfo.info.ParseFromIstream(&fileIn))
     {
-        LogWarning(fmt::format("Could not open protobuf file: {}", resource.path.c_str()));
+        LogWarning(std::format("Could not open protobuf file: {}", resource.path.c_str()));
         return;
     }
     
@@ -781,7 +781,7 @@ void PipelineEditor::Save()
         std::ofstream fileOut(pipelineInfo.path.c_str(), std::ios::binary);
         if (!pipelineInfo.info.SerializeToOstream(&fileOut))
         {
-            LogWarning(fmt::format("Could not save pipeline at: {}", pipelineInfo.path.c_str()));
+            LogWarning(std::format("Could not save pipeline at: {}", pipelineInfo.path.c_str()));
         }
         
     }

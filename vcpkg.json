@@ -5,16 +5,12 @@
         {
             "name": "sdl3",
             "features": ["vulkan"]
-        }, "glm", "glew", "stb", "fmt", 
-        {
-            "name": "ktx",
-            "features": ["tools"]
-        },
+        }, "glm", "glew", "stb",
         {
             "name": "imgui",
             "features": ["sdl3-binding", "sdlgpu3-binding", "opengl3-binding", "docking-experimental", "vulkan-binding"]
         },
-        "physfs", "protobuf", "spdlog", "nlohmann-json", "vulkan-memory-allocator", "assimp", "zstd", "argh",
+        "physfs", "abseil", "protobuf", "spdlog", "nlohmann-json", "vulkan-memory-allocator", "assimp", "zstd", "argh",
         "spirv-cross", "volk", "flatbuffers"
     ],
     "features":

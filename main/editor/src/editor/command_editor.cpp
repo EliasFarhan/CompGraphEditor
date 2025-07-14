@@ -2,7 +2,7 @@
 
 #include <imgui.h>
 #include <imgui_stdlib.h>
-#include <fmt/format.h>
+#include <format>
 
 #include "editor.h"
 #include "buffer_editor.h"
@@ -30,7 +30,7 @@ void CommandEditor::AddResource(const Resource& resource)
     {
         if (!core::IsRegularFile(resource.path.c_str()))
         {
-            LogWarning(fmt::format("Could not find command file: {}", resource.path.c_str()));
+            LogWarning(std::format("Could not find command file: {}", resource.path.c_str()));
             return;
         }
         std::ifstream fileIn(resource.path.c_str(), std::ios::binary);
@@ -38,7 +38,7 @@ void CommandEditor::AddResource(const Resource& resource)
         auto& info = std::get<pb::EditorDrawCommand>(commandInfo.info);
         if (!info.ParseFromIstream(&fileIn))
         {
-            LogWarning(fmt::format("Could not open protobuf file: {}", resource.path.c_str()));
+            LogWarning(std::format("Could not open protobuf file: {}", resource.path.c_str()));
             return;
         }
         if (info.draw_command().name().empty())
@@ -50,7 +50,7 @@ void CommandEditor::AddResource(const Resource& resource)
     {
         if (!core::IsRegularFile(resource.path.c_str()))
         {
-            LogWarning(fmt::format("Could not find command file: {}", resource.path.c_str()));
+            LogWarning(std::format("Could not find command file: {}", resource.path.c_str()));
             return;
         }
         std::ifstream fileIn(resource.path.c_str(), std::ios::binary);
@@ -58,7 +58,7 @@ void CommandEditor::AddResource(const Resource& resource)
         auto& info = std::get<pb::EditorComputeCommand>(commandInfo.info);
         if (!info.ParseFromIstream(&fileIn))
         {
-            LogWarning(fmt::format("Could not open protobuf file: {}", resource.path.c_str()));
+            LogWarning(std::format("Could not open protobuf file: {}", resource.path.c_str()));
             return;
         }
         if (info.compute_command().name().empty())
@@ -388,14 +388,14 @@ void CommandEditor::Save()
         {
             if (!std::get<pb::EditorDrawCommand>(commandInfo.info).SerializeToOstream(&fileOut))
             {
-                LogWarning(fmt::format("Could not save command at: {}", commandInfo.path.c_str()));
+                LogWarning(std::format("Could not save command at: {}", commandInfo.path.c_str()));
             }
         }
         else
         {
             if (!std::get<pb::EditorComputeCommand>(commandInfo.info).SerializeToOstream(&fileOut))
             {
-                LogWarning(fmt::format("Could not save command at: {}", commandInfo.path.c_str()));
+                LogWarning(std::format("Could not save command at: {}", commandInfo.path.c_str()));
             }
         }
 

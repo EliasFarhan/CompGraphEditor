@@ -6,7 +6,7 @@
 #include "vk/utils.h"
 
 #include "proto/config.pb.h"
-#include <fmt/format.h>
+#include <format>
 
 namespace vk
 {

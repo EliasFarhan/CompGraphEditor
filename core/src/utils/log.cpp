@@ -1,5 +1,6 @@
 #include "utils/log.h"
-#include <fmt/format.h>
+#include <format>
+#define SPDLOG_USE_STD_FORMAT
 #include <spdlog/spdlog.h>
 
 namespace core
@@ -10,7 +11,7 @@ static std::vector<Log> logs;
 
 void Error(const char* file, int line, std::string_view msg)
 {
-    const auto fullMsg = fmt::format("{}. File: {}, Line: {}", msg, file, line);
+    const auto fullMsg = std::format("{}. File: {}, Line: {}", msg, file, line);
     spdlog::error(fullMsg);
     if(isRecordingLog)
     {
@@ -20,7 +21,7 @@ void Error(const char* file, int line, std::string_view msg)
 
 void Warning(const char* file, int line, std::string_view msg)
 {
-    const auto fullMsg = fmt::format("{}. File: {}, Line: {}", msg, file, line);
+    const auto fullMsg = std::format("{}. File: {}, Line: {}", msg, file, line);
     spdlog::warn(fullMsg);
     if(isRecordingLog)
     {
@@ -30,7 +31,7 @@ void Warning(const char* file, int line, std::string_view msg)
 
 void Debug(const char* file, int line, std::string_view msg)
 {
-    const auto fullMsg = fmt::format("{}. File: {}, Line: {}", msg, file, line);
+    const auto fullMsg = std::format("{}. File: {}, Line: {}", msg, file, line);
     spdlog::info(fullMsg);
     if(isRecordingLog)
     {

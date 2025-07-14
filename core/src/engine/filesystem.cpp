@@ -1,6 +1,6 @@
 #include "engine/filesystem.h"
 #include "utils/log.h"
-#include <fmt/format.h>
+#include <format>
 #include <fstream>
 #include <filesystem>
 

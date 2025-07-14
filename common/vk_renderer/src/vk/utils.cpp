@@ -1,7 +1,7 @@
 #include "utils/log.h"
 #include "vk/utils.h"
 
-#include <fmt/core.h>
+#include <format>
 
 #include <set>
 #include <cstring>
@@ -459,7 +459,7 @@ void CopyImageFromBuffer(const Buffer& srcBuffer, const Image& image, int width,
             static_cast<std::uint32_t>(height),
             1
         };
-        LogDebug(fmt::format("Region: width: {} height: {} layer count: {}", width, height, layerCount));
+        LogDebug(std::format("Region: width: {} height: {} layer count: {}", width, height, layerCount));
 
         vkCmdCopyBufferToImage(
             commandBuffer,
@@ -599,7 +599,7 @@ VkPhysicalDevice PickPhysicalDevice(VkInstance instance, VkSurfaceKHR surface)
     {
         VkPhysicalDeviceProperties deviceInfo;
         vkGetPhysicalDeviceProperties(device, &deviceInfo);
-        LogDebug(fmt::format("Device info: {}", deviceInfo.deviceName));
+        LogDebug(std::format("Device info: {}", deviceInfo.deviceName));
         const int deviceScore = RateDeviceSuitability(device, surface);
         if (deviceScore > maxScore)
         {

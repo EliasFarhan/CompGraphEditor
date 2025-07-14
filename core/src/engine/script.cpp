@@ -1,6 +1,6 @@
 #include "engine/script.h"
 #include "renderer/camera.h"
-#include <fmt/format.h>
+#include <format>
 
 namespace core
 {
@@ -36,7 +36,7 @@ MinimalScriptLoader::MinimalScriptLoader()
 
 Script* MinimalScriptLoader::LoadScript(std::string_view path, std::string_view module, std::string_view className)
 {
-    const auto it = nativeScripts_.find(fmt::format("{}/{}", module, className));
+    const auto it = nativeScripts_.find(std::format("{}/{}", module, className));
     if(it != nativeScripts_.end())
     {
         return it->second.get();
@@ -55,7 +55,7 @@ void MinimalScriptLoader::End()
 void MinimalScriptLoader::ImportScript(std::string_view module, std::string_view className,
     std::unique_ptr<Script> script)
 {
-    nativeScripts_[fmt::format("{}/{}", module, className)] = std::move(script);
+    nativeScripts_[std::format("{}/{}", module, className)] = std::move(script);
 }
 
 

@@ -43,7 +43,7 @@ set_target_properties (editor PROPERTIES FOLDER Main)
 set_target_properties (editor_scripts PROPERTIES FOLDER Main)
 target_precompile_headers(editor PRIVATE 
         "<filesystem>" 
-        "<fmt/format.h>"
+        "<format>"
         "<nlohmann/json.hpp>"
         "<pybind11/pybind11.h>")
 

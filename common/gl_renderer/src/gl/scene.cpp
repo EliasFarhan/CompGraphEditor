@@ -10,7 +10,7 @@
 #include "renderer/pipeline.h"
 #include "renderer/material.h"
 
-#include <fmt/format.h>
+#include <format>
 #include <string_view>
 #include <string>
 
@@ -479,13 +479,13 @@ Scene::ImportStatus Scene::LoadMaterials(const PbRepeatField<core::pb::Material>
                         });
                     if (it == framebuffers_.end())
                     {
-                        LogWarning(fmt::format("Could not find framebuffer: {}", framebufferName));
+                        LogWarning(std::format("Could not find framebuffer: {}", framebufferName));
                         continue;
                     }
                     const auto textureName = it->GetTextureName(materialTexture.attachmentName);
                     if (textureName == 0)
                     {
-                        LogWarning(fmt::format("Could not find attachment: {} in framebuffer: {}", materialTexture.attachmentName, framebufferName));
+                        LogWarning(std::format("Could not find attachment: {} in framebuffer: {}", materialTexture.attachmentName, framebufferName));
 
                         continue;
                     }

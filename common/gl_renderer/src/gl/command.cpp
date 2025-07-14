@@ -8,7 +8,7 @@
 
 #include <glm/gtx/euler_angles.hpp>
 
-#include <fmt/format.h>
+#include <format>
 
 #ifdef TRACY_ENABLE
 #include <tracy/TracyOpenGL.hpp>
@@ -95,7 +95,7 @@ void DrawCommand::Bind()
     {
         if (material_->textures[textureIndex].textureId == core::INVALID_TEXTURE_ID && material_->textures[textureIndex].framebufferName.empty())
         {
-            LogWarning(fmt::format("Invalid texture for material {}", material_->name));
+            LogWarning(std::format("Invalid texture for material {}", material_->name));
             continue;
         }
         if (material_->textures[textureIndex].framebufferName.empty())
@@ -111,7 +111,7 @@ void DrawCommand::Bind()
             const auto framebufferIndex = scene->GetFramebufferIndex(material_->textures[textureIndex].framebufferName);
             if(framebufferIndex == -1)
             {
-                LogWarning(fmt::format("Invalid framebuffer name texture for material {}, framebuffer name: {}", material_->name, material_->textures[textureIndex].framebufferName));
+                LogWarning(std::format("Invalid framebuffer name texture for material {}, framebuffer name: {}", material_->name, material_->textures[textureIndex].framebufferName));
                 continue;
             }
             auto& framebuffer = static_cast<Framebuffer&>(scene->GetFramebuffer(framebufferIndex));

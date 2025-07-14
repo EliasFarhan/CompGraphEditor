@@ -7,7 +7,7 @@
 #include "framebuffer_editor.h"
 
 #include "engine/filesystem.h"
-#include <fmt/format.h>
+#include <format>
 #include <fstream>
 
 #include "imnodes.h"
@@ -89,7 +89,7 @@ void MaterialEditor::DrawInspector()
                         if (colorAttachment.rbo())
                             continue;
                         const auto& colorAttachmentName = colorAttachment.name();
-                        const auto attachmentUniqueName = fmt::format("{}_{}", framebufferName, colorAttachmentName);
+                        const auto attachmentUniqueName = std::format("{}_{}", framebufferName, colorAttachmentName);
                         if (ImGui::Selectable(attachmentUniqueName.data(), 
                             colorAttachmentName == materialTexture->material_texture().sampler_name() &&
                             framebufferName == materialTexture->material_texture().framebuffer_name()))
@@ -102,7 +102,7 @@ void MaterialEditor::DrawInspector()
                     if(framebuffer.info.has_depth_stencil_attachment() && !framebuffer.info.depth_stencil_attachment().rbo())
                     {
                         const auto& depthAttachmentName = framebuffer.info.depth_stencil_attachment().name();
-                        const auto attachmentUniqueName = fmt::format("{}_{}", framebufferName, depthAttachmentName);
+                        const auto attachmentUniqueName = std::format("{}_{}", framebufferName, depthAttachmentName);
                         if(ImGui::Selectable(attachmentUniqueName.data(), 
                             materialTexture->material_texture().attachment_name() == depthAttachmentName &&
                             materialTexture->material_texture().framebuffer_name() == framebufferName))
@@ -126,7 +126,7 @@ void MaterialEditor::DrawInspector()
             for(int i = 0; i < pipelineInfo->info.pipeline().uniforms_size(); i++)
             {
                 auto& uniformInfo = pipelineInfo->info.pipeline().uniforms(i);
-                const auto text = fmt::format("Name: {} Type: {}",
+                const auto text = std::format("Name: {} Type: {}",
                                               uniformInfo.name(),
                                               uniformInfo.type_name());
                 ImGui::Selectable(text.c_str(), false);
@@ -138,7 +138,7 @@ void MaterialEditor::DrawInspector()
             for(int i = 0; i < pipelineInfo->info.pipeline().in_vertex_attributes_size(); i++)
             {
                 auto& inVertexAttribute = pipelineInfo->info.pipeline().in_vertex_attributes(i);
-                const auto text = fmt::format("Name: {} Type: {}",
+                const auto text = std::format("Name: {} Type: {}",
                                               inVertexAttribute.name(),
                                               inVertexAttribute.type_name());
                 ImGui::Selectable(text.c_str(), false);
@@ -293,7 +293,7 @@ void MaterialEditor::Save()
         std::ofstream fileOut(materialInfo.path.c_str(), std::ios::binary);
         if (!materialInfo.info.SerializeToOstream(&fileOut))
         {
-            LogWarning(fmt::format("Could not save material at: {}", materialInfo.path.c_str()));
+            LogWarning(std::format("Could not save material at: {}", materialInfo.path.c_str()));
         }
         
     }
@@ -308,13 +308,13 @@ void MaterialEditor::AddResource(const Resource &resource)
 
     if (!core::IsRegularFile(resource.path.c_str()))
     {
-        LogWarning(fmt::format("Could not find material file: {}", resource.path.c_str()));
+        LogWarning(std::format("Could not find material file: {}", resource.path.c_str()));
         return;
     }
     std::ifstream fileIn(resource.path.c_str(), std::ios::binary);
     if (!materialInfo.info.ParsePartialFromIstream(&fileIn))
     {
-        LogWarning(fmt::format("Could not open protobuf file: {}", resource.path.c_str()));
+        LogWarning(std::format("Could not open protobuf file: {}", resource.path.c_str()));
         return;
     }
     if(materialInfo.info.material().name().empty())

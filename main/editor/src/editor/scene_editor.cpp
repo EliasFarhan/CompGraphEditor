@@ -5,7 +5,7 @@
 #include "command_editor.h"
 
 #include <imgui.h>
-#include <fmt/format.h>
+#include <format>
 #include <fstream>
 
 #include "editor.h"
@@ -37,33 +37,33 @@ void ExecutePlayer(std::string_view scenePkg)
     std::string baseName = isVulkan ? "vk_player" : "gl_player";
     std::string command; 
 #ifdef _MSC_VER
-    fs::path executable = fmt::format("{}.exe", baseName);
+    fs::path executable = std::format("{}.exe", baseName);
     if (fs::exists(executable))
     {
-        command = fmt::format("{} {}", executable.generic_string(), scenePkg);
+        command = std::format("{} {}", executable.generic_string(), scenePkg);
     }
     else
     {
 #ifdef _DEBUG
-        command = fmt::format(".\\Debug\\{} {}", executable.generic_string(), scenePkg);
+        command = std::format(".\\Debug\\{} {}", executable.generic_string(), scenePkg);
 #else
-        command = fmt::format(".\\Release\\{} {}", executable.generic_string(), scenePkg);
+        command = std::format(".\\Release\\{} {}", executable.generic_string(), scenePkg);
 #endif
     }
 #else
-    command = fmt::format("./{} {}", baseName, scenePkg);
+    command = std::format("./{} {}", baseName, scenePkg);
 #endif
     if(!isVulkan)
     {
         const auto glVersion = gl::GetGlVersion();
-        command = fmt::format("{} --major={} --minor={} {}", command, glVersion.major, glVersion.minor, glVersion.es ? "--es" : "");
+        command = std::format("{} --major={} --minor={} {}", command, glVersion.major, glVersion.minor, glVersion.es ? "--es" : "");
     }
     if(command.empty())
     {
         return;
     }
     system(command.c_str());
-    LogDebug(fmt::format("Executing {}", command));
+    LogDebug(std::format("Executing {}", command));
 }
 
 void SceneEditor::ImportResource(std::string_view path)
@@ -108,13 +108,13 @@ void SceneEditor::AddResource(const Resource& resource)
     {
         if (!core::IsRegularFile(resource.path))
         {
-            LogWarning(fmt::format("Could not find scene file: {}", resource.path.c_str()));
+            LogWarning(std::format("Could not find scene file: {}", resource.path.c_str()));
             return;
         }
         std::ifstream fileIn(resource.path.c_str(), std::ios::binary);
         if (!sceneInfo.info.ParseFromIstream(&fileIn))
         {
-            LogWarning(fmt::format("Could not open protobuf file: {}", resource.path.c_str()));
+            LogWarning(std::format("Could not open protobuf file: {}", resource.path.c_str()));
             return;
         }
     }
@@ -144,10 +144,10 @@ void SceneEditor::AddResource(const Resource& resource)
     auto* resourcesPb = GetCurrentSceneInfo()->info.mutable_resources();
     for(int i = static_cast<int>(unexistingResources.size()) - 1; i >= 0; i--)
     {
-        LogWarning(fmt::format("Removing file {} from scene: file does not exists", sceneInfo.info.resources(unexistingResources[i])));
+        LogWarning(std::format("Removing file {} from scene: file does not exists", sceneInfo.info.resources(unexistingResources[i])));
         resourcesPb->erase(resourcesPb->begin()+unexistingResources[i]);
     }
-    core::SetWindowName(fmt::format("Neko2 Editor - {}", sceneInfo.info.name()));
+    core::SetWindowName(std::format("Neko2 Editor - {}", sceneInfo.info.name()));
 }
 
 void SceneEditor::RemoveResource(const Resource& resource)
@@ -225,7 +225,7 @@ void SceneEditor::DrawInspector()
     for (int i = 0; i < currentScene.info.py_system_paths_size(); i++)
     {
         std::string_view pySystemPath {currentScene.info.py_system_paths(i)};
-        std::string name = fmt::format("Script: {}", i);
+        std::string name = std::format("Script: {}", i);
         const ScriptInfo* scriptInfo = nullptr;
         ResourceId pySystemId = INVALID_RESOURCE_ID;
         if (!pySystemPath.empty())
@@ -242,19 +242,19 @@ void SceneEditor::DrawInspector()
                 else
                 {
                     scriptInfo = scriptEditor->GetScriptInfo(pySystemId);
-                    name = fmt::format("Script: {}.{}", scriptInfo->info.module(), scriptInfo->info.class_());
+                    name = std::format("Script: {}.{}", scriptInfo->info.module(), scriptInfo->info.class_());
                 }
             }
             else
             {
-                name = fmt::format("Script: {}.{}", core::nativeModuleName, pySystemPath.data());
+                name = std::format("Script: {}.{}", core::nativeModuleName, pySystemPath.data());
             }
         }
         bool visible = true;
         if (ImGui::CollapsingHeader(name.c_str(), &visible))
         {
             const auto& pySystems = scriptEditor->GetScriptInfos();
-            const auto scriptsId = fmt::format("script {} combo", i);
+            const auto scriptsId = std::format("script {} combo", i);
             ImGui::PushID(scriptsId.c_str());
             if (ImGui::BeginCombo("Available Scripts", scriptInfo ? 
                 scriptInfo->info.class_().c_str() : 
@@ -262,7 +262,7 @@ void SceneEditor::DrawInspector()
             {
                 for (auto& pySystemInfo : pySystems)
                 {
-                    const auto selectedName = fmt::format("{}.{}", 
+                    const auto selectedName = std::format("{}.{}", 
                         pySystemInfo.info.module(), 
                         pySystemInfo.info.class_());
                     if (ImGui::Selectable(selectedName.c_str(), pySystemId == pySystemInfo.resourceId))
@@ -272,7 +272,7 @@ void SceneEditor::DrawInspector()
                 }
                 for(auto nativeScript: core::GetNativeScriptClassNames())
                 {
-                    const auto selectedName = fmt::format("{}.{}", core::nativeModuleName, nativeScript);
+                    const auto selectedName = std::format("{}.{}", core::nativeModuleName, nativeScript);
                     if(ImGui::Selectable(selectedName.c_str(), currentScene.info.py_system_paths(i) == nativeScript))
                     {
                         *currentScene.info.mutable_py_system_paths(i) = nativeScript;
@@ -360,7 +360,7 @@ void SceneEditor::Save()
         std::ofstream fileOut(sceneInfo.path.c_str(), std::ios::binary);
         if (!sceneInfo.info.SerializeToOstream(&fileOut))
         {
-            LogWarning(fmt::format("Could not save scene at: {}", sceneInfo.path.c_str()));
+            LogWarning(std::format("Could not save scene at: {}", sceneInfo.path.c_str()));
         }
     }
 }
@@ -417,7 +417,7 @@ bool SceneEditor::ExportAndPlayScene() const
             const auto framebufferId = resourceManager.FindResourceByPath(framebufferPath);
             if(framebufferId == INVALID_RESOURCE_ID)
             {
-                LogWarning(fmt::format("Could not export scene, invalid resource id for framebuffer. Framebuffer path: {}", framebufferPath.data()));
+                LogWarning(std::format("Could not export scene, invalid resource id for framebuffer. Framebuffer path: {}", framebufferPath.data()));
                 return false;
             }
             auto* framebufferInfo = framebufferEditor->GetFramebuffer(framebufferId);
@@ -446,7 +446,7 @@ bool SceneEditor::ExportAndPlayScene() const
             const auto commandId = resourceManager.FindResourceByPath(editorCommandPath);
             if(commandId == INVALID_RESOURCE_ID)
             {
-                LogWarning(fmt::format("Could not export scene, missing command in subpass. Command path: {}", editorCommandPath.data()));
+                LogWarning(std::format("Could not export scene, missing command in subpass. Command path: {}", editorCommandPath.data()));
                 return false;
             }
             const auto* editorCommand = commandEditor->GetCommand(commandId);
@@ -465,7 +465,7 @@ bool SceneEditor::ExportAndPlayScene() const
             }
             if (editorCommand->materialId == INVALID_RESOURCE_ID)
             {
-                LogWarning(fmt::format("Could not export scene, missing material in command. Command {}", exportDrawCommand ? exportDrawCommand->name():exportComputeCommand->name()));
+                LogWarning(std::format("Could not export scene, missing material in command. Command {}", exportDrawCommand ? exportDrawCommand->name():exportComputeCommand->name()));
                 return false;
             }
             int exportedPipelineIndex = -1;
@@ -488,7 +488,7 @@ bool SceneEditor::ExportAndPlayScene() const
                     if (editorMaterialTexture.texture_name().empty() &&
                         editorMaterialTexture.material_texture().attachment_name().empty())
                     {
-                        LogWarning(fmt::format(
+                        LogWarning(std::format(
                             "Could not export, missing texture/attachment in material sampler. Material: {} Sampler: {}",
                             material->info.material().name(), editorMaterialTexture.material_texture().sampler_name()));
                         materialTexture->set_texture_index(-1);
@@ -500,7 +500,7 @@ bool SceneEditor::ExportAndPlayScene() const
                         auto textureId = resourceManager.FindResourceByPath(editorMaterialTexture.texture_name());
                         if (textureId == INVALID_RESOURCE_ID)
                         {
-                            LogWarning(fmt::format("Could not export scene. Missing texture in material sampler, Material: {} Sampler: {}",
+                            LogWarning(std::format("Could not export scene. Missing texture in material sampler, Material: {} Sampler: {}",
                                 material->info.material().name(), editorMaterialTexture.material_texture().sampler_name()));
                             materialTexture->set_texture_index(-1);
                             return false;
@@ -563,7 +563,7 @@ bool SceneEditor::ExportAndPlayScene() const
                         }
                         if (!isValid)
                         {
-                            LogWarning(fmt::format("Could not export, invalid framebuffer attachment in material sampler. Material: {} Sampler: {}",
+                            LogWarning(std::format("Could not export, invalid framebuffer attachment in material sampler. Material: {} Sampler: {}",
                                 material->info.material().name(), editorMaterialTexture.material_texture().sampler_name()));
                             return false;
                         }
@@ -574,7 +574,7 @@ bool SceneEditor::ExportAndPlayScene() const
                 //check if pipeline exists
                 if (material->pipelineId == INVALID_RESOURCE_ID)
                 {
-                    LogWarning(fmt::format("Could not export scene, missing pipeline in material. Material: {}", material->path));
+                    LogWarning(std::format("Could not export scene, missing pipeline in material. Material: {}", material->path));
                     return false;
                 }
                 const auto* pipeline = pipelineEditor->GetPipeline(material->pipelineId);
@@ -586,7 +586,7 @@ bool SceneEditor::ExportAndPlayScene() const
                 {
                     if (exportSubPass->type() != pipeline->info.pipeline().type())
                     {
-                        LogWarning(fmt::format("Subpass {} cannot have different pipeline types (Rasterize, Compute or Raytracing)", subPassIndex));
+                        LogWarning(std::format("Subpass {} cannot have different pipeline types (Rasterize, Compute or Raytracing)", subPassIndex));
                         return false;
                     }
                 }
@@ -627,7 +627,7 @@ bool SceneEditor::ExportAndPlayScene() const
                         int vertexShaderIndex = shaderExportFunc(pipeline->vertexShaderId);
                         if (vertexShaderIndex == -1)
                         {
-                            LogWarning(fmt::format("Could not export scene, missing vertex shader in pipeline. Pipeline: {}", pipeline->path));
+                            LogWarning(std::format("Could not export scene, missing vertex shader in pipeline. Pipeline: {}", pipeline->path));
                             return false;
                         }
                         newPipeline->set_vertex_shader_index(vertexShaderIndex);
@@ -635,7 +635,7 @@ bool SceneEditor::ExportAndPlayScene() const
                         int fragmentShaderIndex = shaderExportFunc(pipeline->fragmentShaderId);
                         if (fragmentShaderIndex == -1)
                         {
-                            LogWarning(fmt::format("Could not export scene, missing fragment shader in pipeline. Pipeline: {}", pipeline->path));
+                            LogWarning(std::format("Could not export scene, missing fragment shader in pipeline. Pipeline: {}", pipeline->path));
                             return false;
                         }
                         newPipeline->set_fragment_shader_index(fragmentShaderIndex);
@@ -653,7 +653,7 @@ bool SceneEditor::ExportAndPlayScene() const
                         int computeShaderIndex = shaderExportFunc(pipeline->computeShaderId);
                         if (computeShaderIndex == -1)
                         {
-                            LogWarning(fmt::format("Could not export scene, missing compute shader in pipeline. Pipeline: {}", pipeline->path));
+                            LogWarning(std::format("Could not export scene, missing compute shader in pipeline. Pipeline: {}", pipeline->path));
                             return false;
                         }
                         newPipeline->set_compute_shader_index(computeShaderIndex);
@@ -673,7 +673,7 @@ bool SceneEditor::ExportAndPlayScene() const
                         int rayGenShaderIndex = shaderExportFunc(pipeline->rayGenShaderId);
                         if (rayGenShaderIndex == -1)
                         {
-                            LogWarning(fmt::format("Could not export scene, missing raygen shader in pipeline. Pipeline: {}", pipeline->path));
+                            LogWarning(std::format("Could not export scene, missing raygen shader in pipeline. Pipeline: {}", pipeline->path));
                             return false;
                         }
                         raytracingPipeline->set_ray_gen_shader_index(rayGenShaderIndex);
@@ -681,7 +681,7 @@ bool SceneEditor::ExportAndPlayScene() const
                         int missHitShaderIndex = shaderExportFunc(pipeline->missHitShaderId);
                         if (missHitShaderIndex == -1)
                         {
-                            LogWarning(fmt::format("Could not export scene, missing miss hit shader in pipeline. Pipeline: {}", pipeline->path));
+                            LogWarning(std::format("Could not export scene, missing miss hit shader in pipeline. Pipeline: {}", pipeline->path));
                             return false;
                         }
                         raytracingPipeline->set_miss_hit_shader_index(missHitShaderIndex);
@@ -689,7 +689,7 @@ bool SceneEditor::ExportAndPlayScene() const
                         int closestHitShaderIndex = shaderExportFunc(pipeline->closestHitShaderId);
                         if (closestHitShaderIndex == -1)
                         {
-                            LogWarning(fmt::format("Could not export scene, missing closest hit shader in pipeline. Pipeline: {}", pipeline->path));
+                            LogWarning(std::format("Could not export scene, missing closest hit shader in pipeline. Pipeline: {}", pipeline->path));
                             return false;
                         }
                         raytracingPipeline->set_closest_hit_shader_index(closestHitShaderIndex);
@@ -735,7 +735,7 @@ bool SceneEditor::ExportAndPlayScene() const
                 //link mesh index
                 if (editorCommand->meshId == INVALID_RESOURCE_ID)
                 {
-                    LogWarning(fmt::format("Could not export scene, missing mesh in command. Command: {}", editorCommand->path));
+                    LogWarning(std::format("Could not export scene, missing mesh in command. Command: {}", editorCommand->path));
                     return false;
                 }
                 auto* mesh = meshEditor->GetMesh(editorCommand->meshId);
@@ -806,7 +806,7 @@ bool SceneEditor::ExportAndPlayScene() const
                     }
                     if(shader->info.storage_buffers_size() > 0)
                     {
-                        LogWarning(fmt::format("Could not export scene, missing buffer binding in command. Command: {}", editorCommand->path));
+                        LogWarning(std::format("Could not export scene, missing buffer binding in command. Command: {}", editorCommand->path));
                         return false;
                     }
                 }
@@ -851,7 +851,7 @@ bool SceneEditor::ExportAndPlayScene() const
     std::ofstream fileOut(exportScenePath.data(), std::ios::binary);
     if (!exportScene.SerializeToOstream(&fileOut))
     {
-        LogWarning(fmt::format("Could not save scene for export at: {}", exportScenePath));
+        LogWarning(std::format("Could not save scene for export at: {}", exportScenePath));
         return false;
     }
     fileOut.close(); //force write
@@ -894,7 +894,7 @@ bool SceneEditor::ExportAndPlayScene() const
     for(auto& objFile : objPaths)
     {
         const auto modelPath{
-            fmt::format("{}/{}.model", GetFolder(objFile), GetFilename(objFile, false))};
+            std::format("{}/{}.model", GetFolder(objFile), GetFilename(objFile, false))};
         const auto modelId = resourceManager.FindResourceByPath(modelPath);
         auto* model = modelEditor->GetModel(modelId);
         for(int i = 0; i < model->info.mtl_paths_size(); i++)

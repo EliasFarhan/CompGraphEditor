@@ -2,7 +2,7 @@
 #include "engine/filesystem.h"
 #include "utils/log.h"
 
-#include <fmt/format.h>
+#include <format>
 #include <unordered_set>
 #include <functional>
 #include <algorithm>
@@ -95,7 +95,7 @@ void ResourceManager::AddResource(std::string_view path)
 {
     if(!core::FileExists(path))
     {
-        LogWarning(fmt::format("Adding unexisting resource: {}", path.data()));
+        LogWarning(std::format("Adding unexisting resource: {}", path.data()));
         return;
     }
     Resource newResource{};

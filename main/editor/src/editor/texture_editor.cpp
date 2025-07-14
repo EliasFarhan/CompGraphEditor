@@ -3,7 +3,7 @@
 #include "editor.h"
 #include "material_editor.h"
 #include <imgui.h>
-#include <fmt/format.h>
+#include <format>
 #include <array>
 #include <fstream>
 
@@ -260,13 +260,13 @@ void TextureEditor::Save()
             std::ofstream cubeOut(textureInfo.info.path(), std::ios::binary);
             if (!textureInfo.cubemap.SerializeToOstream(&cubeOut))
             {
-                LogWarning(fmt::format("Could not save cubemap info at: {}", textureInfo.info.path()));
+                LogWarning(std::format("Could not save cubemap info at: {}", textureInfo.info.path()));
             }
         }
         std::ofstream fileOut(textureInfo.infoPath.c_str(), std::ios::binary);
         if (!textureInfo.info.SerializeToOstream(&fileOut))
         {
-            LogWarning(fmt::format("Could not save texture info at: {}", textureInfo.infoPath.c_str()));
+            LogWarning(std::format("Could not save texture info at: {}", textureInfo.infoPath.c_str()));
         }
     }
 }
@@ -370,7 +370,7 @@ void TextureEditor::CubeToKtx(const TextureInfo& textureInfo)
 {
 
     const std::string ktxPath{
-        fmt::format("{}/{}.ktx",
+        std::format("{}/{}.ktx",
                     GetFolder(textureInfo.info.path()).c_str(),
                     GetFilename(textureInfo.info.path(), false))
     };
@@ -383,7 +383,7 @@ void TextureEditor::CubeToKtx(const TextureInfo& textureInfo)
     int w, h, channelCount;
     if(!stbi_info(firstFacePath.data(), &w, &h, &channelCount))
     {
-        LogError(fmt::format("KTX conversion: Could not get info for face 0: {}", firstFacePath));
+        LogError(std::format("KTX conversion: Could not get info for face 0: {}", firstFacePath));
         return;
     }
     ktxTexture1* texture;                   
@@ -445,7 +445,7 @@ void TextureEditor::HdrToKtx(const TextureInfo& textureInfo)
     const std::string_view path {textureInfo.info.path()};
     const auto baseDir = GetFolder(path);
     const auto filename = GetFilename(path, false);
-    const std::string ktxMapPath{fmt::format("{}/{}.ktx", baseDir.c_str(), filename)};
+    const std::string ktxMapPath{std::format("{}/{}.ktx", baseDir.c_str(), filename)};
 
     auto envMapFile = core::LoadFile(path);
     int texW;
@@ -622,7 +622,7 @@ void TextureEditor::ExportToKtx(const TextureInfo& textureInfo) const
 {
     int w, h, channelCount;
     auto* data = stbi_load(textureInfo.info.path().c_str(), &w, &h, &channelCount, 0);
-    std::string output = fmt::format("{}/{}.ktx", GetFolder(textureInfo.info.path()).c_str(),
+    std::string output = std::format("{}/{}.ktx", GetFolder(textureInfo.info.path()).c_str(),
                                      GetFilename(textureInfo.info.path(), false));
     ktxTexture2* texture;
     ktxTextureCreateInfo createInfo;
@@ -642,7 +642,7 @@ void TextureEditor::ExportToKtx(const TextureInfo& textureInfo) const
     case 1:
         format = VK_FORMAT_R8_UNORM;
     default:
-        LogError(fmt::format("Weird channel count: {} trying to export to KTX, texture: {}", channelCount, textureInfo.info.path()));
+        LogError(std::format("Weird channel count: {} trying to export to KTX, texture: {}", channelCount, textureInfo.info.path()));
         break;
     }
 

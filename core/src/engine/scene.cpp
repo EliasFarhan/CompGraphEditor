@@ -9,7 +9,7 @@
 #include "renderer/model.h"
 
 #include <SDL3/SDL.h>
-#include <fmt/format.h>
+#include <format>
 
 
 namespace core

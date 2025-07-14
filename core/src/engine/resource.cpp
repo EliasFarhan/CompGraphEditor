@@ -2,7 +2,7 @@
 
 #include "utils/log.h"
 
-#include <fmt/format.h>
+#include <format>
 
 #include <filesystem>
 namespace fs = std::filesystem;
@@ -66,7 +66,7 @@ ResourceId ResourceManager::AddResource(std::string_view path)
 
     if(!FileExists(path))
     {
-        LogWarning(fmt::format("Adding unexisting resource: {}", path));
+        LogWarning(std::format("Adding unexisting resource: {}", path));
         return INVALID_RESOURCE_ID;
     }
 

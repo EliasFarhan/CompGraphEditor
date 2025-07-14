@@ -4,7 +4,7 @@
 
 #include "gl/debug.h"
 
-#include <fmt/format.h>
+#include <format>
 #include <ktx.h>
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb_image.h>
@@ -139,7 +139,7 @@ bool Texture::LoadTexture(const core::pb::Texture &textureInfo)
 #endif
         if(imageData == nullptr)
         {
-            LogError(fmt::format("Could not decode image from path: {}", path.data()));
+            LogError(std::format("Could not decode image from path: {}", path.data()));
             return false;
         }
 #ifdef TRACY_ENABLE
@@ -226,7 +226,7 @@ bool Texture::LoadTexture(const core::pb::Texture &textureInfo)
                          imageData);
             break;
         default:
-            LogError(fmt::format("Invalid channel count on image. Count: {}, for texture at path: {}", channelInFile, path.data()));
+            LogError(std::format("Invalid channel count on image. Count: {}, for texture at path: {}", channelInFile, path.data()));
             return false;
         }
         glCheckError();
@@ -237,10 +237,10 @@ bool Texture::LoadTexture(const core::pb::Texture &textureInfo)
 #endif
             glGenerateMipmap(GL_TEXTURE_2D);
         }
-        LogDebug(fmt::format("Successfully loaded texture at path: {}", path.data()));
+        LogDebug(std::format("Successfully loaded texture at path: {}", path.data()));
         return true;
     }
-    LogError(fmt::format("File not found at path: {}", path.data()));
+    LogError(std::format("File not found at path: {}", path.data()));
     return false;
 }
 
@@ -260,7 +260,7 @@ bool Texture::LoadCubemap(const core::pb::Texture& textureInfo)
         const auto file = core::LoadFile(path);
         if(!cubemap.ParseFromArray(file.data, file.size))
         {
-            LogError(fmt::format("Could not open proto of cubemap at: {}", path.data()));
+            LogError(std::format("Could not open proto of cubemap at: {}", path.data()));
             return false;
         }
 
@@ -318,12 +318,12 @@ bool Texture::LoadCubemap(const core::pb::Texture& textureInfo)
         for(int i = 0; i < cubemap.texture_paths_size(); i++)
         {
             const std::string_view texturePath{cubemap.texture_paths(i)};
-            LogDebug(fmt::format("Loading texture side: {}", texturePath.data()));
+            LogDebug(std::format("Loading texture side: {}", texturePath.data()));
             const auto cubeTextureFile = core::LoadFile(texturePath);
             data = stbi_load_from_memory(cubeTextureFile.data, cubeTextureFile.size, &width, &height, &nrChannels, 0);
             if(data == nullptr)
             {
-                LogError(fmt::format("Could not parse side texture: {} for cubemap: {}", texturePath.data(), path.data()));
+                LogError(std::format("Could not parse side texture: {} for cubemap: {}", texturePath.data(), path.data()));
                 return false;
             }
             glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, textureInfo.gamma_correction()?GL_SRGB:GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
@@ -332,7 +332,7 @@ bool Texture::LoadCubemap(const core::pb::Texture& textureInfo)
         return true;
     }
 
-    LogError(fmt::format("File not found at path: {}", path.data()));
+    LogError(std::format("File not found at path: {}", path.data()));
     return false;
 }
 
@@ -349,7 +349,7 @@ bool Texture::LoadKtxTexture(const core::pb::Texture& textureInfo)
 
     if (!core::FileExists(path))
     {
-        LogError(fmt::format("File not found at path: {}", path.data()));
+        LogError(std::format("File not found at path: {}", path.data()));
         return false;
     }
 
@@ -368,11 +368,11 @@ bool Texture::LoadKtxTexture(const core::pb::Texture& textureInfo)
     glGenTextures(1, &name); // Optional. GLUpload can generate a texture.
     if(kTexture->classId == ktxTexture2_c)
     {
-        LogDebug(fmt::format("Loading KTX2 texture: {}", path.data()));
+        LogDebug(std::format("Loading KTX2 texture: {}", path.data()));
     }
     else
     {
-        LogDebug(fmt::format("Loading KTX1 texture: {}", path.data()));
+        LogDebug(std::format("Loading KTX1 texture: {}", path.data()));
     }
     result = ktxTexture_GLUpload(kTexture, &name, &target, &glerror);
     
@@ -471,7 +471,7 @@ bool Texture::LoadHdrTexture(const core::pb::Texture& textureInfo)
 #endif
         if (imageData == nullptr)
         {
-            LogError(fmt::format("Could not decode image from path: {}", path.data()));
+            LogError(std::format("Could not decode image from path: {}", path.data()));
             return false;
         }
 #ifdef TRACY_ENABLE
@@ -558,7 +558,7 @@ bool Texture::LoadHdrTexture(const core::pb::Texture& textureInfo)
                 imageData);
             break;
         default:
-            LogError(fmt::format("Invalid channel count on image. Count: {}, for texture at path: {}", channelInFile, path.data()));
+            LogError(std::format("Invalid channel count on image. Count: {}, for texture at path: {}", channelInFile, path.data()));
             return false;
         }
         glCheckError();
@@ -569,10 +569,10 @@ bool Texture::LoadHdrTexture(const core::pb::Texture& textureInfo)
 #endif
             glGenerateMipmap(GL_TEXTURE_2D);
         }
-        LogDebug(fmt::format("Successfully loaded texture at path: {}", path.data()));
+        LogDebug(std::format("Successfully loaded texture at path: {}", path.data()));
         return true;
     }
-    LogError(fmt::format("File not found at path: {}", path.data()));
+    LogError(std::format("File not found at path: {}", path.data()));
     return false;
 }
 

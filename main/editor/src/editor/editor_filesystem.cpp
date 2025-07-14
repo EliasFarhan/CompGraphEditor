@@ -1,6 +1,6 @@
 
 #include "editor_filesystem.h"
-#include <fmt/format.h>
+#include <format>
 #include "utils/log.h"
 #include "engine/filesystem.h"
 
@@ -31,7 +31,7 @@ bool CopyFileFromTo(std::string_view srcPath, std::string_view dstPath, bool for
     }
     catch (fs::filesystem_error& e)
     {
-        LogError(fmt::format("Could not copy from {} to {}\n{}", srcPath.data(), dstPath.data(), e.what()));
+        LogError(std::format("Could not copy from {} to {}\n{}", srcPath.data(), dstPath.data(), e.what()));
         return false;
     }
     return true;

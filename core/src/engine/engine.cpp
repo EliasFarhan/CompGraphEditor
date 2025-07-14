@@ -11,7 +11,7 @@
 
 #include "utils/log.h"
 
-#include <fmt/format.h>
+#include <format>
 
 #include "proto/vector.pb.h"
 

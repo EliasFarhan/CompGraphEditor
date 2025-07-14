@@ -15,7 +15,7 @@
 #include <glm/vec3.hpp>
 #include <glm/vec4.hpp>
 #include <glm/gtc/matrix_transform.hpp>
-#include <fmt/format.h>
+#include <format>
 #include <SDL3/SDL_keycode.h>
 
 
@@ -196,7 +196,7 @@ PYBIND11_EMBEDDED_MODULE(neko2, m)
         .def_static("dot", [](glm::vec2 v1, glm::vec2 v2) {return glm::dot(v1, v2); })
         .def("__repr__",
             [](const glm::vec2& a) {
-                return fmt::format("({},{})",a.x, a.y);
+                return std::format("({},{})",a.x, a.y);
             })
         .def_buffer([](glm::vec2& m) -> py::buffer_info {
                 return py::buffer_info(
@@ -234,7 +234,7 @@ PYBIND11_EMBEDDED_MODULE(neko2, m)
         .def_static("cross", [](glm::vec3 v1, glm::vec3 v2) {return glm::cross(v1, v2); })
         .def("__repr__",
                 [](const glm::vec3& a) {
-                    return fmt::format("({},{},{})", a.x, a.y, a.z);
+                    return std::format("({},{},{})", a.x, a.y, a.z);
                 })
         .def_buffer([](glm::vec3& m) -> py::buffer_info {
                 return py::buffer_info(
@@ -271,7 +271,7 @@ PYBIND11_EMBEDDED_MODULE(neko2, m)
         .def_static("dot", [](glm::vec4 v1, glm::vec4 v2) {return glm::dot(v1, v2); })
         .def("__repr__",
             [](const glm::vec4& a) {
-                return fmt::format("({},{},{},{})", a.x, a.y, a.z, a.w);
+                return std::format("({},{},{},{})", a.x, a.y, a.z, a.w);
             })
         .def_buffer([](glm::vec4& m) -> py::buffer_info {
                 return py::buffer_info(
@@ -569,7 +569,7 @@ Script* PyManager::LoadScript(std::string_view path, std::string_view module, st
     }
     if(!FileExists(path))
     {
-        LogError(fmt::format("Could not find script file at path: {}", path));
+        LogError(std::format("Could not find script file at path: {}", path));
         return nullptr;
     }
     try
@@ -600,7 +600,7 @@ Script* PyManager::LoadScript(std::string_view path, std::string_view module, st
         }
         catch(pybind11::error_already_set& e)
         {*/
-            LogError(fmt::format("{}", e.what()));
+            LogError(std::format("{}", e.what()));
         //}
         return nullptr;
     }

@@ -5,7 +5,7 @@
 
 #include <SDL3/SDL_main.h>
 #include <argh.h>
-#include <fmt/format.h>
+#include <format>
 
 
 int main([[maybe_unused]]int argc, char** argv)

@@ -10,7 +10,7 @@
 #include "editor.h"
 #include "renderer/pipeline.h"
 
-#include <fmt/format.h>
+#include <format>
 
 #include <pybind11/embed.h>
 #include <pybind11/pybind11.h>
@@ -39,7 +39,7 @@ bool CheckVertexInput(const core::pb::Shader& shaderInfo)
         {
             if (shaderInfo.in_attributes(i).type() != core::pb::Attribute_Type_VEC3)
             {
-                LogWarning(fmt::format("Vertex input {} must be vec3, found {}. Shader: {}",
+                LogWarning(std::format("Vertex input {} must be vec3, found {}. Shader: {}",
                     shaderInfo.in_attributes(i).location(),
                     shaderInfo.in_attributes(i).type_name(),
                     shaderInfo.path()));
@@ -51,7 +51,7 @@ bool CheckVertexInput(const core::pb::Shader& shaderInfo)
         {
             if (shaderInfo.in_attributes(i).type() != core::pb::Attribute_Type_VEC2)
             {
-                LogWarning(fmt::format("Vertex input {} must be vec2, found {}. Shader: {}",
+                LogWarning(std::format("Vertex input {} must be vec2, found {}. Shader: {}",
                     shaderInfo.in_attributes(i).location(),
                     shaderInfo.in_attributes(i).type_name(),
                     shaderInfo.path()));
@@ -180,7 +180,7 @@ void ShaderEditor::DrawInspector()
         for(int i = 0; i < currentShaderInfo.info.uniforms_size(); i++)
         {
             const auto& uniformInfo = currentShaderInfo.info.uniforms(i);
-            const auto text = fmt::format("Name: {} Type: {} Binding: {}", uniformInfo.name(), uniformInfo.type_name(), uniformInfo.binding());
+            const auto text = std::format("Name: {} Type: {} Binding: {}", uniformInfo.name(), uniformInfo.type_name(), uniformInfo.binding());
             ImGui::Selectable(text.c_str(), false);
         }
         ImGui::EndListBox();
@@ -191,7 +191,7 @@ void ShaderEditor::DrawInspector()
         for(int i = 0; i < currentShaderInfo.info.in_attributes_size(); i++)
         {
             const auto& inAttributeInfo = currentShaderInfo.info.in_attributes(i);
-            const auto text = fmt::format("Name: {} Type: {}", inAttributeInfo.name(), inAttributeInfo.type_name());
+            const auto text = std::format("Name: {} Type: {}", inAttributeInfo.name(), inAttributeInfo.type_name());
             ImGui::Selectable(text.c_str(), false);
         }
         ImGui::EndListBox();
@@ -202,7 +202,7 @@ void ShaderEditor::DrawInspector()
         for(int i = 0; i < currentShaderInfo.info.out_attributes_size(); i++)
         {
             const auto& outAttributeInfo = currentShaderInfo.info.out_attributes(i);
-            const auto text = fmt::format("Name: {} Type: {}", outAttributeInfo.name(), outAttributeInfo.type_name());
+            const auto text = std::format("Name: {} Type: {}", outAttributeInfo.name(), outAttributeInfo.type_name());
             ImGui::Selectable(text.c_str(), false);
         }
         ImGui::EndListBox();
@@ -212,7 +212,7 @@ void ShaderEditor::DrawInspector()
         for (int i = 0; i < currentShaderInfo.info.structs_size(); i++)
         {
             const auto& structInfo = currentShaderInfo.info.structs(i);
-            const auto text = fmt::format("Name: {} Size: {} Alignment: {}", structInfo.name(), structInfo.size(), structInfo.alignment());
+            const auto text = std::format("Name: {} Size: {} Alignment: {}", structInfo.name(), structInfo.size(), structInfo.alignment());
             ImGui::Selectable(text.c_str(), false);
         }
         ImGui::EndListBox();
@@ -223,7 +223,7 @@ void ShaderEditor::DrawInspector()
         for (int i = 0; i < currentShaderInfo.info.storage_buffers_size(); i++)
         {
             const auto& bufferInfo = currentShaderInfo.info.storage_buffers(i);
-            const auto text = fmt::format("Name: {} Binding: {}", bufferInfo.name(), bufferInfo.binding());
+            const auto text = std::format("Name: {} Binding: {}", bufferInfo.name(), bufferInfo.binding());
             ImGui::Selectable(text.c_str(), false);
         }
         ImGui::EndListBox();
@@ -273,7 +273,7 @@ bool ShaderEditor::DrawContentList(bool unfocus)
             }
             else
             {
-                LogError(fmt::format("Could not load shader file: {} for central view", shaderPath.data()));
+                LogError(std::format("Could not load shader file: {} for central view", shaderPath.data()));
             }
         }
     }
@@ -359,7 +359,7 @@ bool ShaderEditor::AnalyzeShader(std::string_view path, core::pb::Shader& shader
         }
         catch (py::error_already_set& e)
         {
-            LogError(fmt::format("Analyze shader failed for file: {}\n{}", path, e.what()));
+            LogError(std::format("Analyze shader failed for file: {}\n{}", path, e.what()));
         }
     }
     else
@@ -371,12 +371,12 @@ bool ShaderEditor::AnalyzeShader(std::string_view path, core::pb::Shader& shader
         }
         catch (py::error_already_set& e)
         {
-            LogError(fmt::format("Analyze shader failed for file: {}\n{}", path, e.what()));
+            LogError(std::format("Analyze shader failed for file: {}\n{}", path, e.what()));
         }
     }
     try
     {
-        LogDebug(fmt::format("JSON content {}", result));
+        LogDebug(std::format("JSON content {}", result));
         shaderJson = json::parse(result);
         int returnCode = shaderJson["returncode"].get<int>();
         if (returnCode != 0)
@@ -477,7 +477,7 @@ bool ShaderEditor::AnalyzeShader(std::string_view path, core::pb::Shader& shader
     }
     catch (json::exception& e)
     {
-        LogError(fmt::format("Could not parse shader info of file: {} from script\n{}\n{}", path, e.what(), result));
+        LogError(std::format("Could not parse shader info of file: {} from script\n{}\n{}", path, e.what(), result));
     }
     return false;
 }

@@ -5,7 +5,7 @@
 #include <imgui_stdlib.h>
 #include <SDL3/SDL.h>
 #include <pybind11/embed.h>
-#include <fmt/format.h>
+#include <format>
 #include "engine/filesystem.h"
 #include "editor_filesystem.h"
 #include "py_interface.h"
@@ -238,7 +238,7 @@ void Editor::CreateNewFile(std::string_view path, EditorType type)
         {
             if (!editorSystem && editorSystem->GetEditorType() != EditorType::SCENE)
                 continue;
-            std::string subFolder { fmt::format("{}{}/{}",
+            std::string subFolder { std::format("{}{}/{}",
                 ResourceManager::dataFolder.data(),
                 sceneEditor->GetCurrentSceneInfo()->info.name(), 
                 editorSystem->GetSubFolder())};
@@ -248,7 +248,7 @@ void Editor::CreateNewFile(std::string_view path, EditorType type)
             }
             if(editorSystem->GetEditorType() == EditorType::SCRIPT)
             {
-                CopyFileFromTo("scripts/neko2.py", fmt::format("{}/neko2.py", subFolder.c_str()), true);
+                CopyFileFromTo("scripts/neko2.py", std::format("{}/neko2.py", subFolder.c_str()), true);
             }
             editorSystem->ReloadId();
         }
@@ -376,7 +376,7 @@ bool Editor::UpdateCreateNewFile()
         
         if(currentCreateFileSystem_ == EditorType::SCENE)
         {
-            path = fmt::format("{}/{}/{}",
+            path = std::format("{}/{}/{}",
                 ResourceManager::dataFolder.data(),
                 newCreateFilename_,
                 actualFilename.c_str());
@@ -384,7 +384,7 @@ bool Editor::UpdateCreateNewFile()
         }
         else
         {
-            path = fmt::format("{}{}/{}{}",
+            path = std::format("{}{}/{}{}",
                 ResourceManager::dataFolder.data(),
                 sceneInfo ? sceneInfo->info.name() : newCreateFilename_,
                 editorSystem->GetSubFolder(),
@@ -453,7 +453,7 @@ void Editor::UpdateFileDialog()
     {
         const auto path = fileDialog_.GetSelected().string();
 
-        LogDebug(fmt::format("Selected filename: {}", path.c_str()));
+        LogDebug(std::format("Selected filename: {}", path.c_str()));
         LoadFileIntoEditor(path);
         fileDialog_.ClearSelected();
     }
@@ -569,7 +569,7 @@ void Editor::LoadFileIntoEditor(std::string_view path)
     EditorSystem* editorSystem = FindEditorSystem(path);
     if (editorSystem == nullptr)
     {
-        LogError(fmt::format("Could not find appropriated editor system for file: {}", path.data()));
+        LogError(std::format("Could not find appropriated editor system for file: {}", path.data()));
         return;
     }
     auto* sceneEditor = GetSceneEditor();
@@ -603,7 +603,7 @@ void Editor::LoadFileIntoEditor(std::string_view path)
     if(isScene)
     {
         CopyFileFromTo("scripts/neko2.py",
-                fmt::format("data/{}/scripts/neko2.py", sceneEditor->GetCurrentSceneInfo()->info.name()));
+                std::format("data/{}/scripts/neko2.py", sceneEditor->GetCurrentSceneInfo()->info.name()));
         for(auto& tmp: editorSystems_)
         {
             if(tmp)
@@ -617,7 +617,7 @@ void Editor::LoadFileIntoEditor(std::string_view path)
         {
             if (!editorSystem && editorSystem->GetEditorType() != EditorType::SCENE)
                 continue;
-            const auto subFolder{ fmt::format("{}{}/{}",
+            const auto subFolder{ std::format("{}{}/{}",
                 ResourceManager::dataFolder,
                 sceneEditor->GetCurrentSceneInfo()->info.name(),
                 editorSystem->GetSubFolder())};
@@ -625,7 +625,7 @@ void Editor::LoadFileIntoEditor(std::string_view path)
                 CreateNewDirectory(subFolder);
             if (editorSystem->GetEditorType() == EditorType::SCRIPT)
             {
-                CopyFileFromTo("scripts/neko2.py", fmt::format("{}/neko2.py", subFolder), true);
+                CopyFileFromTo("scripts/neko2.py", std::format("{}/neko2.py", subFolder), true);
             }
             editorSystem->ReloadId();
         }

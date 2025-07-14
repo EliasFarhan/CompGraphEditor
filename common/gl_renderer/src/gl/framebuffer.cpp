@@ -3,7 +3,7 @@
 #include "engine/engine.h"
 #include "utils/log.h"
 
-#include <fmt/format.h>
+#include <format>
 
 #ifdef TRACY_ENABLE
 #include <tracy/Tracy.hpp>
@@ -249,7 +249,7 @@ void Framebuffer::Load(const core::pb::FrameBuffer& framebufferPb)
         const auto attachmentType = GetAttachmentType(colorAttachmentInfo);
         if (attachmentType.error != 0)
         {
-            LogError(fmt::format("Could not get attachment type for color attachment {}", i));
+            LogError(std::format("Could not get attachment type for color attachment {}", i));
         }
         if (colorAttachmentInfo.rbo())
         {
@@ -275,7 +275,7 @@ void Framebuffer::Load(const core::pb::FrameBuffer& framebufferPb)
             glTexParameteri(target, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
             if(colorAttachmentInfo.cubemap())
             {
-                LogDebug(fmt::format("Generating color attachment with {} faces and {} mip levels", 6, std::max(colorAttachmentInfo.mipcount(), 1)));
+                LogDebug(std::format("Generating color attachment with {} faces and {} mip levels", 6, std::max(colorAttachmentInfo.mipcount(), 1)));
                 glTexParameteri(target, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
                 const auto width = colorAttachmentInfo.size_type() == core::pb::RenderTarget_Size_WINDOW_SIZE ? windowSize.x : colorAttachmentInfo.target_size().x();
                 const auto height = colorAttachmentInfo.size_type() == core::pb::RenderTarget_Size_WINDOW_SIZE ? windowSize.y : colorAttachmentInfo.target_size().y();

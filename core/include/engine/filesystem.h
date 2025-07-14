@@ -3,7 +3,7 @@
 
 #include <assimp/IOSystem.hpp>
 #include <assimp/IOStream.hpp>
-#include <fmt/format.h>
+#include <format>
 
 #include <cassert>
 #include <string_view>

@@ -1,7 +1,7 @@
 #include "phys_filesystem.h"
 
 #include <physfs.h>
-#include <fmt/format.h>
+#include <format>
 
 #include "utils/log.h"
 #include <filesystem>
@@ -19,7 +19,7 @@ namespace core
     {
         if (!PHYSFS_init(argv0_.c_str()))
         {
-            LogError(fmt::format("PhysFS init failed {}", static_cast<int>(PHYSFS_getLastErrorCode())));
+            LogError(std::format("PhysFS init failed {}", static_cast<int>(PHYSFS_getLastErrorCode())));
         }
     }
 
@@ -27,7 +27,7 @@ namespace core
     {
         if (!PHYSFS_deinit())
         {
-            LogError(fmt::format("PhysFS deinit failed: {}", static_cast<int>(PHYSFS_getLastErrorCode())));
+            LogError(std::format("PhysFS deinit failed: {}", static_cast<int>(PHYSFS_getLastErrorCode())));
         }
     }
 
@@ -35,7 +35,7 @@ namespace core
     {
         if (!PHYSFS_mount(dir.data(), mountPoint.data(), append))
         {
-            LogError(fmt::format(
+            LogError(std::format(
                 "PhysFS could not mount: {} at mount point: {}\n Log: {}",
                 dir, mountPoint, static_cast<int>(PHYSFS_getLastErrorCode())));
         }
@@ -48,7 +48,7 @@ namespace core
         core::FileBuffer newFile;
         if (!FileExists(genericPath))
         {
-            LogError(fmt::format("File does not exist: {}", genericPath.data()));
+            LogError(std::format("File does not exist: {}", genericPath.data()));
             return newFile;
         }
         auto* file = PHYSFS_openRead(genericPath.data());
@@ -58,7 +58,7 @@ namespace core
         newFile.data[newFile.size] = 0;
         if (PHYSFS_readBytes(file, newFile.data, newFile.size) == -1)
         {
-            LogError(fmt::format("Physfs could not read file: {}\nLog: {}",
+            LogError(std::format("Physfs could not read file: {}\nLog: {}",
                 genericPath.c_str(), static_cast<int>(PHYSFS_getLastErrorCode())));
             PHYSFS_close(file);
             return {};
@@ -81,7 +81,7 @@ namespace core
         PHYSFS_Stat stat;
         if (PHYSFS_stat(genericPath.c_str(), &stat))
         {
-            LogError(fmt::format(
+            LogError(std::format(
                 "PhysFS could not get stat of file: {}\nLog: {}",
                 genericPath.c_str(), static_cast<int>(PHYSFS_getLastErrorCode())));
             return false;
@@ -94,7 +94,7 @@ namespace core
         PHYSFS_Stat stat;
         if (PHYSFS_stat(path.data(), &stat))
         {
-            LogError(fmt::format(
+            LogError(std::format(
                 "PhysFS could not get stat of file: {}\nLog: {}",
                 path.data(), static_cast<int>(PHYSFS_getLastErrorCode())));
             return false;

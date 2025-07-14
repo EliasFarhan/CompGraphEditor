@@ -11,7 +11,7 @@
 #include "command_editor.h"
 #include "editor.h"
 
-#include <fmt/format.h>
+#include <format>
 #include <imgui.h>
 #include <imnodes.h>
 
@@ -39,7 +39,7 @@ void RenderPassEditor::DrawInspector()
     ImGui::Separator();
     for (int subpassIndex = 0; subpassIndex < currentRenderPass.info.sub_passes_size(); subpassIndex++)
     {
-        const auto headerTitle = fmt::format("Subpass {}", subpassIndex);
+        const auto headerTitle = std::format("Subpass {}", subpassIndex);
         ImGui::PushID(headerTitle.c_str());
         ImGui::Text("%s", headerTitle.c_str());
 
@@ -113,9 +113,9 @@ void RenderPassEditor::DrawInspector()
             }
             const auto* command = commandEditor->GetCommand(commandId);
 
-            const auto commandHeaderTitle = fmt::format("Command {}", commandIndex);
+            const auto commandHeaderTitle = std::format("Command {}", commandIndex);
             bool visible = true;
-            const auto commandHeaderId = fmt::format("{}{}", headerTitle, commandHeaderTitle);
+            const auto commandHeaderId = std::format("{}{}", headerTitle, commandHeaderTitle);
             ImGui::PushID(commandHeaderId.c_str());
             if (ImGui::CollapsingHeader(commandHeaderTitle.c_str(), &visible))
             {
@@ -146,15 +146,15 @@ void RenderPassEditor::DrawInspector()
         {
             subpassInfo->mutable_command_paths()->DeleteSubrange(removedCommandIndex, 1);
         }
-        const auto buttonId = fmt::format("{}_add_command_button", headerTitle);
+        const auto buttonId = std::format("{}_add_command_button", headerTitle);
         ImGui::PushID(buttonId.c_str());
         if (ImGui::Button("Add Command"))
         {
             subpassInfo->add_command_paths();
         }
         ImGui::PopID();
-        const auto importId = fmt::format("{}_import_model_command", headerTitle);
-        const auto popupId = fmt::format("{}_popup", importId);
+        const auto importId = std::format("{}_import_model_command", headerTitle);
+        const auto popupId = std::format("{}_popup", importId);
         bool openPopup = false;
         ImGui::PushID(importId.c_str());
         if (ImGui::Button("Import From Model Command"))
@@ -182,7 +182,7 @@ void RenderPassEditor::DrawInspector()
                         if (command.pipelineId == INVALID_RESOURCE_ID)
                             continue;
                         auto* pipelineResource = resourceManager.GetResource(command.pipelineId);
-                        const auto commandName = fmt::format("{}_{}", GetFilename(model.path, false), GetFilename(pipelineResource->path, false));
+                        const auto commandName = std::format("{}_{}", GetFilename(model.path, false), GetFilename(pipelineResource->path, false));
                         if (ImGui::Selectable(commandName.c_str(), false))
                         {
                             //TODO import commands
@@ -311,7 +311,7 @@ void RenderPassEditor::Save()
         std::ofstream fileOut(renderPassInfo.path.c_str(), std::ios::binary);
         if (!renderPassInfo.info.SerializeToOstream(&fileOut))
         {
-            LogWarning(fmt::format("Could not save render pass at: {}", renderPassInfo.path.c_str()));
+            LogWarning(std::format("Could not save render pass at: {}", renderPassInfo.path.c_str()));
         }
     }
 }
@@ -326,13 +326,13 @@ void RenderPassEditor::AddResource(const Resource& resource)
 
     if (!core::IsRegularFile(resource.path.c_str()))
     {
-        LogWarning(fmt::format("Could not find render pass file: {}", resource.path.c_str()));
+        LogWarning(std::format("Could not find render pass file: {}", resource.path.c_str()));
         return;
     }
     std::ifstream fileIn(resource.path.c_str(), std::ios::binary);
     if (!renderPassInfo.info.ParsePartialFromIstream(&fileIn))
     {
-        LogWarning(fmt::format("Could not open render pass protobuf file: {}", resource.path.c_str()));
+        LogWarning(std::format("Could not open render pass protobuf file: {}", resource.path.c_str()));
         return;
     }
     renderPassInfos_.push_back(renderPassInfo);

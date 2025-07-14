@@ -9,7 +9,7 @@
 #include <spirv_common.hpp>
 
 #include "utils/log.h"
-#include <fmt/format.h>
+#include <format>
 #include <nlohmann/json.hpp>
 using json = nlohmann::json;
 
@@ -280,7 +280,7 @@ int main([[maybe_unused]] int argc, char** argv)
     }
     catch(const spirv_cross::CompilerError& e)
     {
-        LogError(fmt::format("Compile Error: {}", e.what()));
+        LogError(std::format("Compile Error: {}", e.what()));
         return 1;
     }
 

@@ -4,7 +4,7 @@
 #include "vk/engine.h"
 #include "vk/utils.h"
 
-#include <fmt/format.h>
+#include <format>
 
 #include <ranges>
 
@@ -57,7 +57,7 @@ void Framebuffer::Load(const core::pb::FrameBuffer& framebufferPb)
             samplerInfo.compareOp = VK_COMPARE_OP_ALWAYS;
             if (vkCreateSampler(driver.device, &samplerInfo, nullptr, &renderTarget.sampler) != VK_SUCCESS)
             {
-                LogError(fmt::format("Could not create sampler for render target color attachment: {}", targetInfo.name()));
+                LogError(std::format("Could not create sampler for render target color attachment: {}", targetInfo.name()));
             }
         }
     }
@@ -100,7 +100,7 @@ void Framebuffer::Load(const core::pb::FrameBuffer& framebufferPb)
             samplerInfo.compareOp = VK_COMPARE_OP_ALWAYS;
             if (vkCreateSampler(driver.device, &samplerInfo, nullptr, &renderTarget.sampler) != VK_SUCCESS)
             {
-                LogError(fmt::format("Could not create sampler for render target depth stencil attachment: {}", targetInfo.name()));
+                LogError(std::format("Could not create sampler for render target depth stencil attachment: {}", targetInfo.name()));
             }
         }
     }

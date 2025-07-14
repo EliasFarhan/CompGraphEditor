@@ -16,7 +16,7 @@
 #include "scene_editor.h"
 #include "editor.h"
 
-#include <fmt/format.h>
+#include <format>
 #include <glm/ext/matrix_clip_space.hpp>
 #include <glm/ext/matrix_transform.hpp>
 #include <stb_image.h>
@@ -78,7 +78,7 @@ void GeneratePreComputeBrdfLUT()
     glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_FLOAT, buffer);
     glCheckError();
     stbi_flip_vertically_on_write(true);
-    const auto path{fmt::format("data/{}/textures/brdf_lut.hdr", currentScene->info.name())};
+    const auto path{std::format("data/{}/textures/brdf_lut.hdr", currentScene->info.name())};
     if (!stbi_write_hdr(path.c_str(), texW, texH, 4, buffer))
     {
         //Error
@@ -102,8 +102,8 @@ void GenerateIrradianceMap(std::string_view path)
 {
     const auto baseDir = GetFolder(path);
     const auto filename = GetFilename(path, false);
-    const auto irradianceMapPath = fmt::format("{}/{}_irrmap.hdr", baseDir.c_str(), filename);
-    const auto irradianceKtxMapPath = fmt::format("{}/{}_irrmap.ktx", baseDir.c_str(), filename);
+    const auto irradianceMapPath = std::format("{}/{}_irrmap.hdr", baseDir.c_str(), filename);
+    const auto irradianceKtxMapPath = std::format("{}/{}_irrmap.ktx", baseDir.c_str(), filename);
 
     auto envMapFile = core::LoadFile(path);
     int texW;
@@ -386,7 +386,7 @@ void GeneratePreFilterEnvMap(std::string_view path)
 {
     const auto baseDir = GetFolder(path);
     const auto filename = GetFilename(path, false);
-    const auto preFilterEnvMapPath = fmt::format("{}/{}_prefilter.ktx", baseDir.c_str(), filename);
+    const auto preFilterEnvMapPath = std::format("{}/{}_prefilter.ktx", baseDir.c_str(), filename);
 
     auto envMapFile = core::LoadFile(path);
     int texW;
@@ -540,7 +540,7 @@ void GeneratePreFilterEnvMap(std::string_view path)
     prefilterPipeline.SetCubemap("environmentMap", envCubemap, 0);
     for(GLint mip = 0; mip < maxMipLevels; mip++)
     {
-        LogDebug(fmt::format("Draw pre filter mip level: {}", mip));
+        LogDebug(std::format("Draw pre filter mip level: {}", mip));
         const auto mipWidth = static_cast<GLsizei>(width * std::pow(0.5, static_cast<double>(mip)));
         const auto mipHeight = static_cast<GLsizei>(height * std::pow(0.5, static_cast<double>(mip)));
 
@@ -550,7 +550,7 @@ void GeneratePreFilterEnvMap(std::string_view path)
         prefilterPipeline.SetMat4("projection", captureProjection);
         for(int i = 0; i < 6; i++)
         {
-            LogDebug(fmt::format("Draw pre filter face: {}", i));
+            LogDebug(std::format("Draw pre filter face: {}", i));
             prefilterPipeline.SetMat4("view", captureViews[i]);
             glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
                 GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, prefilterMap, mip);

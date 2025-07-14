@@ -1,7 +1,7 @@
 #include "vk/common.h"
 
 #include "utils/log.h"
-#include <fmt/core.h>
+#include <format>
 #include <vk/engine.h>
 #include <vk/utils.h>
 
@@ -90,7 +90,7 @@ bool CheckError(VkResult result)
     case VK_RESULT_MAX_ENUM: break;
     default:;
     }
-    LogError(fmt::format("[Vulkan] Error Code: {}", static_cast<int>(result)));
+    LogError(std::format("[Vulkan] Error Code: {}", static_cast<int>(result)));
     return true;
 }
 }

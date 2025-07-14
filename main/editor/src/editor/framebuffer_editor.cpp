@@ -2,7 +2,7 @@
 #include "engine/filesystem.h"
 #include "utils/log.h"
 #include "editor.h"
-#include <fmt/format.h>
+#include <format>
 #include <imgui_stdlib.h>
 #include <array>
 #include <fstream>
@@ -22,13 +22,13 @@ void FramebufferEditor::AddResource(const Resource& resource)
 
     if (!core::IsRegularFile(resource.path))
     {
-        LogWarning(fmt::format("Could not find framebuffer file: {}", resource.path.c_str()));
+        LogWarning(std::format("Could not find framebuffer file: {}", resource.path.c_str()));
         return;
     }
     std::ifstream fileIn(resource.path.c_str(), std::ios::binary);
     if (!framebufferInfo.info.ParseFromIstream(&fileIn))
     {
-        LogWarning(fmt::format("Could not open protobuf file: {}", resource.path.c_str()));
+        LogWarning(std::format("Could not open protobuf file: {}", resource.path.c_str()));
         return;
     }
     if(framebufferInfo.info.name().empty())
@@ -74,7 +74,7 @@ void FramebufferEditor::DrawInspector()
     for(int colorAttachmentIndex = 0; colorAttachmentIndex < currentFramebufferInfo.info.color_attachments_size(); colorAttachmentIndex++)
     {
         auto* colorAttachment = currentFramebufferInfo.info.mutable_color_attachments(colorAttachmentIndex);
-        std::string id = fmt::format("Color Attachment {}", colorAttachmentIndex);
+        std::string id = std::format("Color Attachment {}", colorAttachmentIndex);
         std::string colorAttachmentName = colorAttachment->name().empty() ? id : colorAttachment->name();
         ImGui::PushID(id.data());
         if(ImGui::InputText("Color Attachment Name",&colorAttachmentName))
@@ -303,7 +303,7 @@ void FramebufferEditor::Save()
         std::ofstream fileOut(framebufferInfo.path.c_str(), std::ios::binary);
         if (!framebufferInfo.info.SerializeToOstream(&fileOut))
         {
-            LogWarning(fmt::format("Could not save framebuffer at: {}", framebufferInfo.path.c_str()));
+            LogWarning(std::format("Could not save framebuffer at: {}", framebufferInfo.path.c_str()));
         }
 
     }

@@ -3,7 +3,7 @@
 #include "utils/log.h"
 #include "vk/engine.h"
 
-#include <fmt/core.h>
+#include <format>
 #include <SDL3/SDL_vulkan.h>
 
 
@@ -286,7 +286,7 @@ void Window::CreateSwapChain()
     // We choose double buffering
     VkPresentModeKHR presentMode = VK_PRESENT_MODE_FIFO_KHR;
     VkExtent2D extent = ChooseSwapExtent(swapChainSupport.capabilities);
-    LogDebug(fmt::format("[Vulkan] Swapchain support, minImageCount: {} maxImageCount: {}",
+    LogDebug(std::format("[Vulkan] Swapchain support, minImageCount: {} maxImageCount: {}",
                                swapChainSupport.capabilities.minImageCount,
                                swapChainSupport.capabilities.maxImageCount));
     swapchain_.minImageCount = swapChainSupport.capabilities.minImageCount;
@@ -302,7 +302,7 @@ void Window::CreateSwapChain()
         swapchain_.imageCount = swapChainSupport.capabilities.maxImageCount;
     }
 
-    LogDebug(fmt::format("[Vulkan] Image count: {}, min image count: {}", swapchain_.imageCount, swapchain_.minImageCount));
+    LogDebug(std::format("[Vulkan] Image count: {}, min image count: {}", swapchain_.imageCount, swapchain_.minImageCount));
 
     VkSwapchainCreateInfoKHR createInfo{};
     createInfo.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;

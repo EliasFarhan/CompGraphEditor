@@ -6,7 +6,7 @@
 #include "engine/scene.h"
 
 
-#include <fmt/format.h>
+#include <format>
 
 #ifdef TRACY_ENABLE
 #include <tracy/Tracy.hpp>
@@ -68,17 +68,17 @@ void Shader::LoadShader(const core::pb::Shader &shader)
             constexpr GLsizei infoLogSize = 512;
             char infoLog[infoLogSize];
             glGetShaderInfoLog(shaderName, infoLogSize, nullptr, infoLog);
-            LogError(fmt::format("Shader compilation failed with this log:\n{}\nShader Path:\n{}",
+            LogError(std::format("Shader compilation failed with this log:\n{}\nShader Path:\n{}",
                               infoLog, path.data()));
             glDeleteShader(shaderName);
             return;
         }
         name = shaderName;
-        LogDebug(fmt::format("Successfully loaded shader: {} with name: {}", path.data(), name));
+        LogDebug(std::format("Successfully loaded shader: {} with name: {}", path.data(), name));
     }
     else
     {
-        LogError(fmt::format("File not found: {}", path.data()));
+        LogError(std::format("File not found: {}", path.data()));
     }
     glCheckError();
 }
@@ -183,7 +183,7 @@ void Pipeline::LoadRasterizePipeline(
         constexpr GLsizei infoLogSize = 512;
         char infoLog[infoLogSize];
         glGetProgramInfoLog(program, infoLogSize, nullptr, infoLog);
-        LogError(fmt::format("Shader program with vertex {} and fragment {}: LINK_FAILED with infoLog:\n{}",
+        LogError(std::format("Shader program with vertex {} and fragment {}: LINK_FAILED with infoLog:\n{}",
                           vertex.name,
                           fragment.name,
                           infoLog));
@@ -192,7 +192,7 @@ void Pipeline::LoadRasterizePipeline(
     }
     name = program;
     glCheckError();
-    LogDebug(fmt::format("Successfully loaded program with vertex {} and fragment {}", vertex.name, fragment.name));
+    LogDebug(std::format("Successfully loaded program with vertex {} and fragment {}", vertex.name, fragment.name));
 }
 
 void Pipeline::LoadComputePipeline(const Shader &compute)
@@ -212,7 +212,7 @@ void Pipeline::LoadComputePipeline(const Shader &compute)
         constexpr GLsizei infoLogSize = 512;
         char infoLog[infoLogSize];
         glGetProgramInfoLog(program, infoLogSize, nullptr, infoLog);
-        LogError(fmt::format("Shader program with compute {}: LINK_FAILED with infoLog:\n{}",
+        LogError(std::format("Shader program with compute {}: LINK_FAILED with infoLog:\n{}",
                           compute.name,
                           infoLog));
         name = 0;

@@ -2,7 +2,7 @@
 #include "resource_manager.h"
 #include "editor.h"
 
-#include <fmt/format.h>
+#include <format>
 
 #include "scene_editor.h"
 
@@ -12,7 +12,7 @@ namespace editor
 void EditorSystem::ImportResource(std::string_view path)
 {
     const auto& sceneName = GetSceneEditor()->GetCurrentSceneInfo()->info.name();
-    const std::string dstPath{fmt::format("{}{}/{}{}",
+    const std::string dstPath{std::format("{}{}/{}{}",
         ResourceManager::dataFolder.data(),
         sceneName,
         GetSubFolder(),

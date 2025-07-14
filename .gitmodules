@@ -10,3 +10,6 @@
 [submodule "external/wasm3"]
 	path = external/wasm3
 	url = https://github.com/wasm3/wasm3.git
+[submodule "external/KTX-Software"]
+	path = external/KTX-Software
+	url = https://github.com/KhronosGroup/KTX-Software.git

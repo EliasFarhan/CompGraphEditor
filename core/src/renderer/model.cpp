@@ -4,7 +4,7 @@
 #include "utils/log.h"
 
 #include <assimp/postprocess.h>
-#include <fmt/format.h>
+#include <format>
 
 #ifdef TRACY_ENABLE
 #include <tracy/Tracy.hpp>
@@ -59,7 +59,7 @@ void Model::LoadMaterials(const aiScene* scene)
                 }
                 else
                 {
-                    LogError(fmt::format("Error whole retrieving texture type {} from scene {}", aiTextureTypeToString(textureType), scene->mName.C_Str()));
+                    LogError(std::format("Error whole retrieving texture type {} from scene {}", aiTextureTypeToString(textureType), scene->mName.C_Str()));
                 }
             }
         }
@@ -133,7 +133,7 @@ ModelIndex ModelManager::ImportModel(std::string_view modelPath)
     const auto exists = FileExists(modelPath);
     if (!exists)
     {
-        LogError(fmt::format("Could not find: {}", modelPath.data()));
+        LogError(std::format("Could not find: {}", modelPath.data()));
         return INVALID_MODEL_INDEX;
     }
     const auto* scene = importer_.ReadFile(modelPath.data(),
@@ -141,7 +141,7 @@ ModelIndex ModelManager::ImportModel(std::string_view modelPath)
     
     if(scene == nullptr)
     {
-        LogError(fmt::format("Could not import scene, with error: {}", importer_.GetErrorString()));
+        LogError(std::format("Could not import scene, with error: {}", importer_.GetErrorString()));
         return INVALID_MODEL_INDEX;
     }
     const auto modelIndex = ImportScene(scene);

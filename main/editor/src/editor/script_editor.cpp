@@ -8,7 +8,7 @@
 #include <imgui.h>
 #include <imgui_stdlib.h>
 #include <ranges>
-#include <fmt/format.h>
+#include <format>
 
 #include <nlohmann/json.hpp>
 #include <pybind11/embed.h>
@@ -33,7 +33,7 @@ void ScriptEditor::AddResource(const Resource& resource)
     std::ranges::replace(module, '/', '.');
     std::ranges::replace(module, '\\', '.');
     module = (module | std::views::split(std::string{ ".." }) | std::views::join_with(std::string{ "." })) | std::ranges::to<std::string>();
-    module = fmt::format("{}.{}", module, GetFilename(resource.path, false));
+    module = std::format("{}.{}", module, GetFilename(resource.path, false));
     scriptInfo.info.set_module(module);
     scriptInfo.info.set_path(resource.path.c_str());
 
@@ -53,7 +53,7 @@ void ScriptEditor::AddResource(const Resource& resource)
     }
     catch(py::error_already_set& e)
     {
-        LogWarning(fmt::format("Could not analyze script: {}\n{}", resource.path.c_str(), e.what()));
+        LogWarning(std::format("Could not analyze script: {}\n{}", resource.path.c_str(), e.what()));
     }
     scriptInfos_.push_back(scriptInfo);
 }
@@ -99,7 +99,7 @@ void ScriptEditor::UpdateExistingResource(const Resource& resource)
             }
             catch (py::error_already_set& e)
             {
-                LogWarning(fmt::format("Could not analyze script: {}\n{}", resource.path.c_str(), e.what()));
+                LogWarning(std::format("Could not analyze script: {}\n{}", resource.path.c_str(), e.what()));
             }
         }
     }

@@ -4,7 +4,7 @@
 #include "gl/debug.h"
 #include "utils/log.h"
 
-#include <fmt/format.h>
+#include <format>
 #include <glm/vec2.hpp>
 #include <glm/vec3.hpp>
 
@@ -139,7 +139,7 @@ void BufferManager::CopyData(std::string_view bufferName, void* dataSrc, std::si
     const auto arrayBuffer = GetArrayBuffer(bufferId);
     if(length > arrayBuffer.count)
     {
-        LogError(fmt::format("Copy Data Error: buffer {} has not enough allocated size. Copy size: {} Buffer size: {}", bufferName, length, arrayBuffer.count));
+        LogError(std::format("Copy Data Error: buffer {} has not enough allocated size. Copy size: {} Buffer size: {}", bufferName, length, arrayBuffer.count));
     }
     std::memcpy(arrayBuffer.data, dataSrc, length);
 }

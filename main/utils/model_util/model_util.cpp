@@ -3,7 +3,7 @@
 //
 
 #include <argh.h>
-#include <fmt/printf.h>
+#include <print>
 #include <nlohmann/json.hpp>
 #include <assimp/Importer.hpp>
 #include <assimp/postprocess.h>
@@ -17,7 +17,7 @@ int main([[maybe_unused]]int argc, char** argv)
 
     if(cmdl.size() < 2)
     {
-        fmt::print(stderr, "Model path required");
+        std::print(stderr, "Model path required");
         return 1;
     }
 
@@ -46,6 +46,6 @@ int main([[maybe_unused]]int argc, char** argv)
 
     func(scene->mRootNode);
 
-    fmt::print(stdout, "{}", modelJson.dump(4));
+    std::print(stdout, "{}", modelJson.dump(4));
     return 0;
 }

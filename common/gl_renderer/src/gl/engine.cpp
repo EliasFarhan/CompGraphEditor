@@ -11,7 +11,7 @@
 #include <imgui_impl_opengl3.h>
 #include <glm/vec2.hpp>
 
-#include <fmt/format.h>
+#include <format>
 
 #ifdef TRACY_ENABLE
 #include <tracy/Tracy.hpp>
@@ -63,7 +63,7 @@ void Engine::Begin()
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, config_.major_version());
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, config_.minor_version());
 
-    LogDebug(fmt::format("Init GL Window with OpenGL{} {}.{}", 
+    LogDebug(std::format("Init GL Window with OpenGL{} {}.{}", 
         config_.es() ? " ES" : "", 
         config_.major_version(), 
         config_.minor_version()));

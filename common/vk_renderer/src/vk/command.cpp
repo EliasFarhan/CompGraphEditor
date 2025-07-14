@@ -6,7 +6,7 @@
 #include "vk/utils.h"
 #include "vk/engine.h"
 
-#include <fmt/format.h>
+#include <format>
 
 #include <glm/vec2.hpp>
 #include <glm/vec3.hpp>
@@ -128,12 +128,12 @@ void UniformManager::Create()
                                     internalUniformData.index = internalPushConstantIndex;
                                     internalUniformData.uniformType = UniformType::PUSH_CONSTANT;
                                     internalPushConstantIndex += internalTypeInfo.size;
-                                    uniformMap_[fmt::format("{}.{}", baseName, structUniform.name())] = internalUniformData;
+                                    uniformMap_[std::format("{}.{}", baseName, structUniform.name())] = internalUniformData;
                                 }
                                 else
                                 {
                                     internalPushConstantIndex = analyzeStruct(structUniform.type_name(),
-                                        fmt::format("{}.{}", baseName,
+                                        std::format("{}.{}", baseName,
                                             structUniform.name()),
                                         internalPushConstantIndex);
                                 }
@@ -176,7 +176,7 @@ void UniformManager::Create()
                         for (int i = 0; i < textureCount; i++)
                         {
                             const auto& materialTexture = materialPb.textures(i);
-                            LogDebug(fmt::format("Material Sampler Name: {} Shader Uniform Name: {}", materialTexture.sampler_name(), uniform.name()));
+                            LogDebug(std::format("Material Sampler Name: {} Shader Uniform Name: {}", materialTexture.sampler_name(), uniform.name()));
                             if (materialTexture.sampler_name() == uniform.name())
                             {
                                 if (!materialTexture.framebuffer_name().empty() && !materialTexture.attachment_name().empty())
@@ -301,7 +301,7 @@ void UniformManager::Create()
                                 internalUniformData.size = internalTypeInfo.size*(structUniform.count()>1?structUniform.count():1);
                                 internalUniformData.uniformType = UniformType::UBO;
                                 internalUniformIndex += internalTypeInfo.size;
-                                uniformMap_[fmt::format("{}.{}", name, structUniform.name())] = internalUniformData;
+                                uniformMap_[std::format("{}.{}", name, structUniform.name())] = internalUniformData;
                             }
                             baseUniformIndex += typeInfo.size;
                             break;
