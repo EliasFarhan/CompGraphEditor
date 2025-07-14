@@ -27,6 +27,11 @@ extern "C"
     int32_t name_equals(int64_t hostString, const void* localString);
 }
 
+inline void set_vec3(int64_t drawCommand, const void* name, const glm::vec3& value)
+{
+	set_vec3_local(drawCommand, name, &value);
+}
+
 template<typename T>
 void set_vec3(int64_t drawCommand, const void* name, T value)
 {
@@ -44,6 +49,11 @@ void set_vec3(int64_t drawCommand, const void* name, T value)
     }
 }
 
+inline void set_mat4(int64_t drawCommand, const void* name, const glm::mat4& value)
+{
+	set_mat4_local(drawCommand, name, &value);
+}
+
 template<typename T>
 void set_mat4(int64_t drawCommand, const void* name, T value)
 {
@@ -59,8 +69,8 @@ void set_mat4(int64_t drawCommand, const void* name, T value)
     {
         set_mat4_local(drawCommand, name, &value);
     }
-
 }
+
 
 inline glm::mat4 get_camera_view(int64_t camera)
 {

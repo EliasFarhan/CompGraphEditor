@@ -1,13 +1,16 @@
 #include "wasm_interface.h"
 #include <wasm3_cpp.h>
+#include <wasm3.h>
 
 #include "engine/filesystem.h"
 #include "wasm/neko2.h"
+#include "m3_api_wasi.h"
 
 namespace core
 {
 void LinkFunctions(wasm3::wasm_module &module)
 {
+	m3_LinkWASI(module.get_module().get());
     module.link_optional("*", "bind_draw_command", bind_draw_command);
     module.link_optional("*", "set_mat4_local", set_mat4_local);
     module.link_optional("*", "set_mat4_host", set_mat4_host);
@@ -73,13 +76,22 @@ WasmSystem::WasmSystem(wasm3::wasm_environment& env,
     {
         LogDebug(std::format("No {} function, error: {}", drawFuncName, e.what()));
     }
+
+	Begin();
 }
 
 void WasmSystem::Begin()
 {
     if (begin_fn.has_value())
     {
-        begin_fn->call();
+		try
+		{
+			begin_fn->call();
+		}
+		catch (wasm3::error& e)
+		{
+			LogError(std::format("Error in wasm begin: {}", e.what()));
+		}
     }
 }
 
@@ -125,6 +137,7 @@ WasmManager::WasmManager() { ScriptLoaderLocator::provide(this); }
 void WasmManager::Begin()
 {
     MinimalScriptLoader::Begin();
+
 }
 Script* WasmManager::LoadScript(std::string_view path, std::string_view module, std::string_view className)
 {

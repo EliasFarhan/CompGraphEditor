@@ -10,14 +10,14 @@
 
 #define WASM_EXPORT __attribute__((used)) __attribute__((visibility ("default")))
 
-
-extern "C"
-{
-static std::vector<glm::vec3> positions;
+static std::vector<glm::vec3> positions{};
 static constexpr float gravity_const = 1000.0f;
 static constexpr float center_mass = 1000.0f;
 static constexpr float planet_mass = 1.0f;
 static constexpr size_t planet_count = 1000;
+
+extern "C"
+{
 
 void WASM_EXPORT scene10_begin()
 {
@@ -59,7 +59,7 @@ void WASM_EXPORT scene10_draw(int64_t drawCommand)
 		set_vec3(drawCommand, uniformName.c_str(), positions[i]);
 	}
 
-	draw_instanced(drawCommand, planet_count);
+	draw_instanced(drawCommand, positions.size());
 }
 
 void WASM_EXPORT scene10_end()
