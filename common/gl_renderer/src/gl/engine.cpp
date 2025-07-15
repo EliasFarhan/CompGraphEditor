@@ -78,11 +78,16 @@ void Engine::Begin()
         SDL_WINDOW_RESIZABLE | SDL_WINDOW_OPENGL
     );
     glRenderContext_ = SDL_GL_CreateContext(window_);
-
-    SDL_GL_SetSwapInterval(config_.vertical_sync());
-
-    if (GLEW_OK != glewInit())
+    if (glRenderContext_ == nullptr)
     {
+        LogError(std::format("Error creating the GL context: {}", SDL_GetError()));
+        assert(false && "Failed to initialize OpenGL context");
+    }
+    SDL_GL_SetSwapInterval(config_.vertical_sync());
+    const auto glewStatus = glewInit();
+    if (GLEW_OK != glewStatus)
+    {
+        LogError(std::format("glewInit failed with {}", reinterpret_cast<const char*>(glewGetErrorString(glewStatus))));
         assert(false && "Failed to initialize OpenGL context");
     }
 

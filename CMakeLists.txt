@@ -10,6 +10,8 @@ project(Neko2)
 set (CMAKE_CXX_STANDARD 23)
 set (CMAKE_CXX_STANDARD_REQUIRED ON)
 
+set(BUILD_SHARED_LIBS OFF)
+
 set_property( GLOBAL PROPERTY USE_FOLDERS ON)
 
 include(cmake/data.cmake)
