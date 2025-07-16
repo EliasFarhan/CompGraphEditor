@@ -6,23 +6,26 @@
 
 #include "glm/ext/matrix_clip_space.hpp"
 #include "glm/ext/matrix_transform.hpp"
+#include "wasm/camera.h"
+#include "wasm/draw_command.h"
 
 #define WASM_EXPORT __attribute__((used)) __attribute__((visibility ("default")))
 
 
 extern "C"
 {
-	void WASM_EXPORT scene08_draw(int64_t drawCommand)
+	void WASM_EXPORT scene08_draw(int64_t drawCommandId)
 	{
-		if (get_subpass_index(drawCommand) == 0)
+	    script::DrawCommand drawCommand(drawCommandId);
+		if (drawCommand.GetSubpassIndex() == 0)
 		{
-			const auto camera = get_scene_camera();
-			bind_draw_command(drawCommand);
-			set_mat4(drawCommand, "view", get_camera_view(camera));
-			set_mat4(drawCommand, "projection", get_camera_projection(camera));
+			const auto camera = script::GetSceneCamera();
+			drawCommand.Bind();
+			drawCommand.SetMat4("view", camera.GetView());
+			drawCommand.SetMat4("projection", camera.GetProjection());
 			glm::mat4 model = glm::mat4(1.0f);
-			set_mat4(drawCommand, "model", model);
-			draw(drawCommand);
+			drawCommand.SetMat4( "model", model);
+			drawCommand.Draw();
 		}
 	}
 

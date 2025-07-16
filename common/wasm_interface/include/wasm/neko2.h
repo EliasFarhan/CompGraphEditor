@@ -1,9 +1,7 @@
 #pragma once
 
 #include <glm/mat4x4.hpp>
-#include <cstdint>
 
-#include "GL/glew.h"
 #include "renderer/camera.h"
 
 extern "C"
@@ -25,6 +23,10 @@ extern "C"
 
     int64_t get_name(int64_t drawCommand);
     int32_t name_equals(int64_t hostString, const void* localString);
+    void set_camera_position(int64_t camera, const void* position);
+    void set_camera_direction(int64_t camera, const void* direction);
+    void set_camera_near(int64_t camera, float near);
+    void set_camera_far(int64_t camera, float far);
 }
 
 inline void set_vec3(int64_t drawCommand, const void* name, const glm::vec3& value)
@@ -69,27 +71,5 @@ void set_mat4(int64_t drawCommand, const void* name, T value)
     {
         set_mat4_local(drawCommand, name, &value);
     }
-}
-
-
-inline glm::mat4 get_camera_view(int64_t camera)
-{
-    glm::mat4 cameraView;
-    fill_camera_view(camera, &cameraView);
-    return cameraView;
-}
-
-inline glm::mat4 get_camera_projection(int64_t camera)
-{
-    glm::mat4 cameraProj;
-    fill_camera_projection(camera, &cameraProj);
-    return cameraProj;
-}
-
-inline glm::vec3 get_camera_position(int64_t camera)
-{
-    glm::vec3 cameraPos;
-    fill_camera_position(camera, &cameraPos);
-    return cameraPos;
 }
 

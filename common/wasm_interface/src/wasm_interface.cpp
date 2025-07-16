@@ -27,6 +27,10 @@ void LinkFunctions(wasm3::wasm_module &module)
     module.link_optional("*", "set_vec3_local", set_vec3_local);
     module.link_optional("*", "set_vec3_host", set_vec3_host);
     module.link_optional("*", "draw_instanced", draw_instanced);
+    module.link_optional("*", "set_camera_position", set_camera_position);
+    module.link_optional("*", "set_camera_direction", set_camera_direction);
+    module.link_optional("*", "set_camera_near", set_camera_near);
+    module.link_optional("*", "set_camera_far", set_camera_far);
 
 }
 

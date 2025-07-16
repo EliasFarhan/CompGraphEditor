@@ -6,6 +6,8 @@
 #define GLM_ENABLE_EXPERIMENTAL
 #include "glm/ext/matrix_clip_space.hpp"
 #include "glm/ext/matrix_transform.hpp"
+#include "proto/renderer.pb.h"
+#include "wasm/draw_command.h"
 
 #define WASM_EXPORT __attribute__((used)) __attribute__((visibility ("default")))
 
@@ -38,27 +40,23 @@ extern "C"
 		t += dt;
 	}
 
-	void WASM_EXPORT scene06_draw(int64_t drawCommand)
+	void WASM_EXPORT scene06_draw(int64_t drawCommandId)
 	{
-		bind_draw_command(drawCommand);
+	    script::DrawCommand drawCommand(drawCommandId);
+		drawCommand.Bind();
 		auto view = glm::mat4(1.0f);
 		view = glm::translate(view, glm::vec3(0,0,-5));
-		set_mat4(drawCommand, "view", view);
+		drawCommand.SetMat4("view", view);
 		auto projection = glm::perspective(glm::radians(45.0f), get_aspect(), 0.1f, 100.0f);
-		set_mat4(drawCommand, "projection", projection);
+		drawCommand.SetMat4("projection", projection);
 		for (auto& position : positions)
 		{
 			auto model = glm::mat4(1.0f);
 			model = glm::translate(model, position);
 			model = glm::rotate(model, t, glm::vec3(0, 0, 1));
 			model = glm::rotate(model, t, glm::vec3(0, 1, 0));
-			set_mat4(drawCommand, "model", model);
-			draw(drawCommand);
+			drawCommand.SetMat4("model", model);
+			drawCommand.Draw();
 		}
-	}
-
-	void WASM_EXPORT scene06_end()
-	{
-
 	}
 }

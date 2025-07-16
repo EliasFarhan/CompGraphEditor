@@ -1,26 +1,29 @@
 
 #include "wasm/neko2.h"
+#include "wasm/camera.h"
 #include <glm/vec3.hpp>
 #include <glm/mat4x4.hpp>
 #include <array>
 
 #include "glm/ext/matrix_clip_space.hpp"
 #include "glm/ext/matrix_transform.hpp"
+#include "wasm/draw_command.h"
 
 #define WASM_EXPORT __attribute__((used)) __attribute__((visibility ("default")))
 
 
 extern "C"
 {
-	void WASM_EXPORT scene07_draw(int64_t drawCommand)
+	void WASM_EXPORT scene07_draw(int64_t drawCommandId)
 	{
-		const auto camera = get_scene_camera();
-		bind_draw_command(drawCommand);
-		set_mat4(drawCommand, "view", get_camera_view(camera));
-		set_mat4(drawCommand, "projection", get_camera_projection(camera));
+	    script::DrawCommand drawCommand(drawCommandId);
+		const auto camera = script::GetSceneCamera();
+		drawCommand.Draw();
+		drawCommand.SetMat4("view", camera.GetView());
+		drawCommand.SetMat4("projection", camera.GetProjection());
 		glm::mat4 model = glm::mat4(1.0f);
-		set_mat4(drawCommand, "model", model);
-		draw(drawCommand);
+		drawCommand.SetMat4("model", model);
+		drawCommand.Draw();
 	}
 
 }

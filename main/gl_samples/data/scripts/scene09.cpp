@@ -5,29 +5,32 @@
 
 #include "glm/ext/matrix_clip_space.hpp"
 #include "glm/ext/matrix_transform.hpp"
+#include "wasm/camera.h"
+#include "wasm/draw_command.h"
 
 #define WASM_EXPORT __attribute__((used)) __attribute__((visibility ("default")))
 
 
 extern "C"
 {
-	void WASM_EXPORT scene09_draw(int64_t drawCommand)
+	void WASM_EXPORT scene09_draw(int64_t drawCommandId)
 	{
-		const auto camera = get_scene_camera();
-		bind_draw_command(drawCommand);
-		if (name_equals(get_name(drawCommand), "model"))
+	    script::DrawCommand drawCommand(drawCommandId);
+		const auto camera = script::GetSceneCamera();
+		drawCommand.Bind();
+		if (drawCommand.EqualsName("model"))
 		{
-			set_vec3(drawCommand, "cameraPos", get_camera_position(camera));
-			set_mat4(drawCommand, "model", glm::mat4(1.0f));
-			set_mat4(drawCommand, "normalMatrix", glm::mat4(1.0f));
-			set_mat4(drawCommand, "view", get_camera_view(camera));
+			drawCommand.SetVec3("cameraPos", camera.GetPosition());
+			drawCommand.SetMat4("model", glm::mat4(1.0f));
+			drawCommand.SetMat4("normalMatrix", glm::mat4(1.0f));
+			drawCommand.SetMat4("view", camera.GetView());
 		}
-		else if (name_equals(get_name(drawCommand), "skybox"))
+		else if (drawCommand.EqualsName("skybox"))
 		{
-			set_mat4(drawCommand, "view", glm::mat4(glm::mat3(get_camera_view(camera))));
+			drawCommand.SetMat4( "view", glm::mat4(glm::mat3(camera.GetView())));
 		}
-		set_mat4(drawCommand, "projection", get_camera_projection(camera));
-		draw(drawCommand);
+		drawCommand.SetMat4("projection", camera.GetProjection());
+		drawCommand.Draw();
 	}
 
 }

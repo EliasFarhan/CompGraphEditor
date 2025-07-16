@@ -88,6 +88,25 @@ void fill_camera_position(int64_t camera, void* position)
 {
     *static_cast<glm::vec3*>(position) = reinterpret_cast<core::Camera*>(camera)->position;
 }
+void set_camera_position(int64_t camera, const void* position)
+{
+    reinterpret_cast<core::Camera*>(camera)->position = *static_cast<const glm::vec3*>(position);
+}
+
+void set_camera_direction(int64_t camera, const void* direction)
+{
+    reinterpret_cast<core::Camera*>(camera)->direction = *static_cast<const glm::vec3*>(direction);
+}
+
+void set_camera_near(int64_t camera, float near)
+{
+    reinterpret_cast<core::Camera*>(camera)->near = near;
+}
+
+void set_camera_dar(int64_t camera, float far)
+{
+    reinterpret_cast<core::Camera*>(camera)->far = far;
+}
 
 void draw_instanced(int64_t drawCommand, int64_t count)
 {
