@@ -1,7 +1,8 @@
 #include "gl/debug.h"
 #include "utils/log.h"
+
+#include "gl/include.h"
 #include <format>
-#include <GL/glew.h>
 
 #ifdef TRACY_ENABLE
 #include <tracy/Tracy.hpp>

@@ -145,8 +145,8 @@ bool Texture::LoadTexture(const core::pb::Texture &textureInfo)
 #ifdef TRACY_ENABLE
         ZoneNamedN(gpuUpload, "Upload to GPU", true);
 #endif
-        glGenTextures(1, &name);
         glCheckError();
+        glGenTextures(1, &name);
 
         glBindTexture(GL_TEXTURE_2D, name);
 
@@ -264,7 +264,7 @@ bool Texture::LoadCubemap(const core::pb::Texture& textureInfo)
             return false;
         }
 
-        glCreateTextures(GL_TEXTURE_CUBE_MAP, 1, &name);
+        glGenTextures(1, &name);
         glBindTexture(GL_TEXTURE_CUBE_MAP, name);
 
         GLint wrappingMode = GL_REPEAT;

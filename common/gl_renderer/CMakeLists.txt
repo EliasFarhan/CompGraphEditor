@@ -1,9 +1,10 @@
 MESSAGE(GL_COMMON)
-find_package(GLEW REQUIRED)
+find_package(glad CONFIG REQUIRED)
 
 file(GLOB_RECURSE COMMON_GL_FILES src/*.cpp include/*.h)
 add_library(CommonGL STATIC ${COMMON_GL_FILES})
 target_include_directories(CommonGL PUBLIC include/)
-target_link_libraries(CommonGL PUBLIC Core GLEW::GLEW)
+target_link_libraries(CommonGL PUBLIC Core glad::glad)
+target_compile_definitions(CommonGL PUBLIC IMGUI_IMPL_OPENGL_ES3)
 set_target_properties (CommonGL PROPERTIES FOLDER Core)
 target_precompile_headers(CommonGL REUSE_FROM Core)

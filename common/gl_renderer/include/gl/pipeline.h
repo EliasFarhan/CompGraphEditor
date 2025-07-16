@@ -4,7 +4,7 @@
 #include "gl/texture.h"
 #include "proto/renderer.pb.h"
 
-#include <GL/glew.h>
+#include "gl/include.h"
 #include <glm/vec2.hpp>
 #include <glm/vec3.hpp>
 #include <glm/vec4.hpp>

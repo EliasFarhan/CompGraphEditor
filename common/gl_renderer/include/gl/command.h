@@ -3,7 +3,7 @@
 #include "renderer/command.h"
 #include "gl/material.h"
 
-#include <GL/glew.h>
+#include "gl/include.h"
 
 
 namespace gl

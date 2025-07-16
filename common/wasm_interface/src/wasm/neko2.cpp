@@ -103,7 +103,7 @@ void set_camera_near(int64_t camera, float near)
     reinterpret_cast<core::Camera*>(camera)->near = near;
 }
 
-void set_camera_dar(int64_t camera, float far)
+void set_camera_far(int64_t camera, float far)
 {
     reinterpret_cast<core::Camera*>(camera)->far = far;
 }

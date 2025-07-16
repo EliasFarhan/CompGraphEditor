@@ -5,13 +5,17 @@
         {
             "name": "sdl3",
             "features": ["vulkan"]
-        }, "glm", "glew", "stb",
+        }, "glm", "stb",
+        {
+            "name": "glad",
+            "features": ["gles2-api-32"]
+        },
         {
             "name": "imgui",
             "features": ["sdl3-binding", "sdlgpu3-binding", "opengl3-binding", "docking-experimental", "vulkan-binding"]
         },
         "physfs", "abseil", "protobuf", "spdlog", "nlohmann-json", "vulkan-memory-allocator", "assimp", "zstd", "argh",
-        "spirv-cross", "volk", "flatbuffers"
+        "spirv-cross", "volk", "vk-bootstrap"
     ],
     "features":
     {

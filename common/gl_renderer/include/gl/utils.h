@@ -1,7 +1,7 @@
 #pragma once
 
 #include "proto/renderer.pb.h"
-#include <GL/glew.h>
+#include "gl/include.h"
 
 namespace gl
 {
@@ -49,10 +49,6 @@ constexpr GLenum ConvertBlendFuncToGL(core::pb::Pipeline_BlendFunc blendFunc)
         case core::pb::Pipeline_BlendFunc_CONSTANT_ALPHA: return GL_CONSTANT_ALPHA;
         case core::pb::Pipeline_BlendFunc_ONE_MINUS_CONSTANT_ALPHA: return GL_ONE_MINUS_CONSTANT_ALPHA;
         case core::pb::Pipeline_BlendFunc_SRC_ALPHA_SATURATE: return GL_SRC_ALPHA_SATURATE;
-        case core::pb::Pipeline_BlendFunc_SRC1_COLOR: return GL_SRC1_COLOR;
-        case core::pb::Pipeline_BlendFunc_ONE_MINUS_SRC1_COLOR: return GL_ONE_MINUS_SRC1_COLOR;
-        case core::pb::Pipeline_BlendFunc_SRC1_ALPHA: return GL_SRC1_ALPHA;
-        case core::pb::Pipeline_BlendFunc_ONE_MINUS_SRC1_ALPHA: return GL_ONE_MINUS_SRC1_ALPHA;
         default:;
     }
     return GL_ZERO;
