@@ -1,6 +1,8 @@
 ﻿#include "wasm/neko2.h"
 #include <glm/vec3.hpp>
 #include <glm/mat4x4.hpp>
+#define GLM_ENABLE_EXPERIMENTAL
+#include <glm/gtx/norm.hpp>
 #include <vector>
 #include <random>
 #include <format>
@@ -53,9 +55,10 @@ void WASM_EXPORT scene11_update(float dt)
 	for (auto& pos: positions)
 	{
 		const auto delta = -pos;
-		const auto r = glm::length(delta);
-		const auto force_value = gravity_const * center_mass * planet_mass / (r * r);
+		const auto r2 = glm::length2(delta);
+		const auto force_value = gravity_const * center_mass * planet_mass / 2;
 		const auto vel_dir = glm::normalize(glm::vec4(-delta.z, 0.0f, delta.x, 0.0f));
+	    const auto r = std::sqrt(r2);
 		const auto speed = std::sqrt(force_value / planet_mass * r);
 		const auto vel = vel_dir * speed;
 		pos += vel * dt;
