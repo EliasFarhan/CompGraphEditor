@@ -16,6 +16,7 @@ extern "C"
     void draw_instanced(int64_t drawCommand, int64_t count);
     float get_aspect();
     int64_t get_scene_camera();
+    int64_t get_system_camera();
     void fill_camera_view(int64_t camera, void* viewMat);
     void fill_camera_projection(int64_t camera, void* projMat);
     void fill_camera_position(int64_t camera, void* position);
@@ -27,6 +28,9 @@ extern "C"
     void set_camera_direction(int64_t camera, const void* direction);
     void set_camera_near(int64_t camera, float near);
     void set_camera_far(int64_t camera, float far);
+
+    int64_t get_buffer(const void* bufferName);
+    void buffer_copy_data(int64_t bufferName, const void* data, int64_t size);
 }
 
 inline void set_vec3(int64_t drawCommand, const void* name, const glm::vec3& value)

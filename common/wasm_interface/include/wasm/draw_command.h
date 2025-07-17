@@ -1,9 +1,5 @@
-﻿//
-// Created by unite on 16.07.2025.
-//
+﻿#pragma once
 
-#ifndef DRAW_COMMAND_H
-#define DRAW_COMMAND_H
 
 #include "wasm/neko2.h"
 
@@ -61,4 +57,3 @@ private:
 
 }
 
-#endif //DRAW_COMMAND_H

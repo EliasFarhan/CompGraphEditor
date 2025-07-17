@@ -1,6 +1,7 @@
 #include "wasm/neko2.h"
 #include "renderer/command.h"
 #include "engine/scene.h"
+#include "renderer/buffer.h"
 
 
 void bind_draw_command(int64_t drawCommand)
@@ -113,4 +114,31 @@ void draw_instanced(int64_t drawCommand, int64_t count)
     auto* scene = core::GetCurrentScene();
     reinterpret_cast<core::DrawCommand*>(drawCommand)->PreDrawBind();
     scene->Draw(*reinterpret_cast<core::DrawCommand*>(drawCommand), count);
+}
+int64_t get_system_camera()
+{
+    auto* cameraSystem = core::GetCameraSystem();
+    if (cameraSystem)
+    {
+        return reinterpret_cast<int64_t>(&cameraSystem->camera);
+    }
+    return 0;
+}
+
+int64_t get_buffer(const void* bufferName)
+{
+    auto& bufferManager = core::GetCurrentScene()->GetBufferManager();
+    return bufferManager.GetBuffer(static_cast<const char*>(bufferName)).bufferId;
+}
+
+void buffer_copy_data(int64_t buffer, const void* data, int64_t size)
+{
+    auto& bufferManager = core::GetCurrentScene()->GetBufferManager();
+    auto arrayBuffer = bufferManager.GetArrayBuffer(static_cast<core::BufferId>(buffer));
+    if (size > arrayBuffer.count*arrayBuffer.typeSize)
+    {
+        LogError("Trying to copy buffer out of range");
+        std::terminate();
+    }
+    std::memcpy(arrayBuffer.data, data, size);
 }

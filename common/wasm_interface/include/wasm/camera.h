@@ -1,9 +1,5 @@
-﻿//
-// Created by unite on 16.07.2025.
-//
+﻿#pragma once
 
-#ifndef CAMERA_H
-#define CAMERA_H
 
 #include "wasm/neko2.h"
 
@@ -17,9 +13,17 @@ class Camera
     {
 
     }
-    void SetPosition(const glm::vec3& position)const
+    void SetPosition(const glm::vec3& position) const
     {
         set_camera_position(cameraId_, &position.x);
+    }
+    void SetDirection(const glm::vec3& direction) const
+    {
+        set_camera_direction(cameraId_, &direction.x);
+    }
+    void SetFar(float far) const
+    {
+        set_camera_far(cameraId_, far);
     }
     [[nodiscard]] glm::vec3 GetPosition() const
     {
@@ -51,6 +55,9 @@ inline Camera GetSceneCamera()
     return Camera{get_scene_camera()};
 }
 
+inline Camera GetSystemCamera()
+{
+    return Camera{get_system_camera()};
 }
 
-#endif //CAMERA_H
+}

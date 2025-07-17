@@ -1,13 +1,15 @@
-#include "wasm/neko2.h"
+﻿#include "wasm/neko2.h"
 #include <glm/vec3.hpp>
 #include <glm/mat4x4.hpp>
 #include <vector>
 #include <random>
 #include <format>
+#include <numbers>
 
 #include "glm/ext/matrix_clip_space.hpp"
 #include "glm/ext/matrix_transform.hpp"
 #include "wasm/camera.h"
+#include "wasm/buffer.h"
 #include "wasm/draw_command.h"
 
 #define WASM_EXPORT __attribute__((used)) __attribute__((visibility ("default")))
@@ -21,18 +23,21 @@ static constexpr size_t planet_count = 1000;
 extern "C"
 {
 
-void WASM_EXPORT scene10_begin()
+void WASM_EXPORT scene11_begin()
 {
 	// Seed with a real random value, if available
 	std::random_device r;
 
 	std::default_random_engine e1(r());
-	std::uniform_real_distribution<float> uniform_dist(10.0f, 50.0f);
+	std::uniform_real_distribution<float> uniform_dist(0.0f, 2.0f * std::numbers::pi_v<float>);
 	positions.resize(planet_count);
-	for (auto& pos: positions)
+	for (size_t i = 0; i < planet_count; i++)
 	{
-		pos = glm::vec3(uniform_dist(e1), 0.0f, uniform_dist(e1));
+	    const auto angle = uniform_dist(e1);
+		positions[i] = glm::vec3(std::sin(angle), 0.0f, std::cos(angle));
 	}
+    const auto buffer = script::GetBuffer("positions");
+    buffer.CopyData(positions);
 
     const auto camera = script::GetSystemCamera();
     static constexpr auto cameraPos = glm::vec3(100.0f);
@@ -42,7 +47,7 @@ void WASM_EXPORT scene10_begin()
 
 
 }
-void WASM_EXPORT scene10_update(float dt)
+void WASM_EXPORT scene11_update(float dt)
 {
 	for (auto& pos: positions)
 	{
@@ -54,8 +59,12 @@ void WASM_EXPORT scene10_update(float dt)
 		const auto vel = vel_dir * speed;
 		pos += vel * dt;
 	}
+
+    const auto buffer = script::GetBuffer("positions");
+    buffer.CopyData(positions);
+
 }
-void WASM_EXPORT scene10_draw(int64_t drawCommandId)
+void WASM_EXPORT scene11_draw(int64_t drawCommandId)
 {
     script::DrawCommand drawCommand(drawCommandId);
 	const auto camera = script::GetSceneCamera();
@@ -64,16 +73,10 @@ void WASM_EXPORT scene10_draw(int64_t drawCommandId)
     drawCommand.SetMat4("view", camera.GetView());
 	drawCommand.SetMat4("projection", camera.GetProjection());
 
-	for (size_t i = 0; i < positions.size(); ++i)
-	{
-		std::string uniformName = std::format("pos[{}]", i);
-		drawCommand.SetVec3(uniformName.c_str(), positions[i]);
-	}
-
 	drawCommand.Draw(positions.size());
 }
 
-void WASM_EXPORT scene10_end()
+void WASM_EXPORT scene11_end()
 {
 	positions.resize(0);
 }
