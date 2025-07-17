@@ -5,11 +5,16 @@
 #include "engine/filesystem.h"
 #include "wasm/neko2.h"
 #include "m3_api_wasi.h"
-
+#ifdef TRACY_ENABLE
+#include <tracy/Tracy.hpp>
+#endif
 namespace core
 {
 void LinkFunctions(wasm3::wasm_module &module)
 {
+#ifdef TRACY_ENABLE
+    ZoneScoped;
+#endif
 	m3_LinkWASI(module.get_module().get());
     module.link_optional("*", "bind_draw_command", bind_draw_command);
     module.link_optional("*", "set_mat4_local", set_mat4_local);
@@ -43,6 +48,9 @@ WasmSystem::WasmSystem(wasm3::wasm_environment& env,
     std::string_view moduleName) :
     module_(env.parse_module(wasmFile.data, wasmFile.size))
 {
+#ifdef TRACY_ENABLE
+    ZoneScoped;
+#endif
     runtime.load(module_);
     LinkFunctions(module_);
     const auto beginFuncName = std::format("{}_begin", moduleName);
@@ -89,6 +97,9 @@ WasmSystem::WasmSystem(wasm3::wasm_environment& env,
 
 void WasmSystem::Begin()
 {
+#ifdef TRACY_ENABLE
+    ZoneScoped;
+#endif
     if (begin_fn.has_value())
     {
 		try
@@ -104,6 +115,9 @@ void WasmSystem::Begin()
 
 void WasmSystem::Update(float dt)
 {
+#ifdef TRACY_ENABLE
+    ZoneScoped;
+#endif
     if (update_fn.has_value())
     {
         update_fn->call(dt);
@@ -112,6 +126,9 @@ void WasmSystem::Update(float dt)
 
 void WasmSystem::End()
 {
+#ifdef TRACY_ENABLE
+    ZoneScoped;
+#endif
     if (end_fn.has_value())
     {
         end_fn->call();
@@ -120,6 +137,9 @@ void WasmSystem::End()
 
 void WasmSystem::Draw(DrawCommand* sceneDrawCommand)
 {
+#ifdef TRACY_ENABLE
+    ZoneScoped;
+#endif
     if (draw_fn.has_value())
     {
         draw_fn->call(reinterpret_cast<int64_t>(sceneDrawCommand));
@@ -140,14 +160,23 @@ void WasmSystem::Dispatch(ComputeCommand* command) {}
 
 void WasmSystem::Trace(Command* command) {}
 
-WasmManager::WasmManager() { ScriptLoaderLocator::provide(this); }
+WasmManager::WasmManager()
+{
+    ScriptLoaderLocator::provide(this);
+}
 void WasmManager::Begin()
 {
+#ifdef TRACY_ENABLE
+    ZoneScoped;
+#endif
     MinimalScriptLoader::Begin();
 
 }
 Script* WasmManager::LoadScript(std::string_view path, std::string_view module, std::string_view className)
 {
+#ifdef TRACY_ENABLE
+    ZoneScoped;
+#endif
     auto* nativeScript = MinimalScriptLoader::LoadScript(path, module, className);
     if (nativeScript != nullptr)
     {

@@ -411,15 +411,28 @@ void TextureEditor::CubeToKtx(const TextureInfo& textureInfo)
     }
     const int size = w * h * channelCount;
     void* buffer = std::malloc(size);
-    glBindTexture(GL_TEXTURE_CUBE_MAP, cubemap.name);
+
+
+    GLuint fbo;
+    glGenFramebuffers(1, &fbo);
+    glBindFramebuffer(GL_FRAMEBUFFER, fbo);
+
+
+
     for (int faceIndex = 0; faceIndex < 6; faceIndex++)
     {
-        glGetTexImage(GL_TEXTURE_CUBE_MAP_POSITIVE_X+faceIndex, 0, textureInfo.info.gamma_correction()?GL_SRGB:GL_RGB, GL_UNSIGNED_BYTE, buffer);
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_CUBE_MAP_POSITIVE_X+faceIndex, cubemap.name, 0);
+
+        glReadPixels(0, 0, w, h, textureInfo.info.gamma_correction()?GL_SRGB:GL_RGB, GL_UNSIGNED_BYTE, buffer);
         result = ktxTexture_SetImageFromMemory(ktxTexture(texture),
             0, 0, faceIndex,
             static_cast<const ktx_uint8_t*>(buffer), size);
         ktxCheckError(result);
     }
+
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    glDeleteFramebuffers(1, &fbo);
+    glCheckError();
     std::free(buffer);
     
 
@@ -583,17 +596,25 @@ void TextureEditor::HdrToKtx(const TextureInfo& textureInfo)
     }
     const int size = targetSize * targetSize * 4 * 4;
     void* buffer = std::malloc(size);
-    glBindTexture(GL_TEXTURE_CUBE_MAP, envCubemap);
+    GLuint fbo;
+    glGenFramebuffers(1, &fbo);
+    glBindFramebuffer(GL_FRAMEBUFFER, fbo);
+
+
     for (int faceIndex = 0; faceIndex < 6; faceIndex++)
     {
-        glGetTexImage(GL_TEXTURE_CUBE_MAP_POSITIVE_X + faceIndex, 0, GL_RGBA, GL_FLOAT, buffer);
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_CUBE_MAP_POSITIVE_X + faceIndex, envCubemap, 0);
+
+        glReadPixels(0, 0, targetSize, targetSize, GL_RGBA, GL_FLOAT, buffer);
         result = ktxTexture_SetImageFromMemory(ktxTexture(texture),
             0, 0, faceIndex,
             static_cast<const ktx_uint8_t*>(buffer), size);
         ktxCheckError(result);
         glCheckError();
     }
-    
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    glDeleteFramebuffers(1, &fbo);
+    glCheckError();
     std::free(buffer);
 
 

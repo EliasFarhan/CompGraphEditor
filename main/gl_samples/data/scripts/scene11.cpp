@@ -14,11 +14,11 @@
 
 #define WASM_EXPORT __attribute__((used)) __attribute__((visibility ("default")))
 
-static std::vector<glm::vec3> positions{};
+static std::vector<glm::vec4> positions{};
 static constexpr float gravity_const = 1000.0f;
 static constexpr float center_mass = 1000.0f;
 static constexpr float planet_mass = 1.0f;
-static constexpr size_t planet_count = 1000;
+static constexpr size_t planet_count = 10000;
 
 extern "C"
 {
@@ -29,12 +29,13 @@ void WASM_EXPORT scene11_begin()
 	std::random_device r;
 
 	std::default_random_engine e1(r());
-	std::uniform_real_distribution<float> uniform_dist(0.0f, 2.0f * std::numbers::pi_v<float>);
+	std::uniform_real_distribution<float> uniform_dist_angle(0.0f, 2.0f * std::numbers::pi_v<float>);
+	std::uniform_real_distribution<float> uniform_dist_radius(20.0f, 50.0f);
 	positions.resize(planet_count);
 	for (size_t i = 0; i < planet_count; i++)
 	{
-	    const auto angle = uniform_dist(e1);
-		positions[i] = glm::vec3(std::sin(angle), 0.0f, std::cos(angle));
+	    const auto angle = uniform_dist_angle(e1);
+		positions[i] = glm::vec4(std::sin(angle), 0.0f, std::cos(angle), 0.0f)*uniform_dist_radius(e1);
 	}
     const auto buffer = script::GetBuffer("positions");
     buffer.CopyData(positions);
@@ -54,7 +55,7 @@ void WASM_EXPORT scene11_update(float dt)
 		const auto delta = -pos;
 		const auto r = glm::length(delta);
 		const auto force_value = gravity_const * center_mass * planet_mass / (r * r);
-		const auto vel_dir = glm::normalize(glm::vec3(-delta.z, 0.0f, delta.x));
+		const auto vel_dir = glm::normalize(glm::vec4(-delta.z, 0.0f, delta.x, 0.0f));
 		const auto speed = std::sqrt(force_value / planet_mass * r);
 		const auto vel = vel_dir * speed;
 		pos += vel * dt;

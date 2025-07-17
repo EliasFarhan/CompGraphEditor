@@ -8,9 +8,6 @@
 #include <glm/vec2.hpp>
 #include <glm/vec3.hpp>
 
-#ifdef TRACY_ENABLE
-#include <tracy/TracyOpenGL.hpp>
-#endif
 
 namespace gl
 {
@@ -24,9 +21,6 @@ VertexInputBuffer::~VertexInputBuffer()
 
 void VertexInputBuffer::CreateFromMesh(const core::Mesh& mesh)
 {
-#ifdef TRACY_ENABLE
-    TracyGpuNamedZone(loadBuffer, "Create Vertex Buffer", true);
-#endif
     //Initialize the EBO program
     glGenBuffers(1, &vbo);
     glGenBuffers(1, &ebo);
@@ -90,9 +84,6 @@ void BufferManager::Clear()
 
 core::BufferId BufferManager::CreateBuffer(std::string_view name, std::size_t count, std::size_t size)
 {
-#ifdef TRACY_ENABLE
-    TracyGpuNamedZone(loadBuffer, "Create SSBO Buffer", true);
-#endif
     const auto index = buffers_.size();
     Buffer buffer{};
     glGenBuffers(1, &buffer.ssbo);
@@ -146,9 +137,6 @@ void BufferManager::CopyData(std::string_view bufferName, void* dataSrc, std::si
 
 void BufferManager::BindBuffer(core::BufferId id, int bindPoint)
 {
-#ifdef TRACY_ENABLE
-    TracyGpuNamedZone(loadBuffer, "Copy Buffer to GPU SSBO", true);
-#endif
     const auto& buffer = buffers_[id.bufferId];
     glBindBuffer(GL_SHADER_STORAGE_BUFFER, buffer.ssbo);
     glBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, buffer.data.size(), buffer.data.data()); //to update partially

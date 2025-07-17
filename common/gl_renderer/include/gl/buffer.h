@@ -3,7 +3,7 @@
 #include "renderer/buffer.h"
 
 #include "gl/include.h"
-#include <array>
+
 namespace gl
 {
     

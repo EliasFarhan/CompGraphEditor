@@ -15,7 +15,6 @@
 
 #ifdef TRACY_ENABLE
 #include <tracy/Tracy.hpp>
-#include <tracy/TracyOpenGL.hpp>
 #endif
 
 namespace gl
@@ -99,9 +98,6 @@ void Engine::Begin()
     LogDebug(std::format("OpenGL Version: {}\n", reinterpret_cast<const char*>(glVersion)));
 
     SDL_ShowWindow(window_);
-#ifdef TRACY_ENABLE
-    TracyGpuContext;
-#endif
 
     glCheckError();
     // Setup Dear ImGui context
@@ -188,9 +184,6 @@ void Engine::SwapWindow()
 #endif
     SDL_GL_SwapWindow(window_);
     glCheckError();
-#ifdef TRACY_ENABLE
-    TracyGpuCollect;
-#endif
 }
 
 GlVersion GetGlVersion()
