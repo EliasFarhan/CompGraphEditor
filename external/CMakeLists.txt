@@ -26,13 +26,13 @@ if(MSVC)
     )
 else()
     set_target_properties(ktx PROPERTIES
-            IMPORTED_LOCATION_DEBUG "${CMAKE_CURRENT_SOURCE_DIR}/KTX-Software/build-dbg/Debug/ktx.a"
-            IMPORTED_LOCATION_RELASE "${CMAKE_CURRENT_SOURCE_DIR}/KTX-Software/build-rel/Release/ktx.a"
+            IMPORTED_LOCATION_DEBUG "${CMAKE_CURRENT_SOURCE_DIR}/KTX-Software/build-dbg/libktx.a"
+            IMPORTED_LOCATION_RELASE "${CMAKE_CURRENT_SOURCE_DIR}/KTX-Software/build-rel/libktx.a"
             IMPORTED_CONFIGURATIONS "Release;Debug"
     )
     set_target_properties(ktx_read PROPERTIES
-            IMPORTED_LOCATION_DEBUG "${CMAKE_CURRENT_SOURCE_DIR}/KTX-Software/build-dbg/Debug/ktx_read.a"
-            IMPORTED_LOCATION_RELASE "${CMAKE_CURRENT_SOURCE_DIR}/KTX-Software/build-rel/Release/ktx_read.a"
+            IMPORTED_LOCATION_DEBUG "${CMAKE_CURRENT_SOURCE_DIR}/KTX-Software/build-dbg/libktx_read.a"
+            IMPORTED_LOCATION_RELASE "${CMAKE_CURRENT_SOURCE_DIR}/KTX-Software/build-rel/libktx_read.a"
             IMPORTED_CONFIGURATIONS "Release;Debug"
     )
 endif()

@@ -16,12 +16,12 @@ def build_ktx():
     release_dir = "{}/build-rel".format(source_dir)
     os.makedirs(debug_dir, exist_ok=True)
     os.system('cmake -S {} -B {} -DCMAKE_BUILD_TYPE=Debug -DBUILD_SHARED_LIBS=OFF'.format(source_dir, debug_dir))
-    os.system('cmake --build {} --target ktx --config Debug'.format(debug_dir))
-    os.system('cmake --build {} --target ktx_read --config Debug'.format(debug_dir))
+    os.system('cmake --build {} --target ktx --config Debug --parallel'.format(debug_dir))
+    os.system('cmake --build {} --target ktx_read --config Debug --parallel'.format(debug_dir))
     os.makedirs(release_dir, exist_ok=True)
     os.system('cmake -S {} -B {} -DCMAKE_BUILD_TYPE=Release -DBUILD_SHARED_LIBS=OFF'.format(source_dir, release_dir))
-    os.system('cmake --build {} --target ktx --config Release'.format(release_dir))
-    os.system('cmake --build {} --target ktx_read --config Release'.format(release_dir))
+    os.system('cmake --build {} --target ktx --config Release --parallel'.format(release_dir))
+    os.system('cmake --build {} --target ktx_read --config Release --parallel'.format(release_dir))
 
 if __name__ == "__main__":
     if len(sys.argv) > 1:
