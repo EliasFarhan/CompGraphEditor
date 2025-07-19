@@ -37,10 +37,7 @@ if(ENABLE_PROFILING)
     find_package(Tracy CONFIG REQUIRED)
 endif (ENABLE_PROFILING)
 
-include_directories(external/include)
-
-
-add_subdirectory(external)
+add_subdirectory(external/)
 add_subdirectory(core/)
 add_subdirectory(common/)
 add_subdirectory(main/)
