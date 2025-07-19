@@ -62,14 +62,19 @@ if(MSVC)
     )
     target_link_libraries(uv INTERFACE ws2_32 iphlpapi userenv)
 else()
-    set_target_properties(ktx PROPERTIES
-            IMPORTED_LOCATION_DEBUG "${CMAKE_CURRENT_SOURCE_DIR}/KTX-Software/build-dbg/Debug/ktx.a"
-            IMPORTED_LOCATION_RELEASE "${CMAKE_CURRENT_SOURCE_DIR}/KTX-Software/build-rel/Release/ktx.a"
+    set_target_properties(m3 PROPERTIES
+            IMPORTED_LOCATION_DEBUG "${CMAKE_CURRENT_SOURCE_DIR}/wasm3/build-dbg/source/libm3.a"
+            IMPORTED_LOCATION_RELEASE "${CMAKE_CURRENT_SOURCE_DIR}/wasm3/build-rel/source/libm3.a"
             IMPORTED_CONFIGURATIONS "Release;Debug"
     )
-    set_target_properties(ktx_read PROPERTIES
-            IMPORTED_LOCATION_DEBUG "${CMAKE_CURRENT_SOURCE_DIR}/KTX-Software/build-dbg/Debug/ktx_read.a"
-            IMPORTED_LOCATION_RELEASE "${CMAKE_CURRENT_SOURCE_DIR}/KTX-Software/build-rel/Release/ktx_read.a"
+    set_target_properties(uvwasi PROPERTIES
+            IMPORTED_LOCATION_DEBUG "${CMAKE_CURRENT_SOURCE_DIR}/wasm3/build-dbg/_deps/uvwasi-build/libuvwasi_a.a"
+            IMPORTED_LOCATION_RELEASE "${CMAKE_CURRENT_SOURCE_DIR}/wasm3/build-rel/_deps/uvwasi-build/libuvwasi_a.a"
+            IMPORTED_CONFIGURATIONS "Release;Debug"
+    )
+    set_target_properties(uv PROPERTIES
+            IMPORTED_LOCATION_DEBUG "${CMAKE_CURRENT_SOURCE_DIR}/wasm3/build-dbg/_deps/libuv-build/libuv_a.a"
+            IMPORTED_LOCATION_RELEASE "${CMAKE_CURRENT_SOURCE_DIR}/wasm3/build-rel/_deps/libuv-build/libuv_a.a"
             IMPORTED_CONFIGURATIONS "Release;Debug"
     )
 endif()
