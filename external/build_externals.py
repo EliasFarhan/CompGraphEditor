@@ -8,6 +8,15 @@ def build_wasm3():
     source_dir = "{}/wasm3".format(path)
     debug_dir = "{}/build-dbg".format(source_dir)
     release_dir = "{}/build-rel".format(source_dir)
+    targets = ["m3", "uv_a", "uvwasi_a"]
+    os.makedirs(debug_dir, exist_ok=True)
+    os.system('cmake -S {} -B {} -DCMAKE_BUILD_TYPE=Debug -DBUILD_SHARED_LIBS=OFF'.format(source_dir, debug_dir))
+    for target in targets:
+        os.system('cmake --build {} --target {} --config Debug'.format(debug_dir, target))
+    os.makedirs(release_dir, exist_ok=True)
+    os.system('cmake -S {} -B {} -DCMAKE_BUILD_TYPE=Release -DBUILD_SHARED_LIBS=OFF'.format(source_dir, release_dir))
+    for target in targets:
+        os.system('cmake --build {} --target {} --config Release'.format(release_dir, target))
 
 def build_ktx():
     print("Building KTX-Software")
