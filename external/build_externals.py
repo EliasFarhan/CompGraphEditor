@@ -5,6 +5,7 @@ import sys
 
 path = '.'
 def build_wasm3():
+    print("Build WASM3")
     source_dir = "{}/wasm3".format(path)
     debug_dir = "{}/build-dbg".format(source_dir)
     release_dir = "{}/build-rel".format(source_dir)
@@ -32,8 +33,13 @@ def build_ktx():
     os.system('cmake --build {} --target ktx --config Release --parallel'.format(release_dir))
     os.system('cmake --build {} --target ktx_read --config Release --parallel'.format(release_dir))
 
+def build_all(from_path = "."):
+    global path
+    path = from_path
+    build_ktx()
+    build_wasm3()
+
 if __name__ == "__main__":
     if len(sys.argv) > 1:
         path = sys.argv[1]
-    build_ktx()
-    build_wasm3()
+    build_all(path)

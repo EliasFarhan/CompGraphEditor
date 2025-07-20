@@ -1,7 +1,7 @@
 #include "utils/log.h"
+#include <SDL3/SDL_log.h>
 #include <format>
-#define SPDLOG_USE_STD_FORMAT
-#include <spdlog/spdlog.h>
+
 
 namespace core
 {
@@ -12,7 +12,7 @@ static std::vector<Log> logs;
 void Error(const char* file, int line, std::string_view msg)
 {
     const auto fullMsg = std::format("{}. File: {}, Line: {}", msg, file, line);
-    spdlog::error(fullMsg);
+    SDL_LogError(SDL_LOG_CATEGORY_ERROR ,fullMsg.data());
     if(isRecordingLog)
     {
         logs.push_back({fullMsg,Log::Type::Error});
@@ -22,7 +22,7 @@ void Error(const char* file, int line, std::string_view msg)
 void Warning(const char* file, int line, std::string_view msg)
 {
     const auto fullMsg = std::format("{}. File: {}, Line: {}", msg, file, line);
-    spdlog::warn(fullMsg);
+    SDL_LogWarn(SDL_LOG_CATEGORY_APPLICATION ,fullMsg.data());
     if(isRecordingLog)
     {
         logs.push_back({fullMsg,Log::Type::Warning});
@@ -32,7 +32,7 @@ void Warning(const char* file, int line, std::string_view msg)
 void Debug(const char* file, int line, std::string_view msg)
 {
     const auto fullMsg = std::format("{}. File: {}, Line: {}", msg, file, line);
-    spdlog::info(fullMsg);
+    SDL_LogDebug(SDL_LOG_CATEGORY_APPLICATION ,fullMsg.data());
     if(isRecordingLog)
     {
         logs.push_back({fullMsg,Log::Type::Debug});

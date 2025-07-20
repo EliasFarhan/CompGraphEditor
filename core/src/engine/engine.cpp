@@ -182,7 +182,7 @@ Engine::Engine()
     ZoneScoped;
 #endif
     instance = this;
-
+    SDL_SetLogPriority(SDL_LOG_CATEGORY_APPLICATION, SDL_LOG_PRIORITY_DEBUG);
     if(IsRegularFile(configFilename))
     {
         const auto file = LoadFile(configFilename);

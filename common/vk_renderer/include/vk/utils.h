@@ -51,17 +51,6 @@ constexpr std::array raytracingDeviceExtensions =
     VK_KHR_SHADER_FLOAT_CONTROLS_EXTENSION_NAME
 };
 
-bool CheckValidationLayerSupport();
-void PopulateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT& createInfo);
-VkResult CreateDebugUtilsMessengerEXT(VkInstance instance,
-                                      const VkDebugUtilsMessengerCreateInfoEXT* pCreateInfo,
-                                      const VkAllocationCallbacks* pAllocator,
-                                      VkDebugUtilsMessengerEXT* pDebugMessenger);
-void DestroyDebugUtilsMessengerEXT(VkInstance instance,
-                                   VkDebugUtilsMessengerEXT debugMessenger,
-                                   const VkAllocationCallbacks* pAllocator);
-VkPhysicalDevice PickPhysicalDevice(VkInstance instance, VkSurfaceKHR surface);
-QueueFamilyIndices FindQueueFamilies(VkPhysicalDevice device, VkSurfaceKHR surface);
 /**
  * \brief Function used to query swapchain support when creating a Vulkan or to choose suitable physical device
  */
@@ -73,7 +62,6 @@ VkFormat FindDepthFormat(VkPhysicalDevice physicalDevice);
 VkImageView CreateImageView(VkDevice device, VkImage image, VkFormat format, VkImageAspectFlags aspectFlags);
 std::optional<VkShaderModule> CreateShaderModule(const core::FileBuffer& bufferFile, VkDevice device);
 
-bool CheckRaytracingExtensionSupport(VkPhysicalDevice device);
 
 template<typename T>
 T GetFuncPointer(VkInstance instance, std::string_view name)

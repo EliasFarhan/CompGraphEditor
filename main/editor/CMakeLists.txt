@@ -61,20 +61,20 @@ add_dependencies(editor gl_player)
 
 #vk player
 
-file(GLOB_RECURSE VK_PLAYER_SRC src/vk_player/*.cpp include/vk_player/*.h)
+if(ENABLE_VULKAN)
+    file(GLOB_RECURSE VK_PLAYER_SRC src/vk_player/*.cpp include/vk_player/*.h)
 
-add_executable(vk_player ${VK_PLAYER_SRC} main/vk_player_main.cpp)
-target_include_directories(vk_player PRIVATE include/vk_player/)
-target_link_libraries(vk_player PRIVATE CommonVK CommonPy argh PhysFilesystem)
-set_target_properties (vk_player PROPERTIES FOLDER Main)
+    add_executable(vk_player ${VK_PLAYER_SRC} main/vk_player_main.cpp)
+    target_include_directories(vk_player PRIVATE include/vk_player/)
+    target_link_libraries(vk_player PRIVATE CommonVK CommonPy argh PhysFilesystem)
+    set_target_properties (vk_player PROPERTIES FOLDER Main)
 
-
-#vk shader analyzer
-add_executable(vk_shader_analyze main/vk_shader_analyze.cpp)
-target_link_libraries(vk_shader_analyze argh nlohmann_json::nlohmann_json CommonVK spirv-cross-core spirv-cross-reflect)
-set_target_properties (vk_shader_analyze PROPERTIES FOLDER Main/Utils)
-add_dependencies(editor vk_shader_analyze)
-
+    #vk shader analyzer
+    add_executable(vk_shader_analyze main/vk_shader_analyze.cpp)
+    target_link_libraries(vk_shader_analyze argh nlohmann_json::nlohmann_json CommonVK spirv-cross-core spirv-cross-reflect)
+    set_target_properties (vk_shader_analyze PROPERTIES FOLDER Main/Utils)
+    add_dependencies(editor vk_shader_analyze)
+endif()
 #add_executable(pbr_utils main/pbr_utils_main.cpp ${EDITOR_SRC})
 #target_include_directories(pbr_utils PRIVATE include/editor)
 #target_link_libraries(pbr_utils argh CommonGL CommonPy nlohmann_json::nlohmann_json CommonPy imnodes)

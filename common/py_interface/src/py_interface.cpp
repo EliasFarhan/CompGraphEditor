@@ -428,8 +428,8 @@ PYBIND11_EMBEDDED_MODULE(neko2, m)
         keyAttrs["SPACE"] =SDLK_SPACE;
         keyAttrs["RETURN"] = SDLK_RETURN;
         ;
-    py::object keycodeClass = py::type::of(py::object())("Key", py::make_tuple(), keyAttrs);
-    m.attr("Key") = keycodeClass;
+    //py::object keycodeClass = py::type::of(py::object())("Key", py::make_tuple(), keyAttrs);
+    //m.attr("Key") = keycodeClass;
 
     py::enum_<core::Camera::ProjectionType>(m, "ProjectionType")
         .value("PERSPECTIVE", core::Camera::ProjectionType::PERSPECTIVE)
