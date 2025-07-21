@@ -46,6 +46,8 @@ if(ENABLE_PROFILING)
 endif (ENABLE_PROFILING)
 
 add_subdirectory(external/)
+
+include_directories(external/include/)
 add_subdirectory(core/)
 add_subdirectory(common/)
 add_subdirectory(main/)

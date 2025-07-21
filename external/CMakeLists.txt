@@ -2,7 +2,6 @@
 add_subdirectory(imnodes)
 add_subdirectory(pybind11)
 add_subdirectory(NekoLib)
-include_directories(include)
 
 execute_process(COMMAND ${Python_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/build_externals.py ${CMAKE_CURRENT_SOURCE_DIR})
 
