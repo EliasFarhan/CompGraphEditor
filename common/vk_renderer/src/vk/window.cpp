@@ -215,7 +215,7 @@ void Window::CreateSwapchain()
     LogDebug("[Vulkan] Create SwapChain");
     vkb::SwapchainBuilder swapchainBuilder{driver_.vkbDevice};
     auto swapchainRet = swapchainBuilder
-        .set_required_min_image_count(2)
+        .set_desired_min_image_count(2)
         .set_desired_present_mode(VK_PRESENT_MODE_FIFO_KHR)
         .set_old_swapchain(swapchain_.vkbSwapchain)
         .build();

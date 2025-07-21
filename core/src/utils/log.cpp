@@ -11,30 +11,30 @@ static std::vector<Log> logs;
 
 void Error(const char* file, int line, std::string_view msg)
 {
-    const auto fullMsg = std::format("{}. File: {}, Line: {}", msg, file, line);
-    SDL_LogError(SDL_LOG_CATEGORY_ERROR ,fullMsg.data());
+    SDL_LogError(SDL_LOG_CATEGORY_ERROR ,"%s. File: %s, Line: %d", msg.data(), file, line);
     if(isRecordingLog)
     {
+        const auto fullMsg = std::format("{}. File: {}, Line: {}", msg, file, line);
         logs.push_back({fullMsg,Log::Type::Error});
     }
 }
 
 void Warning(const char* file, int line, std::string_view msg)
 {
-    const auto fullMsg = std::format("{}. File: {}, Line: {}", msg, file, line);
-    SDL_LogWarn(SDL_LOG_CATEGORY_APPLICATION ,fullMsg.data());
+    SDL_LogWarn(SDL_LOG_CATEGORY_APPLICATION ,"%s. File: %s, Line: %d", msg.data(), file, line);
     if(isRecordingLog)
     {
+        const auto fullMsg = std::format("{}. File: {}, Line: {}", msg, file, line);
         logs.push_back({fullMsg,Log::Type::Warning});
     }
 }
 
 void Debug(const char* file, int line, std::string_view msg)
 {
-    const auto fullMsg = std::format("{}. File: {}, Line: {}", msg, file, line);
-    SDL_LogDebug(SDL_LOG_CATEGORY_APPLICATION ,fullMsg.data());
+    SDL_LogDebug(SDL_LOG_CATEGORY_APPLICATION ,"%s. File: %s, Line: %d", msg.data(), file, line);
     if(isRecordingLog)
     {
+        const auto fullMsg = std::format("{}. File: {}, Line: {}", msg, file, line);
         logs.push_back({fullMsg,Log::Type::Debug});
     }
 }
