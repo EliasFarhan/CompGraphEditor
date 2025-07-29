@@ -3,7 +3,7 @@ add_subdirectory(imnodes)
 add_subdirectory(pybind11)
 add_subdirectory(NekoLib)
 
-execute_process(COMMAND ${Python_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/build_externals.py ${CMAKE_CURRENT_SOURCE_DIR})
+#execute_process(COMMAND ${Python_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/build_externals.py ${CMAKE_CURRENT_SOURCE_DIR})
 
 
 add_library(ktx STATIC IMPORTED GLOBAL)
@@ -79,3 +79,28 @@ else()
 endif()
 add_library(libwasm3 INTERFACE IMPORTED GLOBAL)
 set_target_properties(libwasm3 PROPERTIES INTERFACE_LINK_LIBRARIES "m3;uvwasi;uv;wasm3_cpp")
+
+add_library(assimp STATIC IMPORTED GLOBAL)
+add_library(draco STATIC IMPORTED GLOBAL)
+add_library(zlib STATIC IMPORTED GLOBAL)
+target_include_directories(assimp INTERFACE "${CMAKE_CURRENT_SOURCE_DIR}/assimp/include" "${CMAKE_CURRENT_SOURCE_DIR}/assimp/build-dbg/include")
+if(MSVC)
+    set_target_properties(assimp PROPERTIES
+            IMPORTED_LOCATION_DEBUG "${CMAKE_CURRENT_SOURCE_DIR}/assimp/build-dbg/lib/Debug/assimp-vc143-mtd.lib"
+            IMPORTED_LOCATION_RELEASE "${CMAKE_CURRENT_SOURCE_DIR}/assimp/build-rel/lib/Release/assimp-vc143-mt.lib"
+            IMPORTED_CONFIGURATIONS "Release;Debug"
+    )
+    set_target_properties(draco PROPERTIES
+            IMPORTED_LOCATION_DEBUG "${CMAKE_CURRENT_SOURCE_DIR}/assimp/build-dbg/lib/Debug/dracod.lib"
+            IMPORTED_LOCATION_RELEASE "${CMAKE_CURRENT_SOURCE_DIR}/assimp/build-rel/lib/Release/draco.lib"
+            IMPORTED_CONFIGURATIONS "Release;Debug"
+    )
+    set_target_properties(zlib PROPERTIES
+            IMPORTED_LOCATION_DEBUG "${CMAKE_CURRENT_SOURCE_DIR}/assimp/build-dbg/contrib/zlib/Debug/zlibstaticd.lib"
+            IMPORTED_LOCATION_RELEASE "${CMAKE_CURRENT_SOURCE_DIR}/assimp/build-rel/contrib/zlib/Release/zlibstatic.lib"
+            IMPORTED_CONFIGURATIONS "Release;Debug"
+    )
+else ()
+endif ()
+set_target_properties(assimp PROPERTIES INTERFACE_LINK_LIBRARIES "draco;zlib")
+

@@ -6,7 +6,7 @@ generate_proto(Core)
 set_target_properties (CoreProto PROPERTIES FOLDER Core)
 target_compile_definitions(Core PUBLIC GLM_ENABLE_EXPERIMENTAL)
 target_link_libraries(Core PUBLIC libktx)
-target_link_libraries(Core PUBLIC glm::glm SDL3::SDL3 imgui::imgui assimp::assimp NekoCore)
+target_link_libraries(Core PUBLIC glm::glm SDL3::SDL3 imgui::imgui assimp NekoCore)
 
 if(ENABLE_PROFILING)
     target_link_libraries(Core PUBLIC Tracy::TracyClient)

@@ -1,5 +1,5 @@
 add_executable(model_util model_util/model_util.cpp)
-target_link_libraries(model_util assimp::assimp argh nlohmann_json::nlohmann_json)
+target_link_libraries(model_util assimp argh nlohmann_json::nlohmann_json)
 set_target_properties (model_util PROPERTIES FOLDER Main/Utils)
 add_dependencies(editor model_util)
 

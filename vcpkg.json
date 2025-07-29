@@ -11,7 +11,7 @@
             "name": "imgui",
             "features": ["sdl3-binding", "sdlgpu3-binding", "opengl3-binding", "docking-experimental"]
         },
-        "physfs", "abseil", "protobuf", "nlohmann-json",  "assimp", "zstd", "argh"
+        "physfs", "abseil", "protobuf", "nlohmann-json", "argh"
     ],
     "features":
     {
