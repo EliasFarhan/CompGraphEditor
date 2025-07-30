@@ -1,6 +1,4 @@
-# Neko2 Computer Graphics Editor
-
-Documentation here: https://eliasfarhan.ch/neko2
+# Neko3d -~~~~ Computer Graphics Editor~~~~
 
 ## How to build
 ### On Windows

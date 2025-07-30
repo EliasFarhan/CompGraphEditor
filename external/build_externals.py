@@ -39,10 +39,10 @@ def build_assimp():
     debug_dir = "{}/build-dbg".format(source_dir)
     release_dir = "{}/build-rel".format(source_dir)
     os.makedirs(debug_dir, exist_ok=True)
-    os.system('''cmake -S {} -B {} -DCMAKE_BUILD_TYPE=Debug -DBUILD_SHARED_LIBS=OFF -DASSIMP_BUILD_TESTS=OFF -DASSIMP_INSTALL=OFF -DASSIMP_BUILD_ASSIMP_VIEW=OFF -DASSIMP_BUILD_DRACO=ON'''.format(source_dir, debug_dir))
+    os.system('''cmake -S {} -B {} -DCMAKE_BUILD_TYPE=Debug -DBUILD_SHARED_LIBS=OFF -DASSIMP_BUILD_TESTS=OFF -DASSIMP_INSTALL=OFF -DASSIMP_BUILD_ASSIMP_VIEW=OFF -DASSIMP_BUILD_DRACO=ON -DASSIMP_BUILD_DRACO_STATIC=ON -DASSIMP_BUILD_ZLIB=ON'''.format(source_dir, debug_dir))
     os.system('cmake --build {} --target assimp --config Debug --parallel'.format(debug_dir))
     os.makedirs(release_dir, exist_ok=True)
-    os.system('''cmake -S {} -B {} -DCMAKE_BUILD_TYPE=Release -DBUILD_SHARED_LIBS=OFF -DASSIMP_BUILD_TESTS=OFF -DASSIMP_INSTALL=OFF -DASSIMP_BUILD_ASSIMP_VIEW=OFF -DASSIMP_BUILD_DRACO=ON'''.format(source_dir, release_dir))
+    os.system('''cmake -S {} -B {} -DCMAKE_BUILD_TYPE=Release -DBUILD_SHARED_LIBS=OFF -DASSIMP_BUILD_TESTS=OFF -DASSIMP_INSTALL=OFF -DASSIMP_BUILD_ASSIMP_VIEW=OFF -DASSIMP_BUILD_DRACO=ON -DASSIMP_BUILD_DRACO_STATIC=ON -DASSIMP_BUILD_ZLIB=ON'''.format(source_dir, release_dir))
     os.system('cmake --build {} --target assimp --config Release --parallel'.format(release_dir))
 
 def build_all(from_path = "."):

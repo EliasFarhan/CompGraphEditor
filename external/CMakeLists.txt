@@ -101,6 +101,21 @@ if(MSVC)
             IMPORTED_CONFIGURATIONS "Release;Debug"
     )
 else ()
+    set_target_properties(assimp PROPERTIES
+            IMPORTED_LOCATION_DEBUG "${CMAKE_CURRENT_SOURCE_DIR}/assimp/build-dbg/lib/libassimpd.a"
+            IMPORTED_LOCATION_RELEASE "${CMAKE_CURRENT_SOURCE_DIR}/assimp/build-rel/lib/libassimp.a"
+            IMPORTED_CONFIGURATIONS "Release;Debug"
+    )
+    set_target_properties(draco PROPERTIES
+            IMPORTED_LOCATION_DEBUG "${CMAKE_CURRENT_SOURCE_DIR}/assimp/build-dbg/lib/libdracod.a"
+            IMPORTED_LOCATION_RELEASE "${CMAKE_CURRENT_SOURCE_DIR}/assimp/build-rel/lib/libdraco.a"
+            IMPORTED_CONFIGURATIONS "Release;Debug"
+    )
+    set_target_properties(zlib PROPERTIES
+            IMPORTED_LOCATION_DEBUG "${CMAKE_CURRENT_SOURCE_DIR}/assimp/build-dbg/contrib/zlib/libzlibstaticd.a"
+            IMPORTED_LOCATION_RELEASE "${CMAKE_CURRENT_SOURCE_DIR}/assimp/build-rel/contrib/zlib/libzlibstatic.a"
+            IMPORTED_CONFIGURATIONS "Release;Debug"
+    )
 endif ()
 set_target_properties(assimp PROPERTIES INTERFACE_LINK_LIBRARIES "draco;zlib")
 

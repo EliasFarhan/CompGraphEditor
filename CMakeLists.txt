@@ -13,7 +13,7 @@ if(ENABLE_VULKAN)
 endif (ENABLE_VULKAN)
 
 cmake_minimum_required (VERSION 3.18)
-project(Neko2)
+project(Neko3d)
 
 set (CMAKE_CXX_STANDARD 23)
 set (CMAKE_CXX_STANDARD_REQUIRED ON)
