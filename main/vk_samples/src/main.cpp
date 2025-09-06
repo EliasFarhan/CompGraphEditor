@@ -1,6 +1,4 @@
-//
-// Created by efarhan on 12/28/22.
-//
+
 #include <argh.h>
 
 #include "engine/filesystem.h"
@@ -8,6 +6,7 @@
 
 #include <SDL3/SDL_main.h>
 
+#include "wasm_interface.h"
 #include "py_interface.h"
 #include "sample_program.h"
 
@@ -22,7 +21,7 @@ int main([[maybe_unused]] int argc, char** argv)
     }
     engine.DisableImGui();
     engine.SetWindowName("Vulkan Samples");
-    core::PyManager pyManager;
+    core::WasmManager wasmManager;
     core::ImportNativeScript();
 
     gpr5300::HelloVulkanProgram vulkanProgram;

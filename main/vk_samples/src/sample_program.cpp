@@ -170,9 +170,9 @@ core::pb::Scene Scene03()
 
 
     auto* pySystem = scene.add_systems();
-    pySystem->set_class_("UniformSystem");
-    pySystem->set_module("data.scripts.03_uniform");
-    pySystem->set_path("data/scripts/03_uniform.py");
+    pySystem->set_class_("Scene03");
+    pySystem->set_module("scene03");
+    pySystem->set_path("data/scripts/scene03_uniform.wasm");
 
     return scene;
 }
@@ -356,9 +356,9 @@ core::pb::Scene Scene05()
     texture->set_filter_mode(core::pb::Texture_FilteringMode_LINEAR);
 
     auto* pySystem = scene.add_systems();
-    pySystem->set_class_("UniformSystem");
-    pySystem->set_module("data.scripts.05_ubo");
-    pySystem->set_path("data/scripts/05_ubo.py");
+    pySystem->set_class_("Scene05");
+    pySystem->set_module("scene05");
+    pySystem->set_path("data/scripts/scene05_ubo.wasm");
 
     return scene;
 }
@@ -546,9 +546,9 @@ core::pb::Scene Scene06()
     cameraPySystem->set_module(core::nativeModuleName.data());
 
     auto* scenePySystem = scene.add_systems();
-    scenePySystem->set_path("data/scripts/06_subpasses.py");
-    scenePySystem->set_class_("SubpassSystem");
-    scenePySystem->set_module("data.scripts.06_subpasses");
+    scenePySystem->set_path("data/scripts/scene06_subpasses.wasm");
+    scenePySystem->set_class_("Scene06");
+    scenePySystem->set_module("scene06");
     
     return scene;
 }
@@ -661,9 +661,9 @@ core::pb::Scene Scene07()
     cameraPySystem->set_module(core::nativeModuleName.data());
 
     auto* scenePySystem = scene.add_systems();
-    scenePySystem->set_path("data/scripts/07_model.py");
+    scenePySystem->set_path("data/scripts/scene07_model.wasm");
     scenePySystem->set_class_("Scene07");
-    scenePySystem->set_module("data.scripts.07_model");
+    scenePySystem->set_module("scene07");
 
     return scene;
 }
@@ -774,9 +774,9 @@ core::pb::Scene Scene08()
     cameraPySystem->set_module("cppmodule");
 
     auto* scenePySystem = scene.add_systems();
-    scenePySystem->set_path("data/scripts/08_uniform_instancing.py");
+    scenePySystem->set_path("data/scripts/scene08_uniform_instancing.wasm");
     scenePySystem->set_class_("UniformInstancingScene");
-    scenePySystem->set_module("data.scripts.08_uniform_instancing");
+    scenePySystem->set_module("scene08");
 
 
     return scene;
@@ -786,7 +786,7 @@ core::pb::Scene Scene08()
 
 void HelloVulkanProgram::Begin() 
 {
-    scene_.SetScene(Scene05());
+    scene_.SetScene(Scene08());
 
     sceneManager_.LoadScene(&scene_);
 }

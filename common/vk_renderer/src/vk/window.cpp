@@ -221,8 +221,7 @@ void Window::CreateSwapchain()
         .build();
     if (!swapchainRet)
     {
-        LogError(std::format("{} {}", swapchainRet.error().message(), (int)swapchainRet.vk_result()));
-        std::terminate();
+        throw std::runtime_error(std::format("{} {}", swapchainRet.error().message(), (int)swapchainRet.vk_result()));
     }
     vkb::destroy_swapchain(swapchain_.vkbSwapchain);
     swapchain_.vkbSwapchain = swapchainRet.value();
