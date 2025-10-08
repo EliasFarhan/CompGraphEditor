@@ -2,7 +2,7 @@ import subprocess
 import os
 import sys
 
-
+core_number = os.cpu_count() - 1
 path = '.'
 def build_wasm3():
     print("Build WASM3")
@@ -26,12 +26,12 @@ def build_ktx():
     release_dir = "{}/build-rel".format(source_dir)
     os.makedirs(debug_dir, exist_ok=True)
     os.system('cmake -S {} -B {} -DCMAKE_BUILD_TYPE=Debug -DBUILD_SHARED_LIBS=OFF'.format(source_dir, debug_dir))
-    os.system('cmake --build {} --target ktx --config Debug --parallel'.format(debug_dir))
-    os.system('cmake --build {} --target ktx_read --config Debug --parallel'.format(debug_dir))
+    os.system('cmake --build {} --target ktx --config Debug --parallel {}'.format(debug_dir, core_number))
+    os.system('cmake --build {} --target ktx_read --config Debug --parallel {}'.format(debug_dir, core_number))
     os.makedirs(release_dir, exist_ok=True)
     os.system('cmake -S {} -B {} -DCMAKE_BUILD_TYPE=Release -DBUILD_SHARED_LIBS=OFF'.format(source_dir, release_dir))
-    os.system('cmake --build {} --target ktx --config Release --parallel'.format(release_dir))
-    os.system('cmake --build {} --target ktx_read --config Release --parallel'.format(release_dir))
+    os.system('cmake --build {} --target ktx --config Release --parallel {}'.format(release_dir, core_number))
+    os.system('cmake --build {} --target ktx_read --config Release --parallel {}'.format(release_dir, core_number))
 
 def build_assimp():
     print("Building Assimp")
@@ -40,10 +40,10 @@ def build_assimp():
     release_dir = "{}/build-rel".format(source_dir)
     os.makedirs(debug_dir, exist_ok=True)
     os.system('''cmake -S {} -B {} -DCMAKE_BUILD_TYPE=Debug -DBUILD_SHARED_LIBS=OFF -DASSIMP_BUILD_TESTS=OFF -DASSIMP_INSTALL=OFF -DASSIMP_BUILD_ASSIMP_VIEW=OFF -DASSIMP_BUILD_DRACO=ON -DASSIMP_BUILD_DRACO_STATIC=ON -DASSIMP_BUILD_ZLIB=ON'''.format(source_dir, debug_dir))
-    os.system('cmake --build {} --target assimp --config Debug --parallel'.format(debug_dir))
+    os.system('cmake --build {} --target assimp --config Debug --parallel {}'.format(debug_dir, core_number))
     os.makedirs(release_dir, exist_ok=True)
     os.system('''cmake -S {} -B {} -DCMAKE_BUILD_TYPE=Release -DBUILD_SHARED_LIBS=OFF -DASSIMP_BUILD_TESTS=OFF -DASSIMP_INSTALL=OFF -DASSIMP_BUILD_ASSIMP_VIEW=OFF -DASSIMP_BUILD_DRACO=ON -DASSIMP_BUILD_DRACO_STATIC=ON -DASSIMP_BUILD_ZLIB=ON'''.format(source_dir, release_dir))
-    os.system('cmake --build {} --target assimp --config Release --parallel'.format(release_dir))
+    os.system('cmake --build {} --target assimp --config Release --parallel {}'.format(release_dir, core_number))
 
 def build_all(from_path = "."):
     global path
