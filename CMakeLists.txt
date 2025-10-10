@@ -5,7 +5,7 @@ if(ENABLE_PROFILING)
 endif (ENABLE_PROFILING)
 
 cmake_minimum_required (VERSION 3.18)
-project(Neko2)
+project(Neko3d)
 
 set (CMAKE_CXX_STANDARD 23)
 set (CMAKE_CXX_STANDARD_REQUIRED ON)

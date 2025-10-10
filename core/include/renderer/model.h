@@ -1,11 +1,11 @@
 #pragma once
 
-#include "proto/renderer.pb.h"
 #include "renderer/mesh.h"
 #include "engine/filesystem.h"
 
 #include <assimp/Importer.hpp>
 #include <assimp/scene.h>
+#include <assimp/material.h>
 
 
 #include <span>
@@ -20,7 +20,7 @@ namespace core
 struct ModelMaterial
 {
     std::string name;
-    std::array<std::string, core::pb::TextureType::LENGTH> textures;
+    std::array<std::string, AI_TEXTURE_TYPE_MAX+1> textures;
 };
 
 

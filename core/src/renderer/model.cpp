@@ -45,7 +45,7 @@ void Model::LoadMaterials(const aiScene* scene)
     {
         const auto* material = scene->mMaterials[i];
         core::ModelMaterial newMaterial = { material->GetName().C_Str() };
-        for(unsigned j = 0; j < core::pb::TextureType::LENGTH; j++)
+        for(unsigned j = 0; j < AI_TEXTURE_TYPE_MAX+1; j++)
         {
             const auto textureType = static_cast<aiTextureType>(j);
             aiString textureName;
