@@ -20,7 +20,7 @@ int main([[maybe_unused]] int argc, char** argv)
     {
         engine.SetVersion(major, minor, cmdl[{ "-es", "--es" }]);
     }
-    engine.SetWindowName("Neko2 Editor");
+    engine.SetWindowName("Neko3d Editor");
 
     core::PyManager pyManager;
 

@@ -1,0 +1,18 @@
+native_include "utils/glm_fb_impl.h";
+
+namespace novus.maths;
+
+
+struct Vec2i (native_type: "glm::ivec2")
+{
+    x:int32;
+    y:int32;
+}
+
+
+struct Vec3 (native_type: "glm::vec3")
+{
+    x:float;
+    y:float;
+    z:float;
+}

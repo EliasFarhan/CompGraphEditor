@@ -1,13 +1,14 @@
-#include <emscripten.h>
 #include "wasm/neko2.h"
+#include <emscripten.h>
+
+#define WASM_EXPORT __attribute__((used)) __attribute__((visibility ("default")))
+#define GLM_ENABLE_EXPERIMENTAL
 
 #include <cmath>
 #include <string_view>
 
 #include "wasm/draw_command.h"
 
-#define WASM_EXPORT __attribute__((used)) __attribute__((visibility ("default")))
-#define GLM_ENABLE_EXPERIMENTAL
 
 extern "C"
 {

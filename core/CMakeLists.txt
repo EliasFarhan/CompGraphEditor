@@ -3,10 +3,22 @@ add_library(Core STATIC ${CORE_FILES})
 target_include_directories(Core PUBLIC include/ ${STB_INCLUDE_DIRS} ${CMAKE_CURRENT_BINARY_DIR}/)
 generate_proto(Core)
 
+set(FB_OUTDIR "${CMAKE_CURRENT_BINARY_DIR}/core_schemas/")
+file(GLOB ENGINE_SCHEMAS idl/*.fbs)
+flatbuffers_generate_headers(
+        TARGET core_schemas
+        SCHEMAS ${ENGINE_SCHEMAS}
+        INCLUDE_PREFIX "generated/"
+        FLAGS --gen-object-api
+)
+
+target_include_directories(Core PUBLIC ${FB_OUTDIR})
+
 set_target_properties (CoreProto PROPERTIES FOLDER Core)
 target_compile_definitions(Core PUBLIC GLM_ENABLE_EXPERIMENTAL)
 target_link_libraries(Core PUBLIC libktx)
-target_link_libraries(Core PUBLIC glm::glm SDL3::SDL3 imgui::imgui assimp NekoCore)
+target_link_libraries(Core PUBLIC glm::glm SDL3::SDL3 imgui::imgui assimp flatbuffers::flatbuffers NekoCore)
+add_dependencies(Core GENERATE_core_schemas)
 
 if(ENABLE_PROFILING)
     target_link_libraries(Core PUBLIC Tracy::TracyClient)

@@ -1,5 +1,7 @@
 #pragma once
 
+#include "proto/renderer.pb.h"
+
 namespace core
 {
 

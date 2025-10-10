@@ -96,7 +96,10 @@ void Engine::End()
     }
 
     neko::JobSystem::End();
-    WriteString(configFilename, config_.SerializeAsString());
+    flatbuffers::FlatBufferBuilder fbb;
+    fbb.Finish(novus::engine::Config::Pack(fbb, &config_));
+    std::string configData{reinterpret_cast<const char*>(fbb.GetBufferPointer()), fbb.GetSize()};
+    WriteString(configFilename, configData);
 
 }
 Engine::EventJob::EventJob(Engine* engine, bool& isOpen):
@@ -121,9 +124,7 @@ void Engine::EventJob::ExecuteImpl()
             newWindowSize.x = event.window.data1;
             newWindowSize.y = event.window.data2;
             engine_->ResizeWindow(newWindowSize);
-            auto* windowSize = engine_->config_.mutable_window_size();
-            windowSize->set_x(newWindowSize.x);
-            windowSize->set_y(newWindowSize.y);
+            engine_->config_.window_size = glm::ivec2(newWindowSize.x, newWindowSize.y);
             break;
         }
         default:
@@ -133,7 +134,7 @@ void Engine::EventJob::ExecuteImpl()
         {
             eventInterface->OnEvent(event);
         }
-        if (!engine_->config_.no_imgui())
+        if (!engine_->config_.no_imgui)
         {
             ImGui_ImplSDL3_ProcessEvent(&event);
         }
@@ -193,7 +194,7 @@ void Engine::RegisterSystem(System* system)
 
 void Engine::DisableImGui()
 {
-    config_.set_no_imgui(true);
+    config_.no_imgui = true;
 }
 
 Engine::Engine()
@@ -207,24 +208,22 @@ Engine::Engine()
     if(IsRegularFile(configFilename))
     {
         const auto file = LoadFile(configFilename);
-        config_.ParseFromString(reinterpret_cast<const char*>(file.data));
-        
+        auto config = flatbuffers::GetRoot<novus::engine::Config>(file.data);
+        config->UnPackTo(&config_);
     }
     else
     {
-        config_.set_vertical_sync(true);
-        config_.set_framerate_limit(0);
-        pb::Vec2i *windowSize = config_.mutable_window_size();
-        windowSize->set_x(1280);
-        windowSize->set_y(720);
-        config_.set_window_name("CompGraphEditor");
-        config_.set_fullscreen(false);
-        config_.set_enable_debug(true);
+        config_.vertical_sync = (true);
+        config_.framerate_limit = (0);
+        config_.window_size = glm::ivec2(1280, 720);
+        config_.window_name = "CompGraphEditor";
+        config_.fullscreen = (false);
+        config_.enable_debug = (true);
     }
 }
 void Engine::SetWindowName(std::string_view windowName)
 {
-    config_.set_window_name(windowName.data());
+    config_.window_name = (windowName.data());
     if(window_ != nullptr)
     {
         SDL_SetWindowTitle(window_, windowName.data());
@@ -232,7 +231,7 @@ void Engine::SetWindowName(std::string_view windowName)
 }
 glm::uvec2 Engine::GetWindowSize() const
 {
-    return {config_.window_size().x(), config_.window_size().y()};
+    return {config_.window_size.x, config_.window_size.y};
 }
 
 neko::Job* Engine::GetJob(Engine::JobIndex index)

@@ -1,0 +1,22 @@
+include "maths.fbs";
+namespace novus.engine;
+
+enum ShaderFormat:byte
+{
+    SPIRV,
+    DXIL,
+    MSL,
+    METALLIB,
+    DXBC
+}
+table Config
+{
+    window_name: string;
+    window_size: maths.Vec2i (native_inline);
+    shader_format: ShaderFormat;
+    framerate_limit: int32;
+    fullscreen : bool = false;
+    vertical_sync : bool = true;
+    enable_debug:bool = true;
+    no_imgui : bool = false;
+}

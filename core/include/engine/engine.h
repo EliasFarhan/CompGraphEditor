@@ -9,7 +9,7 @@
 #include "renderer/texture.h"
 #include "renderer/model.h"
 #include "thread/job_system.h"
-#include "engine/filesystem.h"
+#include "generated/engine_generated.h"
 
 #include <glm/ext/vector_uint2.hpp>
 
@@ -73,7 +73,7 @@ protected:
 
 
     SDL_Window* window_ = nullptr;
-    pb::Config config_;
+    novus::engine::ConfigT config_;
     static constexpr std::string_view configFilename = "config.bin";
 
     std::array<std::unique_ptr<neko::Job>, (int)JobIndex::LENGTH> jobs_;

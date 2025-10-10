@@ -1,9 +1,9 @@
 
 file(GLOB_RECURSE SCRIPT_FILES
         "scripts/*.py"
+        "scripts/*.cpp"
          "shaders/*.vert"
          "shaders/*.frag"
-         "shaders/*.geom"
          "shaders/*.comp"
         )
 
