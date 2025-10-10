@@ -22,7 +22,7 @@
 #include <stb_image.h>
 #include <stb_image_write.h>
 
-#include "GL/glew.h"
+#include "gl/include.h"
 #include "gl/debug.h"
 
 
@@ -75,7 +75,16 @@ void GeneratePreComputeBrdfLUT()
     glMemoryBarrier(GL_ALL_BARRIER_BITS);
     glCheckError();
     auto* buffer = static_cast<float*>(std::calloc(texH * texW, 4 * sizeof(float)));
-    glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_FLOAT, buffer);
+
+    GLuint fbo;
+    glGenFramebuffers(1, &fbo);
+    glBindFramebuffer(GL_FRAMEBUFFER, fbo);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, texOutput, 0);
+
+    glReadPixels(0, 0, texW, texH, GL_RGBA, GL_FLOAT, buffer);
+
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    glDeleteFramebuffers(1, &fbo);
     glCheckError();
     stbi_flip_vertically_on_write(true);
     const auto path{std::format("data/{}/textures/brdf_lut.hdr", currentScene->info.name())};
@@ -289,15 +298,26 @@ void GenerateIrradianceMap(std::string_view path)
     void* faceBuffer = std::malloc(faceSize);
     glBindTexture(GL_TEXTURE_CUBE_MAP, irradianceMap);
     glCheckError();
+
+
+    GLuint fbo;
+    glGenFramebuffers(1, &fbo);
+    glBindFramebuffer(GL_FRAMEBUFFER, fbo);
+
     for(int face = 0; face < 6; face++)
     {
-        glGetTexImage(GL_TEXTURE_CUBE_MAP_POSITIVE_X + face, 0, GL_RGBA, GL_FLOAT, faceBuffer);
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_CUBE_MAP_POSITIVE_X + face, irradianceMap, 0);
+
+        glReadPixels(0, 0, texW, texH, GL_RGBA, GL_FLOAT, faceBuffer);
         glCheckError();
         result = ktxTexture_SetImageFromMemory(ktxTexture(texture),
             0, 0, face,
             static_cast<const ktx_uint8_t*>(faceBuffer), faceSize);
         ktxCheckError(result);
     }
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    glDeleteFramebuffers(1, &fbo);
+    glCheckError();
     std::free(faceBuffer);
     ktxTexture_WriteToNamedFile(ktxTexture(texture), irradianceKtxMapPath.data());
     ktxTexture_Destroy(ktxTexture(texture));
@@ -354,9 +374,18 @@ void GenerateIrradianceMap(std::string_view path)
 
     //Export as KTX?
     //export as hdr
-    glBindTexture(GL_TEXTURE_2D, equirectangleFbo.GetTextureName("irradiance"));
     auto* buffer = static_cast<float*>(std::calloc(resultW * resultH, 4 * sizeof(float)));
-    glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_FLOAT, buffer);
+
+    GLuint readFbo;
+    glGenFramebuffers(1, &readFbo);
+    glBindFramebuffer(GL_FRAMEBUFFER, readFbo);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, equirectangleFbo.GetTextureName("irradiance"), 0);
+
+    glReadPixels(0, 0, texW, texH, GL_RGBA, GL_FLOAT, buffer);
+
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    glDeleteFramebuffers(1, &readFbo);
+
     glCheckError();
     stbi_flip_vertically_on_write(true);
     //TODO give proper name
@@ -593,7 +622,11 @@ void GeneratePreFilterEnvMap(std::string_view path)
     }
     constexpr int maxSize = 128 * 128 * 4 * 4;
     void* buffer = std::malloc(maxSize);
-    glBindTexture(GL_TEXTURE_CUBE_MAP, prefilterMap);
+    GLuint fbo;
+    glGenFramebuffers(1, &fbo);
+    glBindFramebuffer(GL_FRAMEBUFFER, fbo);
+
+
     for (GLint mip = 0; mip < maxMipLevels; mip++)
     {
         auto mipWidth = static_cast<GLsizei>(128.0 * std::pow(0.5, static_cast<double>(mip)));
@@ -601,7 +634,9 @@ void GeneratePreFilterEnvMap(std::string_view path)
         const auto size = mipWidth * mipHeight * 4 * 4;
         for (int faceIndex = 0; faceIndex < 6; faceIndex++)
         {
-            glGetTexImage(GL_TEXTURE_CUBE_MAP_POSITIVE_X + faceIndex, mip, GL_RGBA, GL_FLOAT, buffer);
+            glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_CUBE_MAP_POSITIVE_X + faceIndex, prefilterMap, mip);
+
+            glReadPixels(0, 0, texW, texH, GL_RGBA, GL_FLOAT, buffer);
             result = ktxTexture_SetImageFromMemory(ktxTexture(texture),
                 mip, 0, faceIndex,
                 static_cast<const ktx_uint8_t*>(buffer), size);
@@ -610,6 +645,9 @@ void GeneratePreFilterEnvMap(std::string_view path)
         }
     }
 
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    glDeleteFramebuffers(1, &fbo);
+    glCheckError();
     std::free(buffer);
 
 

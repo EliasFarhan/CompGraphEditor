@@ -31,9 +31,4 @@ EMSCRIPTEN_KEEPALIVE void WASM_EXPORT scene03_draw(int64_t drawCommand)
     set_float(drawCommand, uniform_name.data(), value);
     draw(drawCommand);
 }
-
-EMSCRIPTEN_KEEPALIVE void WASM_EXPORT scene03_end()
-{
-
-}
 }

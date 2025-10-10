@@ -1,5 +1,6 @@
 #pragma once
 #include "engine/scene.h"
+#include <volk.h>
 #include "vk/pipeline.h"
 #include "vk/framebuffer.h"
 #include "vk/mesh.h"

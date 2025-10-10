@@ -129,7 +129,7 @@ void Engine::PreUpdate()
         &renderer_.inFlightFences[renderer_.currentFrame],
         VK_TRUE, UINT64_MAX);
 
-    vkAcquireNextImageKHR(driver.device, swapchain.swapChain,
+    vkAcquireNextImageKHR(driver.device, swapchain.swapchain,
         UINT64_MAX,
         renderer_.imageAvailableSemaphores[renderer_.currentFrame],
         VK_NULL_HANDLE,
@@ -212,7 +212,7 @@ void Engine::SwapWindow()
         presentInfo.waitSemaphoreCount = 1;
         presentInfo.pWaitSemaphores = signalSemaphores;
 
-        VkSwapchainKHR swapChains[] = { swapchain.swapChain };
+        VkSwapchainKHR swapChains[] = { swapchain.swapchain };
         presentInfo.swapchainCount = 1;
         presentInfo.pSwapchains = swapChains;
         presentInfo.pImageIndices = &renderer_.imageIndex;
@@ -228,13 +228,10 @@ void Engine::CreateCommandPool()
 {
     auto& driver = window_.GetDriver();
     LogDebug("Create Command Pool");
-    QueueFamilyIndices queueFamilyIndices = FindQueueFamilies(
-        driver.physicalDevice,
-        driver.surface);
 
     VkCommandPoolCreateInfo poolInfo{};
     poolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
-    poolInfo.queueFamilyIndex = queueFamilyIndices.graphicsFamily.value();
+    poolInfo.queueFamilyIndex = GetDriver().vkbDevice.get_queue_index(vkb::QueueType::graphics).value();
     poolInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT; // Optional
     if (vkCreateCommandPool(driver.device, &poolInfo, nullptr,
         &renderer_.commandPool) !=

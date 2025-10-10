@@ -2,20 +2,26 @@
     "name": "neko2",
     "version-string": "1.0",
     "dependencies": [
+        "sdl3", "glm", "stb",
         {
-            "name": "sdl3",
-            "features": ["vulkan"]
-        }, "glm", "glew", "stb",
+            "name": "glad",
+            "features": ["gles2-api-32"]
+        },
         {
             "name": "imgui",
-            "features": ["sdl3-binding", "sdlgpu3-binding", "opengl3-binding", "docking-experimental", "vulkan-binding"]
+            "features": ["sdl3-binding", "sdlgpu3-binding", "opengl3-binding", "docking-experimental"]
         },
-        "physfs", "abseil", "protobuf", "spdlog", "nlohmann-json", "vulkan-memory-allocator", "assimp", "zstd", "argh",
-        "spirv-cross", "volk", "flatbuffers"
+        "physfs", "abseil", "protobuf", "nlohmann-json", "argh"
     ],
     "features":
     {
-        "profiling": {"description": "Profiling", "dependencies": ["tracy"] }
+        "profiling": {"description": "Profiling", "dependencies": ["tracy"] },
+        "vulkan": {"description": "Vulkan port",
+            "dependencies": ["volk",
+                "vk-bootstrap", "vulkan-memory-allocator",
+                "spirv-cross",
+                {"name": "sdl3", "features": ["vulkan"]},  {"name": "imgui", "features": ["vulkan-binding"]}]
+        }
     },
     "builtin-baseline": "f75c836a67777a86a2c1116a28b179827f028b66"
 }

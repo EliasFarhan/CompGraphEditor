@@ -712,7 +712,7 @@ core::pb::Scene Scene11()
     auto* buffer = scene.add_buffers();
     buffer->set_count(10000);
     buffer->set_name("positions");
-    buffer->set_type(core::pb::Attribute_Type_VEC3);
+    buffer->set_type(core::pb::Attribute_Type_VEC4);
 
     auto* cameraPySystem = scene.add_systems();
     cameraPySystem->set_class_("CameraSystem");
@@ -746,7 +746,7 @@ void SampleBrowserProgram::Begin()
         sample.scene.SetScene(sample.sceneInfo);
     }
 
-    currentIndex_ = 9;
+    currentIndex_ = 0;
     sceneManager_.LoadScene(&samples_[currentIndex_].scene);
 }
 

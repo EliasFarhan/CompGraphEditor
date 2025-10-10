@@ -2,8 +2,8 @@
 
 #include "renderer/buffer.h"
 
-#include <GL/glew.h>
-#include <array>
+#include "gl/include.h"
+
 namespace gl
 {
     

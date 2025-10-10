@@ -3,7 +3,7 @@
 #include "gl/debug.h"
 #include "utils/log.h"
 
-#include <GL/glew.h>
+#include "gl/include.h"
 #include <glm/ext/vector_uint2.hpp>
 
 #include <imgui.h>
@@ -15,7 +15,6 @@
 
 #ifdef TRACY_ENABLE
 #include <tracy/Tracy.hpp>
-#include <tracy/TracyOpenGL.hpp>
 #endif
 
 namespace gl
@@ -68,6 +67,7 @@ void Engine::Begin()
         config_.major_version(), 
         config_.minor_version()));
 
+    float mainScale = SDL_GetDisplayContentScale(SDL_GetPrimaryDisplay());
     SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
     SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 8);
     const auto windowSize = glm::ivec2(config_.window_size().x(), config_.window_size().y());
@@ -78,17 +78,28 @@ void Engine::Begin()
         SDL_WINDOW_RESIZABLE | SDL_WINDOW_OPENGL
     );
     glRenderContext_ = SDL_GL_CreateContext(window_);
-
-    SDL_GL_SetSwapInterval(config_.vertical_sync());
-
-    if (GLEW_OK != glewInit())
+    if (glRenderContext_ == nullptr)
     {
+        LogError(std::format("Error creating the GL context: {}", SDL_GetError()));
+        assert(false && "Failed to initialize OpenGL context");
+    }
+    SDL_GL_MakeCurrent(window_, glRenderContext_);
+    SDL_GL_SetSwapInterval(config_.vertical_sync());
+    const auto glewStatus = gladLoadGLES2Loader((GLADloadproc)SDL_GL_GetProcAddress);
+    if (!glewStatus)
+    {
+        LogError(std::format("glewInit failed with {}", glewStatus));
         assert(false && "Failed to initialize OpenGL context");
     }
 
-#ifdef TRACY_ENABLE
-    TracyGpuContext;
-#endif
+    glCheckError();
+
+    const auto glVersion = glGetString(GL_VERSION);
+    LogDebug(std::format("OpenGL Version: {}\n", reinterpret_cast<const char*>(glVersion)));
+
+    SDL_ShowWindow(window_);
+
+    glCheckError();
     // Setup Dear ImGui context
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
@@ -98,13 +109,17 @@ void Engine::Begin()
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;  // Enable Keyboard Controls
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;  // Enable Keyboard Gamepad
     io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
-
     // Setup Dear ImGui style
     //ImGui::StyleColorsDark();
     ImGui::StyleColorsClassic();
+    // Setup scaling
+    ImGuiStyle& style = ImGui::GetStyle();
+    style.ScaleAllSizes(mainScale);        // Bake a fixed style scale. (until we have a solution for dynamic style scaling, changing this requires resetting Style + calling this again)
+
     ImGui_ImplSDL3_InitForOpenGL(window_, glRenderContext_);
     ImGui_ImplOpenGL3_Init("#version 300 es");
 
+    glCheckError();
     core::Engine::Begin();
 }
 
@@ -169,9 +184,6 @@ void Engine::SwapWindow()
 #endif
     SDL_GL_SwapWindow(window_);
     glCheckError();
-#ifdef TRACY_ENABLE
-    TracyGpuCollect;
-#endif
 }
 
 GlVersion GetGlVersion()

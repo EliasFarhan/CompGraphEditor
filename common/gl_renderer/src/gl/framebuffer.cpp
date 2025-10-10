@@ -96,7 +96,7 @@ void Framebuffer::Resize(glm::uvec2 windowSize)
                     glDeleteTextures(1, &depthStencilAttachment_);
                     depthStencilAttachment_ = 0;
                 }
-                glCreateTextures(GL_TEXTURE_2D, 1, &depthStencilAttachment_);
+                glGenTextures(1, &depthStencilAttachment_);
                 glBindTexture(GL_TEXTURE_2D, depthStencilAttachment_);
                 glTexImage2D(GL_TEXTURE_2D, 0, attachmentType.internalFormat,
                     windowSize.x,
@@ -158,7 +158,7 @@ void Framebuffer::Resize(glm::uvec2 windowSize)
                 glDeleteTextures(1, &colorAttachment);
                 colorAttachment = 0;
             }
-            glCreateTextures(GL_TEXTURE_2D, 1, &colorAttachment);
+            glGenTextures(1, &colorAttachment);
             glBindTexture(GL_TEXTURE_2D, colorAttachment);
             glTexImage2D(GL_TEXTURE_2D, 0, attachmentType.internalFormat,
                 windowSize.x,
@@ -239,7 +239,7 @@ void Framebuffer::Load(const core::pb::FrameBuffer& framebufferPb)
     const auto windowSize = core::GetWindowSize();
     frameBufferPb_ = framebufferPb;
     framebufferName_ = framebufferPb.name();
-    glCreateFramebuffers(1, &name_);
+    glGenFramebuffers(1, &name_);
     Bind();
     colorAttachments_.resize(framebufferPb.color_attachments_size());
     for(int i = 0; i < framebufferPb.color_attachments_size(); i++)
@@ -365,7 +365,7 @@ void Framebuffer::Load(const core::pb::FrameBuffer& framebufferPb)
         }
         else
         {
-            glCreateTextures(target, 1, &depthStencilAttachment_);
+            glGenTextures(1, &depthStencilAttachment_);
             glBindTexture(target, depthStencilAttachment_);
             glTexParameteri(target, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
             glTexParameteri(target, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
@@ -657,7 +657,7 @@ AttachmentType GetAttachmentType(const core::pb::RenderTarget& renderTargetInfo)
                 format = GL_RED;
                 break;
             case core::pb::RenderTarget_Format_RG:
-                internalFormat = GL_R16;
+                internalFormat = GL_R16F;
                 format = GL_RG;
                 break;
             case core::pb::RenderTarget_Format_RGB:

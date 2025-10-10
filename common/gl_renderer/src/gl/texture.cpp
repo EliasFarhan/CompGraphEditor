@@ -17,7 +17,6 @@ namespace fs = std::filesystem;
 #ifdef TRACY_ENABLE
 #include <tracy/Tracy.hpp>
 #include <tracy/TracyC.h>
-#include <tracy/TracyOpenGL.hpp>
 #endif
 
 namespace gl
@@ -145,8 +144,8 @@ bool Texture::LoadTexture(const core::pb::Texture &textureInfo)
 #ifdef TRACY_ENABLE
         ZoneNamedN(gpuUpload, "Upload to GPU", true);
 #endif
-        glGenTextures(1, &name);
         glCheckError();
+        glGenTextures(1, &name);
 
         glBindTexture(GL_TEXTURE_2D, name);
 
@@ -194,9 +193,6 @@ bool Texture::LoadTexture(const core::pb::Texture &textureInfo)
 
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, minFilterMode);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, magFilterMode);
-#ifdef TRACY_ENABLE
-        TracyGpuNamedZone(loadTexture, "Load Texture", true);
-#endif
         switch (channelInFile)
         {
         case 1:
@@ -232,9 +228,6 @@ bool Texture::LoadTexture(const core::pb::Texture &textureInfo)
         glCheckError();
         if(textureInfo.generate_mipmaps())
         {
-#ifdef TRACY_ENABLE
-            TracyGpuNamedZone(generateMipMap, "Generate MipMap", true);
-#endif
             glGenerateMipmap(GL_TEXTURE_2D);
         }
         LogDebug(std::format("Successfully loaded texture at path: {}", path.data()));
@@ -264,7 +257,7 @@ bool Texture::LoadCubemap(const core::pb::Texture& textureInfo)
             return false;
         }
 
-        glCreateTextures(GL_TEXTURE_CUBE_MAP, 1, &name);
+        glGenTextures(1, &name);
         glBindTexture(GL_TEXTURE_CUBE_MAP, name);
 
         GLint wrappingMode = GL_REPEAT;
@@ -526,9 +519,6 @@ bool Texture::LoadHdrTexture(const core::pb::Texture& textureInfo)
 
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, minFilterMode);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, magFilterMode);
-#ifdef TRACY_ENABLE
-        TracyGpuNamedZone(loadTexture, "Load Texture", true);
-#endif
         switch (channelInFile)
         {
         case 1:
@@ -564,9 +554,6 @@ bool Texture::LoadHdrTexture(const core::pb::Texture& textureInfo)
         glCheckError();
         if (textureInfo.generate_mipmaps())
         {
-#ifdef TRACY_ENABLE
-            TracyGpuNamedZone(generateMipMap, "Generate MipMap", true);
-#endif
             glGenerateMipmap(GL_TEXTURE_2D);
         }
         LogDebug(std::format("Successfully loaded texture at path: {}", path.data()));

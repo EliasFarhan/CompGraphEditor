@@ -46,75 +46,20 @@ void Engine::Run()
     Begin();
     bool isOpen = true;
 
-    jobs_[(int)JobIndex::EVENT] = std::make_unique<neko::FuncJob>([this, &isOpen](){
-        //Manage SDL event
-        SDL_Event event;
-        while(SDL_PollEvent(&event))
-        {
-            switch(event.type)
-            {
-                case SDL_EVENT_QUIT:
-                    isOpen = false;
-                    break;
+    jobs_[(int)JobIndex::EVENT] = std::make_unique<EventJob>(this, isOpen);
 
-                case SDL_EVENT_WINDOW_CLOSE_REQUESTED:
-                    isOpen = false;
-                    break;
-                case SDL_EVENT_WINDOW_RESIZED: {
-                    glm::uvec2 newWindowSize;
-                    newWindowSize.x = event.window.data1;
-                    newWindowSize.y = event.window.data2;
-                    ResizeWindow(newWindowSize);
-                    auto* windowSize = config_.mutable_window_size();
-                    windowSize->set_x(newWindowSize.x);
-                    windowSize->set_y(newWindowSize.y);
-                    break;
-                }
-                default:
-                    break;
-            }
-            for(auto* eventInterface: onEventInterfaces)
-            {
-                eventInterface->OnEvent(event);
-            }
-            if (!config_.no_imgui())
-            {
-                ImGui_ImplSDL3_ProcessEvent(&event);
-            }
-        }
-    });
-
-    jobs_[(int)JobIndex::PRE_UPDATE] = std::make_unique<neko::FuncDependentJob>(jobs_[(int)JobIndex::EVENT].get(), [this](){
-        PreUpdate();
-    });
+    jobs_[(int)JobIndex::PRE_UPDATE] = std::make_unique<PreUpdateJob>(jobs_[(int)JobIndex::EVENT].get(), this);
     using seconds = std::chrono::duration<float, std::ratio<1,1>>;
     seconds dt;
-    jobs_[(int)JobIndex::UPDATE]  = std::make_unique<neko::FuncDependentJob>(jobs_[(int)JobIndex::PRE_UPDATE].get(), [this, &dt](){
-        for(auto* system : systems_)
-        {
-            system->Update(dt.count());
-        }
-    });
+    jobs_[(int)JobIndex::UPDATE]  = std::make_unique<UpdateJob>(jobs_[(int)JobIndex::PRE_UPDATE].get(), this, dt);
 
-    jobs_[(int)JobIndex::PRE_IMGUI] = std::make_unique<neko::FuncDependentJob>(jobs_[(int)JobIndex::UPDATE].get(), [this](){
-        //Generate new ImGui frame
-        PreImGuiDraw();
-    });
+    jobs_[(int)JobIndex::PRE_IMGUI] = std::make_unique<PreImGuiJob>(jobs_[(int)JobIndex::UPDATE].get(), this);
 
-    jobs_[(int)JobIndex::IMGUI_DRAW]  = std::make_unique<neko::FuncDependentJob>(jobs_[(int)JobIndex::PRE_IMGUI].get(), [this](){
-        for(auto* imguiDrawInterface : imguiDrawInterfaces)
-        {
-            imguiDrawInterface->OnGui();
-        }
-    });
+    jobs_[(int)JobIndex::IMGUI_DRAW]  = std::make_unique<ImGuiDrawJob>(jobs_[(int)JobIndex::PRE_IMGUI].get(), this);
 
-    jobs_[(int)JobIndex::POST_IMGUI]  = std::make_unique<neko::FuncDependentJob>(jobs_[(int)JobIndex::IMGUI_DRAW].get() , [this](){
-        PostImGuiDraw();
-    });
+    jobs_[(int)JobIndex::POST_IMGUI]  = std::make_unique<PostImGuiJob>(jobs_[(int)JobIndex::IMGUI_DRAW].get(), this);
 
-    jobs_[(int)JobIndex::SWAP_WINDOW] = std::make_unique<neko::FuncDependentJob>(jobs_[(int)JobIndex::POST_IMGUI].get(), [this](){
-       SwapWindow();
-    });
+    jobs_[(int)JobIndex::SWAP_WINDOW] = std::make_unique<SwapWindowJob>(jobs_[(int)JobIndex::POST_IMGUI].get(), this);
 
     std::chrono::time_point<std::chrono::system_clock> clock = std::chrono::system_clock::now();
     while(isOpen)
@@ -154,6 +99,82 @@ void Engine::End()
     WriteString(configFilename, config_.SerializeAsString());
 
 }
+Engine::EventJob::EventJob(Engine* engine, bool& isOpen):
+    engine_(engine), isOpen_(isOpen) {}
+void Engine::EventJob::ExecuteImpl()
+{
+    //Manage SDL event
+    SDL_Event event;
+    while(SDL_PollEvent(&event))
+    {
+        switch(event.type)
+        {
+        case SDL_EVENT_QUIT:
+            isOpen_ = false;
+            break;
+
+        case SDL_EVENT_WINDOW_CLOSE_REQUESTED:
+            isOpen_ = false;
+            break;
+        case SDL_EVENT_WINDOW_RESIZED: {
+            glm::uvec2 newWindowSize;
+            newWindowSize.x = event.window.data1;
+            newWindowSize.y = event.window.data2;
+            engine_->ResizeWindow(newWindowSize);
+            auto* windowSize = engine_->config_.mutable_window_size();
+            windowSize->set_x(newWindowSize.x);
+            windowSize->set_y(newWindowSize.y);
+            break;
+        }
+        default:
+            break;
+        }
+        for(auto* eventInterface: engine_->onEventInterfaces)
+        {
+            eventInterface->OnEvent(event);
+        }
+        if (!engine_->config_.no_imgui())
+        {
+            ImGui_ImplSDL3_ProcessEvent(&event);
+        }
+    }
+}
+Engine::PreUpdateJob::PreUpdateJob(Job* parentJob, Engine* engine): engine_(engine), DependentJob(parentJob) {}
+void Engine::PreUpdateJob::ExecuteImpl()
+{
+    engine_->PreUpdate();
+}
+Engine::UpdateJob::UpdateJob(Job* parentJob, Engine* engine, const seconds& dt): engine_(engine), dt_(dt), DependentJob(parentJob) {}
+void Engine::UpdateJob::ExecuteImpl()
+{
+    for(auto* system : engine_->systems_)
+    {
+        system->Update(dt_.count());
+    }
+}
+Engine::PreImGuiJob::PreImGuiJob(Job* parentJob, Engine* engine):engine_(engine), DependentJob(parentJob) {}
+void Engine::PreImGuiJob::ExecuteImpl()
+{
+    engine_->PreImGuiDraw();
+}
+Engine::ImGuiDrawJob::ImGuiDrawJob(Job* parentJob, Engine* engine):engine_(engine), DependentJob(parentJob) {}
+void Engine::ImGuiDrawJob::ExecuteImpl()
+{
+    for(auto* imguiDrawInterface : engine_->imguiDrawInterfaces_)
+    {
+        imguiDrawInterface->OnGui();
+    }
+}
+Engine::PostImGuiJob::PostImGuiJob(Job* parentJob, Engine* engine):engine_(engine), DependentJob(parentJob) {}
+void Engine::PostImGuiJob::ExecuteImpl()
+{
+    engine_->PostImGuiDraw();
+}
+Engine::SwapWindowJob::SwapWindowJob(Job* parentJob, Engine* engine): engine_(engine), DependentJob(parentJob) {}
+void Engine::SwapWindowJob::ExecuteImpl()
+{
+    engine_->SwapWindow();
+}
 
 void Engine::RegisterEventObserver(OnEventInterface* eventInterface)
 {
@@ -162,7 +183,7 @@ void Engine::RegisterEventObserver(OnEventInterface* eventInterface)
 
 void Engine::RegisterOnGuiInterface(OnGuiInterface* imguiDrawInterface)
 {
-    imguiDrawInterfaces.push_back(imguiDrawInterface);
+    imguiDrawInterfaces_.push_back(imguiDrawInterface);
 }
 
 void Engine::RegisterSystem(System* system)
@@ -182,7 +203,7 @@ Engine::Engine()
     ZoneScoped;
 #endif
     instance = this;
-
+    SDL_SetLogPriority(SDL_LOG_CATEGORY_APPLICATION, SDL_LOG_PRIORITY_DEBUG);
     if(IsRegularFile(configFilename))
     {
         const auto file = LoadFile(configFilename);

@@ -1,7 +1,7 @@
 #pragma once
 
 #include "proto/renderer.pb.h"
-#include <GL/glew.h>
+#include "gl/include.h"
 #include <glm/vec2.hpp>
 
 #include "renderer/framebuffer.h"

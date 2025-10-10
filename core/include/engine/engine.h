@@ -78,10 +78,75 @@ protected:
 
     std::array<std::unique_ptr<neko::Job>, (int)JobIndex::LENGTH> jobs_;
 private:
+    class EventJob final : public neko::Job
+    {
+    public:
+        explicit EventJob(Engine* engine, bool& isOpen);
+        void ExecuteImpl() override;
+    private:
+        Engine* engine_;
+        bool& isOpen_;
+    };
+    friend class EventJob;
+    class PreUpdateJob final : public neko::DependentJob
+    {
+    public:
+        explicit PreUpdateJob(Job* parentJob, Engine* engine);
+        void ExecuteImpl() override;
+    private:
+        Engine* engine_;
+    };
+    friend class PreUpdateJob;
+    class UpdateJob final : public neko::DependentJob
+    {
+    public:
+        using seconds = std::chrono::duration<float, std::ratio<1,1>>;
+        explicit UpdateJob(Job* parentJob, Engine* engine, const seconds& dt);
+        void ExecuteImpl() override;
+    private:
+        Engine* engine_;
+        const seconds& dt_;
+    };
+    friend class UpdateJob;
+    class PreImGuiJob final : public neko::DependentJob
+    {
+    public:
+        explicit PreImGuiJob(Job* parentJob, Engine* engine);
+        void ExecuteImpl() override;
+    private:
+        Engine* engine_;
+    };
+    class ImGuiDrawJob final : public neko::DependentJob
+    {
+    public:
+        explicit ImGuiDrawJob(Job* parentJob, Engine* engine);
+        void ExecuteImpl() override;
+    private:
+        Engine* engine_;
+    };
+    friend class ImGuiDrawJob;
+    class PostImGuiJob final : public neko::DependentJob
+    {
+    public:
+        explicit PostImGuiJob(Job* parentJob, Engine* engine);
+        void ExecuteImpl() override;
+    private:
+        Engine* engine_;
+    };
+    friend class PostImGuiJob;
+    class SwapWindowJob : public neko::DependentJob
+    {
+    public:
+        explicit SwapWindowJob(Job* parentJob, Engine* engine);
+        void ExecuteImpl() override;
+    private:
+        Engine* engine_;
+    };
+    friend class SwapWindowJob;
     core::ModelManager modelManager_;
     std::vector<System*> systems_;
     std::vector<OnEventInterface*> onEventInterfaces;
-    std::vector<OnGuiInterface*> imguiDrawInterfaces;
+    std::vector<OnGuiInterface*> imguiDrawInterfaces_;
 }; 
 
 glm::uvec2 GetWindowSize();

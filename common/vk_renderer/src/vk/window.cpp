@@ -1,61 +1,47 @@
 #include "vk/window.h"
-#include "vk/utils.h"
 #include "utils/log.h"
 #include "vk/engine.h"
+#include "vk/utils.h"
 
-#include <format>
 #include <SDL3/SDL_vulkan.h>
+#include <format>
 
 
 namespace vk
 {
 static Window* instance = nullptr;
 
-Window::Window(const core::pb::Config& config) : config_(config)
-{
-    instance = this;
-}
+Window::Window(const core::pb::Config& config) : config_(config) { instance = this; }
 
 void Window::Begin()
 {
     CreateWindow();
     CreateInstance();
-    SetupDebugMessenger();
     CreateSurface();
-    driver_.physicalDevice = PickPhysicalDevice(driver_.instance, driver_.surface);
-    VkPhysicalDeviceProperties properties{};
-    vkGetPhysicalDeviceProperties(driver_.physicalDevice, &properties);
-    driver_.maxAnisotropy = properties.limits.maxSamplerAnisotropy;
     CreateLogicalDevice();
 }
 
 void Window::End()
 {
     LogDebug("Destroy Window");
-    vkDestroyDevice(driver_.device, nullptr);
-    if (config_.enable_debug())
-    {
-        DestroyDebugUtilsMessengerEXT(driver_.instance, debugMessenger_, nullptr);
-    }
+    vkb::destroy_device(driver_.vkbDevice);
     vkDestroySurfaceKHR(driver_.instance, driver_.surface, nullptr);
 
-    vkDestroyInstance(driver_.instance, nullptr);
+    //vkb::destroy_debug_utils_messenger(driver_.instance, driver_.instance.debug_messenger);
+    vkb::destroy_instance(driver_.instance);
 }
 
-void Window::CreateWindow() {
+void Window::CreateWindow()
+{
     LogDebug("Creating SDL window with Vulkan enabled");
     int windowFlags = SDL_WINDOW_VULKAN | SDL_WINDOW_RESIZABLE;
-    if(config_.fullscreen())
+    if (config_.fullscreen())
     {
         windowFlags |= SDL_WINDOW_FULLSCREEN;
     }
-    window_ = SDL_CreateWindow(
-            config_.window_name().c_str(),
-            config_.window_size().x(),
-            config_.window_size().y(),
-            windowFlags
-    );
-    if(!window_)
+    window_ = SDL_CreateWindow(config_.window_name().c_str(), config_.window_size().x(), config_.window_size().y(),
+                               windowFlags);
+    if (!window_)
     {
         LogError("Could not create SDL window");
         std::terminate();
@@ -64,143 +50,86 @@ void Window::CreateWindow() {
 
 void Window::CreateInstance()
 {
-    if(volkInitialize() != VK_SUCCESS)
+    if (volkInitialize() != VK_SUCCESS)
     {
         LogError("Could not initialize volk!");
         std::terminate();
     }
 
     LogDebug("Creating Instance");
-    if (config_.enable_debug() && !CheckValidationLayerSupport())
-    {
-        LogError("Validation layers requested, but not available!");
-        std::terminate();
-    }
-    VkApplicationInfo appInfo{};
-    appInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
-    appInfo.pApplicationName = config_.window_name().c_str();
-    appInfo.applicationVersion = VK_MAKE_VERSION(1, 0, 0);
-    appInfo.pEngineName = "Neko2 engine";
-    appInfo.engineVersion = VK_MAKE_VERSION(1, 0, 0);
-    appInfo.apiVersion = GetVulkanVersion();
+    vkb::InstanceBuilder builder;
 
-    VkInstanceCreateInfo instanceCreateInfo{};
-    instanceCreateInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
-    instanceCreateInfo.pApplicationInfo = &appInfo;
-
-
-
-
-    std::array<std::string_view, 2> additionalExtensions =
-            {
-                    VK_EXT_DEBUG_REPORT_EXTENSION_NAME, // example additional extension
-                    VK_EXT_DEBUG_UTILS_EXTENSION_NAME //adding validation layers
-            };
-
-    std::vector<const char*> extensionNames;
-    unsigned int count;
-    // get names of required extensions
-    if (auto* sdlExtensionNames = SDL_Vulkan_GetInstanceExtensions(&count))
-    {
-        extensionNames.resize(count+additionalExtensions.size());
-        for (size_t i = 0; i < count; i++)
+    std::array<const char*, 2> additionalExtensions = {
+        VK_EXT_DEBUG_REPORT_EXTENSION_NAME, // example additional extension
+        VK_EXT_DEBUG_UTILS_EXTENSION_NAME // adding validation layers
+    };
+    builder.set_app_name(config_.window_name().c_str())
+        .set_engine_name("Neko2 engine")
+        .require_api_version(config_.major_version(), config_.minor_version())
+        .request_validation_layers(config_.enable_debug())
+        .enable_extensions(additionalExtensions.size(), additionalExtensions.data());
+    builder.set_debug_callback(
+        [](VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity, VkDebugUtilsMessageTypeFlagsEXT messageType,
+           const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData, void*) -> VkBool32
         {
-            extensionNames[i] = sdlExtensionNames[i];
-        }
-    }
-    else
+            if (messageSeverity & VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT)
+            {
+                LogError(std::format("[{}: {}] {}\n", vkb::to_string_message_severity(messageSeverity),
+                                     vkb::to_string_message_type(messageType), pCallbackData->pMessage));
+            }
+            if (messageSeverity & VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT)
+            {
+                LogWarning(std::format("[{}: {}] {}\n", vkb::to_string_message_severity(messageSeverity),
+                                       vkb::to_string_message_type(messageType), pCallbackData->pMessage));
+            }
+            if (messageSeverity & VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT)
+            {
+                LogDebug(std::format("[{}: {}] {}\n", vkb::to_string_message_severity(messageSeverity),
+                                     vkb::to_string_message_type(messageType), pCallbackData->pMessage));
+            }
+            // Return false to move on, but return true for validation to skip passing down the call to the driver
+            return VK_TRUE;
+        });
+    auto instRet = builder.build();
+    if (!instRet.has_value())
     {
-        LogError("SDL Vulkan, Cannot get instance extensions");
+        LogError("Could not create instance!");
         std::terminate();
     }
+    driver_.instance = instRet.value();
 
-    // copy additional extensions after required extensions
-    for (size_t i = 0; i < additionalExtensions.size(); i++)
-    {
-        extensionNames[i + count] = additionalExtensions[i].data();
-    }
-
-    LogDebug("Vulkan extensions:");
-    for (auto& extension : extensionNames)
-    {
-        if (extension == nullptr) continue;
-        LogDebug(extension);
-    }
-
-    instanceCreateInfo.enabledExtensionCount = static_cast<uint32_t>(extensionNames.size());
-    instanceCreateInfo.ppEnabledExtensionNames = extensionNames.data();
-
-    VkDebugUtilsMessengerCreateInfoEXT debugCreateInfo{};
-    if (config_.enable_debug())
-    {
-        instanceCreateInfo.enabledLayerCount = static_cast<uint32_t>(validationLayers.size());
-        instanceCreateInfo.ppEnabledLayerNames = validationLayers.data();
-
-        PopulateDebugMessengerCreateInfo(debugCreateInfo);
-        instanceCreateInfo.pNext = &debugCreateInfo;
-
-    }
-    else
-    {
-        instanceCreateInfo.enabledLayerCount = 0;
-        instanceCreateInfo.pNext = nullptr;
-    }
-
-    if (vkCreateInstance(&instanceCreateInfo, nullptr, &driver_.instance) != VK_SUCCESS)
-    {
-        LogError("Failed to create instance!\n");
-        std::terminate();
-    }
-    volkLoadInstance(driver_.instance);
-
+    volkLoadInstanceOnly(driver_.instance);
 }
 
-void Window::SetupDebugMessenger()
+
+void Window::CreateLogicalDevice()
 {
-    if (!config_.enable_debug())
-    {
-        return;
-    }
-    VkDebugUtilsMessengerCreateInfoEXT createInfo{};
-    PopulateDebugMessengerCreateInfo(createInfo);
-    if (CreateDebugUtilsMessengerEXT(driver_.instance, &createInfo, nullptr,
-                                     &debugMessenger_) !=
-        VK_SUCCESS)
-    {
-        LogWarning("Failed to set up debug messenger!");
-    }
-}
-
-void Window::CreateLogicalDevice() {
     LogDebug("[Log] Creating Logical Device");
-    QueueFamilyIndices indices = FindQueueFamilies(driver_.physicalDevice, driver_.surface);
-
-
-    std::vector<VkDeviceQueueCreateInfo> queueCreateInfos;
-    std::set<uint32_t> uniqueQueueFamilies = { indices.graphicsFamily.value(), indices.presentFamily.value() };
-    float queuePriority = 1.0f;
-    for (uint32_t queueFamily : uniqueQueueFamilies)
-    {
-        VkDeviceQueueCreateInfo queueCreateInfo{};
-        queueCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
-        queueCreateInfo.queueFamilyIndex = queueFamily;
-        queueCreateInfo.queueCount = 1;
-        queueCreateInfo.pQueuePriorities = &queuePriority;
-        queueCreateInfos.push_back(queueCreateInfo);
-    }
-
 
     VkPhysicalDeviceFeatures deviceFeatures{};
     deviceFeatures.samplerAnisotropy = VK_TRUE;
-    
 
-    VkDeviceCreateInfo createInfo{};
-    createInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
-    createInfo.pQueueCreateInfos = queueCreateInfos.data();
-    createInfo.queueCreateInfoCount = static_cast<std::uint32_t>(queueCreateInfos.size());
+    vkb::PhysicalDeviceSelector selector{driver_.instance};
+    auto physRet = selector.prefer_gpu_device_type(vkb::PreferredDeviceType::discrete)
+                       .require_present()
+                       .set_surface(driver_.surface)
+                        .add_required_extension("VK_EXT_extended_dynamic_state")
+                       .set_required_features(deviceFeatures)
+                        .set_minimum_version(config_.major_version(), config_.minor_version())
+                       .select();
+    if (!physRet)
+    {
+        LogError(std::format("Failed to select Vulkan Physical Device. Error: {}", physRet.error().message()));
+        std::terminate();
+    }
+    driver_.physicalDevice = physRet.value().physical_device;
 
-    createInfo.pEnabledFeatures = &deviceFeatures;
 
+    VkPhysicalDeviceProperties properties{};
+    vkGetPhysicalDeviceProperties(driver_.physicalDevice, &properties);
+    driver_.maxAnisotropy = properties.limits.maxSamplerAnisotropy;
+
+    // Checking if raytracing features can be enabled
     VkPhysicalDeviceBufferDeviceAddressFeaturesKHR addressFeaturesKhr{};
     addressFeaturesKhr.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_BUFFER_DEVICE_ADDRESS_FEATURES;
     addressFeaturesKhr.bufferDeviceAddress = VK_TRUE;
@@ -209,190 +138,117 @@ void Window::CreateLogicalDevice() {
     VkPhysicalDeviceAccelerationStructureFeaturesKHR accelerationStructureFeaturesKhr{};
     accelerationStructureFeaturesKhr.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_ACCELERATION_STRUCTURE_FEATURES_KHR;
     accelerationStructureFeaturesKhr.accelerationStructure = VK_TRUE;
-    accelerationStructureFeaturesKhr.pNext = &addressFeaturesKhr;
 
 
     VkPhysicalDeviceRayTracingPipelineFeaturesKHR pipelineFeaturesKhr{};
     pipelineFeaturesKhr.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_RAY_TRACING_PIPELINE_FEATURES_KHR;
     pipelineFeaturesKhr.rayTracingPipeline = VK_TRUE;
-    pipelineFeaturesKhr.pNext = &accelerationStructureFeaturesKhr;
 
+    const bool hasPipelineFeaturesKhr = physRet->enable_extension_features_if_present(pipelineFeaturesKhr);
+    const bool hasAddressFeaturesKhr = physRet->enable_extension_features_if_present(addressFeaturesKhr);
+    const bool hasAccelerationStructureFeaturesKhr =
+        physRet->enable_extension_features_if_present(accelerationStructureFeaturesKhr);
 
-    std::vector allDeviceExtensions(deviceExtensions.cbegin(), deviceExtensions.cend());
-    if(CheckRaytracingExtensionSupport(driver_.physicalDevice))
+    std::vector raytracingDeviceExtensions(vk::raytracingDeviceExtensions.begin(),
+                                           vk::raytracingDeviceExtensions.end());
+    const bool hasRaytracingExtensions = physRet->enable_extensions_if_present(raytracingDeviceExtensions);
+    if (hasAccelerationStructureFeaturesKhr && hasAddressFeaturesKhr && hasPipelineFeaturesKhr &&
+        hasRaytracingExtensions)
     {
         hasRaytracing_ = true;
-        LogDebug("Adding Raytracing Device Extensions");
-        allDeviceExtensions.insert(
-            allDeviceExtensions.end(), 
-            raytracingDeviceExtensions.cbegin(), 
-            raytracingDeviceExtensions.cend());
 
-        createInfo.pNext = &pipelineFeaturesKhr;
-
-        // Get ray tracing pipeline properties, which will be used later on in the sample
         rayTracingPipelineProperties_.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_RAY_TRACING_PIPELINE_PROPERTIES_KHR;
-        VkPhysicalDeviceProperties2 deviceProperties2{};
-        deviceProperties2.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PROPERTIES_2;
-        deviceProperties2.pNext = &rayTracingPipelineProperties_;
-        vkGetPhysicalDeviceProperties2(driver_.physicalDevice, &deviceProperties2);
 
-        // Get acceleration structure properties, which will be used later on in the sample
+        VkPhysicalDeviceProperties2 deviceProps2 = {};
+        deviceProps2.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PROPERTIES_2;
+        deviceProps2.pNext = &rayTracingPipelineProperties_;
+
+        vkGetPhysicalDeviceProperties2(driver_.physicalDevice, &deviceProps2);
+
         accelerationStructureFeatures_.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_ACCELERATION_STRUCTURE_FEATURES_KHR;
         VkPhysicalDeviceFeatures2 deviceFeatures2{};
         deviceFeatures2.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2;
         deviceFeatures2.pNext = &accelerationStructureFeatures_;
         vkGetPhysicalDeviceFeatures2(driver_.physicalDevice, &deviceFeatures2);
     }
-    createInfo.enabledExtensionCount = static_cast<std::uint32_t>(allDeviceExtensions.size());
-    createInfo.ppEnabledExtensionNames = allDeviceExtensions.data();
 
-    if (config_.enable_debug())
-    {
-        createInfo.enabledLayerCount = static_cast<uint32_t>(validationLayers.size());
-        createInfo.ppEnabledLayerNames = validationLayers.data();
-    }
-    else
-    {
-        createInfo.enabledLayerCount = 0;
-    }
 
-    if (vkCreateDevice(driver_.physicalDevice, &createInfo, nullptr, &driver_.device) != VK_SUCCESS)
+    vkb::DeviceBuilder deviceBuilder{physRet.value()};
+    auto deviceRet = deviceBuilder.build();
+    if (!deviceRet)
     {
-        LogError("[Error] Failed to create logical device!");
+        LogError(std::format("Failed to create Vulkan device. Error: {}", deviceRet.error().message()));
         std::terminate();
     }
-    vkGetDeviceQueue(driver_.device, indices.graphicsFamily.value(), 0, &driver_.graphicsQueue);
-    vkGetDeviceQueue(driver_.device, indices.presentFamily.value(), 0, &driver_.presentQueue);
+    driver_.vkbDevice = deviceRet.value();
+    driver_.device = deviceRet.value().device;
+
+    auto graphicsQueue = driver_.vkbDevice.get_queue(vkb::QueueType::graphics);
+    if (!graphicsQueue.has_value())
+    {
+        LogError("[Error] Failed to create graphics queue!");
+        std::terminate();
+    }
+    driver_.graphicsQueue = graphicsQueue.value();
+    auto presentQueue = driver_.vkbDevice.get_queue(vkb::QueueType::present);
+    if (!presentQueue.has_value())
+    {
+        LogError("[Error] Failed to create present queue!");
+        std::terminate();
+    }
+    driver_.presentQueue = presentQueue.value();
     volkLoadDevice(driver_.device);
 }
 
 void Window::CreateSurface()
 {
     LogDebug("Creating Surface");
-    if (!SDL_Vulkan_CreateSurface(window_, driver_.instance, nullptr, &driver_.surface))
+    if (!SDL_Vulkan_CreateSurface(window_, driver_.instance.instance, nullptr, &driver_.surface))
     {
         LogError("[Vulkan] Failed to create a window surface!");
         std::terminate();
     }
 }
 
-void Window::CreateSwapChain()
+void Window::CreateSwapchain()
 {
     LogDebug("[Vulkan] Create SwapChain");
-    SwapChainSupportDetails swapChainSupport = QuerySwapChainSupport(driver_.physicalDevice, driver_.surface);
-
-    VkSurfaceFormatKHR surfaceFormat = ChooseSwapSurfaceFormat(swapChainSupport.formats);
-    // We choose double buffering
-    VkPresentModeKHR presentMode = VK_PRESENT_MODE_FIFO_KHR;
-    VkExtent2D extent = ChooseSwapExtent(swapChainSupport.capabilities);
-    LogDebug(std::format("[Vulkan] Swapchain support, minImageCount: {} maxImageCount: {}",
-                               swapChainSupport.capabilities.minImageCount,
-                               swapChainSupport.capabilities.maxImageCount));
-    swapchain_.minImageCount = swapChainSupport.capabilities.minImageCount;
-    //Weird hack to make ImGui work on AMD? Because it requires minImageCount to be minimum 2...
-    if (swapchain_.minImageCount < 2 && swapChainSupport.capabilities.maxImageCount >= 3)
+    vkb::SwapchainBuilder swapchainBuilder{driver_.vkbDevice};
+    auto swapchainRet = swapchainBuilder
+        .set_desired_min_image_count(2)
+        .set_desired_present_mode(VK_PRESENT_MODE_FIFO_KHR)
+        .set_old_swapchain(swapchain_.vkbSwapchain)
+        .build();
+    if (!swapchainRet)
     {
-        swapchain_.minImageCount = 2;
+        throw std::runtime_error(std::format("{} {}", swapchainRet.error().message(), (int)swapchainRet.vk_result()));
     }
-    swapchain_.imageCount = swapchain_.minImageCount + 1;
-
-    if (swapChainSupport.capabilities.maxImageCount > 0 && swapchain_.imageCount > swapChainSupport.capabilities.maxImageCount)
-    {
-        swapchain_.imageCount = swapChainSupport.capabilities.maxImageCount;
-    }
-
-    LogDebug(std::format("[Vulkan] Image count: {}, min image count: {}", swapchain_.imageCount, swapchain_.minImageCount));
-
-    VkSwapchainCreateInfoKHR createInfo{};
-    createInfo.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
-    createInfo.surface = driver_.surface;
-
-    createInfo.minImageCount = swapchain_.imageCount;
-    createInfo.imageFormat = surfaceFormat.format;
-    createInfo.imageColorSpace = surfaceFormat.colorSpace;
-    createInfo.imageExtent = extent;
-    createInfo.imageArrayLayers = 1;
-    createInfo.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT;
+    vkb::destroy_swapchain(swapchain_.vkbSwapchain);
+    swapchain_.vkbSwapchain = swapchainRet.value();
+    swapchain_.swapchain = swapchain_.vkbSwapchain.swapchain;
+    swapchain_.imageCount = swapchain_.vkbSwapchain.image_count;
+    swapchain_.imageFormat = swapchain_.vkbSwapchain.image_format;
+    swapchain_.extent = swapchain_.vkbSwapchain.extent;
+    swapchain_.minImageCount = swapchain_.vkbSwapchain.requested_min_image_count;
+    swapchain_.images = swapchain_.vkbSwapchain.get_images().value();
 
 
-    QueueFamilyIndices indices = FindQueueFamilies(driver_.physicalDevice, driver_.surface);
-    uint32_t queueFamilyIndices[] = { indices.graphicsFamily.value(), indices.presentFamily.value() };
-
-    if (indices.graphicsFamily != indices.presentFamily)
-    {
-        createInfo.imageSharingMode = VK_SHARING_MODE_CONCURRENT;
-        createInfo.queueFamilyIndexCount = 2;
-        createInfo.pQueueFamilyIndices = queueFamilyIndices;
-    }
-    else
-    {
-        createInfo.imageSharingMode = VK_SHARING_MODE_EXCLUSIVE;
-        createInfo.queueFamilyIndexCount = 0; // Optional
-        createInfo.pQueueFamilyIndices = nullptr; // Optional
-    }
-    createInfo.preTransform = swapChainSupport.capabilities.currentTransform;
-    createInfo.compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
-
-    createInfo.presentMode = presentMode;
-    createInfo.clipped = VK_TRUE;
-    createInfo.oldSwapchain = VK_NULL_HANDLE;
-
-    if (vkCreateSwapchainKHR(driver_.device, &createInfo, nullptr, &swapchain_.swapChain) != VK_SUCCESS)
-    {
-        LogError("Failed to create swap chain!");
-        std::terminate();
-    }
-    //Adding images
-    vkGetSwapchainImagesKHR(driver_.device, swapchain_.swapChain, &swapchain_.imageCount, nullptr);
-    swapchain_.images.resize(swapchain_.imageCount);
-    vkGetSwapchainImagesKHR(driver_.device, swapchain_.swapChain, &swapchain_.imageCount, swapchain_.images.data());
-
-    swapchain_.imageFormat = surfaceFormat.format;
-    swapchain_.extent = extent;
+    LogDebug(
+        std::format("[Vulkan] Image count: {}, min image count: {}", swapchain_.imageCount, swapchain_.minImageCount));
 }
 
 void Window::CreateImageViews()
 {
     LogDebug("Create Image Views");
-    swapchain_.imageViews.resize(swapchain_.images.size());
-    for (size_t i = 0; i < swapchain_.images.size(); i++)
-    {
-        VkImageViewCreateInfo createInfo{};
-        createInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
-        createInfo.image = swapchain_.images[i];
-        createInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
-        createInfo.format = swapchain_.imageFormat;
-        createInfo.components.r = VK_COMPONENT_SWIZZLE_IDENTITY;
-        createInfo.components.g = VK_COMPONENT_SWIZZLE_IDENTITY;
-        createInfo.components.b = VK_COMPONENT_SWIZZLE_IDENTITY;
-        createInfo.components.a = VK_COMPONENT_SWIZZLE_IDENTITY;
-        createInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-        createInfo.subresourceRange.baseMipLevel = 0;
-        createInfo.subresourceRange.levelCount = 1;
-        createInfo.subresourceRange.baseArrayLayer = 0;
-        createInfo.subresourceRange.layerCount = 1;
-        if (vkCreateImageView(driver_.device, &createInfo, nullptr, &swapchain_.imageViews[i]) != VK_SUCCESS)
-        {
-            LogError("[Error] Failed to create image views!");
-            std::terminate();
-        }
-    }
+    swapchain_.imageViews = swapchain_.vkbSwapchain.get_image_views().value();
 }
 
 void Window::CreateDepthResources()
 {
     const VkFormat depthFormat = FindDepthFormat(driver_.physicalDevice);
-    auto& engine = GetEngine();
-    swapchain_.depthImage = CreateImage(
-        swapchain_.extent.width,
-        swapchain_.extent.height,
-        depthFormat,
-        1,
-        VK_IMAGE_TILING_OPTIMAL,
-        VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT,
-        VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
-        1);
+    swapchain_.depthImage =
+        CreateImage(swapchain_.extent.width, swapchain_.extent.height, depthFormat, 1, VK_IMAGE_TILING_OPTIMAL,
+                    VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, 1);
 
     VkImageViewCreateInfo createInfo{};
     createInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
@@ -418,23 +274,22 @@ void Window::CreateDepthResources()
 void Window::CleanupSwapChain()
 {
     LogDebug("Cleanup Swapchain");
-    for (const auto& imageView : swapchain_.imageViews)
-    {
-        vkDestroyImageView(driver_.device, imageView, nullptr);
-    }
     vkDestroyImageView(driver_.device, swapchain_.depthImageView, nullptr);
     vmaDestroyImage(GetAllocator(), swapchain_.depthImage.image, swapchain_.depthImage.allocation);
-    vkDestroySwapchainKHR(driver_.device, swapchain_.swapChain, nullptr);
+
+    swapchain_.vkbSwapchain.destroy_image_views(swapchain_.imageViews);
+    vkb::destroy_swapchain(swapchain_.vkbSwapchain);
 }
 
 void Window::CreateSwapChainObjects()
 {
-    CreateSwapChain();
+    CreateSwapchain();
     CreateImageViews();
     CreateDepthResources();
 }
 
-VkExtent2D Window::ChooseSwapExtent(const VkSurfaceCapabilitiesKHR &capabilities) const {
+VkExtent2D Window::ChooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities) const
+{
     if (capabilities.currentExtent.width != std::numeric_limits<std::uint32_t>::max())
     {
         return capabilities.currentExtent;
@@ -442,34 +297,24 @@ VkExtent2D Window::ChooseSwapExtent(const VkSurfaceCapabilitiesKHR &capabilities
     int width, height;
     SDL_GetWindowSize(window_, &width, &height);
 
-    VkExtent2D actualExtent = {
-            static_cast<uint32_t>(width),
-            static_cast<uint32_t>(height)
-    };
+    VkExtent2D actualExtent = {static_cast<uint32_t>(width), static_cast<uint32_t>(height)};
 
-    actualExtent.width = std::max(capabilities.minImageExtent.width, std::min(capabilities.maxImageExtent.width, actualExtent.width));
-    actualExtent.height = std::max(capabilities.minImageExtent.height, std::min(capabilities.maxImageExtent.height, actualExtent.height));
+    actualExtent.width =
+        std::max(capabilities.minImageExtent.width, std::min(capabilities.maxImageExtent.width, actualExtent.width));
+    actualExtent.height =
+        std::max(capabilities.minImageExtent.height, std::min(capabilities.maxImageExtent.height, actualExtent.height));
 
     return actualExtent;
 }
 
-Driver& GetDriver()
-{
-    return instance->GetDriver();
-}
+Driver& GetDriver() { return instance->GetDriver(); }
 
-Swapchain& GetSwapchain()
-{
-    return instance->GetSwapChain();
-}
+Swapchain& GetSwapchain() { return instance->GetSwapChain(); }
 
-bool HasRaytracing()
-{
-    return instance->HasRaytracing();
-}
+bool HasRaytracing() { return instance->HasRaytracing(); }
 
 VkPhysicalDeviceRayTracingPipelinePropertiesKHR GetRayTracingPipelineProperties()
 {
     return instance->GetRayTracingPipelineProperties();
 }
-}
+} // namespace vk

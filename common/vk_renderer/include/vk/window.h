@@ -1,6 +1,8 @@
 #pragma once
 #include "proto/config.pb.h"
 #include <volk.h>
+
+#include <VkBootstrap.h>
 #include <SDL3/SDL.h>
 
 #include <vector>
@@ -13,9 +15,10 @@ namespace vk
 
 struct Driver
 {
-    VkInstance instance;
+    vkb::Instance instance;
     VkPhysicalDevice physicalDevice = VK_NULL_HANDLE;
-    VkDevice device = VK_NULL_HANDLE;
+    vkb::Device vkbDevice;
+    VkDevice device;
     VkQueue graphicsQueue;
     VkQueue presentQueue;
     VkSurfaceKHR surface;
@@ -24,7 +27,8 @@ struct Driver
 
 struct Swapchain
 {
-    VkSwapchainKHR swapChain;
+    vkb::Swapchain vkbSwapchain;
+    VkSwapchainKHR swapchain;
     std::vector<VkImage> images;
     std::vector<VkImageView> imageViews;
 
@@ -54,7 +58,10 @@ public:
     Swapchain& GetSwapChain() { return swapchain_; }
     SDL_Window* GetSdlWindow() const { return window_; }
     bool HasRaytracing() const { return hasRaytracing_; }
-    VkPhysicalDeviceRayTracingPipelinePropertiesKHR GetRayTracingPipelineProperties() const { return rayTracingPipelineProperties_; }
+    VkPhysicalDeviceRayTracingPipelinePropertiesKHR GetRayTracingPipelineProperties() const
+    {
+        return rayTracingPipelineProperties_;
+    }
 
 private:
 
@@ -62,12 +69,11 @@ private:
 
     void CreateInstance();
 
-    void SetupDebugMessenger();
 
     void CreateLogicalDevice();
 
     void CreateSurface();
-    void CreateSwapChain();
+    void CreateSwapchain();
     void CreateImageViews();
 
     void CreateDepthResources();
@@ -75,6 +81,7 @@ private:
     VkExtent2D ChooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities) const;
 
     SDL_Window* window_ = nullptr;
+    vkb::InstanceBuilder builder_;
     Driver driver_;
     Swapchain swapchain_;
     const core::pb::Config& config_;

@@ -2,7 +2,7 @@
 
 #include "renderer/texture.h"
 
-#include <GL/glew.h>
+#include "gl/include.h"
 #include "proto/renderer.pb.h"
 
 namespace gl

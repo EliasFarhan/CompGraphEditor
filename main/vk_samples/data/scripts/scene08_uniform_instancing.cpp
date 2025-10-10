@@ -21,7 +21,7 @@ static constexpr size_t planet_count = 1000;
 extern "C"
 {
 
-void WASM_EXPORT scene10_begin()
+void WASM_EXPORT scene08_begin()
 {
 	// Seed with a real random value, if available
 	std::random_device r;
@@ -42,7 +42,7 @@ void WASM_EXPORT scene10_begin()
 
 
 }
-void WASM_EXPORT scene10_update(float dt)
+void WASM_EXPORT scene08_update(float dt)
 {
 	for (auto& pos: positions)
 	{
@@ -55,25 +55,25 @@ void WASM_EXPORT scene10_update(float dt)
 		pos += vel * dt;
 	}
 }
-void WASM_EXPORT scene10_draw(int64_t drawCommandId)
+void WASM_EXPORT scene08_draw(int64_t drawCommandId)
 {
     script::DrawCommand drawCommand(drawCommandId);
 	const auto camera = script::GetSceneCamera();
 
     drawCommand.Bind();
-    drawCommand.SetMat4("view", camera.GetView());
-	drawCommand.SetMat4("projection", camera.GetProjection());
+    drawCommand.SetMat4("ubo.view", camera.GetView());
+	drawCommand.SetMat4("ubo.projection", camera.GetProjection());
 
 	for (size_t i = 0; i < positions.size(); ++i)
 	{
-		std::string uniformName = std::format("pos[{}]", i);
+		std::string uniformName = std::format("ubo.pos[{}]", i);
 		drawCommand.SetVec3(uniformName.c_str(), positions[i]);
 	}
 
 	drawCommand.Draw(positions.size());
 }
 
-void WASM_EXPORT scene10_end()
+void WASM_EXPORT scene08_end()
 {
 	positions.resize(0);
 }

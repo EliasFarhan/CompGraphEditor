@@ -1,12 +1,12 @@
 file(GLOB_RECURSE CORE_FILES src/*.cpp include/*.h)
 add_library(Core STATIC ${CORE_FILES})
-target_include_directories(Core PUBLIC include/ ${STB_INCLUDE_DIRS} ${Python3_INCLUDE_DIRS} ${CMAKE_CURRENT_BINARY_DIR}/)
+target_include_directories(Core PUBLIC include/ ${STB_INCLUDE_DIRS} ${CMAKE_CURRENT_BINARY_DIR}/)
 generate_proto(Core)
 
 set_target_properties (CoreProto PROPERTIES FOLDER Core)
 target_compile_definitions(Core PUBLIC GLM_ENABLE_EXPERIMENTAL)
-target_link_libraries(Core PUBLIC glm::glm SDL3::SDL3 imgui::imgui
-        spdlog::spdlog_header_only ktx assimp::assimp NekoCore)
+target_link_libraries(Core PUBLIC libktx)
+target_link_libraries(Core PUBLIC glm::glm SDL3::SDL3 imgui::imgui assimp NekoCore)
 
 if(ENABLE_PROFILING)
     target_link_libraries(Core PUBLIC Tracy::TracyClient)
