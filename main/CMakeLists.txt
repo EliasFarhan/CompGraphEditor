@@ -1,5 +1,6 @@
 add_subdirectory(editor)
 add_subdirectory(gl_samples)
 add_subdirectory(vk_samples)
+add_subdirectory(gpu_samples)
 add_subdirectory(utils)
 add_subdirectory(test)

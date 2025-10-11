@@ -1,6 +1,7 @@
 #pragma once
 
 #include "proto/renderer.pb.h"
+#include "generated/renderer_generated.h"
 
 #include <glm/vec2.hpp>
 #include <glm/vec3.hpp>
@@ -19,32 +20,22 @@ struct Shader
 {
     int shaderIndex = -1;
 };
-
-constexpr pb::ShaderType GetTypeFromExtension(std::string_view extension)
+constexpr novus::renderer::ShaderStage GetShaderStageFromExtension(std::string_view extension)
 {
     constexpr std::array<std::string_view, 12> extensions =
     {
         ".vert",
         ".frag",
-        ".comp",
-        ".geom",
-        ".tesc",
-        ".tese",
-        ".rgen",
-        ".rint",
-        ".rahit",
-        ".rchit",
-        ".rmiss",
-        ".rcall"
+        ".comp"
     };
     for(std::size_t i = 0; i < extensions.size(); i++)
     {
         if(extension == extensions[i])
         {
-            return static_cast<pb::ShaderType>(i);
+            return static_cast<novus::renderer::ShaderStage>(i);
         }
     }
-    return pb::SHADER_TYPE_COUNT;
+    return static_cast<novus::renderer::ShaderStage>(-1);
 }
 
 struct BufferBinding
