@@ -1,7 +1,8 @@
-//
-// Created by efarhan on 10/11/25.
-//
+#include "novus/engine.h"
+
 int main()
 {
+    novus::Engine engine;
+    engine.Run();
     return 0;
 }

@@ -1,7 +1,7 @@
 file(GLOB_RECURSE TRIANGLE_SRC src/*.cpp include/*.h data/*.vert data/*.frag)
 add_executable(gpu_samples ${TRIANGLE_SRC})
 copydata(${CMAKE_CURRENT_SOURCE_DIR} gpu_samples)
-checkshaders(${CMAKE_CURRENT_SOURCE_DIR} gpu_samples)
+checkvkshaders(${CMAKE_CURRENT_SOURCE_DIR} gpu_samples)
 compilescript(${CMAKE_CURRENT_SOURCE_DIR} gpu_samples)
 
 target_include_directories(gpu_samples PRIVATE include/)
