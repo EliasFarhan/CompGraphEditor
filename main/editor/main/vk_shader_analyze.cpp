@@ -10,6 +10,7 @@
 
 #include "utils/log.h"
 #include <format>
+#include <string_view>
 #include <nlohmann/json.hpp>
 using json = nlohmann::json;
 
@@ -233,6 +234,42 @@ int main([[maybe_unused]] int argc, char** argv)
             uniformJson["binding"] = compiler.get_decoration(storageImage.id, spv::DecorationBinding);
             uniforms.push_back(uniformJson);
         }
+        for (auto& ssbo : shaderResources.storage_buffers)
+        {
+            json uniformJson;
+            const auto& type = compiler.get_type(ssbo.base_type_id);
+            if (type.basetype == spirv_cross::SPIRType::Struct)
+            {
+                analyzeStruct(ssbo.base_type_id);
+            }
+            const auto attributeType = GetAttributeType(type.basetype, type.vecsize, type.columns);
+            uniformJson["name"] = compiler.get_name(ssbo.id);
+            uniformJson["type"] = attributeType;
+            uniformJson["type_name"] = attributeType == core::pb::Attribute_Type_CUSTOM ? compiler.get_fallback_name(ssbo.base_type_id) :
+                GetAttributeTypeName(attributeType);
+            uniformJson["binding"] = compiler.get_decoration(ssbo.id, spv::DecorationBinding);
+            uniformJson["set"] = compiler.get_decoration(ssbo.id, spv::DecorationDescriptorSet);
+
+            uniforms.push_back(uniformJson);
+        }
+        for (auto& uniform : shaderResources.uniform_buffers)
+        {
+            json uniformJson;
+            const auto& type = compiler.get_type(uniform.base_type_id);
+            if (type.basetype == spirv_cross::SPIRType::Struct)
+            {
+                analyzeStruct(uniform.base_type_id);
+            }
+            const auto attributeType = GetAttributeType(type.basetype, type.vecsize, type.columns);
+            uniformJson["name"] = uniform.name;
+            uniformJson["type"] = attributeType;
+            uniformJson["type_name"] = attributeType == core::pb::Attribute_Type_CUSTOM ? compiler.get_fallback_name(uniform.base_type_id) :
+                GetAttributeTypeName(attributeType);
+            uniformJson["binding"] = compiler.get_decoration(uniform.id, spv::DecorationBinding);
+            uniformJson["set"] = compiler.get_decoration(uniform.id, spv::DecorationDescriptorSet);
+
+            uniforms.push_back(uniformJson);
+        }
         for (auto& pushConstant : shaderResources.push_constant_buffers)
         {
             json uniformJson;
@@ -248,6 +285,7 @@ int main([[maybe_unused]] int argc, char** argv)
                 GetAttributeTypeName(attributeType);
             uniformJson["push_constant"] = true;
             uniformJson["binding"] = -1;
+
             uniforms.push_back(uniformJson);
         }
         for (auto& sampledImage : shaderResources.sampled_images)

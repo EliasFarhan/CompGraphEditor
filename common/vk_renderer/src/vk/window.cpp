@@ -11,7 +11,7 @@ namespace vk
 {
 static Window* instance = nullptr;
 
-Window::Window(const core::pb::Config& config) : config_(config) { instance = this; }
+Window::Window(const novus::engine::ConfigT& config) : config_(config) { instance = this; }
 
 void Window::Begin()
 {
@@ -35,11 +35,11 @@ void Window::CreateWindow()
 {
     LogDebug("Creating SDL window with Vulkan enabled");
     int windowFlags = SDL_WINDOW_VULKAN | SDL_WINDOW_RESIZABLE;
-    if (config_.fullscreen())
+    if (config_.fullscreen)
     {
         windowFlags |= SDL_WINDOW_FULLSCREEN;
     }
-    window_ = SDL_CreateWindow(config_.window_name().c_str(), config_.window_size().x(), config_.window_size().y(),
+    window_ = SDL_CreateWindow(config_.window_name.c_str(), config_.window_size.x, config_.window_size.y,
                                windowFlags);
     if (!window_)
     {
@@ -63,10 +63,10 @@ void Window::CreateInstance()
         VK_EXT_DEBUG_REPORT_EXTENSION_NAME, // example additional extension
         VK_EXT_DEBUG_UTILS_EXTENSION_NAME // adding validation layers
     };
-    builder.set_app_name(config_.window_name().c_str())
-        .set_engine_name("Neko2 engine")
-        .require_api_version(config_.major_version(), config_.minor_version())
-        .request_validation_layers(config_.enable_debug())
+    builder.set_app_name(config_.window_name.c_str())
+        .set_engine_name("Neko3d engine")
+        .require_api_version(config_.major_version, config_.minor_version)
+        .request_validation_layers(config_.enable_debug)
         .enable_extensions(additionalExtensions.size(), additionalExtensions.data());
     builder.set_debug_callback(
         [](VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity, VkDebugUtilsMessageTypeFlagsEXT messageType,
@@ -115,7 +115,7 @@ void Window::CreateLogicalDevice()
                        .set_surface(driver_.surface)
                         .add_required_extension("VK_EXT_extended_dynamic_state")
                        .set_required_features(deviceFeatures)
-                        .set_minimum_version(config_.major_version(), config_.minor_version())
+                        .set_minimum_version(config_.major_version, config_.minor_version)
                        .select();
     if (!physRet)
     {

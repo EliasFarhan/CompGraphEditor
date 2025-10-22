@@ -27,6 +27,7 @@ constexpr SDL_GPUShaderFormat ConvertShaderFormat(novus::engine::ShaderFormat sh
 }
 core::TextureManager& Engine::GetTextureManager()
 {
+    return textureManager;
 }
 
 void Engine::Begin()

@@ -5,8 +5,9 @@
 #include <VkBootstrap.h>
 #include <SDL3/SDL.h>
 
-#include <vector>
 #include <cstdint>
+#include <generated/engine_generated.h>
+#include <vector>
 
 #include "vk/common.h"
 
@@ -46,7 +47,7 @@ struct Swapchain
 class Window
 {
 public:
-    Window(const core::pb::Config& config);
+    Window(const novus::engine::ConfigT& config);
     void Begin();
 
     void End();
@@ -84,7 +85,7 @@ private:
     vkb::InstanceBuilder builder_;
     Driver driver_;
     Swapchain swapchain_;
-    const core::pb::Config& config_;
+    const novus::engine::ConfigT& config_;
 
     VkDebugUtilsMessengerEXT debugMessenger_;
 

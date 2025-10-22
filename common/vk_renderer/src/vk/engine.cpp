@@ -19,25 +19,24 @@ Engine::Engine() : window_(config_)
     instance = this;
 
     if (!core::IsRegularFile(configFilename) ||
-        config_.major_version() == 0 || 
-        config_.minor_version() < 3)
+        config_.major_version == 0 ||
+        config_.minor_version < 3)
     {
-        config_.set_major_version(1);
-        config_.set_minor_version(3);
-        config_.set_es(false);
+        config_.major_version = (1);
+        config_.minor_version = (3);
     }
 }
 
 
 void Engine::SetVersion(int major, int minor)
 {
-    config_.set_major_version(major);
-    config_.set_minor_version(minor);
+    config_.major_version = (major);
+    config_.minor_version = (minor);
 }
 
 std::uint32_t Engine::GetVulkanVersion() const
 {
-    return VK_MAKE_API_VERSION(0, config_.major_version(), config_.minor_version(), 0);
+    return VK_MAKE_API_VERSION(0, config_.major_version, config_.minor_version, 0);
 }
 
 void Engine::Begin()

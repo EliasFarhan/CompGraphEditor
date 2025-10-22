@@ -19,4 +19,6 @@ table Config
     vertical_sync : bool = true;
     enable_debug:bool = true;
     no_imgui : bool = false;
+    major_version : int32; //kept for vulkan port
+    minor_version : int32; //kept for vulkan port
 }
