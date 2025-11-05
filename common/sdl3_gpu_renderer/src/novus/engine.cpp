@@ -173,4 +173,8 @@ SDL_GPUDevice* GetDevice()
 {
     return engine_->GetDevice();
 }
+SDL_Window* GetWindow()
+{
+    return engine_->GetWindow();
 }
+} // namespace novus

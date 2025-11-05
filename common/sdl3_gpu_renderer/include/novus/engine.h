@@ -13,6 +13,10 @@ public:
     SDL_GPUDevice* GetDevice() const {
         return device_;
     }
+    SDL_Window* GetWindow() const
+    {
+        return window_;
+    }
 protected:
 	void Begin() override;
 	void End() override;
@@ -26,10 +30,12 @@ protected:
 	void PostImGuiDraw() override;
 
 	void SwapWindow() override;
+
 private:
 	TextureManager textureManager;
 	SDL_GPUDevice* device_ = nullptr;
 };
 
 SDL_GPUDevice* GetDevice();
+SDL_Window* GetWindow();
 } // namespace novus

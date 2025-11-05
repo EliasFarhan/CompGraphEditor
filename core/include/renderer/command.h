@@ -117,9 +117,7 @@ public:
 
     ModelTransformMatrix modelTransformMatrix{};
 
-
 protected:
-
     std::reference_wrapper<const novus::renderer::DrawCommandT> drawCommandInfo_;
     int subPassIndex_ = -1;
 };

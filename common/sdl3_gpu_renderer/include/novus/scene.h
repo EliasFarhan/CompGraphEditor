@@ -7,6 +7,7 @@
 #include "command.h"
 #include "engine/scene.h"
 #include "framebuffer.h"
+#include "material.h"
 #include "pipeline.h"
 
 namespace novus
@@ -43,6 +44,7 @@ private:
     std::vector<Shader> shaders_;
     std::vector<Pipeline> pipelines_;
     std::vector<Framebuffer> framebuffers_;
+    std::vector<Material> materials_;
 };
 }
 #endif //NEKO2_SCENE_H

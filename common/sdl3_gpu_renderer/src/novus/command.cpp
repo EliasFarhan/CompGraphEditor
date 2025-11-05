@@ -3,10 +3,10 @@
 //
 #include "novus/command.h"
 
+#include "engine/scene.h"
+
 namespace novus
 {
-
-}
 
 void DrawCommand::SetFloat(std::string_view uniformName, float f)
 {
@@ -91,3 +91,4 @@ void ComputeCommand::SetAngle(std::string_view uniformName, core::Radian angle)
 void ComputeCommand::Bind()
 {
 }
+} // namespace novus

@@ -84,7 +84,9 @@ novus::renderer::SceneT Scene01()
         .load_op = novus::internal::LoadOp_LOADOP_CLEAR, .store_op = novus::internal::StoreOp_STOREOP_STORE});
     subpass.info = std::move(renderPassInfo);
     subpass.commands.push_back(std::move(drawCommand));
-    scene.render_pass = std::make_unique<novus::renderer::RenderpassT>(subpass);
+    auto renderpass = std::make_unique<novus::renderer::RenderpassT>();
+    renderpass->sub_passes.push_back(std::move(subpass));
+    scene.render_pass = std::move(renderpass);
     return scene;
 }
 
