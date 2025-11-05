@@ -40,6 +40,7 @@ protected:
     ImportStatus LoadRenderPass(const renderer::RenderpassT* renderPass) override;
 private:
     std::vector<DrawCommand> commands_;
+    std::vector<Shader> shaders_;
     std::vector<Pipeline> pipelines_;
     std::vector<Framebuffer> framebuffers_;
 };

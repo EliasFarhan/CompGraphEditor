@@ -49,7 +49,6 @@ public:
     SceneSubPass(Scene& scene, const novus::renderer::SubpassT& subPass, int subPassIndex);
     [[nodiscard]] DrawCommand& GetDrawCommand(int drawCommandIndex) const;
     [[nodiscard]] int GetDrawCommandCount() const;
-    Framebuffer* GetFramebuffer();
 private:
     Scene& scene_;
     const novus::renderer::SubpassT& subPass_;

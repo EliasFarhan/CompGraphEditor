@@ -1,0 +1,11 @@
+native_include "utils/sdl_fb_impl.h";
+
+namespace novus.internal;
+
+struct Color (native_type: "SDL_FColor")
+{
+    r:float;
+    g:float;
+    b:float;
+    a:float;
+}

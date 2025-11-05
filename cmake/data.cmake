@@ -145,7 +145,7 @@ function(checkvkshaders main_folder exe_name)
                 COMMAND ${CMAKE_COMMAND} -E copy
                 ${main_folder}/${PATH_NAME}/${FILE_NAME}
                 ${GLSL_OUTPUT}
-                COMMAND ${GLSL_VALIDATOR} ${GLSL} -o ${GLSL_OUTPUT}.spv --target-env=vulkan1.2
+                COMMAND ${GLSL_VALIDATOR} ${GLSL} -o ${GLSL_OUTPUT}.spv --target-env=vulkan1.0
                 DEPENDS ${GLSL})
         list(APPEND GLSL_OUTPUT_FILES ${GLSL_OUTPUT})
     endforeach(GLSL)

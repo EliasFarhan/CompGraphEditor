@@ -47,6 +47,7 @@ public:
     glm::uvec2 GetWindowSize() const;
     virtual TextureManager& GetTextureManager() = 0;
     ModelManager& GetModelManager();
+    novus::engine::ShaderFormat GetShaderFormat();
 
     enum class JobIndex
     {
@@ -149,8 +150,32 @@ private:
     std::vector<OnGuiInterface*> imguiDrawInterfaces_;
 }; 
 
-glm::uvec2 GetWindowSize();
 
+constexpr SDL_GPUShaderFormat ConvertShaderFormat(novus::engine::ShaderFormat shaderFormat)
+{
+    switch(shaderFormat)
+    {
+    case novus::engine::ShaderFormat_SPIRV:
+        return SDL_GPU_SHADERFORMAT_SPIRV;
+        break;
+    case novus::engine::ShaderFormat_DXIL:
+        return SDL_GPU_SHADERFORMAT_DXIL;
+        break;
+    case novus::engine::ShaderFormat_MSL:
+        return SDL_GPU_SHADERFORMAT_MSL;
+        break;
+    case novus::engine::ShaderFormat_METALLIB:
+        return SDL_GPU_SHADERFORMAT_METALLIB;
+        break;
+    case novus::engine::ShaderFormat_DXBC:
+        return SDL_GPU_SHADERFORMAT_DXBC;
+        break;
+    }
+    return SDL_GPU_SHADERFORMAT_INVALID;
+}
+
+glm::uvec2 GetWindowSize();
+novus::engine::ShaderFormat GetShaderFormat();
 TextureManager& GetTextureManager();
 ModelManager& GetModelManager();
 

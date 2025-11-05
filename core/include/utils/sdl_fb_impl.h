@@ -1,12 +1,11 @@
 #ifndef NOVUS_UTILS_SDL_FB_IMPL_H
 #define NOVUS_UTILS_SDL_FB_IMPL_H
 
-#include <generated/internal_renderer_generated.h>
-
 
 #include "SDL3/SDL_pixels.h"
+#include <generated/color_generated.h>
 
-namespace novus::renderer
+namespace novus::internal
 {
 struct Color;
 }

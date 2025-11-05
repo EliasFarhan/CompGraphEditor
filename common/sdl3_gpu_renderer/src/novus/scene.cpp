@@ -42,11 +42,23 @@ core::DrawCommand& Scene::GetDrawCommand(int subPassIndex, int drawCommandIndex)
     return commands_.at(drawCommandIndex);
 }
 
-Scene::ImportStatus Scene::LoadShaders(std::span<const novus::renderer::ShaderT> shadersPb) {
-    return ImportStatus::FAILURE;
+Scene::ImportStatus Scene::LoadShaders(std::span<const novus::renderer::ShaderT> shadersPb)
+{
+    shaders_.resize(shadersPb.size());
+    for (size_t i = 0; i < shadersPb.size(); ++i)
+    {
+        shaders_[i].LoadShader(shadersPb[i]);
+    }
+    return ImportStatus::SUCCESS;
 }
 Scene::ImportStatus Scene::LoadPipelines(std::span<const novus::renderer::GraphicsPipelineT> pipelines) {
-    return ImportStatus::FAILURE;
+    pipelines_.resize(pipelines.size());
+    for (size_t i = 0; i < pipelines_.size(); ++i)
+    {
+        auto& pipeline = pipelines[i];
+        pipelines_[i].Load(pipelines[i], shaders_[pipeline.vertex_shader_index], shaders_[pipeline.fragment_shader_index]);
+    }
+    return ImportStatus::SUCCESS;
 }
 Scene::ImportStatus Scene::LoadMaterials(std::span<const novus::renderer::MaterialT> materials)
 {

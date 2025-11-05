@@ -28,6 +28,10 @@ ModelManager& Engine::GetModelManager()
 {
     return modelManager_;
 }
+novus::engine::ShaderFormat Engine::GetShaderFormat()
+{
+    return config_.shader_format;
+}
 
 void Engine::Begin()
 {
@@ -242,6 +246,10 @@ neko::Job* Engine::GetJob(Engine::JobIndex index)
 glm::uvec2 GetWindowSize()
 {
     return instance->GetWindowSize();
+}
+novus::engine::ShaderFormat GetShaderFormat()
+{
+    return instance->GetShaderFormat();
 }
 TextureManager& GetTextureManager()
 {

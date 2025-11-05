@@ -3,9 +3,8 @@ namespace novus.renderer;
 
 table Shader
 {
-    stage: internal.ShaderStage;
     path: string;
-
+    info: internal.ShaderInfo (native_inline);
 }
 table GraphicsPipeline
 {
@@ -58,12 +57,9 @@ struct Dependency
 
 table Subpass
 {
+    info: internal.RenderPassInfo;
+    commands: [DrawCommand] (native_inline);
     name: string;
-    commands: [DrawCommand];
-    dependencies: [Dependency];
-    clear_color: internal.Color (native_inline);
-    framebuffer_index: int32 = -1;
-    viewport_size: maths.Vec2i (native_inline);
 }
 
 table Renderpass

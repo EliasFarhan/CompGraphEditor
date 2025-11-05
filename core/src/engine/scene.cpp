@@ -263,15 +263,6 @@ int SceneSubPass::GetDrawCommandCount() const
     return std::ssize(subPass_.commands);
 }
 
-Framebuffer* SceneSubPass::GetFramebuffer()
-{
-    if (subPass_.framebuffer_index != -1)
-    {
-        return &scene_.GetFramebuffer(subPass_.framebuffer_index);
-    }
-    return nullptr;
-}
-
 SceneSubPass::SceneSubPass(Scene& scene, const novus::renderer::SubpassT& subPass, int subPassIndex) : scene_(scene), subPass_(subPass), subPassIndex_(subPassIndex)
 {
 

@@ -10,6 +10,9 @@ class Engine: public core::Engine
 public:
 	core::TextureManager& GetTextureManager() override;
 
+    SDL_GPUDevice* GetDevice() const {
+        return device_;
+    }
 protected:
 	void Begin() override;
 	void End() override;
@@ -23,9 +26,10 @@ protected:
 	void PostImGuiDraw() override;
 
 	void SwapWindow() override;
-
 private:
 	TextureManager textureManager;
 	SDL_GPUDevice* device_ = nullptr;
 };
-}
+
+SDL_GPUDevice* GetDevice();
+} // namespace novus
