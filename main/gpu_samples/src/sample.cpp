@@ -2,15 +2,13 @@
 
 #include <generated/renderer_generated.h>
 
+#include "novus/scene.h"
+
 namespace sample
 {
 
 
-void SampleBrowser::Begin() {}
-void SampleBrowser::Update(float dt) {}
-void SampleBrowser::End() {}
-void SampleBrowser::OnEvent(SDL_Event& event) {}
-void SampleBrowser::OnGui() {}
+
 
 novus::renderer::SceneT Scene01()
 {
@@ -36,4 +34,33 @@ novus::renderer::SceneT Scene01()
 
     return scene;
 }
+
+
+void SampleBrowser::Begin()
+{
+    samples_ = {
+        {
+            "scene1", Scene01()
+        }};
+
+    for(auto& sample : samples_)
+    {
+        sample.scene.SetScene(sample.sceneInfo);
+    }
+    currentIndex_ = 0;
+    sceneManager_.LoadScene(&samples_[currentIndex_].scene);
+}
+void SampleBrowser::Update(float dt)
+{
+    sceneManager_.Update(dt);
+}
+void SampleBrowser::End()
+{
+    sceneManager_.End();
+}
+void SampleBrowser::OnEvent(SDL_Event& event)
+{
+    sceneManager_.OnEvent(event);
+}
+void SampleBrowser::OnGui() {}
 } // namespace sample

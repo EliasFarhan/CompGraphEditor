@@ -12,6 +12,7 @@ class Framebuffer : public core::Framebuffer
 {
 public:
 	std::unique_ptr<core::Image> GetImage(std::string_view attachmentName) override;
+    void Load(const core::pb::FrameBuffer& framebufferPb) override;
 };
 }
 #endif //NEKO2_FRAMEBUFFER_H

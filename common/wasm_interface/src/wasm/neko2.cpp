@@ -190,7 +190,7 @@ int64_t get_system_camera()
     }
     return 0;
 }
-
+/*
 int64_t get_buffer(const void* bufferName)
 {
 #ifdef TRACY_ENABLE
@@ -199,7 +199,6 @@ int64_t get_buffer(const void* bufferName)
     auto& bufferManager = core::GetCurrentScene()->GetBufferManager();
     return bufferManager.GetBuffer(static_cast<const char*>(bufferName)).bufferId;
 }
-
 void buffer_copy_data(int64_t buffer, const void* data, int64_t size)
 {
 #ifdef TRACY_ENABLE
@@ -214,3 +213,5 @@ void buffer_copy_data(int64_t buffer, const void* data, int64_t size)
     }
     std::memcpy(arrayBuffer.data, data, size);
 }
+
+*/

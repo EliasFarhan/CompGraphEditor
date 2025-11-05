@@ -9,6 +9,7 @@
 class DrawCommand : public core::DrawCommand
 {
 public:
+    using core::DrawCommand::DrawCommand;
 	void SetFloat(std::string_view uniformName, float f) override;
 
 	void SetInt(std::string_view uniformName, int i) override;

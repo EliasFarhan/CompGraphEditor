@@ -1,14 +1,19 @@
-//
-// Created by unite on 05.11.2025.
-//
 
 #ifndef NEKO2_SAMPLE_BROWSER_H
 #define NEKO2_SAMPLE_BROWSER_H
+
 #include "engine/engine.h"
+#include "novus/scene.h"
 
 namespace sample
 {
 
+struct Sample
+{
+    std::string sceneName;
+    novus::renderer::SceneT sceneInfo;
+    novus::Scene scene;
+};
 
 class SampleBrowser: public core::OnEventInterface, public core::OnGuiInterface, public core::System
 {
@@ -18,6 +23,10 @@ public:
     void End() override;
     void OnEvent(SDL_Event& event) override;
     void OnGui() override;
+private:
+    std::vector<Sample> samples_;
+    int currentIndex_ = -1;
+    core::SceneManager sceneManager_;
 };
 
 }

@@ -19,63 +19,69 @@ static SceneManager* sceneManagerInstance = nullptr;
 
 void Scene::LoadScene()
 {
+    /*
     const auto& textures = scene_.textures();
     if (LoadTextures(textures) != ImportStatus::SUCCESS)
     {
         LogError("Could not import textures");
     }
+    */
+    /*
     const auto& models = scene_.model_paths();
     if (LoadModels(models) != ImportStatus::SUCCESS)
     {
         LogError("Could not import models");
     }
-
-    const auto& meshes = scene_.meshes();
+    */
+    const auto& meshes = scene_.meshes;
     if (LoadMeshes(meshes) != ImportStatus::SUCCESS)
     {
         LogError("Could not import meshes");
     }
+    /*
     const auto& framebuffers = scene_.framebuffers();
     if (LoadFramebuffers(framebuffers) != ImportStatus::SUCCESS)
     {
         LogError("Could not import framebuffers");
     }
-    const auto& renderPass = scene_.render_pass();
-    if (LoadRenderPass(renderPass) != ImportStatus::SUCCESS)
+    */
+    const auto& renderPass = scene_.render_pass;
+    if (LoadRenderPass(renderPass.get()) != ImportStatus::SUCCESS)
     {
         LogError("Count not import render pass");
     }
-    const auto& shaders = scene_.shaders();
+    const auto& shaders = scene_.shaders;
     if (LoadShaders(shaders) != ImportStatus::SUCCESS)
     {
         LogError("Could not import shaders");
     }
-    const auto& pipelines = scene_.pipelines();
-    const auto& raytracingPipelines = scene_.raytracing_pipelines();
-    if(LoadPipelines(pipelines, raytracingPipelines) != ImportStatus::SUCCESS)
+    const auto& pipelines = scene_.pipelines;
+    //const auto& raytracingPipelines = scene_.raytracing_pipelines();
+    if(LoadPipelines(pipelines) != ImportStatus::SUCCESS)
     {
         LogError("Could not import pipelines");
     }
     
 
-    const auto& materials = scene_.materials();
+    const auto& materials = scene_.materials;
     if(LoadMaterials(materials) != ImportStatus::SUCCESS)
     {
         LogError("Could not import materials");
     }
-
+    /*
     if (LoadBuffers(scene_.buffers()) != ImportStatus::SUCCESS)
     {
         LogError("Could not import buffers");
     }
-
-    if(LoadDrawCommands(renderPass) != ImportStatus::SUCCESS)
+    */
+    if(LoadDrawCommands(renderPass.get()) != ImportStatus::SUCCESS)
     {
         LogError("Could not import draw commands");
     }
 
 
 
+    /*
     const auto systemSize = scene_.systems_size();
     scripts_.clear();
     scripts_.reserve(systemSize);
@@ -87,9 +93,10 @@ void Scene::LoadScene()
         const auto& pySystem = scene_.systems(i);
         scripts_.push_back(scriptLoader.LoadScript(pySystem.path(), pySystem.module(), pySystem.class_()));
     }
+    */
 }
 
-void Scene::SetScene(const pb::Scene& scene)
+void Scene::SetScene(const novus::renderer::SceneT& scene)
 {
     scene_ = scene;
 }
@@ -105,9 +112,9 @@ void Scene::Update(float dt)
     }
 }
 
-int Scene::GetMeshCount() const
+int64_t Scene::GetMeshCount() const
 {
-    return scene_.meshes_size();
+    return std::ssize(scene_.meshes);
 }
 
 void Scene::OnEvent(SDL_Event& event)
@@ -156,26 +163,26 @@ void Scene::OnEvent(SDL_Event& event)
 
 SceneSubPass Scene::GetSubpass(int subPassIndex)
 {
-    return { *this, scene_.render_pass().sub_passes(subPassIndex), subPassIndex };
+    return { *this, scene_.render_pass->sub_passes[subPassIndex], subPassIndex };
 }
 int Scene::GetSubpassCount() const
 {
-    return scene_.render_pass().sub_passes_size();
+    return std::ssize(scene_.render_pass->sub_passes);
 }
 
 
 int Scene::GetMaterialCount() const
 {
-    return scene_.materials_size();
+    return std::ssize(scene_.materials);
 }
 int Scene::GetPipelineCount() const
 {
-    return scene_.pipelines_size();
+    return std::ssize(scene_.pipelines);
 }
 
 std::string_view Scene::GetMeshName(int index)
 {
-    return scene_.meshes(index).mesh_name();
+    return scene_.meshes[index].mesh_name;
 }
 
 void SceneManager::Begin()
@@ -253,19 +260,19 @@ SceneManager::SceneManager()
 
 int SceneSubPass::GetDrawCommandCount() const
 {
-    return subPass_.commands_size();
+    return std::ssize(subPass_.commands);
 }
 
 Framebuffer* SceneSubPass::GetFramebuffer()
 {
-    if (subPass_.framebuffer_index() != -1)
+    if (subPass_.framebuffer_index != -1)
     {
-        return &scene_.GetFramebuffer(subPass_.framebuffer_index());
+        return &scene_.GetFramebuffer(subPass_.framebuffer_index);
     }
     return nullptr;
 }
 
-SceneSubPass::SceneSubPass(Scene& scene, const pb::SubPass& subPass, int subPassIndex) : scene_(scene), subPass_(subPass), subPassIndex_(subPassIndex)
+SceneSubPass::SceneSubPass(Scene& scene, const novus::renderer::SubpassT& subPass, int subPassIndex) : scene_(scene), subPass_(subPass), subPassIndex_(subPassIndex)
 {
 
 }

@@ -1,6 +1,5 @@
 #pragma once
 
-#include "proto/renderer.pb.h"
 
 #include <glm/vec2.hpp>
 #include <glm/vec3.hpp>
@@ -11,7 +10,9 @@
 #include <string_view>
 #include <string>
 
+#include "generated/renderer_generated.h"
 #include "maths/angle.h"
+#include "utils/sdl_fb_impl.h"
 
 
 namespace core
@@ -76,8 +77,9 @@ public:
 class DrawCommand : public Command
 {
 public:
-    DrawCommand(const pb::DrawCommand& drawCommandInfo, int subpassIndex): drawCommandInfo_(drawCommandInfo), subPassIndex_(subpassIndex)
+    DrawCommand(const novus::renderer::DrawCommandT& drawCommandInfo, int subpassIndex): drawCommandInfo_(drawCommandInfo), subPassIndex_(subpassIndex)
     {
+        /*
         if(drawCommandInfo.has_model_transform())
         {
             const auto& modelMatrix = drawCommandInfo.model_transform();
@@ -97,15 +99,16 @@ public:
                 modelTransformMatrix.SetRotation({rotation.x(), rotation.y(), rotation.z()});
             }
         }
+        */
     }
     virtual ~DrawCommand() = default;
     
     
 
-    [[nodiscard]] std::string_view GetName() const{ return drawCommandInfo_.get().name();}
-    int GetMaterialIndex() const { return drawCommandInfo_.get().material_index(); }
-    int GetMeshIndex() const { return drawCommandInfo_.get().mesh_index(); }
-    const pb::DrawCommand& GetInfo() const { return drawCommandInfo_; }
+    [[nodiscard]] std::string_view GetName() const{ return drawCommandInfo_.get().name;}
+    int GetMaterialIndex() const { return drawCommandInfo_.get().material_index; }
+    int GetMeshIndex() const { return drawCommandInfo_.get().mesh_index; }
+    const novus::renderer::DrawCommandT& GetInfo() const { return drawCommandInfo_; }
     int GetSubpassIndex() const { return subPassIndex_; }
     /**
      * @brief PreDrawBind is a method that bind transform and apply all deferred changes before drawing
@@ -117,7 +120,7 @@ public:
 
 protected:
 
-    std::reference_wrapper<const pb::DrawCommand> drawCommandInfo_;
+    std::reference_wrapper<const novus::renderer::DrawCommandT> drawCommandInfo_;
     int subPassIndex_ = -1;
 };
 

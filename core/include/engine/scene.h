@@ -2,12 +2,14 @@
 
 
 #include "engine/system.h"
-#include "proto/renderer.pb.h"
 #include "engine/engine.h"
 #include "renderer/camera.h"
 
+#include <generated/renderer_generated.h>
 #include <span>
 #include <vector>
+
+#include "utils/sdl_fb_impl.h"
 
 namespace core
 {
@@ -44,13 +46,13 @@ class SceneMaterial
 class SceneSubPass
 {
 public:
-    SceneSubPass(Scene& scene, const pb::SubPass& subPass, int subPassIndex);
+    SceneSubPass(Scene& scene, const novus::renderer::SubpassT& subPass, int subPassIndex);
     [[nodiscard]] DrawCommand& GetDrawCommand(int drawCommandIndex) const;
     [[nodiscard]] int GetDrawCommandCount() const;
     Framebuffer* GetFramebuffer();
 private:
     Scene& scene_;
-    const pb::SubPass& subPass_;
+    const novus::renderer::SubpassT& subPass_;
     int subPassIndex_ = -1;
 };
 
@@ -60,7 +62,7 @@ class Scene : public OnEventInterface
 public:
     void LoadScene();
     virtual void UnloadScene() = 0;
-    void SetScene(const pb::Scene &scene);
+    void SetScene(const novus::renderer::SceneT &scene);
     virtual void Update(float dt) = 0;
     virtual void Draw(DrawCommand& drawCommand, int instance = 1) = 0;
     virtual void Dispatch(ComputeCommand& command, int x, int y, int z) = 0;
@@ -73,16 +75,16 @@ public:
     virtual Pipeline& GetPipeline(int index) = 0;
     int GetPipelineCount() const;
     virtual std::string_view GetMeshName(int index);
-    int GetMeshCount() const;
+    int64_t GetMeshCount() const;
 
     Camera& GetCamera() { return camera_; }
 
     void OnEvent(SDL_Event& event) override;
     virtual DrawCommand& GetDrawCommand(int subPassIndex, int drawCommandIndex) = 0;
 
-    virtual BufferManager& GetBufferManager() = 0;
+    //virtual BufferManager& GetBufferManager() = 0;
 
-    const pb::Scene& GetInfo() const { return scene_; }
+    const novus::renderer::SceneT& GetInfo() const { return scene_; }
 protected:
     enum class ImportStatus
     {
@@ -90,20 +92,18 @@ protected:
         FAILURE
     };
 
-    template<typename T>
-    using PbRepeatField = google::protobuf::RepeatedPtrField<T>;
 
-    virtual ImportStatus LoadShaders(const PbRepeatField<pb::Shader> & shadersPb) = 0;
-    virtual ImportStatus LoadPipelines(const PbRepeatField<pb::Pipeline>& pipelines, const PbRepeatField<pb::RaytracingPipeline>& raytracingPipelines) = 0;
-    virtual ImportStatus LoadTextures(const PbRepeatField<pb::Texture>& textures) = 0;
-    virtual ImportStatus LoadMaterials(const PbRepeatField<pb::Material>& materials) = 0;
-    virtual ImportStatus LoadModels(const PbRepeatField<std::string>& models) = 0;
-    virtual ImportStatus LoadMeshes(const PbRepeatField<pb::Mesh>& meshes) = 0;
-    virtual ImportStatus LoadFramebuffers(const PbRepeatField<pb::FrameBuffer>& framebuffers) = 0;
-    virtual ImportStatus LoadDrawCommands(const pb::RenderPass& renderPass) = 0;
-    virtual ImportStatus LoadRenderPass(const pb::RenderPass& renderPass) = 0;
-    virtual ImportStatus LoadBuffers(const PbRepeatField<pb::Buffer>& buffers) = 0;
-    pb::Scene scene_;
+    virtual ImportStatus LoadShaders(std::span<const novus::renderer::ShaderT> shadersPb) = 0;
+    virtual ImportStatus LoadPipelines(std::span<const novus::renderer::GraphicsPipelineT> pipelines) = 0;
+    //virtual ImportStatus LoadTextures(const PbRepeatField<pb::Texture>& textures) = 0;
+    virtual ImportStatus LoadMaterials(std::span<const novus::renderer::MaterialT> materials) = 0;
+    //virtual ImportStatus LoadModels(const PbRepeatField<std::string>& models) = 0;
+    virtual ImportStatus LoadMeshes(std::span<const novus::renderer::MeshT> meshes) = 0;
+    //virtual ImportStatus LoadFramebuffers(const PbRepeatField<pb::FrameBuffer>& framebuffers) = 0;
+    virtual ImportStatus LoadDrawCommands(const novus::renderer::RenderpassT* renderPass) = 0;
+    virtual ImportStatus LoadRenderPass(const novus::renderer::RenderpassT* renderPass) = 0;
+    //virtual ImportStatus LoadBuffers(const PbRepeatField<pb::Buffer>& buffers) = 0;
+    novus::renderer::SceneT scene_;
     std::vector<Script*> scripts_;
     
     Camera camera_;
@@ -117,7 +117,7 @@ public:
     void Begin() override;
     void Update(float dt) override;
     void End() override;
-    Scene* GetCurrentScene() const { return currentScene_; }
+    [[nodiscard]] Scene* GetCurrentScene() const { return currentScene_; }
     void OnEvent(SDL_Event& event) override;
 private:
     Scene* currentScene_ = nullptr;

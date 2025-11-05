@@ -37,8 +37,8 @@ void LinkFunctions(wasm3::wasm_module &module)
     module.link_optional("*", "set_camera_near", set_camera_near);
     module.link_optional("*", "set_camera_far", set_camera_far);
     module.link_optional("*", "get_system_camera", get_system_camera);
-    module.link_optional("*", "buffer_copy_data", buffer_copy_data);
-    module.link_optional("*", "get_buffer", get_buffer);
+    //module.link_optional("*", "buffer_copy_data", buffer_copy_data);
+    //module.link_optional("*", "get_buffer", get_buffer);
 
 }
 

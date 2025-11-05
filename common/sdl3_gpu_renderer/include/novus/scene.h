@@ -4,7 +4,10 @@
 
 #ifndef NEKO2_SCENE_H
 #define NEKO2_SCENE_H
+#include "command.h"
 #include "engine/scene.h"
+#include "framebuffer.h"
+#include "pipeline.h"
 
 namespace novus
 {
@@ -27,29 +30,18 @@ public:
 
 	core::DrawCommand& GetDrawCommand(int subPassIndex, int drawCommandIndex) override;
 
-	core::BufferManager& GetBufferManager() override;
 
 protected:
-	ImportStatus LoadShaders(const PbRepeatField<core::pb::Shader>& shadersPb) override;
-
-	ImportStatus LoadPipelines(const PbRepeatField<core::pb::Pipeline>& pipelines,
-		const PbRepeatField<core::pb::RaytracingPipeline>& raytracingPipelines) override;
-
-	ImportStatus LoadTextures(const PbRepeatField<core::pb::Texture>& textures) override;
-
-	ImportStatus LoadMaterials(const PbRepeatField<core::pb::Material>& materials) override;
-
-	ImportStatus LoadModels(const PbRepeatField<std::string>& models) override;
-
-	ImportStatus LoadMeshes(const PbRepeatField<core::pb::Mesh>& meshes) override;
-
-	ImportStatus LoadFramebuffers(const PbRepeatField<core::pb::FrameBuffer>& framebuffers) override;
-
-	ImportStatus LoadDrawCommands(const core::pb::RenderPass& renderPass) override;
-
-	ImportStatus LoadRenderPass(const core::pb::RenderPass& renderPass) override;
-
-	ImportStatus LoadBuffers(const PbRepeatField<core::pb::Buffer>& buffers) override;
+    ImportStatus LoadShaders(std::span<const renderer::ShaderT> shadersPb) override;
+    ImportStatus LoadPipelines(std::span<const renderer::GraphicsPipelineT> pipelines) override;
+    ImportStatus LoadMaterials(std::span<const renderer::MaterialT> materials) override;
+    ImportStatus LoadMeshes(std::span<const renderer::MeshT> meshes) override;
+    ImportStatus LoadDrawCommands(const renderer::RenderpassT* renderPass) override;
+    ImportStatus LoadRenderPass(const renderer::RenderpassT* renderPass) override;
+private:
+    std::vector<DrawCommand> commands_;
+    std::vector<Pipeline> pipelines_;
+    std::vector<Framebuffer> framebuffers_;
 };
 }
 #endif //NEKO2_SCENE_H

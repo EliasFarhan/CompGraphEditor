@@ -23,62 +23,47 @@ void Scene::Dispatch(core::ComputeCommand& command, int x, int y, int z)
 
 core::Framebuffer& Scene::GetFramebuffer(int framebufferIndex)
 {
+    return framebuffers_[framebufferIndex];
 }
 
 core::SceneMaterial Scene::GetMaterial(int materialIndex)
 {
+    auto& materialInfo = scene_.materials.at(materialIndex);
+    return {&pipelines_[materialInfo.pipeline_index], nullptr};
 }
 
 core::Pipeline& Scene::GetPipeline(int index)
 {
+    return pipelines_[index];
 }
 
 core::DrawCommand& Scene::GetDrawCommand(int subPassIndex, int drawCommandIndex)
 {
+    return commands_.at(drawCommandIndex);
 }
 
-core::BufferManager& Scene::GetBufferManager()
+Scene::ImportStatus Scene::LoadShaders(std::span<const novus::renderer::ShaderT> shadersPb) {
+    return ImportStatus::FAILURE;
+}
+Scene::ImportStatus Scene::LoadPipelines(std::span<const novus::renderer::GraphicsPipelineT> pipelines) {
+    return ImportStatus::FAILURE;
+}
+Scene::ImportStatus Scene::LoadMaterials(std::span<const novus::renderer::MaterialT> materials)
 {
+    return ImportStatus::FAILURE;
+}
+Scene::ImportStatus Scene::LoadMeshes(std::span<const novus::renderer::MeshT> meshes)
+{
+    return ImportStatus::FAILURE;
+}
+Scene::ImportStatus Scene::LoadDrawCommands(const novus::renderer::RenderpassT* renderPass)
+{
+    return ImportStatus::FAILURE;
+}
+Scene::ImportStatus Scene::LoadRenderPass(const novus::renderer::RenderpassT* renderPass)
+{
+    return ImportStatus::FAILURE;
 }
 
-Scene::ImportStatus Scene::LoadShaders(const PbRepeatField<core::pb::Shader>& shadersPb)
-{
-}
 
-Scene::ImportStatus Scene::LoadPipelines(const PbRepeatField<core::pb::Pipeline>& pipelines,
-	const PbRepeatField<core::pb::RaytracingPipeline>& raytracingPipelines)
-{
-}
-
-Scene::ImportStatus Scene::LoadTextures(const PbRepeatField<core::pb::Texture>& textures)
-{
-}
-
-Scene::ImportStatus Scene::LoadMaterials(const PbRepeatField<core::pb::Material>& materials)
-{
-}
-
-Scene::ImportStatus Scene::LoadModels(const PbRepeatField<std::string>& models)
-{
-}
-
-Scene::ImportStatus Scene::LoadMeshes(const PbRepeatField<core::pb::Mesh>& meshes)
-{
-}
-
-Scene::ImportStatus Scene::LoadFramebuffers(const PbRepeatField<core::pb::FrameBuffer>& framebuffers)
-{
-}
-
-Scene::ImportStatus Scene::LoadDrawCommands(const core::pb::RenderPass& renderPass)
-{
-}
-
-Scene::ImportStatus Scene::LoadRenderPass(const core::pb::RenderPass& renderPass)
-{
-}
-
-Scene::ImportStatus Scene::LoadBuffers(const PbRepeatField<core::pb::Buffer>& buffers)
-{
-}
 }
