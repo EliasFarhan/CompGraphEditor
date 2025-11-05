@@ -1,0 +1,509 @@
+include "maths.fbs";
+native_include "utils/sdl_fb_impl.h";
+
+namespace novus.internal;
+
+enum ShaderStage:byte{ VERTEX = 0, FRAGMENT, COMPUTE}
+
+enum VertexInputRate:byte{VERTEX = 0, INSTANCE}
+
+table VertexBufferDescription
+{
+    slot:uint32;
+    pitch:uint32;
+    input_rate:VertexInputRate;
+    instance_step_rate:uint32;
+}
+
+enum VertexElementFormat:byte{
+    INVALID,
+
+    /* 32-bit Signed Integers */
+    INT,
+    INT2,
+    INT3,
+    INT4,
+
+    /* 32-bit Unsigned Integers */
+    UINT,
+    UINT2,
+    UINT3,
+    UINT4,
+
+    /* 32-bit Floats */
+    FLOAT,
+    FLOAT2,
+    FLOAT3,
+    FLOAT4,
+
+    /* 8-bit Signed Integers */
+    BYTE2,
+    BYTE4,
+
+    /* 8-bit Unsigned Integers */
+    UBYTE2,
+    UBYTE4,
+
+    /* 8-bit Signed Normalized */
+    BYTE2_NORM,
+    BYTE4_NORM,
+
+    /* 8-bit Unsigned Normalized */
+    UBYTE2_NORM,
+    UBYTE4_NORM,
+
+    /* 16-bit Signed Integers */
+    SHORT2,
+    SHORT4,
+
+    /* 16-bit Unsigned Integers */
+    USHORT2,
+    USHORT4,
+
+    /* 16-bit Signed Normalized */
+    SHORT2_NORM,
+    SHORT4_NORM,
+
+    /* 16-bit Unsigned Normalized */
+    USHORT2_NORM,
+    USHORT4_NORM,
+
+    /* 16-bit Floats */
+    HALF2,
+    HALF4}
+
+table VertexAttribute
+{
+    location:uint32;
+    buffer_slot:uint32;
+    format:VertexElementFormat;
+    offset:uint32;
+}
+
+table VertexInputState
+{
+    vertex_buffer_descriptions:[VertexBufferDescription];
+    vertex_attributes:[VertexAttribute];
+}
+
+enum PrimitiveType: byte{
+    TRIANGLELIST,  /**< A series of separate triangles. */
+    TRIANGLESTRIP, /**< A series of connected triangles. */
+    LINELIST,      /**< A series of separate lines. */
+    LINESTRIP,     /**< A series of connected lines. */
+    POINTLIST      /**< A series of separate points. */
+}
+enum FillMode:byte
+{
+    FILL,  /**< Polygons will be rendered via rasterization. */
+    LINE   /**< Polygon edges will be drawn as line segments. */
+}
+
+enum CullMode:byte
+{
+    NONE,   /**< No triangles are culled. */
+    FRONT,  /**< Front-facing triangles are culled. */
+    BACK    /**< Back-facing triangles are culled. */
+}
+
+enum FrontFace:byte
+{
+    COUNTER_CLOCKWISE,  /**< A triangle with counter-clockwise vertex winding will be considered front-facing. */
+    CLOCKWISE           /**< A triangle with clockwise vertex winding will be considered front-facing. */
+}
+
+table RasterizerState
+{
+    depth_bias_constant_factor:float;
+    depth_bias_clamp:float;
+    depth_bias_slope_factor:float;
+    enable_depth_bias:bool = false;
+    enable_depth_clip:bool = false;
+    fill_mode:FillMode;
+    cull_mode:CullMode;
+    front_face:FrontFace;
+}
+
+enum SampleCount:byte
+{
+    SAMPLECOUNT_1,  /**< No multisampling. */
+    SAMPLECOUNT_2,  /**< MSAA 2x */
+    SAMPLECOUNT_4,  /**< MSAA 4x */
+    SAMPLECOUNT_8   /**< MSAA 8x */
+}
+table MultisampleState
+{
+    sample_count:SampleCount;  /**< The number of samples to be used in rasterization. */
+    sample_mask:uint32= 0;               /**< Reserved for future use. Must be set to 0. */
+    enable_mask:bool = false;             /**< Reserved for future use. Must be set to false. */
+}
+enum CompareOp:byte
+{
+    COMPAREOP_INVALID,
+    COMPAREOP_NEVER,             /**< The comparison always evaluates false. */
+    COMPAREOP_LESS,              /**< The comparison evaluates reference < test. */
+    COMPAREOP_EQUAL,             /**< The comparison evaluates reference == test. */
+    COMPAREOP_LESS_OR_EQUAL,     /**< The comparison evaluates reference <= test. */
+    COMPAREOP_GREATER,           /**< The comparison evaluates reference > test. */
+    COMPAREOP_NOT_EQUAL,         /**< The comparison evaluates reference != test. */
+    COMPAREOP_GREATER_OR_EQUAL,  /**< The comparison evalutes reference >= test. */
+    COMPAREOP_ALWAYS             /**< The comparison always evaluates true. */
+}
+enum StencilOp : byte
+{
+    STENCILOP_INVALID,
+    STENCILOP_KEEP,                 /**< Keeps the current value. */
+    STENCILOP_ZERO,                 /**< Sets the value to 0. */
+    STENCILOP_REPLACE,              /**< Sets the value to reference. */
+    STENCILOP_INCREMENT_AND_CLAMP,  /**< Increments the current value and clamps to the maximum value. */
+    STENCILOP_DECREMENT_AND_CLAMP,  /**< Decrements the current value and clamps to 0. */
+    STENCILOP_INVERT,               /**< Bitwise-inverts the current value. */
+    STENCILOP_INCREMENT_AND_WRAP,   /**< Increments the current value and wraps back to 0. */
+    STENCILOP_DECREMENT_AND_WRAP    /**< Decrements the current value and wraps to the maximum value. */
+
+}
+table StencilOpState
+{
+    fail_op:StencilOp;        /**< The action performed on samples that fail the stencil test. */
+    pass_op:StencilOp;        /**< The action performed on samples that pass the depth and stencil tests. */
+    depth_fail_op:StencilOp;  /**< The action performed on samples that pass the stencil test and fail the depth test. */
+    compare_op:StencilOp;     /**< The comparison operator used in the stencil test. */
+
+}
+table DepthStencilState
+{
+    compare_op:CompareOp;                /**< The comparison operator used for depth testing. */
+    back_stencil_state:StencilOpState;   /**< The stencil op state for back-facing triangles. */
+    front_stencil_state:StencilOpState;  /**< The stencil op state for front-facing triangles. */
+    compare_mask:uint8;                         /**< Selects the bits of the stencil values participating in the stencil test. */
+    write_mask:uint8;                           /**< Selects the bits of the stencil values updated by the stencil test. */
+    enable_depth_test:bool;                 /**< true enables the depth test. */
+    enable_depth_write:bool;                /**< true enables depth writes. Depth writes are always disabled when enable_depth_test is false. */
+    enable_stencil_test:bool;               /**< true enables the stencil test. */
+}
+
+enum TextureFormat:ushort
+{
+    TEXTUREFORMAT_INVALID,
+    /* Unsigned Normalized Float Color Formats */
+    TEXTUREFORMAT_A8_UNORM,
+    TEXTUREFORMAT_R8_UNORM,
+    TEXTUREFORMAT_R8G8_UNORM,
+    TEXTUREFORMAT_R8G8B8A8_UNORM,
+    TEXTUREFORMAT_R16_UNORM,
+    TEXTUREFORMAT_R16G16_UNORM,
+    TEXTUREFORMAT_R16G16B16A16_UNORM,
+    TEXTUREFORMAT_R10G10B10A2_UNORM,
+    TEXTUREFORMAT_B5G6R5_UNORM,
+    TEXTUREFORMAT_B5G5R5A1_UNORM,
+    TEXTUREFORMAT_B4G4R4A4_UNORM,
+    TEXTUREFORMAT_B8G8R8A8_UNORM,
+    /* Compressed Unsigned Normalized Float Color Formats */
+    TEXTUREFORMAT_BC1_RGBA_UNORM,
+    TEXTUREFORMAT_BC2_RGBA_UNORM,
+    TEXTUREFORMAT_BC3_RGBA_UNORM,
+    TEXTUREFORMAT_BC4_R_UNORM,
+    TEXTUREFORMAT_BC5_RG_UNORM,
+    TEXTUREFORMAT_BC7_RGBA_UNORM,
+    /* Compressed Signed Float Color Formats */
+    TEXTUREFORMAT_BC6H_RGB_FLOAT,
+    /* Compressed Unsigned Float Color Formats */
+    TEXTUREFORMAT_BC6H_RGB_UFLOAT,
+    /* Signed Normalized Float Color Formats  */
+    TEXTUREFORMAT_R8_SNORM,
+    TEXTUREFORMAT_R8G8_SNORM,
+    TEXTUREFORMAT_R8G8B8A8_SNORM,
+    TEXTUREFORMAT_R16_SNORM,
+    TEXTUREFORMAT_R16G16_SNORM,
+    TEXTUREFORMAT_R16G16B16A16_SNORM,
+    /* Signed Float Color Formats */
+    TEXTUREFORMAT_R16_FLOAT,
+    TEXTUREFORMAT_R16G16_FLOAT,
+    TEXTUREFORMAT_R16G16B16A16_FLOAT,
+    TEXTUREFORMAT_R32_FLOAT,
+    TEXTUREFORMAT_R32G32_FLOAT,
+    TEXTUREFORMAT_R32G32B32A32_FLOAT,
+    /* Unsigned Float Color Formats */
+    TEXTUREFORMAT_R11G11B10_UFLOAT,
+    /* Unsigned Integer Color Formats */
+    TEXTUREFORMAT_R8_UINT,
+    TEXTUREFORMAT_R8G8_UINT,
+    TEXTUREFORMAT_R8G8B8A8_UINT,
+    TEXTUREFORMAT_R16_UINT,
+    TEXTUREFORMAT_R16G16_UINT,
+    TEXTUREFORMAT_R16G16B16A16_UINT,
+    TEXTUREFORMAT_R32_UINT,
+    TEXTUREFORMAT_R32G32_UINT,
+    TEXTUREFORMAT_R32G32B32A32_UINT,
+    /* Signed Integer Color Formats */
+    TEXTUREFORMAT_R8_INT,
+    TEXTUREFORMAT_R8G8_INT,
+    TEXTUREFORMAT_R8G8B8A8_INT,
+    TEXTUREFORMAT_R16_INT,
+    TEXTUREFORMAT_R16G16_INT,
+    TEXTUREFORMAT_R16G16B16A16_INT,
+    TEXTUREFORMAT_R32_INT,
+    TEXTUREFORMAT_R32G32_INT,
+    TEXTUREFORMAT_R32G32B32A32_INT,
+    /* SRGB Unsigned Normalized Color Formats */
+    TEXTUREFORMAT_R8G8B8A8_UNORM_SRGB,
+    TEXTUREFORMAT_B8G8R8A8_UNORM_SRGB,
+    /* Compressed SRGB Unsigned Normalized Color Formats */
+    TEXTUREFORMAT_BC1_RGBA_UNORM_SRGB,
+    TEXTUREFORMAT_BC2_RGBA_UNORM_SRGB,
+    TEXTUREFORMAT_BC3_RGBA_UNORM_SRGB,
+    TEXTUREFORMAT_BC7_RGBA_UNORM_SRGB,
+    /* Depth Formats */
+    TEXTUREFORMAT_D16_UNORM,
+    TEXTUREFORMAT_D24_UNORM,
+    TEXTUREFORMAT_D32_FLOAT,
+    TEXTUREFORMAT_D24_UNORM_S8_UINT,
+    TEXTUREFORMAT_D32_FLOAT_S8_UINT,
+    /* Compressed ASTC Normalized Float Color Formats*/
+    TEXTUREFORMAT_ASTC_4x4_UNORM,
+    TEXTUREFORMAT_ASTC_5x4_UNORM,
+    TEXTUREFORMAT_ASTC_5x5_UNORM,
+    TEXTUREFORMAT_ASTC_6x5_UNORM,
+    TEXTUREFORMAT_ASTC_6x6_UNORM,
+    TEXTUREFORMAT_ASTC_8x5_UNORM,
+    TEXTUREFORMAT_ASTC_8x6_UNORM,
+    TEXTUREFORMAT_ASTC_8x8_UNORM,
+    TEXTUREFORMAT_ASTC_10x5_UNORM,
+    TEXTUREFORMAT_ASTC_10x6_UNORM,
+    TEXTUREFORMAT_ASTC_10x8_UNORM,
+    TEXTUREFORMAT_ASTC_10x10_UNORM,
+    TEXTUREFORMAT_ASTC_12x10_UNORM,
+    TEXTUREFORMAT_ASTC_12x12_UNORM,
+    /* Compressed SRGB ASTC Normalized Float Color Formats*/
+    TEXTUREFORMAT_ASTC_4x4_UNORM_SRGB,
+    TEXTUREFORMAT_ASTC_5x4_UNORM_SRGB,
+    TEXTUREFORMAT_ASTC_5x5_UNORM_SRGB,
+    TEXTUREFORMAT_ASTC_6x5_UNORM_SRGB,
+    TEXTUREFORMAT_ASTC_6x6_UNORM_SRGB,
+    TEXTUREFORMAT_ASTC_8x5_UNORM_SRGB,
+    TEXTUREFORMAT_ASTC_8x6_UNORM_SRGB,
+    TEXTUREFORMAT_ASTC_8x8_UNORM_SRGB,
+    TEXTUREFORMAT_ASTC_10x5_UNORM_SRGB,
+    TEXTUREFORMAT_ASTC_10x6_UNORM_SRGB,
+    TEXTUREFORMAT_ASTC_10x8_UNORM_SRGB,
+    TEXTUREFORMAT_ASTC_10x10_UNORM_SRGB,
+    TEXTUREFORMAT_ASTC_12x10_UNORM_SRGB,
+    TEXTUREFORMAT_ASTC_12x12_UNORM_SRGB,
+    /* Compressed ASTC Signed Float Color Formats*/
+    TEXTUREFORMAT_ASTC_4x4_FLOAT,
+    TEXTUREFORMAT_ASTC_5x4_FLOAT,
+    TEXTUREFORMAT_ASTC_5x5_FLOAT,
+    TEXTUREFORMAT_ASTC_6x5_FLOAT,
+    TEXTUREFORMAT_ASTC_6x6_FLOAT,
+    TEXTUREFORMAT_ASTC_8x5_FLOAT,
+    TEXTUREFORMAT_ASTC_8x6_FLOAT,
+    TEXTUREFORMAT_ASTC_8x8_FLOAT,
+    TEXTUREFORMAT_ASTC_10x5_FLOAT,
+    TEXTUREFORMAT_ASTC_10x6_FLOAT,
+    TEXTUREFORMAT_ASTC_10x8_FLOAT,
+    TEXTUREFORMAT_ASTC_10x10_FLOAT,
+    TEXTUREFORMAT_ASTC_12x10_FLOAT,
+    TEXTUREFORMAT_ASTC_12x12_FLOAT
+}
+enum BlendFactor:byte
+{
+    BLENDFACTOR_INVALID,
+    BLENDFACTOR_ZERO,                      /**< 0 */
+    BLENDFACTOR_ONE,                       /**< 1 */
+    BLENDFACTOR_SRC_COLOR,                 /**< source color */
+    BLENDFACTOR_ONE_MINUS_SRC_COLOR,       /**< 1 - source color */
+    BLENDFACTOR_DST_COLOR,                 /**< destination color */
+    BLENDFACTOR_ONE_MINUS_DST_COLOR,       /**< 1 - destination color */
+    BLENDFACTOR_SRC_ALPHA,                 /**< source alpha */
+    BLENDFACTOR_ONE_MINUS_SRC_ALPHA,       /**< 1 - source alpha */
+    BLENDFACTOR_DST_ALPHA,                 /**< destination alpha */
+    BLENDFACTOR_ONE_MINUS_DST_ALPHA,       /**< 1 - destination alpha */
+    BLENDFACTOR_CONSTANT_COLOR,            /**< blend constant */
+    BLENDFACTOR_ONE_MINUS_CONSTANT_COLOR,  /**< 1 - blend constant */
+    BLENDFACTOR_SRC_ALPHA_SATURATE         /**< min(source alpha, 1 - destination alpha) */
+}
+enum BlendOp:byte
+{
+    BLENDOP_INVALID,
+    BLENDOP_ADD,               /**< (source * source_factor) + (destination * destination_factor) */
+    BLENDOP_SUBTRACT,          /**< (source * source_factor) - (destination * destination_factor) */
+    BLENDOP_REVERSE_SUBTRACT,  /**< (destination * destination_factor) - (source * source_factor) */
+    BLENDOP_MIN,               /**< min(source, destination) */
+    BLENDOP_MAX                /**< max(source, destination) */
+}
+table ColorTargetBlendState
+{
+    src_color_blendfactor:BlendFactor;     /**< The value to be multiplied by the source RGB value. */
+    dst_color_blendfactor:BlendFactor;     /**< The value to be multiplied by the destination RGB value. */
+    color_blend_op:BlendOp;                /**< The blend operation for the RGB components. */
+    src_alpha_blendfactor:BlendFactor;     /**< The value to be multiplied by the source alpha. */
+    dst_alpha_blendfactor:BlendFactor;     /**< The value to be multiplied by the destination alpha. */
+    alpha_blend_op:BlendOp;                /**< The blend operation for the alpha component. */
+    color_write_mask:uint8;  /**< A bitmask specifying which of the RGBA components are enabled for writing. Writes to all channels if enable_color_write_mask is false. */
+    enable_blend:bool;                        /**< Whether blending is enabled for the color target. */
+    enable_color_write_mask:bool;             /**< Whether the color write mask is enabled. */
+}
+table ColorTargetDescription
+{
+    format:TextureFormat;
+    blend_state:ColorTargetBlendState;
+}
+table GraphicsPipelineTargetInfo
+{
+    color_target_descriptions:[ColorTargetDescription];
+    depth_stencil_format:TextureFormat;
+    has_depth_stencil_target:bool;
+}
+table GraphicsPipelineInfo
+{
+    primitive_type:PrimitiveType;
+    vertex_input_state:VertexInputState;
+    rasterizer_state:RasterizerState;
+    multisample_state:MultisampleState;
+    depth_stencil_state:DepthStencilState;
+    target_info:GraphicsPipelineTargetInfo;
+}
+
+struct Color (native_type: "SDL_FColor")
+{
+    r:float;
+    g:float;
+    b:float;
+    a:float;
+}
+
+enum LoadOp:byte
+{
+    LOADOP_LOAD,      /**< The previous contents of the texture will be preserved. */
+    LOADOP_CLEAR,     /**< The contents of the texture will be cleared to a color. */
+    LOADOP_DONT_CARE  /**< The previous contents of the texture need not be preserved. The contents will be undefined. */
+}
+
+enum StoreOp:byte
+{
+    STOREOP_STORE,             /**< The contents generated during the render pass will be written to memory. */
+    STOREOP_DONT_CARE,         /**< The contents generated during the render pass are not needed and may be discarded. The contents will be undefined. */
+    STOREOP_RESOLVE,           /**< The multisample contents generated during the render pass will be resolved to a non-multisample texture. The contents in the multisample texture may then be discarded and will be undefined. */
+    STOREOP_RESOLVE_AND_STORE  /**< The multisample contents generated during the render pass will be resolved to a non-multisample texture. The contents in the multisample texture will be written to memory. */
+
+}
+
+struct ColorTargetInfo
+{
+    mip_level: uint32;
+    layer_or_depth_plane: uint32;
+    clear_color: Color (native_inline);
+    load_op: LoadOp;
+    store_op: StoreOp;
+}
+
+struct DepthStencilTargetInfo
+{
+    clear_depth: float;
+    load_op: LoadOp;
+    store_op: StoreOp;
+    stencil_load_op: LoadOp;
+    stencil_store_op: StoreOp;
+    clear_stencil: uint8;
+}
+
+table RenderPassInfo
+{
+    color_target_infos:[ColorTargetInfo];
+    depth_stencil_target_info:DepthStencilTargetInfo;
+}
+
+table ShaderInfo
+{
+    shader_stage: ShaderStage;
+    num_samplers: uint32;
+    num_storage_textures: uint32;
+    num_storage_buffers: uint32;
+    num_uniform_buffers: uint32;
+}
+
+enum TextureType:byte
+{
+    TEXTURETYPE_2D,         /**< The texture is a 2-dimensional image. */
+    TEXTURETYPE_2D_ARRAY,   /**< The texture is a 2-dimensional array image. */
+    TEXTURETYPE_3D,         /**< The texture is a 3-dimensional image. */
+    TEXTURETYPE_CUBE,       /**< The texture is a cube image. */
+    TEXTURETYPE_CUBE_ARRAY  /**< The texture is a cube array image. */
+}
+
+enum TextureUsageFlags: uint8
+{
+    TEXTUREUSAGE_INVALID = 0,
+    TEXTUREUSAGE_SAMPLER =1,
+    TEXTUREUSAGE_COLOR_TARGET = 2,
+    TEXTUREUSAGE_DEPTH_STENCIL_TARGET = 4,
+    TEXTUREUSAGE_GRAPHICS_STORAGE_READ = 8,
+    TEXTUREUSAGE_COMPUTE_STORAGE_READ = 16,
+    TEXTUREUSAGE_COMPUTE_STORAGE_WRITE = 32,
+    TEXTUREUSAGE_COMPUTE_STORAGE_SIMULTANEOUS_READ_WRITE = 64,
+}
+
+table TextureInfo
+{
+    width: uint32;
+    height: uint32;
+    layer_count_or_depth: uint32;
+    num_levels: uint32;
+    format: TextureFormat;
+    sample_count: SampleCount;
+    type: TextureType;
+    usage: TextureUsageFlags;
+}
+
+enum FilterMode:byte
+{
+    FILTER_NEAREST,
+    FILTER_LINEAR
+}
+enum SamplerMipmapMode:byte
+{
+    SAMPLERMIPMAPMODE_NEAREST,  /**< Point filtering. */
+    SAMPLERMIPMAPMODE_LINEAR    /**< Linear filtering. */
+}
+
+enum SamplerAddressMode:byte
+{
+    SAMPLERADDRESSMODE_REPEAT,
+    SAMPLERADDRESSMODE_MIRRORED_REPEAT,
+    SAMPLERADDRESSMODE_CLAMP_TO_EDGE
+}
+
+table SamplerInfo
+{
+    mip_lod_bias: float;
+    max_anisotropy: float;
+    min_lod: float;
+    max_lod: float;
+    min_filter: FilterMode;
+    mag_filter: FilterMode;
+    mipmap_mode: SamplerMipmapMode;
+    address_mode_u: SamplerAddressMode;
+    address_mode_v: SamplerAddressMode;
+    address_mode_w: SamplerAddressMode;
+    compare_op: CompareOp;
+    enable_anisotropy: bool;
+    enable_compare: bool;
+}
+enum ProjectionType: byte
+{
+    PERSPECTIVE,
+    ORTHOGRAPHIC
+}
+
+table CameraInfo
+{
+    position: maths.Vec3 (native_inline);
+    direction: maths.Vec3 (native_inline);
+    up: maths.Vec3 (native_inline);
+    near: float = 0.1;
+    far: float = 100.0;
+    aspect: float = 1.0;
+    fov_y: float = 45.0;
+    orthographic_half_height: float = 1.0;
+    projection_type: ProjectionType = PERSPECTIVE;
+}

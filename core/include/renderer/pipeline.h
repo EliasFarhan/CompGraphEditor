@@ -20,7 +20,7 @@ struct Shader
 {
     int shaderIndex = -1;
 };
-constexpr novus::renderer::ShaderStage GetShaderStageFromExtension(std::string_view extension)
+constexpr novus::internal::ShaderStage GetShaderStageFromExtension(std::string_view extension)
 {
     constexpr std::array<std::string_view, 12> extensions =
     {
@@ -32,10 +32,10 @@ constexpr novus::renderer::ShaderStage GetShaderStageFromExtension(std::string_v
     {
         if(extension == extensions[i])
         {
-            return static_cast<novus::renderer::ShaderStage>(i);
+            return static_cast<novus::internal::ShaderStage>(i);
         }
     }
-    return static_cast<novus::renderer::ShaderStage>(-1);
+    return static_cast<novus::internal::ShaderStage>(-1);
 }
 
 struct BufferBinding
