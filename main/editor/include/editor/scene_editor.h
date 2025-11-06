@@ -1,7 +1,6 @@
 #pragma once
 
 #include "resource.h"
-#include "proto/editor.pb.h"
 #include "editor_system.h"
 
 namespace editor

@@ -1,6 +1,5 @@
 #include "pbr_utils.h"
 
-#include "proto/renderer.pb.h"
 #include "editor_filesystem.h"
 #include "engine/filesystem.h"
 #include "utils/log.h"
@@ -9,9 +8,6 @@
 
 #include <renderer/framebuffer.h>
 
-#include "gl/buffer.h"
-#include "gl/framebuffer.h"
-#include "gl/pipeline.h"
 #include "renderer/mesh.h"
 #include "scene_editor.h"
 #include "editor.h"
@@ -22,8 +18,6 @@
 #include <stb_image.h>
 #include <stb_image_write.h>
 
-#include "gl/include.h"
-#include "gl/debug.h"
 
 
 namespace editor

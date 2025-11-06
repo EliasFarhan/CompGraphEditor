@@ -1,4 +1,4 @@
-#include "proto/renderer.pb.h"
+#include "generated/renderer_generated.h"
 #include <argh.h>
 #include <print>
 
@@ -14,15 +14,22 @@ int main([[maybe_unused]]int argc, char** argv)
         std::print(stderr, "Error: generator requires 6 textures path");
         return EXIT_FAILURE;
     }
-    core::pb::Cubemap cubemap;
+    novus::renderer::CubemapT cubemap;
+    cubemap.texture_paths.reserve(6);
     for(int i = 1; i < 7; i++)
     {
-        *cubemap.add_texture_paths() = cmdl[i];
+        cubemap.texture_paths.push_back(cmdl[i]);
     }
     std::string cubemapPath = cmdl("o", "cubemap.cube").str();
 
+    flatbuffers::FlatBufferBuilder fbb;
+    fbb.Finish(novus::renderer::Cubemap::Pack(fbb, &cubemap));
+    uint8_t* buf = fbb.GetBufferPointer();
+    size_t size = fbb.GetSize();
+
     std::ofstream fileOut(cubemapPath.data(), std::ios::binary);
-    if (!cubemap.SerializeToOstream(&fileOut))
+    fileOut.write(reinterpret_cast<char*>(buf), size);
+    if (fileOut.fail())
     {
         std::print(stderr, "Could not save cubemap at: {}", cubemapPath);
         return EXIT_FAILURE;

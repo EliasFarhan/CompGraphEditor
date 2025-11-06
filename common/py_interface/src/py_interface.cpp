@@ -54,12 +54,6 @@ TypeInfo GetPyTypeSize(std::string_view typeString)
     return {};
 }
 
-core::ArrayBuffer GetArrayBuffer(const core::BufferId& bufferId)
-{
-    auto& bufferManager = core::GetCurrentScene()->GetBufferManager();
-    const auto arrayBuffer = bufferManager.GetArrayBuffer(bufferId);
-    return arrayBuffer;
-}
 
 PYBIND11_EMBEDDED_MODULE(neko2, m)
 {
@@ -149,14 +143,6 @@ PYBIND11_EMBEDDED_MODULE(neko2, m)
         .def_property_readonly("mesh_name", &core::DrawCommand::GetName)
         .def_readwrite("model_matrix", &core::DrawCommand::modelTransformMatrix)
     ;
-
-
-    py::class_<core::SceneSubPass>(m, "SubPass")
-        .def("get_draw_command", &core::SceneSubPass::GetDrawCommand)
-        .def_property_readonly("draw_command_count", &core::SceneSubPass::GetDrawCommandCount)
-        .def("get_framebuffer", &core::SceneSubPass::GetFramebuffer, py::return_value_policy::reference)
-        ;
-
     py::class_<core::Framebuffer>(m, "Framebuffer")
         .def("get_image", &core::Framebuffer::GetImage);
 
@@ -469,55 +455,13 @@ PYBIND11_EMBEDDED_MODULE(neko2, m)
             &core::CameraSystem::camera,
             py::return_value_policy::reference);
 
-    py::class_<core::BufferId>(m, "Buffer", py::buffer_protocol())
-        .def("memory_view", [](core::BufferId bufferId, const py::handle& type)
-        {
-            const auto typeString = py::str(type).cast<std::string>();
-            const auto arrayBuffer = GetArrayBuffer( bufferId);
-            const auto typeInfo = GetPyTypeSize(typeString);
-            if (typeInfo.elementCount.second == 1)
-            {
-                return py::memoryview::from_buffer(
-                    arrayBuffer.data,
-                    typeInfo.formatSize,
-                    typeInfo.format.data(),
-                    { arrayBuffer.count, typeInfo.elementCount.first },
-                    { arrayBuffer.typeSize, typeInfo.formatSize }
-                );
-            }
-            else
-            {
-                return py::memoryview::from_buffer(
-                    arrayBuffer.data,
-                    typeInfo.formatSize,
-                    typeInfo.format.data(),
-                    { arrayBuffer.count, typeInfo.elementCount.first, typeInfo.elementCount.second },
-                    { arrayBuffer.typeSize, typeInfo.formatSize*typeInfo.elementCount.second }
-                );
-            }
-        })
-        .def_buffer([](core::BufferId bufferId)
-        {
-            const auto arrayBuffer = GetArrayBuffer(bufferId);
-            return py::buffer_info(
-                arrayBuffer.data,                               /* Pointer to buffer */
-                sizeof(float),                          /* Size of one scalar */
-                py::format_descriptor<float>::format(), /* Python struct-style format descriptor */
-                2,                                      /* Number of dimensions */
-                { static_cast<int>(arrayBuffer.count), 4 },                 /* Buffer dimensions */
-                { arrayBuffer.typeSize, sizeof(float) }
-            );
-        })
+
+
     ;
 
     m.def("get_camera_system", []() {
         return core::GetCameraSystem();
         }, py::return_value_policy::reference);
-    m.def("get_buffer", [](std::string_view bufferName)
-        {
-            auto& bufferManager = core::GetCurrentScene()->GetBufferManager();
-            return bufferManager.GetBuffer(bufferName);
-        });
 
 }
 

@@ -10,7 +10,7 @@
 namespace editor
 {
 
-void ResourceManager::CheckDataFolder(const PbRepeatField<std::string>& paths)
+void ResourceManager::CheckDataFolder(std::span<std::string> paths)
 {
     // Remove deleted file
     for(auto& pathStr : paths)

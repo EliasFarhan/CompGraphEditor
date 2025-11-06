@@ -77,6 +77,11 @@ table Framebuffer
 
 }
 
+table Cubemap
+{
+    texture_paths: [string];
+}
+
 table Scene
 {
     name:string;

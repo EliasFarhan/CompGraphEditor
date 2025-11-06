@@ -1,7 +1,7 @@
 #pragma once
 
 #include "editor_system.h"
-#include "proto/renderer.pb.h"
+#include "generated/renderer_generated.h"
 
 namespace editor
 {
@@ -9,7 +9,7 @@ namespace editor
 struct ShaderInfo
 {
     std::string filename;
-    core::pb::Shader info;
+    novus::renderer::ShaderT info;
     ResourceId resourceId = INVALID_RESOURCE_ID;
     bool compiledCorrectly = true;
     bool correctVertexInput = true;
@@ -33,7 +33,7 @@ public:
     void Delete() override; std::span<const std::string_view> GetExtensions() const override;
     void Clear() override;
 private:
-    bool AnalyzeShader(std::string_view path, core::pb::Shader& shaderInfo) const;
+    bool AnalyzeShader(std::string_view path, novus::renderer::ShaderT& shaderInfo) const;
     static core::pb::Attribute::Type GetType(std::string_view attributeTypeString);
     std::vector<ShaderInfo> shaderInfos_;
     std::size_t currentIndex_ = -1;

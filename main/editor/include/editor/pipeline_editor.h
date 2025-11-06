@@ -1,6 +1,5 @@
 #pragma once
 #include "editor_system.h"
-#include "proto/editor.pb.h"
 
 namespace editor
 {
@@ -16,13 +15,6 @@ struct PipelineInfo
     ResourceId fragmentShaderId = INVALID_RESOURCE_ID;
     ResourceId geometryShaderId = INVALID_RESOURCE_ID;
     ResourceId computeShaderId = INVALID_RESOURCE_ID;
-    ResourceId tessControlShaderId = INVALID_RESOURCE_ID;
-    ResourceId tessEvalShaderId = INVALID_RESOURCE_ID;
-    ResourceId rayGenShaderId = INVALID_RESOURCE_ID;
-    ResourceId missHitShaderId = INVALID_RESOURCE_ID;
-    ResourceId closestHitShaderId = INVALID_RESOURCE_ID;
-    ResourceId anyHitShaderId = INVALID_RESOURCE_ID;
-    ResourceId intersectionHitShaderId = INVALID_RESOURCE_ID;
 };
 
 class PipelineEditor final : public EditorSystem

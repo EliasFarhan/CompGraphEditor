@@ -29,6 +29,9 @@ private:
     core::SceneManager sceneManager_;
 };
 
+novus::renderer::SceneT Scene01();
+novus::renderer::SceneT Scene02();
+novus::renderer::SceneT Scene03();
 }
 
 

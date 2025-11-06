@@ -1,5 +1,5 @@
 #pragma once
-#include "proto/renderer.pb.h"
+#include "generated/renderer_generated.h"
 #include "resource.h"
 #include "editor_system.h"
 #include "renderer/texture.h"
@@ -20,9 +20,9 @@ struct TextureInfo
 {
     std::string filename;
     std::string infoPath;
-    core::pb::Texture info;
+    novus::renderer::Texture info;
     ResourceId resourceId = INVALID_RESOURCE_ID;
-    core::pb::Cubemap cubemap;
+    novus::renderer::Cubemap cubemap;
     core::TextureId textureId = core::INVALID_TEXTURE_ID;
     KtxExportInfo ktxInfo;
 };
