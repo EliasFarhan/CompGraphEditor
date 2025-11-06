@@ -8,10 +8,10 @@ namespace novus
 {
 namespace
 {
-Engine* engine_ = nullptr;
+Engine* instance_ = nullptr;
 }
 
-constexpr SDL_GPUShaderFormat ConvertShaderFormat(novus::engine::ShaderFormat shaderFormat)
+constexpr SDL_GPUShaderFormat ConvertShaderFormat(engine::ShaderFormat shaderFormat)
 {
 	switch(shaderFormat)
 	{
@@ -44,7 +44,7 @@ void Engine::Begin()
 #ifdef TRACY_ENABLE
 	ZoneScoped;
 #endif
-    engine_ = this;
+    instance_ = this;
 	SDL_Init(SDL_INIT_VIDEO | SDL_INIT_GAMEPAD);
 	float mainScale = SDL_GetDisplayContentScale(SDL_GetPrimaryDisplay());
 	const auto windowSize = glm::ivec2(config_.window_size.x, config_.window_size.y);
@@ -170,18 +170,18 @@ void Engine::SwapWindow()
 
 SDL_GPUDevice* GetDevice()
 {
-    return engine_->GetDevice();
+    return instance_->GetDevice();
 }
 SDL_Window* GetWindow()
 {
-    return engine_->GetWindow();
+    return instance_->GetWindow();
 }
 SDL_GPUCommandBuffer* GetCommandBuffer()
 {
-    return engine_->GetCommandBuffer();
+    return instance_->GetCommandBuffer();
 }
 SDL_GPUTexture* GetSwapchainTexture()
 {
-    return engine_->GetSwapchainTexture();
+    return instance_->GetSwapchainTexture();
 }
 } // namespace novus

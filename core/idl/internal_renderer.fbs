@@ -82,8 +82,8 @@ table VertexAttribute
 
 table VertexInputState
 {
-    vertex_buffer_descriptions:[VertexBufferDescription];
-    vertex_attributes:[VertexAttribute];
+    vertex_buffer_descriptions:[VertexBufferDescription] (native_inline);
+    vertex_attributes:[VertexAttribute] (native_inline);
 }
 
 enum PrimitiveType: byte{
