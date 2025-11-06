@@ -13,7 +13,6 @@
 
 #include <format>
 
-#include "proto/vector.pb.h"
 
 #ifdef TRACY_ENABLE
 #include <tracy/Tracy.hpp>

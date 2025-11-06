@@ -1,6 +1,6 @@
 #pragma once
+#include <generated/renderer_generated.h>
 
-#include "proto/renderer.pb.h"
 
 namespace core
 {
@@ -20,7 +20,7 @@ public:
 class Framebuffer
 {
 public:
-    virtual void Load(const core::pb::FrameBuffer& framebufferPb) = 0;
+    virtual void Load(const novus::renderer::FramebufferT& framebufferPb) = 0;
     virtual std::unique_ptr<Image> GetImage(std::string_view attachmentName) = 0;
 };
 } // namespace core

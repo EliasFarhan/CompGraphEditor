@@ -5,7 +5,6 @@
 #include <vector>
 
 #include "engine/system.h"
-#include "proto/config.pb.h"
 #include "renderer/texture.h"
 #include "renderer/model.h"
 #include "thread/job_system.h"

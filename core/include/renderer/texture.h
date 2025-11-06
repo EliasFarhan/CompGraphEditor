@@ -1,6 +1,6 @@
 #pragma once
+#include "generated/renderer_generated.h"
 
-#include "proto/renderer.pb.h"
 
 namespace core
 {
@@ -11,15 +11,15 @@ class Texture
 {
 public:
     virtual ~Texture() = default;
-    virtual bool LoadTexture(const pb::Texture& texture) = 0;
-    virtual bool LoadCubemap(const pb::Texture& texture) = 0;
+    virtual bool LoadTexture(const novus::renderer::TextureT& texture) = 0;
+    virtual bool LoadCubemap(const novus::renderer::TextureT& texture) = 0;
 };
 
 class TextureManager
 {
 public:
     virtual ~TextureManager() = default;
-    virtual TextureId LoadTexture(const pb::Texture& textureInfo) = 0;
+    virtual TextureId LoadTexture(const novus::renderer::TextureT& textureInfo) = 0;
     virtual void Clear() = 0;
 };
 } // namespace core

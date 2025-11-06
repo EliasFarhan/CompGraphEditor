@@ -67,6 +67,16 @@ table Renderpass
     sub_passes: [Subpass] (native_inline);
 }
 
+table Texture
+{
+
+}
+
+table Framebuffer
+{
+
+}
+
 table Scene
 {
     name:string;

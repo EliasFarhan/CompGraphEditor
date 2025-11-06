@@ -1,7 +1,6 @@
 file(GLOB_RECURSE CORE_FILES src/*.cpp include/*.h)
 add_library(Core STATIC ${CORE_FILES})
 target_include_directories(Core PUBLIC include/ ${STB_INCLUDE_DIRS} ${CMAKE_CURRENT_BINARY_DIR}/)
-generate_proto(Core)
 
 set(FB_OUTDIR "${CMAKE_CURRENT_BINARY_DIR}/core_schemas/")
 file(GLOB ENGINE_SCHEMAS idl/*.fbs)
@@ -14,7 +13,6 @@ flatbuffers_generate_headers(
 
 target_include_directories(Core PUBLIC ${FB_OUTDIR})
 
-set_target_properties (CoreProto PROPERTIES FOLDER Core)
 target_compile_definitions(Core PUBLIC GLM_ENABLE_EXPERIMENTAL)
 target_link_libraries(Core PUBLIC libktx)
 target_link_libraries(Core PUBLIC glm::glm SDL3::SDL3 imgui::imgui assimp flatbuffers::flatbuffers NekoCore)

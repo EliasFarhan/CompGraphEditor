@@ -35,7 +35,7 @@ file(GLOB_RECURSE EDITOR_SRC src/editor/*.cpp include/editor/*.h)
 add_executable(editor ${EDITOR_SRC} ${SCRIPT_FILES} main/editor_main.cpp)
 
 target_include_directories(editor PRIVATE include/editor/)
-target_link_libraries(editor PRIVATE CommonGL nlohmann_json::nlohmann_json CommonPy argh imnodes)
+target_link_libraries(editor PRIVATE CommonNovus nlohmann_json::nlohmann_json CommonPy argh imnodes)
 
 add_dependencies(editor editor_scripts)
 
@@ -47,18 +47,26 @@ target_precompile_headers(editor PRIVATE
         "<nlohmann/json.hpp>"
         "<pybind11/pybind11.h>")
 
+#gpu player
+file(GLOB_RECURSE GPU_PLAYER_SRC src/gpu_player/*.cpp include/gpu_player/*.h)
 
+add_executable(gpu_player ${GL_PLAYER_SRC} main/gpu_player_main.cpp)
+target_include_directories(gpu_player PRIVATE include/gpu_player/)
+target_link_libraries(gpu_player PRIVATE CommonNovus CommonWasm argh PhysFilesystem)
+
+set_target_properties (gpu_player PROPERTIES FOLDER Main)
+add_dependencies(editor gpu_player)
 #gl player
+if(ENABLE_GL)
+    file(GLOB_RECURSE GL_PLAYER_SRC src/gl_player/*.cpp include/gl_player/*.h)
 
-file(GLOB_RECURSE GL_PLAYER_SRC src/gl_player/*.cpp include/gl_player/*.h)
+    add_executable(gl_player ${GL_PLAYER_SRC} main/gl_player_main.cpp)
+    target_include_directories(gl_player PRIVATE include/gl_player/)
+    target_link_libraries(gl_player PRIVATE CommonGL CommonPy argh PhysFilesystem)
 
-add_executable(gl_player ${GL_PLAYER_SRC} main/gl_player_main.cpp)
-target_include_directories(gl_player PRIVATE include/gl_player/)
-target_link_libraries(gl_player PRIVATE CommonGL CommonPy argh PhysFilesystem)
-
-set_target_properties (gl_player PROPERTIES FOLDER Main)
-add_dependencies(editor gl_player)
-
+    set_target_properties (gl_player PROPERTIES FOLDER Main)
+    add_dependencies(editor gl_player)
+endif()
 #vk player
 
 if(ENABLE_VULKAN)

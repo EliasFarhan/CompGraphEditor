@@ -1,6 +1,5 @@
 #pragma once
 
-#include "proto/renderer.pb.h"
 #include "generated/renderer_generated.h"
 
 #include <glm/vec2.hpp>
@@ -64,7 +63,7 @@ struct TypeInfo
     int size = 0;
     int alignment = 0;
 };
-
+/*
 constexpr TypeInfo GetTypeInfo(pb::Attribute_Type attributeType, bool array=false)
 {
     TypeInfo info{};
@@ -108,4 +107,5 @@ constexpr TypeInfo GetTypeInfo(pb::Attribute_Type attributeType, bool array=fals
     }
     return info;
 }
+*/
 } // namespace core

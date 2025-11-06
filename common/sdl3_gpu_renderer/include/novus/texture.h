@@ -12,7 +12,7 @@ namespace novus
 class TextureManager : public core::TextureManager
 {
 public:
-	core::TextureId LoadTexture(const core::pb::Texture& textureInfo) override;
+	core::TextureId LoadTexture(const renderer::TextureT& textureInfo) override;
 
 	void Clear() override;
 };

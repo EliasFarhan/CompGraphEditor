@@ -6,7 +6,7 @@
 
 namespace novus
 {
-core::TextureId TextureManager::LoadTexture(const core::pb::Texture& textureInfo)
+core::TextureId TextureManager::LoadTexture(const renderer::TextureT& textureInfo)
 {
 	return {};
 }

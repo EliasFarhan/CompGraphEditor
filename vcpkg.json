@@ -1,27 +1,68 @@
 {
-    "name": "neko2",
-    "version-string": "1.0",
-    "dependencies": [
-        "sdl3", "glm", "stb",
-        {
-            "name": "glad",
-            "features": ["gles2-api-32"]
-        },
-        {
-            "name": "imgui",
-            "features": ["sdl3-binding", "sdlgpu3-binding", "opengl3-binding", "docking-experimental"]
-        },
-        "physfs", "abseil", "protobuf", "nlohmann-json", "argh", "flatbuffers"
-    ],
-    "features":
+  "name": "neko2",
+  "version-string": "1.0",
+  "dependencies": [
     {
-        "profiling": {"description": "Profiling", "dependencies": ["tracy"] },
-        "vulkan": {"description": "Vulkan port",
-            "dependencies": ["volk",
-                "vk-bootstrap", "vulkan-memory-allocator",
-                "spirv-cross",
-                {"name": "sdl3", "features": ["vulkan"]},  {"name": "imgui", "features": ["vulkan-binding"]}]
-        }
+      "name": "sdl3",
+      "features": [
+        "vulkan"
+      ]
     },
-    "builtin-baseline": "f75c836a67777a86a2c1116a28b179827f028b66"
+    "glm",
+    "stb",
+    {
+      "name": "imgui",
+      "features": [
+        "sdl3-binding",
+        "sdlgpu3-binding",
+        "docking-experimental"
+      ]
+    },
+    "physfs",
+    "abseil",
+    "nlohmann-json",
+    "argh",
+    "flatbuffers"
+  ],
+  "features": {
+    "profiling": {
+      "description": "Profiling",
+      "dependencies": [
+        "tracy"
+      ]
+    },
+    "old-gl": {
+      "description": "Old OpenGL port",
+      "dependencies": [
+        {
+          "name": "glad",
+          "features": [
+            "gles2-api-32"
+          ]
+        },
+        {
+          "name": "imgui",
+          "features": [
+            "opengl3-binding"
+          ]
+        }
+      ]
+    },
+    "vulkan": {
+      "description": "Vulkan port",
+      "dependencies": [
+        "volk",
+        "vk-bootstrap",
+        "vulkan-memory-allocator",
+        "spirv-cross",
+        {
+          "name": "imgui",
+          "features": [
+            "vulkan-binding"
+          ]
+        }
+      ]
+    }
+  },
+  "builtin-baseline": "f75c836a67777a86a2c1116a28b179827f028b66"
 }

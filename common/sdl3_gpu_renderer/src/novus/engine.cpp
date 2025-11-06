@@ -58,7 +58,8 @@ void Engine::Begin()
 	{
 		throw std::runtime_error(std::format("Failed to create window. SDL Error: {}", SDL_GetError()));
 	}
-	device_ = SDL_CreateGPUDevice(ConvertShaderFormat(config_.shader_format), true, nullptr);
+    const auto shaderFormat = ConvertShaderFormat(config_.shader_format);
+	device_ = SDL_CreateGPUDevice(shaderFormat, true, nullptr);
 	if (!device_)
 	{
 		throw std::runtime_error(std::format("Failed to create GPU device. Error: {}", SDL_GetError()));
