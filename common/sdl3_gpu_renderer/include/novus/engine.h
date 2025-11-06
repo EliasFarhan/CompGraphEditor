@@ -17,6 +17,15 @@ public:
     {
         return window_;
     }
+    SDL_GPUCommandBuffer* GetCommandBuffer() const
+    {
+        return commandBuffer_;
+    }
+
+    SDL_GPUTexture* GetSwapchainTexture()
+    {
+        return swapchainTexture_;
+    }
 protected:
 	void Begin() override;
 	void End() override;
@@ -34,8 +43,12 @@ protected:
 private:
 	TextureManager textureManager;
 	SDL_GPUDevice* device_ = nullptr;
+    SDL_GPUCommandBuffer* commandBuffer_ = nullptr;
+    SDL_GPUTexture* swapchainTexture_ = nullptr;
 };
 
 SDL_GPUDevice* GetDevice();
 SDL_Window* GetWindow();
+SDL_GPUCommandBuffer* GetCommandBuffer();
+SDL_GPUTexture* GetSwapchainTexture();
 } // namespace novus

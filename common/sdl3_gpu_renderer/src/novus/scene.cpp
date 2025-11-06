@@ -21,10 +21,9 @@ void Scene::UnloadScene()
 
 void Scene::Update(float dt)
 {
-    auto* commandBuffer = SDL_AcquireGPUCommandBuffer(GetDevice());
-    SDL_GPUTexture* swapchainTexture = nullptr;
-    Uint32 swapchainWidth = 0, swapchainHeight = 0;
-    SDL_WaitAndAcquireGPUSwapchainTexture(commandBuffer, GetWindow(), &swapchainTexture, &swapchainWidth, &swapchainHeight);
+    auto* commandBuffer = GetCommandBuffer();
+
+    SDL_GPUTexture* swapchainTexture = GetSwapchainTexture();
     if (swapchainTexture != nullptr)
     {
         std::array colorTargets = {swapchainTexture};
@@ -45,7 +44,6 @@ void Scene::Update(float dt)
 
 
     }
-    SDL_SubmitGPUCommandBuffer(commandBuffer);
 }
 
 void Scene::Draw(core::DrawCommand& drawCommand, int instance)

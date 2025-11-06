@@ -120,6 +120,10 @@ void Engine::ResizeWindow(glm::uvec2)
 
 void Engine::PreUpdate()
 {
+    commandBuffer_ = SDL_AcquireGPUCommandBuffer(device_);
+    Uint32 swapchainWidth = 0, swapchainHeight = 0;
+    SDL_WaitAndAcquireGPUSwapchainTexture(commandBuffer_, window_, &swapchainTexture_, &swapchainWidth, &swapchainHeight);
+
 }
 
 void Engine::PreImGuiDraw()
@@ -135,38 +139,33 @@ void Engine::PostImGuiDraw()
     ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
     ImGui::Render();
     ImDrawData* draw_data = ImGui::GetDrawData();
-    SDL_GPUCommandBuffer* command_buffer = SDL_AcquireGPUCommandBuffer(device_); // Acquire a GPU command buffer
-
-    SDL_GPUTexture* swapchain_texture;
-    SDL_WaitAndAcquireGPUSwapchainTexture(command_buffer, window_, &swapchain_texture, nullptr, nullptr); // Acquire a swapchain texture
-    if (swapchain_texture != nullptr)
+    if (swapchainTexture_ != nullptr)
     {
         // This is mandatory: call ImGui_ImplSDLGPU3_PrepareDrawData() to upload the vertex/index buffer!
-        Imgui_ImplSDLGPU3_PrepareDrawData(draw_data, command_buffer);
+        Imgui_ImplSDLGPU3_PrepareDrawData(draw_data, commandBuffer_);
 
         // Setup and start a render pass
         SDL_GPUColorTargetInfo target_info = {};
-        target_info.texture = swapchain_texture;
+        target_info.texture = swapchainTexture_;
         target_info.clear_color = SDL_FColor { clear_color.x, clear_color.y, clear_color.z, clear_color.w };
-        target_info.load_op = SDL_GPU_LOADOP_CLEAR;
+        target_info.load_op = SDL_GPU_LOADOP_DONT_CARE;
         target_info.store_op = SDL_GPU_STOREOP_STORE;
         target_info.mip_level = 0;
         target_info.layer_or_depth_plane = 0;
         target_info.cycle = false;
-        SDL_GPURenderPass* render_pass = SDL_BeginGPURenderPass(command_buffer, &target_info, 1, nullptr);
+        SDL_GPURenderPass* render_pass = SDL_BeginGPURenderPass(commandBuffer_, &target_info, 1, nullptr);
 
         // Render ImGui
-        ImGui_ImplSDLGPU3_RenderDrawData(draw_data, command_buffer, render_pass);
+        ImGui_ImplSDLGPU3_RenderDrawData(draw_data, commandBuffer_, render_pass);
 
         SDL_EndGPURenderPass(render_pass);
     }
 
-    // Submit the command buffer
-    SDL_SubmitGPUCommandBuffer(command_buffer);
 }
 
 void Engine::SwapWindow()
 {
+    SDL_SubmitGPUCommandBuffer(commandBuffer_);
 }
 
 SDL_GPUDevice* GetDevice()
@@ -176,5 +175,13 @@ SDL_GPUDevice* GetDevice()
 SDL_Window* GetWindow()
 {
     return engine_->GetWindow();
+}
+SDL_GPUCommandBuffer* GetCommandBuffer()
+{
+    return engine_->GetCommandBuffer();
+}
+SDL_GPUTexture* GetSwapchainTexture()
+{
+    return engine_->GetSwapchainTexture();
 }
 } // namespace novus

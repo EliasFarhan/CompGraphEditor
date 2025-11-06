@@ -1,6 +1,7 @@
 #include "sample.h"
 
 #include <generated/renderer_generated.h>
+#include <imgui.h>
 
 #include "novus/scene.h"
 
@@ -80,7 +81,7 @@ novus::renderer::SceneT Scene01()
 
     auto renderPassInfo = std::make_unique<novus::internal::RenderPassInfoT>();
     renderPassInfo->color_target_infos.push_back({.mip_level = 0, .layer_or_depth_plane = 0,
-        .clear_color = {0.5f,0.5f,0.5f,0.5f},
+        .clear_color = {0.0f,0.0f,0.0f,0.0f},
         .load_op = novus::internal::LoadOp_LOADOP_CLEAR, .store_op = novus::internal::StoreOp_STOREOP_STORE});
     subpass.info = std::move(renderPassInfo);
     subpass.commands.push_back(std::move(drawCommand));
@@ -89,6 +90,8 @@ novus::renderer::SceneT Scene01()
     scene.render_pass = std::move(renderpass);
     return scene;
 }
+
+
 
 
 void SampleBrowser::Begin()
@@ -117,5 +120,11 @@ void SampleBrowser::OnEvent(SDL_Event& event)
 {
     sceneManager_.OnEvent(event);
 }
-void SampleBrowser::OnGui() {}
+void SampleBrowser::OnGui()
+{
+    ImGui::Begin("Sample Browser");
+
+    ImGui::Text("SDL3 GPU Samples");
+    ImGui::End();
+}
 } // namespace sample
