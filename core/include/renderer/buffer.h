@@ -9,8 +9,8 @@ class VertexInputBuffer
 {
 public:
     virtual ~VertexInputBuffer() = default;
-    virtual void CreateFromMesh(const Mesh& mesh) = 0;
-    virtual void Bind() = 0;
+    virtual void CreateFromMesh(const Mesh& mesh, void* uploadData=nullptr) = 0;
+    virtual void Bind(void* renderData = nullptr) = 0;
     virtual void Destroy() = 0;
 };
 

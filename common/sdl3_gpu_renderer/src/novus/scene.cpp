@@ -17,6 +17,10 @@ void Scene::UnloadScene()
     {
         shader.Destroy();
     }
+    for (auto& vertexInputBuffer : vertexInputBuffers_)
+    {
+        vertexInputBuffer.Destroy();
+    }
 }
 
 void Scene::Update(float dt)
@@ -36,8 +40,23 @@ void Scene::Update(float dt)
             {
                 const auto& material = materials_[command.material_index];
                 auto& pipeline = pipelines_[material.GetPipelineIndex()];
-                SDL_BindGPUGraphicsPipeline(renderPass, pipeline.get());
-                SDL_DrawGPUPrimitives(renderPass, command.count, 1, 0, 0);
+                pipeline.Bind(renderPass);
+
+                if (command.mesh_index != -1)
+                {
+                    auto& vertexInputBuffer = vertexInputBuffers_[command.mesh_index];
+                    vertexInputBuffer.Bind(renderPass);
+                }
+
+
+                if (command.draw_elements)
+                {
+                    SDL_DrawGPUIndexedPrimitives(renderPass, command.count, 1, 0, 0, 0);
+                }
+                else
+                {
+                    SDL_DrawGPUPrimitives(renderPass, command.count, 1, 0, 0);
+                }
             }
             SDL_EndGPURenderPass(renderPass);
         }
@@ -105,7 +124,47 @@ Scene::ImportStatus Scene::LoadMaterials(std::span<const renderer::MaterialT> ma
 }
 Scene::ImportStatus Scene::LoadMeshes(std::span<const renderer::MeshT> meshes)
 {
-    return ImportStatus::FAILURE;
+    auto* commandBuffer = SDL_AcquireGPUCommandBuffer(GetDevice());
+    auto* copyPass = SDL_BeginGPUCopyPass(commandBuffer);
+    vertexInputBuffers_.resize(meshes.size());
+    for (size_t i = 0; i < meshes.size(); ++i)
+    {
+        const auto& meshInfo = meshes[i];
+        if (meshInfo.primitive_type == renderer::MeshPrimitiveType_NONE)
+            continue;
+
+        auto& vertexInputBuffer = vertexInputBuffers_[i];
+        switch (meshInfo.primitive_type)
+        {
+        case renderer::MeshPrimitiveType_CUBE:
+        {
+            auto mesh = core::GenerateCube(glm::vec3(1.0f), glm::vec3(0.0f));
+            vertexInputBuffer.CreateFromMesh(mesh, copyPass);
+            break;
+        }
+        case renderer::MeshPrimitiveType_QUAD:
+        {
+            auto mesh = core::GenerateQuad(glm::vec3(1.0f), glm::vec3(0.0f));
+            vertexInputBuffer.CreateFromMesh(mesh, copyPass);
+            break;
+        }
+        case renderer::MeshPrimitiveType_SPHERE:
+        {
+            auto mesh = core::GenerateSphere(1.0f, glm::vec3(0.0f));
+            vertexInputBuffer.CreateFromMesh(mesh, copyPass);
+            break;
+        }
+        default:
+            break;
+        }
+    }
+    SDL_EndGPUCopyPass(copyPass);
+    SDL_SubmitGPUCommandBuffer(commandBuffer);
+    for (auto& vertexInputBuffer : vertexInputBuffers_)
+    {
+        vertexInputBuffer.ClearTransferBuffers();
+    }
+    return ImportStatus::SUCCESS;
 }
 Scene::ImportStatus Scene::LoadDrawCommands(const renderer::RenderpassT* renderPass)
 {
@@ -121,7 +180,7 @@ Scene::ImportStatus Scene::LoadDrawCommands(const renderer::RenderpassT* renderP
 }
 Scene::ImportStatus Scene::LoadRenderPass(const renderer::RenderpassT* renderPass)
 {
-    return ImportStatus::FAILURE;
+    return ImportStatus::SUCCESS;
 }
 
 

@@ -48,7 +48,7 @@ void DrawCommand::Bind()
 {
 }
 
-void DrawCommand::PreDrawBind()
+void DrawCommand::PreDrawBind(void* renderData)
 {
 }
 

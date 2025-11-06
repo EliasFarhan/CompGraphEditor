@@ -48,7 +48,7 @@ class Pipeline
 {
 public:
     virtual ~Pipeline() = default;
-    virtual void Bind() = 0;
+    virtual void Bind(void* renderData = nullptr) = 0;
 
     void SetPipelineName(std::string_view name);
     [[nodiscard]] std::string_view GetPipelineName() const;

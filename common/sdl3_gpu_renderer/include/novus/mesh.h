@@ -14,14 +14,6 @@
 namespace novus
 {
 
-class VertexInputBuffer : core::VertexInputBuffer
-{
-public:
-    void CreateFromMesh(const core::Mesh& mesh) override;
-    void Bind() override;
-    void Destroy() override;
-};
-
 enum class EnableNormal
 {
     Yes,

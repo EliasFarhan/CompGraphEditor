@@ -37,10 +37,11 @@ GenerateVertexInputState(EnableNormal enableNormal, EnableTangent enableTangent,
                                                        .format = internal::VertexElementFormat_FLOAT3,
                                                        .offset = sizeof(float) * 11});
     }
+
     vertexInputState->vertex_buffer_descriptions.push_back({.slot = 0,
                                                             .pitch = sizeof(core::Vertex),
                                                             .input_rate = internal::VertexInputRate_VERTEX,
-                                                            .instance_step_rate = 1});
+                                                            .instance_step_rate = 0});
 
     return vertexInputState;
 }

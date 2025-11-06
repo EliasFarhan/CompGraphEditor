@@ -128,8 +128,7 @@ novus::renderer::SceneT Scene02()
     graphicsPipelineInfo->primitive_type = novus::internal::PrimitiveType_TRIANGLELIST;
 
     //this is know by the engine, no?
-    graphicsPipeline.info->vertex_input_state = novus::GenerateVertexInputState();
-
+    graphicsPipelineInfo->vertex_input_state = novus::GenerateVertexInputState();
     auto rasterizerState = std::make_unique<novus::internal::RasterizerStateT>();
     rasterizerState->cull_mode = novus::internal::CullMode_NONE;
     rasterizerState->fill_mode = novus::internal::FillMode_FILL;

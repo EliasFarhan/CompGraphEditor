@@ -72,6 +72,9 @@ static void FillPipelineInfo(SDL_GPUGraphicsPipelineCreateInfo& pipelineCreateIn
         .enable_depth_bias = rasterize_state->enable_depth_bias,
         .enable_depth_clip = rasterize_state->enable_depth_clip
     };
+
+
+
     auto* multisample_state = pipelineInfo->multisample_state.get();
     if (multisample_state != nullptr)
     {
@@ -103,7 +106,47 @@ void Pipeline::Load(const renderer::GraphicsPipelineT& pipelineInfo, const Shade
 
     FillPipelineInfo(pipelineCreateInfo, pipelineInfo.info.get());
 
-    pipelineCreateInfo.vertex_input_state = { .num_vertex_buffers = 0, .num_vertex_attributes = 0 };
+    auto* vertexInputState = pipelineInfo.info->vertex_input_state.get();
+    std::vector<SDL_GPUVertexBufferDescription> vertexBufferDescriptions;
+    std::vector<SDL_GPUVertexAttribute> vertexBufferAttributes;
+    if (vertexInputState != nullptr)
+    {
+        const auto& vertexDescriptions = vertexInputState->vertex_buffer_descriptions;
+        const auto& vertexAttributes = vertexInputState->vertex_attributes;
+        vertexBufferDescriptions.reserve(vertexDescriptions.size());
+        vertexBufferAttributes.reserve(vertexAttributes.size());
+        for(const auto& description : vertexDescriptions)
+        {
+            SDL_GPUVertexBufferDescription vertexBufferDescription{
+
+                .slot = description.slot,
+                .pitch = description.pitch,
+                .input_rate = static_cast<SDL_GPUVertexInputRate>(description.input_rate),
+                .instance_step_rate = description.instance_step_rate,
+            };
+            vertexBufferDescriptions.push_back(vertexBufferDescription);
+        }
+
+        for(const auto& attribute : vertexAttributes)
+        {
+            SDL_GPUVertexAttribute vertexBufferAttribute{
+                .location = attribute.location,
+                .buffer_slot = attribute.buffer_slot,
+                .format = static_cast<SDL_GPUVertexElementFormat>(attribute.format),
+                .offset = attribute.offset
+            };
+            vertexBufferAttributes.push_back(vertexBufferAttribute);
+        }
+        pipelineCreateInfo.vertex_input_state = {
+            .vertex_buffer_descriptions = vertexBufferDescriptions.data(),
+            .num_vertex_buffers = static_cast<uint32_t>(vertexBufferDescriptions.size()),
+            .vertex_attributes = vertexBufferAttributes.data(),
+            .num_vertex_attributes = static_cast<uint32_t>(vertexBufferAttributes.size()) };
+    }
+    else
+    {
+        pipelineCreateInfo.vertex_input_state = { .num_vertex_buffers = 0, .num_vertex_attributes = 0 };
+    }
 
     auto* targetInfo = pipelineInfo.info->target_info.get();
     std::vector<SDL_GPUColorTargetDescription> color_target_descriptions;
@@ -129,10 +172,10 @@ void Pipeline::Load(const renderer::GraphicsPipelineT& pipelineInfo, const Shade
         throw std::runtime_error(std::format("Pipeline: Could not create: {}", SDL_GetError()));
     }
 }
-void Pipeline::Bind()
+void Pipeline::Bind(void* renderData)
 {
     //Needs current renderpass
-    //SDL_BindGPUGraphicsPipeline(GetCurrentRenderpass(), pipeline_);
+    SDL_BindGPUGraphicsPipeline(static_cast<SDL_GPURenderPass*>(renderData), pipeline_);
 }
 void Pipeline::Destroy()
 {

@@ -4,6 +4,7 @@
 
 #ifndef NEKO2_SCENE_H
 #define NEKO2_SCENE_H
+#include "buffer.h"
 #include "command.h"
 #include "engine/scene.h"
 #include "framebuffer.h"
@@ -45,6 +46,7 @@ private:
     std::vector<Pipeline> pipelines_;
     std::vector<Framebuffer> framebuffers_;
     std::vector<Material> materials_;
+    std::vector<VertexInputBuffer> vertexInputBuffers_;
 };
 }
 #endif //NEKO2_SCENE_H

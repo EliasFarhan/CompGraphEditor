@@ -38,7 +38,7 @@ public:
 
     void Bind() override;
 
-    void PreDrawBind() override;
+    void PreDrawBind(void* renderData = nullptr) override;
 private:
     Pipeline* pipeline_ = nullptr;
     Material* material_ = nullptr;

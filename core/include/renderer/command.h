@@ -113,7 +113,7 @@ public:
     /**
      * @brief PreDrawBind is a method that bind transform and apply all deferred changes before drawing
      */
-    virtual void PreDrawBind() = 0;
+    virtual void PreDrawBind(void* renderData = nullptr) = 0;
 
     ModelTransformMatrix modelTransformMatrix{};
 

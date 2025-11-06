@@ -29,9 +29,8 @@ class Pipeline : public core::Pipeline
 {
 public:
     void Load(const renderer::GraphicsPipelineT& pipelineInfo, const Shader& vertShader, const Shader& fragShader);
-	void Bind() override;
+	void Bind(void* renderData = nullptr) override;
     void Destroy();
-    auto* get(){return pipeline_;}
 private:
     SDL_GPUGraphicsPipeline* pipeline_ = nullptr;
 };
