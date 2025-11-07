@@ -1,19 +1,14 @@
-#include "wasm/neko2.h"
-#include <glm/vec3.hpp>
-#include <glm/mat4x4.hpp>
-#include <array>
+#define MODULE_NAME scene03
 
-#define GLM_ENABLE_EXPERIMENTAL
-#include "glm/ext/matrix_clip_space.hpp"
-#include "glm/ext/matrix_transform.hpp"
+#include "wasm/neko2.h"
 #include "wasm/draw_command.h"
 
-#define MODULE_NAME scene03
-#define WASM_EXPORT __attribute__((used)) __attribute__((visibility ("default")))
+#include <glm/vec3.hpp>
+#include <glm/mat4x4.hpp>
 
-#define BEGIN_FUNC() void WASM_EXPORT MODULE_NAME ## begin()
-#define DRAW_FUNC(drawCommand) void WASM_EXPORT MODULE_NAME ## draw(int64_t drawCommandId)
-#define UPDATE_FUNC(dt) void WASM_EXPORT MODULE_NAME ## update(float dt)
+#include "glm/ext/matrix_clip_space.hpp"
+#include "glm/ext/matrix_transform.hpp"
+#include <array>
 
 extern "C"
 {

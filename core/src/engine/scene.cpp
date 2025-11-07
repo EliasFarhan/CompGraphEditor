@@ -81,8 +81,8 @@ void Scene::LoadScene()
 
 
 
-    /*
-    const auto systemSize = scene_.systems_size();
+
+    const auto systemSize = scene_.systems.size();
     scripts_.clear();
     scripts_.reserve(systemSize);
 
@@ -90,10 +90,10 @@ void Scene::LoadScene()
 
     for(int i = 0; i < systemSize; i++)
     {
-        const auto& pySystem = scene_.systems(i);
-        scripts_.push_back(scriptLoader.LoadScript(pySystem.path(), pySystem.module(), pySystem.class_()));
+        const auto& system = scene_.systems[i];
+        scripts_.push_back(scriptLoader.LoadScript(system.path, system.module_, system.class_));
     }
-    */
+
 }
 
 void Scene::SetScene(const novus::renderer::SceneT& scene)

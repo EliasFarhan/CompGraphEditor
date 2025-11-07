@@ -168,6 +168,10 @@ Scene::ImportStatus Scene::LoadMeshes(std::span<const renderer::MeshT> meshes)
 }
 Scene::ImportStatus Scene::LoadDrawCommands(const renderer::RenderpassT* renderPass)
 {
+    if (renderPass == nullptr)
+    {
+        throw std::runtime_error("renderPass is nullptr");
+    }
     for (int subpassIndex = 0; subpassIndex < renderPass->sub_passes.size(); ++subpassIndex)
     {
         const auto& subpass = renderPass->sub_passes[subpassIndex];

@@ -1,6 +1,4 @@
-//
-// Created by unite on 06.11.2025.
-//
+
 #include "novus/mesh.h"
 #include "sample.h"
 
@@ -83,9 +81,10 @@ novus::renderer::SceneT Scene03()
     subpass.commands.push_back(std::move(drawCommand));
     auto renderpass = std::make_unique<novus::renderer::RenderpassT>();
     renderpass->sub_passes.push_back(std::move(subpass));
-
-
     scene.render_pass = std::move(renderpass);
-    return {};
+
+    scene.systems.push_back({.module_ = "scene03", .class_ = "Scene03", .path = "data/scripts/03_uniform.wasm"});
+
+    return scene;
 }
 }

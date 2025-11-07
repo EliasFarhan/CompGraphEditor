@@ -77,3 +77,14 @@ void set_mat4(int64_t drawCommand, const void* name, T value)
     }
 }
 
+#define WASM_EXPORT __attribute__((used)) __attribute__((visibility ("default")))
+
+#define EXPAND(x) x
+#define CONCATENATE_DETAIL(x,y) x ## y
+#define CONCATENATE(x,y) CONCATENATE_DETAIL(x,y)
+#define MODULE_NAME_FUNC(x) CONCATENATE(EXPAND(MODULE_NAME), x)
+
+#define BEGIN_FUNC() void WASM_EXPORT MODULE_NAME_FUNC(_begin) ()
+#define END_FUNC() void WASM_EXPORT MODULE_NAME_FUNC(_end) ()
+#define DRAW_FUNC(drawCommand) void WASM_EXPORT MODULE_NAME_FUNC(_draw)(int64_t drawCommandId)
+#define UPDATE_FUNC(dt) void WASM_EXPORT MODULE_NAME_FUNC(_update)(float dt)

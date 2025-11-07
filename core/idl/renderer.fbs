@@ -1,4 +1,5 @@
 include "internal_renderer.fbs";
+include "engine.fbs";
 namespace novus.renderer;
 
 table Shader
@@ -90,4 +91,5 @@ table Scene
     render_pass: Renderpass;
     meshes: [Mesh] (native_inline);
     materials: [Material] (native_inline);
+    systems: [engine.System] (native_inline);
 }

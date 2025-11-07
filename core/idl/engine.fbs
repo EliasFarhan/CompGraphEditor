@@ -22,3 +22,10 @@ table Config
     major_version : int32; //kept for vulkan port
     minor_version : int32; //kept for vulkan port
 }
+
+table System
+{
+    module: string;
+    class: string;
+    path: string;
+}
