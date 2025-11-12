@@ -47,6 +47,10 @@ public:
     virtual TextureManager& GetTextureManager() = 0;
     ModelManager& GetModelManager();
     novus::engine::ShaderFormat GetShaderFormat();
+    /*
+     * \note This cannot be called after RunEngine()
+     */
+    void SetShaderFormat(novus::engine::ShaderFormat shaderFormat);
 
     enum class JobIndex
     {

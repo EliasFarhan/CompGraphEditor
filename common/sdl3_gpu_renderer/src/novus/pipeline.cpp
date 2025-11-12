@@ -98,6 +98,29 @@ static void FillPipelineInfo(SDL_GPUGraphicsPipelineCreateInfo& pipelineCreateIn
     }
 
 }
+std::string AddFormatExtension(std::string_view glslPath)
+{
+    std::string newPath = glslPath.data();
+    switch (core::GetShaderFormat())
+    {
+    case novus::engine::ShaderFormat_SPIRV:
+        newPath += ".spv";
+        break;
+    case novus::engine::ShaderFormat_DXIL:
+        newPath += ".dxil";
+        break;
+    case novus::engine::ShaderFormat_MSL:
+        newPath += ".msl";
+        break;
+    case novus::engine::ShaderFormat_METALLIB:
+        newPath += "metallib";
+        break;
+    case novus::engine::ShaderFormat_DXBC:
+        newPath += ".cso";
+        break;
+    }
+    return newPath;
+}
 void Pipeline::Load(const renderer::GraphicsPipelineT& pipelineInfo, const Shader& vertShader, const Shader& fragShader)
 {
     SDL_GPUGraphicsPipelineCreateInfo pipelineCreateInfo{};

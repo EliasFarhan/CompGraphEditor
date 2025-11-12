@@ -25,6 +25,8 @@ private:
     SDL_GPUShader* shader_ = nullptr;
 };
 
+std::string AddFormatExtension(std::string_view glslPath);
+
 class Pipeline : public core::Pipeline
 {
 public:

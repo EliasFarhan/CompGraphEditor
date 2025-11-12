@@ -31,6 +31,10 @@ novus::engine::ShaderFormat Engine::GetShaderFormat()
 {
     return config_.shader_format;
 }
+void Engine::SetShaderFormat(novus::engine::ShaderFormat shaderFormat)
+{
+    config_.shader_format = shaderFormat;
+}
 
 void Engine::Begin()
 {

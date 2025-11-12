@@ -13,25 +13,9 @@ novus::renderer::SceneT Scene01()
     static constexpr std::string_view vertexPathBase = "data/shaders/01_hello_triangle/triangle.vert";
     static constexpr std::string_view fragmentPathBase = "data/shaders/01_hello_triangle/triangle.frag";
 
-    std::string vertexPath = vertexPathBase.data();
-    std::string fragmentPath = fragmentPathBase.data();
-    switch (core::GetShaderFormat())
-    {
-    case novus::engine::ShaderFormat_SPIRV:
-        vertexPath += ".spv";
-        fragmentPath += ".spv";
-        break;
-    case novus::engine::ShaderFormat_DXIL:
-        break;
-    case novus::engine::ShaderFormat_MSL:
-        break;
-    case novus::engine::ShaderFormat_METALLIB:
-        break;
-    case novus::engine::ShaderFormat_DXBC:
-        break;
-    }
-    scene.shaders.push_back({.path = vertexPath, .info = vertexShaderInfo});
-    scene.shaders.push_back({.path = fragmentPath, .info = fragmentShaderInfo});
+
+    scene.shaders.push_back({.path = novus::AddFormatExtension(vertexPathBase), .info = vertexShaderInfo});
+    scene.shaders.push_back({.path = novus::AddFormatExtension(fragmentPathBase), .info = fragmentShaderInfo});
     scene.name = "01_Triangle";
 
     novus::renderer::GraphicsPipelineT graphicsPipeline{};

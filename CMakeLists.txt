@@ -28,6 +28,7 @@ set_property( GLOBAL PROPERTY USE_FOLDERS ON)
 include(cmake/data.cmake)
 include(cmake/proto.cmake)
 include(cmake/wasm.cmake)
+include(cmake/shader.cmake)
 
 
 find_package(glm CONFIG REQUIRED)

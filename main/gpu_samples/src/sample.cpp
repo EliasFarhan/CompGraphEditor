@@ -25,7 +25,7 @@ void SampleBrowser::Begin()
     {
         sample.scene.SetScene(sample.sceneInfo);
     }
-    currentIndex_ = 2;
+    currentIndex_ = 1;
     sceneManager_.LoadScene(&samples_[currentIndex_].scene);
 }
 void SampleBrowser::Update(float dt)
