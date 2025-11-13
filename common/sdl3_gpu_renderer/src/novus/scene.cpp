@@ -27,6 +27,14 @@ void Scene::Update(float dt)
 {
     auto* commandBuffer = GetCommandBuffer();
 
+    for (auto& script: scripts_)
+    {
+        if (script != nullptr)
+        {
+            script->Update(dt);
+        }
+    }
+
     SDL_GPUTexture* swapchainTexture = GetSwapchainTexture();
     if (swapchainTexture != nullptr)
     {

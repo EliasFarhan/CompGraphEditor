@@ -52,7 +52,7 @@ ShaderAttributeResult GenerateShaderAttributeFromJson(std::string_view jsonPath)
         {
             internal::BufferAttributeT bufferAttribute;
             bufferAttribute.name = ubo["name"];
-            bufferAttribute.type = core::GetAttributeType(ubo["type"]);
+            bufferAttribute.type = core::GetAttributeType(ubo["type"].get<std::string_view>());
             bufferAttribute.block_size = ubo["block_size"];
             bufferAttribute.binding = ubo["binding"];
             bufferAttribute.type_name = ubo["type"];

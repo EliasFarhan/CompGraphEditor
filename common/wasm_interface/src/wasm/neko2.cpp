@@ -22,7 +22,7 @@ void draw(int64_t drawCommand)
     ZoneScoped;
 #endif
     auto* scene = core::GetCurrentScene();
-    reinterpret_cast<core::DrawCommand*>(drawCommand)->PreDrawBind();
+    reinterpret_cast<core::DrawCommand*>(drawCommand)->PreDrawBind(nullptr);
     scene->Draw(*reinterpret_cast<core::DrawCommand*>(drawCommand));
 }
 
@@ -168,7 +168,7 @@ void draw_instanced(int64_t drawCommand, int64_t count)
     ZoneScoped;
 #endif
     auto* scene = core::GetCurrentScene();
-    reinterpret_cast<core::DrawCommand*>(drawCommand)->PreDrawBind();
+    reinterpret_cast<core::DrawCommand*>(drawCommand)->PreDrawBind(nullptr);
     scene->Draw(*reinterpret_cast<core::DrawCommand*>(drawCommand), count);
 }
 int64_t get_system_camera()

@@ -6,6 +6,7 @@
 
 #include "novus/engine.h"
 #include "utils/log.h"
+#include <format>
 
 namespace novus
 {
@@ -220,7 +221,7 @@ void Pipeline::Load(const renderer::GraphicsPipelineT& pipelineInfo,
 
         auto uniformBuffer = UniformBuffer{.data = std::make_unique<uint8_t[]>(fragmentUniform.block_size),
             .binding = fragmentUniform.binding,
-            .stage = internal::ShaderStage_VERTEX,
+            .stage = internal::ShaderStage_FRAGMENT,
             .block_size = (uint8_t)fragmentUniform.block_size,
             .isDirty = false};
 

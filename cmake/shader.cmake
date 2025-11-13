@@ -6,7 +6,7 @@ function(compile_shaders_to_vk main_folder exe_name)
         endif()
     elseif(UNIX)
         set(GLSL_VALIDATOR "$ENV{VULKAN_SDK}/bin/glslc")
-        set(GLSL_VALIDATOR "$ENV{VULKAN_SDK}/bin/spirv-cross")
+        set(SPIRV_CROSS "$ENV{VULKAN_SDK}/bin/spirv-cross")
     endif()
 
     file(GLOB_RECURSE GLSL_SOURCE_FILES
@@ -34,16 +34,16 @@ function(compile_shaders_to_vk main_folder exe_name)
 
         source_group("Shader Files\\${RELATIVE_PATH}" FILES "${GLSL}")
         file(RELATIVE_PATH PATH_NAME "${main_folder}" ${PATH_NAME})
-        #MESSAGE("GLSL PATH: ${PATH_NAME} NAME: ${FILE_NAME}")
+        MESSAGE("GLSL PATH: ${PATH_NAME} NAME: ${FILE_NAME}")
         set(GLSL_OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/${PATH_NAME}/${FILE_NAME}")
-        #MESSAGE("GLSL OUT PATH: ${GLSL_OUTPUT}")
+        MESSAGE("GLSL OUT PATH: ${GLSL_OUTPUT}")
         add_custom_command(
                 OUTPUT ${GLSL_OUTPUT}
                 COMMAND ${CMAKE_COMMAND} -E copy
                 ${main_folder}/${PATH_NAME}/${FILE_NAME}
                 ${GLSL_OUTPUT}
                 COMMAND ${GLSL_VALIDATOR} ${GLSL} -o ${GLSL_OUTPUT}.spv --target-env=vulkan1.0
-                COMMAND ${SPIRV_CROSS} ${GLSL_OUTPUT}.spv --output ${GLSL_OUTPUT}.json --reflect --dump-resources
+                COMMAND ${SPIRV_CROSS} ${GLSL_OUTPUT}.spv --output ${GLSL_OUTPUT}.json --reflect
 
                 DEPENDS ${GLSL})
         list(APPEND GLSL_OUTPUT_FILES ${GLSL_OUTPUT})
