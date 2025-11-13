@@ -22,6 +22,7 @@ extern "C"
     UPDATE_FUNC(dt)
     {
         t += dt;
+        /*
         auto viewBuffer = GetBuffer("view");
         auto projectionBuffer = GetBuffer("projection");
         auto view = glm::mat4(1.0f);
@@ -29,13 +30,6 @@ extern "C"
         viewBuffer.SetMat4("view", view);
         auto projection = glm::perspective(glm::radians(45.0f), get_aspect(), 0.1f, 100.0f);
         drawCommand.SetMat4("projection", projection);
-    }
-
-    DRAW_FUNC(drawCommandId)
-    {
-        script::DrawCommand drawCommand(drawCommandId);
-        drawCommand.Bind();
-
-        //add model matrix
+        */
     }
 }

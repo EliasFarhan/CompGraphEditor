@@ -121,7 +121,11 @@ std::string AddFormatExtension(std::string_view glslPath)
     }
     return newPath;
 }
-void Pipeline::Load(const renderer::GraphicsPipelineT& pipelineInfo, const Shader& vertShader, const Shader& fragShader)
+void Pipeline::Load(const renderer::GraphicsPipelineT& pipelineInfo,
+    const Shader& vertShader,
+    const renderer::ShaderT& vertShaderInfo,
+    const Shader& fragShader,
+    const renderer::ShaderT& fragShaderInfo)
 {
     SDL_GPUGraphicsPipelineCreateInfo pipelineCreateInfo{};
     pipelineCreateInfo.vertex_shader = vertShader.get();
@@ -193,6 +197,35 @@ void Pipeline::Load(const renderer::GraphicsPipelineT& pipelineInfo, const Shade
     if (!pipeline_) {
         throw std::runtime_error(std::format("Pipeline: Could not create: {}", SDL_GetError()));
     }
+    //Uniform data generation
+    int currentUniformIndex = 0;
+    for (const auto& vertexUniform : vertShaderInfo.uniform_buffers)
+    {
+        if (vertexUniform.block_size == 0)
+            continue;
+
+        UniformBuffer uniformBuffer{.data = std::make_unique<uint8_t[]>(vertexUniform.block_size),
+            .binding = vertexUniform.binding,
+            .stage = internal::ShaderStage_VERTEX,
+            .isDirty = false};
+        uniformBuffers_.push_back(std::move(uniformBuffer));
+        GenerateUniformBufferRef(vertexUniform.type_name, vertShaderInfo.types, currentUniformIndex);
+        currentUniformIndex++;
+    }
+    for (const auto& fragmentUniform : fragShaderInfo.uniform_buffers)
+    {
+        if (fragmentUniform.block_size == 0)
+            continue;
+
+        auto uniformBuffer = UniformBuffer{.data = std::make_unique<uint8_t[]>(fragmentUniform.block_size),
+            .binding = fragmentUniform.binding,
+            .stage = internal::ShaderStage_VERTEX,
+            .isDirty = false};
+
+        uniformBuffers_.push_back(std::move(uniformBuffer));
+        GenerateUniformBufferRef(fragmentUniform.type_name, fragShaderInfo.types, currentUniformIndex);
+        currentUniformIndex++;
+    }
 }
 void Pipeline::Bind(void* renderData)
 {
@@ -205,6 +238,47 @@ void Pipeline::Destroy()
     {
         SDL_ReleaseGPUGraphicsPipeline(GetDevice(), pipeline_);
         pipeline_ = nullptr;
+    }
+}
+void Pipeline::GenerateUniformBufferRef(
+    std::string_view currentTypeName,
+    std::span<const internal::BufferStructT> types,
+    int currentUniformIndex)
+{
+    auto typeIt = std::ranges::find_if(types, [&](const auto& type)
+    {
+        return currentTypeName == type.key;
+    });
+    if (typeIt == types.end())
+    {
+        throw std::runtime_error("Could not find the correct type in the shader");
+    }
+    for (auto& memberType : typeIt->members)
+    {
+        switch (auto type = core::GetAttributeType(memberType.type))
+        {
+        case internal::AttributeType_CUSTOM_STRUCT:
+            GenerateUniformBufferRef(memberType.type, types, currentUniformIndex);
+            break;
+        case internal::AttributeType_FLOAT:
+        case internal::AttributeType_VEC2:
+        case internal::AttributeType_VEC3:
+        case internal::AttributeType_VEC4:
+        case internal::AttributeType_MAT2:
+        case internal::AttributeType_MAT3:
+        case internal::AttributeType_MAT4:
+        case internal::AttributeType_INT:
+        case internal::AttributeType_IVEC2:
+        case internal::AttributeType_IVEC3:
+        case internal::AttributeType_IVEC4:
+        case internal::AttributeType_BOOL:
+            uniformBufferReferenceMap_[memberType.name] = {.type = type,
+            .uniformIndex = currentUniformIndex,
+            .offset = memberType.offset};
+            break;
+        default:
+            break;
+        }
     }
 }
 } // namespace novus

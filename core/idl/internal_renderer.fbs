@@ -410,6 +410,7 @@ table RenderPassInfo
 enum AttributeType: ubyte
 {
     CUSTOM_STRUCT,
+    FLOAT,
     VEC2,
     VEC3,
     VEC4,

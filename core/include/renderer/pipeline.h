@@ -46,7 +46,6 @@ struct BufferBinding
 class Pipeline
 {
 public:
-    virtual ~Pipeline() = default;
     virtual void Bind(void* renderData) = 0;
 
     void SetPipelineName(std::string_view name);
@@ -63,6 +62,71 @@ struct TypeInfo
     int size = 0;
     int alignment = 0;
 };
+
+constexpr novus::internal::AttributeType GetAttributeType(std::string_view name)
+{
+    if (name == "vec4")
+    {
+        return novus::internal::AttributeType_VEC4;
+    }
+    if (name == "vec2")
+    {
+        return novus::internal::AttributeType_VEC2;
+    }
+    if (name == "vec3")
+    {
+        return novus::internal::AttributeType_VEC3;
+    }
+    if (name == "float")
+    {
+        return novus::internal::AttributeType_FLOAT;
+    }
+    if (name == "int")
+    {
+        return novus::internal::AttributeType_INT;
+    }
+    if (name == "bool")
+    {
+        return novus::internal::AttributeType_BOOL;
+    }
+    if (name == "mat4")
+    {
+        return novus::internal::AttributeType_MAT4;
+    }
+    if (name == "mat3")
+    {
+        return novus::internal::AttributeType_MAT3;
+    }
+    if (name == "mat2")
+    {
+        return novus::internal::AttributeType_MAT2;
+    }
+    if (name == "ivec4")
+    {
+        return novus::internal::AttributeType_IVEC4;
+    }
+    if (name == "ivec2")
+    {
+        return novus::internal::AttributeType_IVEC2;
+    }
+    if (name == "ivec3")
+    {
+        return novus::internal::AttributeType_IVEC3;
+    }
+    if (name == "sampler2D")
+    {
+        return novus::internal::AttributeType_SAMPLER2D;
+    }
+    if (name == "samplerCube")
+    {
+        return novus::internal::AttributeType_SAMPLERCUBE;
+    }
+    if (name == "image2D")
+    {
+        return novus::internal::AttributeType_IMAGE2D;
+    }
+    return novus::internal::AttributeType_CUSTOM_STRUCT;
+}
 /*
 constexpr TypeInfo GetTypeInfo(pb::Attribute_Type attributeType, bool array=false)
 {

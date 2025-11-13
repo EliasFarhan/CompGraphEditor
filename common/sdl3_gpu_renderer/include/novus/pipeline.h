@@ -20,21 +20,46 @@ class Shader : core::Shader
 public:
     void LoadShader(const renderer::ShaderT& shaderInfo);
     void Destroy();
-    SDL_GPUShader* get() const { return shader_;}
+    [[nodiscard]] SDL_GPUShader* get() const { return shader_;}
 private:
     SDL_GPUShader* shader_ = nullptr;
 };
 
 std::string AddFormatExtension(std::string_view glslPath);
 
+
 class Pipeline : public core::Pipeline
 {
 public:
-    void Load(const renderer::GraphicsPipelineT& pipelineInfo, const Shader& vertShader, const Shader& fragShader);
-	void Bind(void* renderData = nullptr) override;
+    void Load(const renderer::GraphicsPipelineT& pipelineInfo,
+        const Shader& vertShader,
+        const renderer::ShaderT& vertShaderInfo,
+        const Shader& fragShader,
+        const renderer::ShaderT& fragShaderInfo);
+	void Bind(void* renderData) override;
     void Destroy();
 private:
+    struct UniformBuffer
+    {
+        std::unique_ptr<uint8_t[]> data;
+        int binding{};
+        internal::ShaderStage stage = (internal::ShaderStage)-1;
+        bool isDirty{};
+    };
+
+    struct UniformBufferReference
+    {
+        internal::AttributeType type;
+        int uniformIndex;
+        int offset;
+    };
+    void GenerateUniformBufferRef(std::string_view currentTypeName,
+        std::span<const internal::BufferStructT> types,
+        int currentUniformIndex);
     SDL_GPUGraphicsPipeline* pipeline_ = nullptr;
+    std::vector<UniformBuffer> uniformBuffers_;
+
+    std::unordered_map<std::string, UniformBufferReference> uniformBufferReferenceMap_{};
 };
 }
 #endif //NEKO2_PIPELINE_H

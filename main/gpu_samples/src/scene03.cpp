@@ -1,4 +1,5 @@
 
+#include "../../utils/shader_analyzer_lib/shader_analyzer.h"
 #include "novus/mesh.h"
 #include "sample.h"
 
@@ -8,11 +9,15 @@ namespace sample
 novus::renderer::SceneT Scene03()
 {
     novus::renderer::SceneT scene{};
-    static constexpr std::string_view vertexPathBase = "data/shaders/03_hello_uniform/triangle.vert";
-    static constexpr std::string_view fragmentPathBase = "data/shaders/03_hello_uniform/triangle.frag";
+    static constexpr std::string_view vertexPathBase = "data/shaders/03_hello_uniform/quad.vert";
+    static constexpr std::string_view fragmentPathBase = "data/shaders/03_hello_uniform/quad.frag";
 
     scene.shaders.push_back({.path = novus::AddFormatExtension(vertexPathBase), .shader_stage = novus::internal::ShaderStage_VERTEX});
-    scene.shaders.push_back({.path = novus::AddFormatExtension(fragmentPathBase), .shader_stage = novus::internal::ShaderStage_FRAGMENT});
+    const auto framgentAnalyzeResult = novus::GenerateShaderAttributeFromJson(std::string(fragmentPathBase)+".json");
+    scene.shaders.push_back({.path = novus::AddFormatExtension(fragmentPathBase),
+        .uniform_buffers = std::move(framgentAnalyzeResult.uniformBuffers),
+        .types = std::move(framgentAnalyzeResult.types),
+        .shader_stage = novus::internal::ShaderStage_FRAGMENT,});
     scene.name = "03_Uniform";
 
     novus::renderer::GraphicsPipelineT graphicsPipeline{};
@@ -48,8 +53,12 @@ novus::renderer::SceneT Scene03()
     scene.meshes.push_back(std::move(mesh));
 
     novus::renderer::DrawCommandT drawCommand{.name = "Draw Quad",
-        .material_index = 0, .mesh_index = 0, .count = 6,
-        .mode = novus::renderer::DrawMode_TRIANGLES, .draw_elements = true, .automatic_draw = true};
+        .material_index = 0,
+        .mesh_index = 0,
+        .count = 6,
+        .mode = novus::renderer::DrawMode_TRIANGLES,
+        .draw_elements = true,
+        .automatic_draw = false};
 
     novus::renderer::RenderpassT subpass{};
     subpass.name = "Main subpass";

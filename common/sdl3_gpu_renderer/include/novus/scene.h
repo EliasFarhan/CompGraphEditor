@@ -4,6 +4,7 @@
 
 #ifndef NEKO2_SCENE_H
 #define NEKO2_SCENE_H
+
 #include "buffer.h"
 #include "command.h"
 #include "engine/scene.h"
@@ -36,7 +37,7 @@ public:
 
 protected:
     ImportStatus LoadShaders(std::span<const renderer::ShaderT> shadersPb) override;
-    ImportStatus LoadPipelines(std::span<const renderer::GraphicsPipelineT> pipelines) override;
+    ImportStatus LoadPipelines(std::span<const renderer::GraphicsPipelineT> pipelineInfos) override;
     ImportStatus LoadMaterials(std::span<const renderer::MaterialT> materials) override;
     ImportStatus LoadMeshes(std::span<const renderer::MeshT> meshes) override;
     ImportStatus LoadRenderPass(std::span<const renderer::RenderpassT> renderPass) override;

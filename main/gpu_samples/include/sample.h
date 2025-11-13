@@ -26,6 +26,7 @@ public:
 private:
     std::vector<Sample> samples_;
     int currentIndex_ = -1;
+    int newIndex_ = -1;
     core::SceneManager sceneManager_;
 };
 

@@ -125,12 +125,18 @@ Scene::ImportStatus Scene::LoadShaders(std::span<const renderer::ShaderT> shader
     }
     return ImportStatus::SUCCESS;
 }
-Scene::ImportStatus Scene::LoadPipelines(std::span<const renderer::GraphicsPipelineT> pipelines) {
-    pipelines_.resize(pipelines.size());
+Scene::ImportStatus Scene::LoadPipelines(std::span<const renderer::GraphicsPipelineT> pipelineInfos) {
+    pipelines_.resize(pipelineInfos.size());
     for (size_t i = 0; i < pipelines_.size(); ++i)
     {
-        auto& pipeline = pipelines[i];
-        pipelines_[i].Load(pipelines[i], shaders_[pipeline.vertex_shader_index], shaders_[pipeline.fragment_shader_index]);
+
+        auto& pipelineInfo = pipelineInfos[i];
+        Pipeline& pipeline = pipelines_[i];
+        pipeline.Load(pipelineInfos[i],
+            shaders_[pipelineInfo.vertex_shader_index],
+            scene_.shaders[pipelineInfo.vertex_shader_index],
+            shaders_[pipelineInfo.fragment_shader_index],
+            scene_.shaders[pipelineInfo.fragment_shader_index]);
     }
     return ImportStatus::SUCCESS;
 }
@@ -192,9 +198,9 @@ Scene::ImportStatus Scene::LoadMeshes(std::span<const renderer::MeshT> meshes)
 Scene::ImportStatus Scene::LoadRenderPass(std::span<const renderer::RenderpassT> renderPass)
 {
     renderpasses_.reserve(renderPass.size());
-    for (int64_t subpassIndex = 0; subpassIndex < renderPass.size(); ++subpassIndex)
+    for (int64_t subpassIndex = 0; subpassIndex < std::ssize(renderPass); ++subpassIndex)
     {
-        renderpasses_.emplace_back(renderPass[subpassIndex], subpassIndex, scene_.materials);
+        renderpasses_.emplace_back(renderPass[subpassIndex], (int)subpassIndex, scene_.materials);
     }
     return ImportStatus::SUCCESS;
 }
