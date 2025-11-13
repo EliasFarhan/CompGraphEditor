@@ -46,12 +46,22 @@ struct BufferBinding
 class Pipeline
 {
 public:
+    virtual ~Pipeline() = default;
     virtual void Bind(void* renderData) = 0;
 
     void SetPipelineName(std::string_view name);
     [[nodiscard]] std::string_view GetPipelineName() const;
     [[nodiscard]] std::span<const BufferBinding> GetBufferBindings() const { return bufferBindings_; }
+
+    template<typename T>
+    void SetUniform(std::string_view uniformName, const T* value)
+    {
+        SetUniformData(uniformName, value, sizeof(T));
+    }
+    virtual void UploadDirtyUniformData() = 0;
 protected:
+
+    virtual void SetUniformData(std::string_view uniformName, const void* data, size_t length) = 0;
     std::vector<BufferBinding> bufferBindings_;
 private:
     std::string pipelineName_;

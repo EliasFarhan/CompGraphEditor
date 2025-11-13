@@ -11,11 +11,6 @@ class DrawCommand
 public:
     explicit DrawCommand(int64_t drawCommandId): drawCommandId_(drawCommandId) {}
 
-    void Bind() const
-    {
-        bind_draw_command(drawCommandId_);
-    }
-
     void SetFloat(std::string_view uniformName, float value) const
     {
         set_float(drawCommandId_, uniformName.data(), value);

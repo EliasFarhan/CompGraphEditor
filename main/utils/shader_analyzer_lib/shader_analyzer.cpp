@@ -14,7 +14,7 @@ namespace novus
 {
 ShaderAttributeResult GenerateShaderAttributeFromJson(std::string_view jsonPath)
 {
-    std::ifstream f("example.json");
+    std::ifstream f(jsonPath.data());
     json shaderReflectData = json::parse(f);
     ShaderAttributeResult result;
     if (shaderReflectData.contains("types"))
@@ -37,7 +37,10 @@ ShaderAttributeResult GenerateShaderAttributeFromJson(std::string_view jsonPath)
                 {
                     bufferStructAttribute.matrix_stride = member["matrix_stride"];
                 }
+                bufferStruct.members.push_back(bufferStructAttribute);
             }
+            structs.push_back(bufferStruct);
+
         }
         result.types = std::move(structs);
     }
@@ -58,5 +61,6 @@ ShaderAttributeResult GenerateShaderAttributeFromJson(std::string_view jsonPath)
         }
         result.uniformBuffers = std::move(ubos);
     }
+    return result;
 }
 }

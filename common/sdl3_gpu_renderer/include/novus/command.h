@@ -15,7 +15,8 @@ namespace novus
 class DrawCommand : public core::DrawCommand
 {
 public:
-    using core::DrawCommand::DrawCommand;
+    DrawCommand(novus::renderer::DrawCommandT drawCommandInfo, int subpassIndex,
+        Pipeline* pipeline, Material* material);
 
 
     void SetFloat(std::string_view uniformName, float f) override;
@@ -36,9 +37,9 @@ public:
 
     void SetAngle(std::string_view uniformName, core::Radian angle) override;
 
-    void Bind() override;
+    void Bind(void* renderData) override;
 
-    void PreDrawBind(void* renderData = nullptr) override;
+    void PreDrawBind(void* renderData) override;
 private:
     Pipeline* pipeline_ = nullptr;
     Material* material_ = nullptr;
@@ -65,7 +66,7 @@ public:
 
     void SetAngle(std::string_view uniformName, core::Radian angle) override;
 
-    void Bind() override;
+    void Bind(void* renderData) override;
 };
 }
 

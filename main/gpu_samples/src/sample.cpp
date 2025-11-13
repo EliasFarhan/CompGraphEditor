@@ -9,13 +9,18 @@
 namespace sample
 {
 
+Sample MakeSample(std::string_view name, const novus::renderer::SceneT& sceneInfo)
+{
+    return {name.data(), sceneInfo};
+}
+
 void SampleBrowser::Begin()
 {
-    samples_ = {
-        {"scene1", Scene01()},
-        {"scene2", Scene02()},
-        {"scene3", Scene03()},
-    };
+
+    samples_.push_back(MakeSample("scene1", Scene01()));
+    samples_.push_back(MakeSample("scene2", Scene02()));
+    samples_.push_back(MakeSample("scene3", Scene03()));
+
 
     for(auto& sample : samples_)
     {

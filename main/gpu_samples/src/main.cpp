@@ -9,7 +9,7 @@ int main()
     core::ImportNativeScript();
     sample::SampleBrowser sampleBrowser;
     novus::Engine engine;
-    engine.SetShaderFormat(novus::engine::ShaderFormat_DXIL);
+    engine.SetShaderFormat(novus::engine::ShaderFormat_SPIRV);
 
     engine.SetWindowName("SDL3 GPU samples");
     engine.RegisterSystem(&sampleBrowser);

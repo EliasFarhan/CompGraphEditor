@@ -7,13 +7,6 @@
 #include <tracy/Tracy.hpp>
 #endif
 
-void bind_draw_command(int64_t drawCommand)
-{
-#ifdef TRACY_ENABLE
-    ZoneScoped;
-#endif
-    reinterpret_cast<core::DrawCommand*>(drawCommand)->Bind();
-}
 
 void set_float(int64_t drawCommand, const void* name, float value)
 {

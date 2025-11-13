@@ -200,7 +200,7 @@ Scene::ImportStatus Scene::LoadRenderPass(std::span<const renderer::RenderpassT>
     renderpasses_.reserve(renderPass.size());
     for (int64_t subpassIndex = 0; subpassIndex < std::ssize(renderPass); ++subpassIndex)
     {
-        renderpasses_.emplace_back(renderPass[subpassIndex], (int)subpassIndex, scene_.materials);
+        renderpasses_.emplace_back(renderPass[subpassIndex], (int)subpassIndex, pipelines_, materials_);
     }
     return ImportStatus::SUCCESS;
 }

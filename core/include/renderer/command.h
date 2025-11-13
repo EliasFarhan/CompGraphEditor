@@ -72,7 +72,7 @@ public:
     virtual void SetMat4(std::string_view uniformName, const glm::mat4& mat) = 0;
 
     virtual void SetAngle(std::string_view uniformName, Radian angle) = 0;
-    virtual void Bind() = 0;
+    virtual void Bind(void* renderData) = 0;
 };
 
 class DrawCommand : public Command
@@ -116,7 +116,7 @@ public:
     /**
      * @brief PreDrawBind is a method that bind transform and apply all deferred changes before drawing
      */
-    virtual void PreDrawBind(void* renderData = nullptr) = 0;
+    virtual void PreDrawBind(void* renderData) = 0;
 
     ModelTransformMatrix modelTransformMatrix{};
 

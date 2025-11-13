@@ -7,5 +7,5 @@ compile_shaders_to_msl(${CMAKE_CURRENT_SOURCE_DIR} gpu_samples)
 compilescript(${CMAKE_CURRENT_SOURCE_DIR} gpu_samples)
 
 target_include_directories(gpu_samples PRIVATE include/)
-target_link_libraries(gpu_samples PRIVATE Core CommonNovus CommonWasm argh)
+target_link_libraries(gpu_samples PRIVATE Core CommonNovus CommonWasm argh shader_analyzer_lib)
 set_target_properties (gpu_samples PROPERTIES FOLDER Main)

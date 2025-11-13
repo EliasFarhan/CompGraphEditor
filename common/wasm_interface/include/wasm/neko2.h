@@ -6,7 +6,6 @@
 
 extern "C"
 {
-    void bind_draw_command(int64_t drawCommand);
     void set_float(int64_t drawCommand, const void* name, float value);
     void set_mat4_local(int64_t drawCommand, const void* name, const void* value);
     void set_vec3_local(int64_t drawCommand, const void* name, const void* value);

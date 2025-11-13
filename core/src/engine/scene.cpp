@@ -45,10 +45,6 @@ void Scene::LoadScene()
         LogError("Could not import framebuffers");
     }
     */
-    if (LoadRenderPass(scene_.sub_passes) != ImportStatus::SUCCESS)
-    {
-        LogError("Count not import render pass");
-    }
     const auto& shaders = scene_.shaders;
     if (LoadShaders(shaders) != ImportStatus::SUCCESS)
     {
@@ -66,6 +62,11 @@ void Scene::LoadScene()
     if(LoadMaterials(materials) != ImportStatus::SUCCESS)
     {
         LogError("Could not import materials");
+    }
+
+    if (LoadRenderPass(scene_.sub_passes) != ImportStatus::SUCCESS)
+    {
+        LogError("Count not import render pass");
     }
     /*
     if (LoadBuffers(scene_.buffers()) != ImportStatus::SUCCESS)

@@ -207,6 +207,7 @@ void Pipeline::Load(const renderer::GraphicsPipelineT& pipelineInfo,
         UniformBuffer uniformBuffer{.data = std::make_unique<uint8_t[]>(vertexUniform.block_size),
             .binding = vertexUniform.binding,
             .stage = internal::ShaderStage_VERTEX,
+            .block_size = (uint8_t)vertexUniform.block_size,
             .isDirty = false};
         uniformBuffers_.push_back(std::move(uniformBuffer));
         GenerateUniformBufferRef(vertexUniform.type_name, vertShaderInfo.types, currentUniformIndex);
@@ -220,6 +221,7 @@ void Pipeline::Load(const renderer::GraphicsPipelineT& pipelineInfo,
         auto uniformBuffer = UniformBuffer{.data = std::make_unique<uint8_t[]>(fragmentUniform.block_size),
             .binding = fragmentUniform.binding,
             .stage = internal::ShaderStage_VERTEX,
+            .block_size = (uint8_t)fragmentUniform.block_size,
             .isDirty = false};
 
         uniformBuffers_.push_back(std::move(uniformBuffer));
@@ -239,6 +241,41 @@ void Pipeline::Destroy()
         SDL_ReleaseGPUGraphicsPipeline(GetDevice(), pipeline_);
         pipeline_ = nullptr;
     }
+}
+void Pipeline::UploadDirtyUniformData()
+{
+    for (auto& buffer : uniformBuffers_)
+    {
+        if (buffer.isDirty)
+        {
+            switch (buffer.stage)
+            {
+            case internal::ShaderStage_VERTEX:
+                SDL_PushGPUVertexUniformData(GetCommandBuffer(), buffer.binding, buffer.data.get(), buffer.block_size);
+                buffer.isDirty = false;
+                break;
+            case internal::ShaderStage_FRAGMENT:
+                SDL_PushGPUFragmentUniformData(GetCommandBuffer(), buffer.binding, buffer.data.get(),buffer.block_size);
+                buffer.isDirty = false;
+                break;
+            default:
+                break;
+            }
+        }
+    }
+}
+void Pipeline::SetUniformData(std::string_view uniformName, const void* data, size_t length)
+{
+    auto it = uniformBufferReferenceMap_.find(uniformName.data());
+    if (it == uniformBufferReferenceMap_.end())
+    {
+        throw std::runtime_error("Invalid uniform name");
+    }
+    //TODO test attribute type
+    const auto& uniformRef = it->second;
+    auto& uniformBuffer = uniformBuffers_[uniformRef.uniformIndex];
+    std::memcpy(uniformBuffer.data.get()+uniformRef.offset, data, length);
+    uniformBuffer.isDirty = true;
 }
 void Pipeline::GenerateUniformBufferRef(
     std::string_view currentTypeName,

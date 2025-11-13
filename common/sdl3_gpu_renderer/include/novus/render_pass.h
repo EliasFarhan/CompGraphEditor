@@ -8,6 +8,8 @@
 #include <generated/renderer_generated.h>
 
 #include "novus/command.h"
+#include "novus/material.h"
+#include "novus/pipeline.h"
 
 
 namespace novus
@@ -18,7 +20,10 @@ SDL_GPURenderPass* GenerateSubPass(SDL_GPUCommandBuffer* commandBuffer, const re
 class Renderpass
 {
 public:
-    explicit Renderpass(const renderer::RenderpassT& renderpass, int subpassIndex, std::span<const renderer::MaterialT> materials);
+    explicit Renderpass(const renderer::RenderpassT& renderpass,
+    int subpassIndex,
+    std::span<Pipeline> pipelines,
+    std::span<Material> materials);
 
     std::span<DrawCommand> GetDrawCommands()
     {

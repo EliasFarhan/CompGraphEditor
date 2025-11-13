@@ -16,7 +16,6 @@ void LinkFunctions(wasm3::wasm_module &module)
     ZoneScoped;
 #endif
 	m3_LinkWASI(module.get_module().get());
-    module.link_optional("*", "bind_draw_command", bind_draw_command);
     module.link_optional("*", "set_mat4_local", set_mat4_local);
     module.link_optional("*", "set_mat4_host", set_mat4_host);
     module.link_optional("*", "set_float", set_float);

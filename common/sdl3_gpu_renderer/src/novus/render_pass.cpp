@@ -46,12 +46,17 @@ SDL_GPURenderPass* GenerateSubPass(SDL_GPUCommandBuffer* commandBuffer, const re
     return SDL_BeginGPURenderPass(commandBuffer, sdlColorTargetsInfos.data(), sdlColorTargetsInfos.size(),
                                   isDepthTargetValid ? &sdlDepthStencilTargetInfo : nullptr);
 }
-Renderpass::Renderpass(const renderer::RenderpassT& renderpass, int subpassIndex, std::span<const renderer::MaterialT> materials)
+Renderpass::Renderpass(const renderer::RenderpassT& renderpass,
+    int subpassIndex,
+    std::span<Pipeline> pipelines,
+    std::span<Material> materials)
 {
     drawCommands_.reserve(renderpass.commands.size());
     for (const auto& command : renderpass.commands)
     {
-        drawCommands_.emplace_back(command, subpassIndex);
+        auto* material = &materials[command.material_index];
+        auto* pipeline = &pipelines[material->GetPipelineIndex()];
+        drawCommands_.emplace_back(command, subpassIndex, pipeline, material);
     }
     std::ranges::sort(drawCommands_, [&](const DrawCommand& command1, const DrawCommand& command2)
     {
@@ -63,8 +68,8 @@ Renderpass::Renderpass(const renderer::RenderpassT& renderpass, int subpassIndex
         }
         if (materialIndex1 > materialIndex2)
             return false;
-        const auto piplineIndex1 = materials[materialIndex1].pipeline_index;
-        const auto piplineIndex2 = materials[materialIndex2].pipeline_index;
+        const auto piplineIndex1 = materials[materialIndex1].GetPipelineIndex();
+        const auto piplineIndex2 = materials[materialIndex2].GetPipelineIndex();
         return piplineIndex1 < piplineIndex2;
     });
 }

@@ -30,6 +30,5 @@ extern "C"
         script::DrawCommand drawCommand(drawCommandId);
         drawCommand.SetFloat("ratio", (std::sin(t)+1.0f)/2.0f);
         drawCommand.Draw();
-        //add model matrix
     }
 }
