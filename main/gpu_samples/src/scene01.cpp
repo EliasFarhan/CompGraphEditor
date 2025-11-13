@@ -8,14 +8,12 @@ namespace sample
 novus::renderer::SceneT Scene01()
 {
     novus::renderer::SceneT scene{};
-    novus::internal::ShaderInfo vertexShaderInfo(0,0,0,0,novus::internal::ShaderStage_VERTEX);
-    novus::internal::ShaderInfo fragmentShaderInfo(0,0,0,0,novus::internal::ShaderStage_FRAGMENT);
     static constexpr std::string_view vertexPathBase = "data/shaders/01_hello_triangle/triangle.vert";
     static constexpr std::string_view fragmentPathBase = "data/shaders/01_hello_triangle/triangle.frag";
 
 
-    scene.shaders.push_back({.path = novus::AddFormatExtension(vertexPathBase), .info = vertexShaderInfo});
-    scene.shaders.push_back({.path = novus::AddFormatExtension(fragmentPathBase), .info = fragmentShaderInfo});
+    scene.shaders.push_back(novus::renderer::ShaderT{.path = novus::AddFormatExtension(vertexPathBase), .shader_stage = novus::internal::ShaderStage_VERTEX});
+    scene.shaders.push_back({.path = novus::AddFormatExtension(fragmentPathBase), .shader_stage = novus::internal::ShaderStage_FRAGMENT});
     scene.name = "01_Triangle";
 
     novus::renderer::GraphicsPipelineT graphicsPipeline{};

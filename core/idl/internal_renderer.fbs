@@ -407,13 +407,51 @@ table RenderPassInfo
     depth_stencil_target_info:DepthStencilTargetInfo;
 }
 
-struct ShaderInfo
+enum AttributeType: ubyte
 {
-    num_samplers: uint32;
-    num_storage_textures: uint32;
-    num_storage_buffers: uint32;
-    num_uniform_buffers: uint32;
-    shader_stage: ShaderStage;
+    CUSTOM_STRUCT,
+    VEC2,
+    VEC3,
+    VEC4,
+    MAT2,
+    MAT3,
+    MAT4,
+    INT,
+    IVEC2,
+    IVEC3,
+    IVEC4,
+    BOOL,
+    SAMPLER2D,
+    SAMPLERCUBE,
+    IMAGE2D,
+    ACCELERATION_STRUCT,
+    VOID,
+
+}
+
+table BufferStructAttribute
+{
+    name: string;
+    type: string;
+    offset: int32;
+    matrix_stride: int32;
+}
+table BufferStruct
+{
+    key: string;
+    name: string;
+    members: [BufferStructAttribute] (native_inline);
+}
+
+table BufferAttribute
+{
+    type_name: string;
+    name: string;
+    block_size: int32;
+    type: AttributeType;
+    set: byte;
+    binding: byte;
+    readonly: bool;
 }
 
 enum TextureType:byte

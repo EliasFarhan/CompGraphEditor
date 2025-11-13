@@ -9,10 +9,6 @@
 namespace sample
 {
 
-
-
-
-
 void SampleBrowser::Begin()
 {
     samples_ = {

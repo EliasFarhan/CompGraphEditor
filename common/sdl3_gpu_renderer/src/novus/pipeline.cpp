@@ -37,11 +37,11 @@ void Shader::LoadShader(const renderer::ShaderT& shaderInfo)
         .code = static_cast<Uint8*>(shaderFile),
         .entrypoint = "main",
         .format = core::ConvertShaderFormat(core::GetShaderFormat()),
-        .stage = TranslateShaderState(shaderInfo.info.shader_stage()),
-        .num_samplers = shaderInfo.info.num_samplers(),
-        .num_storage_textures = shaderInfo.info.num_storage_textures(),
-        .num_storage_buffers = shaderInfo.info.num_storage_buffers(),
-        .num_uniform_buffers = shaderInfo.info.num_uniform_buffers()
+        .stage = TranslateShaderState(shaderInfo.shader_stage),
+        .num_samplers = shaderInfo.num_samplers,
+        .num_storage_textures = shaderInfo.num_storage_textures,
+        .num_storage_buffers = static_cast<uint32_t>(shaderInfo.storage_buffers.size()),
+        .num_uniform_buffers = shaderInfo.num_uniform_buffers
     };
     shader_ = SDL_CreateGPUShader(GetDevice(), &creationInfo);
     if (shader_ == nullptr)
