@@ -52,10 +52,10 @@ function(compile_shaders_to_vk main_folder exe_name)
     set(SHADER_TARGET "${exe_name}_ShadersCheck")
     MESSAGE(${SHADER_TARGET})
     add_custom_target(
-            "${exe_name}_ShadersCheck"
+            "${SHADER_TARGET}"
             DEPENDS ${GLSL_OUTPUT_FILES}
     )
-    add_dependencies(${exe_name} "${exe_name}_ShadersCheck")
+    add_dependencies(${exe_name} "${SHADER_TARGET}")
 endfunction()
 
 function(compile_shaders_to_dx main_folder exe_name)
@@ -158,7 +158,7 @@ function(compile_shaders_to_dx main_folder exe_name)
             DEPENDS ${GLSL_OUTPUT_FILES}
     )
     add_dependencies("${SHADER_TARGET}" "${exe_name}_ShadersCheck")
-    add_dependencies(${exe_name} "${exe_name}_DxShadersCheck")
+    add_dependencies(${exe_name} "${SHADER_TARGET}")
 endfunction()
 
 
@@ -203,5 +203,5 @@ function(compile_shaders_to_msl main_folder exe_name)
             DEPENDS ${GLSL_OUTPUT_FILES}
     )
     add_dependencies("${SHADER_TARGET}" "${exe_name}_ShadersCheck")
-    add_dependencies(${exe_name} "${exe_name}_MslShadersCheck")
+    add_dependencies(${exe_name} "${SHADER_TARGET}")
 endfunction()
