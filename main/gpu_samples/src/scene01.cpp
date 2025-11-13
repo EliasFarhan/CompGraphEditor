@@ -49,7 +49,7 @@ novus::renderer::SceneT Scene01()
         .material_index = 0, .mesh_index = 0, .count = 3,
         .mode = novus::renderer::DrawMode_TRIANGLES, .draw_elements = false, .automatic_draw = true};
 
-    novus::renderer::SubpassT subpass{};
+    novus::renderer::RenderpassT subpass{};
     subpass.name = "Main subpass";
 
     auto renderPassInfo = std::make_unique<novus::internal::RenderPassInfoT>();
@@ -58,9 +58,7 @@ novus::renderer::SceneT Scene01()
         .load_op = novus::internal::LoadOp_LOADOP_CLEAR, .store_op = novus::internal::StoreOp_STOREOP_STORE});
     subpass.info = std::move(renderPassInfo);
     subpass.commands.push_back(std::move(drawCommand));
-    auto renderpass = std::make_unique<novus::renderer::RenderpassT>();
-    renderpass->sub_passes.push_back(std::move(subpass));
-    scene.render_pass = std::move(renderpass);
+    scene.sub_passes.push_back(subpass);
     return scene;
 }
 }

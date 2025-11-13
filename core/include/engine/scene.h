@@ -46,12 +46,12 @@ class SceneMaterial
 class SceneSubPass
 {
 public:
-    SceneSubPass(Scene& scene, const novus::renderer::SubpassT& subPass, int subPassIndex);
+    SceneSubPass(Scene& scene, const novus::renderer::RenderpassT& subPass, int subPassIndex);
     [[nodiscard]] DrawCommand& GetDrawCommand(int drawCommandIndex) const;
     [[nodiscard]] int GetDrawCommandCount() const;
 private:
     Scene& scene_;
-    const novus::renderer::SubpassT& subPass_;
+    const novus::renderer::RenderpassT& subPass_;
     int subPassIndex_ = -1;
 };
 
@@ -99,8 +99,8 @@ protected:
     //virtual ImportStatus LoadModels(const PbRepeatField<std::string>& models) = 0;
     virtual ImportStatus LoadMeshes(std::span<const novus::renderer::MeshT> meshes) = 0;
     //virtual ImportStatus LoadFramebuffers(const PbRepeatField<pb::FrameBuffer>& framebuffers) = 0;
-    virtual ImportStatus LoadDrawCommands(const novus::renderer::RenderpassT* renderPass) = 0;
-    virtual ImportStatus LoadRenderPass(const novus::renderer::RenderpassT* renderPass) = 0;
+    //virtual ImportStatus LoadDrawCommands(std::span<const novus::renderer::DrawCommandT> commands) = 0;
+    virtual ImportStatus LoadRenderPass(std::span<const novus::renderer::RenderpassT> renderPasses) = 0;
     //virtual ImportStatus LoadBuffers(const PbRepeatField<pb::Buffer>& buffers) = 0;
     novus::renderer::SceneT scene_;
     std::vector<Script*> scripts_;

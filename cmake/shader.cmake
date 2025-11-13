@@ -193,7 +193,7 @@ function(compile_shaders_to_msl main_folder exe_name)
                 OUTPUT ${GLSL_OUTPUT}.msl
                 COMMAND ${SPIRV_CROSS} ${GLSL_OUTPUT}.spv --msl --entry "main" --output ${GLSL_OUTPUT}.msl
                 DEPENDS ${GLSL})
-        list(APPEND GLSL_OUTPUT_FILES ${GLSL_OUTPUT}.spv)
+        list(APPEND GLSL_OUTPUT_FILES ${GLSL_OUTPUT}.msl)
     endforeach(GLSL)
 
     set(SHADER_TARGET "${exe_name}_MslShadersCheck")

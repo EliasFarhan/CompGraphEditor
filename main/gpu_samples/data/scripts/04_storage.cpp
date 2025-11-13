@@ -1,5 +1,4 @@
-#define MODULE_NAME scene03
-
+#define MODULE_NAME scene04
 
 #include "wasm/neko2.h"
 #include "wasm/draw_command.h"
@@ -23,13 +22,20 @@ extern "C"
     UPDATE_FUNC(dt)
     {
         t += dt;
+        auto viewBuffer = GetBuffer("view");
+        auto projectionBuffer = GetBuffer("projection");
+        auto view = glm::mat4(1.0f);
+        view = glm::translate(view, glm::vec3(0,0,-5));
+        viewBuffer.SetMat4("view", view);
+        auto projection = glm::perspective(glm::radians(45.0f), get_aspect(), 0.1f, 100.0f);
+        drawCommand.SetMat4("projection", projection);
     }
 
     DRAW_FUNC(drawCommandId)
     {
         script::DrawCommand drawCommand(drawCommandId);
-        drawCommand.SetFloat("ratio", (std::sin(t)+1.0f)/2.0f);
-        drawCommand.Draw();
+        drawCommand.Bind();
+
         //add model matrix
     }
 }

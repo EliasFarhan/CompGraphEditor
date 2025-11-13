@@ -32,33 +32,46 @@ void Scene::Update(float dt)
     {
         std::array colorTargets = {swapchainTexture};
 
-        for (const auto& subpass: scene_.render_pass->sub_passes)
+        for (int64_t subpassIndex = 0; subpassIndex < std::ssize(renderpasses_); subpassIndex++)
         {
+            auto& subpass = renderpasses_[subpassIndex];
+            const auto& subpassInfo = scene_.sub_passes[subpassIndex];
             //TODO define framebuffer to get the needed textures (like in OpenGL?)
-            SDL_GPURenderPass* renderPass = GenerateSubPass(commandBuffer, subpass, colorTargets, nullptr);
-            for (const auto& command: subpass.commands)
+            currentRenderPass_ = GenerateSubPass(commandBuffer, subpassInfo, colorTargets, nullptr);
+            for (auto& command: subpass.GetDrawCommands())
             {
-                const auto& material = materials_[command.material_index];
+                const auto& material = materials_[command.GetMaterialIndex()];
                 auto& pipeline = pipelines_[material.GetPipelineIndex()];
-                pipeline.Bind(renderPass);
+                pipeline.Bind(currentRenderPass_);
 
-                if (command.mesh_index != -1)
+                if (command.GetMeshIndex() != -1)
                 {
-                    auto& vertexInputBuffer = vertexInputBuffers_[command.mesh_index];
-                    vertexInputBuffer.Bind(renderPass);
+                    auto& vertexInputBuffer = vertexInputBuffers_[command.GetMeshIndex()];
+                    vertexInputBuffer.Bind(currentRenderPass_);
                 }
 
-
-                if (command.draw_elements)
+                for (auto& script: scripts_)
                 {
-                    SDL_DrawGPUIndexedPrimitives(renderPass, command.count, 1, 0, 0, 0);
+                    if (script != nullptr)
+                    {
+                        script->Draw(&command);
+                    }
                 }
-                else
+
+                if (command.GetDrawCommandInfo().automatic_draw)
                 {
-                    SDL_DrawGPUPrimitives(renderPass, command.count, 1, 0, 0);
+                    if (command.GetDrawCommandInfo().draw_elements)
+                    {
+                        SDL_DrawGPUIndexedPrimitives(currentRenderPass_, command.GetDrawCommandInfo().count, 1, 0, 0, 0);
+                    }
+                    else
+                    {
+                        SDL_DrawGPUPrimitives(currentRenderPass_, command.GetDrawCommandInfo().count, 1, 0, 0);
+                    }
                 }
             }
-            SDL_EndGPURenderPass(renderPass);
+            SDL_EndGPURenderPass(currentRenderPass_);
+            currentRenderPass_ = nullptr;
         }
 
 
@@ -67,6 +80,15 @@ void Scene::Update(float dt)
 
 void Scene::Draw(core::DrawCommand& drawCommand, int instance)
 {
+    const auto& drawCommandInfo = drawCommand.GetDrawCommandInfo();
+    if (drawCommandInfo.draw_elements)
+    {
+        SDL_DrawGPUIndexedPrimitives(currentRenderPass_, drawCommandInfo.count, instance, 0, 0, 0);
+    }
+    else
+    {
+        SDL_DrawGPUPrimitives(currentRenderPass_, drawCommandInfo.count, instance, 0, 0);
+    }
 }
 
 void Scene::Dispatch(core::ComputeCommand& command, int x, int y, int z)
@@ -91,7 +113,7 @@ core::Pipeline& Scene::GetPipeline(int index)
 
 core::DrawCommand& Scene::GetDrawCommand(int subPassIndex, int drawCommandIndex)
 {
-    return commands_.at(drawCommandIndex);
+    return renderpasses_.at(subPassIndex).GetDrawCommands()[drawCommandIndex];
 }
 
 Scene::ImportStatus Scene::LoadShaders(std::span<const renderer::ShaderT> shadersPb)
@@ -166,24 +188,14 @@ Scene::ImportStatus Scene::LoadMeshes(std::span<const renderer::MeshT> meshes)
     }
     return ImportStatus::SUCCESS;
 }
-Scene::ImportStatus Scene::LoadDrawCommands(const renderer::RenderpassT* renderPass)
+
+Scene::ImportStatus Scene::LoadRenderPass(std::span<const renderer::RenderpassT> renderPass)
 {
-    if (renderPass == nullptr)
+    renderpasses_.reserve(renderPass.size());
+    for (int64_t subpassIndex = 0; subpassIndex < renderPass.size(); ++subpassIndex)
     {
-        throw std::runtime_error("renderPass is nullptr");
+        renderpasses_.emplace_back(renderPass[subpassIndex], subpassIndex, scene_.materials);
     }
-    for (int subpassIndex = 0; subpassIndex < renderPass->sub_passes.size(); ++subpassIndex)
-    {
-        const auto& subpass = renderPass->sub_passes[subpassIndex];
-        for (const auto& command: subpass.commands)
-        {
-            commands_.push_back({command, subpassIndex});
-        }
-    }
-    return ImportStatus::SUCCESS;
-}
-Scene::ImportStatus Scene::LoadRenderPass(const renderer::RenderpassT* renderPass)
-{
     return ImportStatus::SUCCESS;
 }
 

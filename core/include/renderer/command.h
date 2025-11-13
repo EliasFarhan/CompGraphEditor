@@ -9,6 +9,7 @@
 
 #include <string_view>
 #include <string>
+#include <utility>
 
 #include "generated/renderer_generated.h"
 #include "maths/angle.h"
@@ -77,7 +78,9 @@ public:
 class DrawCommand : public Command
 {
 public:
-    DrawCommand(const novus::renderer::DrawCommandT& drawCommandInfo, int subpassIndex): drawCommandInfo_(drawCommandInfo), subPassIndex_(subpassIndex)
+    explicit DrawCommand(novus::renderer::DrawCommandT drawCommandInfo, int subpassIndex):
+    drawCommandInfo_(std::move(drawCommandInfo)),
+    subPassIndex_(subpassIndex)
     {
         /*
         if(drawCommandInfo.has_model_transform())
@@ -105,11 +108,11 @@ public:
     
     
 
-    [[nodiscard]] std::string_view GetName() const{ return drawCommandInfo_.get().name;}
-    int GetMaterialIndex() const { return drawCommandInfo_.get().material_index; }
-    int GetMeshIndex() const { return drawCommandInfo_.get().mesh_index; }
-    const novus::renderer::DrawCommandT& GetInfo() const { return drawCommandInfo_; }
+    [[nodiscard]] std::string_view GetName() const{ return drawCommandInfo_.name;}
+    int GetMaterialIndex() const { return drawCommandInfo_.material_index; }
+    int GetMeshIndex() const { return drawCommandInfo_.mesh_index; }
     int GetSubpassIndex() const { return subPassIndex_; }
+    const auto& GetDrawCommandInfo() const { return drawCommandInfo_; }
     /**
      * @brief PreDrawBind is a method that bind transform and apply all deferred changes before drawing
      */
@@ -118,7 +121,7 @@ public:
     ModelTransformMatrix modelTransformMatrix{};
 
 protected:
-    std::reference_wrapper<const novus::renderer::DrawCommandT> drawCommandInfo_;
+    novus::renderer::DrawCommandT drawCommandInfo_;
     int subPassIndex_ = -1;
 };
 

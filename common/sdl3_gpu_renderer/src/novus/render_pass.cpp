@@ -6,7 +6,7 @@
 namespace  novus
 {
 
-SDL_GPURenderPass* GenerateSubPass(SDL_GPUCommandBuffer* commandBuffer, const renderer::SubpassT& subpass,
+SDL_GPURenderPass* GenerateSubPass(SDL_GPUCommandBuffer* commandBuffer, const renderer::RenderpassT& subpass,
                                    std::span<SDL_GPUTexture*> colorTargets, SDL_GPUTexture* depthStencilTarget)
 {
     const auto& subpassInfo = subpass.info;
@@ -45,5 +45,27 @@ SDL_GPURenderPass* GenerateSubPass(SDL_GPUCommandBuffer* commandBuffer, const re
     }
     return SDL_BeginGPURenderPass(commandBuffer, sdlColorTargetsInfos.data(), sdlColorTargetsInfos.size(),
                                   isDepthTargetValid ? &sdlDepthStencilTargetInfo : nullptr);
+}
+Renderpass::Renderpass(const renderer::RenderpassT& renderpass, int subpassIndex, std::span<const renderer::MaterialT> materials)
+{
+    drawCommands_.reserve(renderpass.commands.size());
+    for (const auto& command : renderpass.commands)
+    {
+        drawCommands_.emplace_back(command, subpassIndex);
+    }
+    std::ranges::sort(drawCommands_, [&](const DrawCommand& command1, const DrawCommand& command2)
+    {
+        const auto materialIndex1 = command1.GetMaterialIndex();
+        const auto materialIndex2 = command2.GetMaterialIndex();
+        if (materialIndex1 < materialIndex2)
+        {
+            return true;
+        }
+        if (materialIndex1 > materialIndex2)
+            return false;
+        const auto piplineIndex1 = materials[materialIndex1].pipeline_index;
+        const auto piplineIndex2 = materials[materialIndex2].pipeline_index;
+        return piplineIndex1 < piplineIndex2;
+    });
 }
 } // namespace novus

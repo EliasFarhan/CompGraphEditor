@@ -4,11 +4,11 @@
 layout(location = 0) in vec3 color;
 layout(location = 0) out vec4 FragColor;
 
-layout(push_constant) uniform PushConstants {
+layout(std140, set=3, binding=0) uniform slot0 {
     float ratio;
-} pc;
+};
 
 void main()
 {
-    FragColor = vec4(pc.ratio*color, 1.0);
+    FragColor = vec4(ratio*color, 1.0);
 }

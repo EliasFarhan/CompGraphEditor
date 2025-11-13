@@ -45,8 +45,7 @@ void Scene::LoadScene()
         LogError("Could not import framebuffers");
     }
     */
-    const auto& renderPass = scene_.render_pass;
-    if (LoadRenderPass(renderPass.get()) != ImportStatus::SUCCESS)
+    if (LoadRenderPass(scene_.sub_passes) != ImportStatus::SUCCESS)
     {
         LogError("Count not import render pass");
     }
@@ -74,10 +73,12 @@ void Scene::LoadScene()
         LogError("Could not import buffers");
     }
     */
-    if(LoadDrawCommands(renderPass.get()) != ImportStatus::SUCCESS)
+    /* The render pass now generates the draw commands automatically
+    if(LoadDrawCommands(scene_.draw_commands) != ImportStatus::SUCCESS)
     {
         LogError("Could not import draw commands");
     }
+    */
 
 
 
@@ -163,11 +164,11 @@ void Scene::OnEvent(SDL_Event& event)
 
 SceneSubPass Scene::GetSubpass(int subPassIndex)
 {
-    return { *this, scene_.render_pass->sub_passes[subPassIndex], subPassIndex };
+    return { *this, scene_.sub_passes[subPassIndex], subPassIndex };
 }
 int Scene::GetSubpassCount() const
 {
-    return std::ssize(scene_.render_pass->sub_passes);
+    return std::ssize(scene_.sub_passes);
 }
 
 
@@ -263,7 +264,7 @@ int SceneSubPass::GetDrawCommandCount() const
     return std::ssize(subPass_.commands);
 }
 
-SceneSubPass::SceneSubPass(Scene& scene, const novus::renderer::SubpassT& subPass, int subPassIndex) : scene_(scene), subPass_(subPass), subPassIndex_(subPassIndex)
+SceneSubPass::SceneSubPass(Scene& scene, const novus::renderer::RenderpassT& subPass, int subPassIndex) : scene_(scene), subPass_(subPass), subPassIndex_(subPassIndex)
 {
 
 }

@@ -10,6 +10,7 @@
 #include "framebuffer.h"
 #include "material.h"
 #include "pipeline.h"
+#include "render_pass.h"
 
 namespace novus
 {
@@ -38,15 +39,15 @@ protected:
     ImportStatus LoadPipelines(std::span<const renderer::GraphicsPipelineT> pipelines) override;
     ImportStatus LoadMaterials(std::span<const renderer::MaterialT> materials) override;
     ImportStatus LoadMeshes(std::span<const renderer::MeshT> meshes) override;
-    ImportStatus LoadDrawCommands(const renderer::RenderpassT* renderPass) override;
-    ImportStatus LoadRenderPass(const renderer::RenderpassT* renderPass) override;
+    ImportStatus LoadRenderPass(std::span<const renderer::RenderpassT> renderPass) override;
 private:
-    std::vector<DrawCommand> commands_;
+    std::vector<Renderpass> renderpasses_;
     std::vector<Shader> shaders_;
     std::vector<Pipeline> pipelines_;
     std::vector<Framebuffer> framebuffers_;
     std::vector<Material> materials_;
     std::vector<VertexInputBuffer> vertexInputBuffers_;
+    SDL_GPURenderPass* currentRenderPass_ = nullptr;
 };
 }
 #endif //NEKO2_SCENE_H

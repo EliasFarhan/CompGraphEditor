@@ -41,7 +41,7 @@ void Shader::LoadShader(const renderer::ShaderT& shaderInfo)
         .num_samplers = shaderInfo.num_samplers,
         .num_storage_textures = shaderInfo.num_storage_textures,
         .num_storage_buffers = static_cast<uint32_t>(shaderInfo.storage_buffers.size()),
-        .num_uniform_buffers = shaderInfo.num_uniform_buffers
+        .num_uniform_buffers = static_cast<uint32_t>(shaderInfo.uniform_buffers.size())
     };
     shader_ = SDL_CreateGPUShader(GetDevice(), &creationInfo);
     if (shader_ == nullptr)
@@ -170,7 +170,6 @@ void Pipeline::Load(const renderer::GraphicsPipelineT& pipelineInfo, const Shade
     {
         pipelineCreateInfo.vertex_input_state = { .num_vertex_buffers = 0, .num_vertex_attributes = 0 };
     }
-
     auto* targetInfo = pipelineInfo.info->target_info.get();
     std::vector<SDL_GPUColorTargetDescription> color_target_descriptions;
     color_target_descriptions.reserve(targetInfo->color_target_descriptions.size());

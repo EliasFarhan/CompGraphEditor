@@ -27,7 +27,7 @@ constexpr novus::internal::ShaderStage GetShaderStageFromExtension(std::string_v
         ".frag",
         ".comp"
     };
-    for(std::size_t i = 0; i < extensions.size(); i++)
+    for (int64_t i = 0; i < std::ssize(extensions); i++)
     {
         if(extension == extensions[i])
         {
@@ -47,11 +47,11 @@ class Pipeline
 {
 public:
     virtual ~Pipeline() = default;
-    virtual void Bind(void* renderData = nullptr) = 0;
+    virtual void Bind(void* renderData) = 0;
 
     void SetPipelineName(std::string_view name);
     [[nodiscard]] std::string_view GetPipelineName() const;
-    std::span<const BufferBinding> GetBufferBindings() const { return bufferBindings_; }
+    [[nodiscard]] std::span<const BufferBinding> GetBufferBindings() const { return bufferBindings_; }
 protected:
     std::vector<BufferBinding> bufferBindings_;
 private:

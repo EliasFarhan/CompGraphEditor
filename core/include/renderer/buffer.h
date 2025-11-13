@@ -1,5 +1,10 @@
 #pragma once
 
+#include <glm/mat2x2.hpp>
+#include <glm/vec4.hpp>
+
+
+#include "generated/internal_renderer_generated.h"
 #include "renderer/model.h"
 
 namespace core
@@ -54,5 +59,54 @@ public:
     }
 
 };
+
+namespace experimental
+{
+constexpr size_t GetPrimitveSize(novus::internal::AttributeType type)
+{
+    switch (type)
+    {
+    case novus::internal::AttributeType_VEC2:
+        return sizeof(glm::vec2);
+    case novus::internal::AttributeType_VEC3:
+        return sizeof(glm::vec3);
+    case novus::internal::AttributeType_VEC4:
+        return sizeof(glm::vec4);
+    case novus::internal::AttributeType_MAT2:
+        return sizeof(glm::mat2);
+    case novus::internal::AttributeType_MAT3:
+        return sizeof(glm::mat3);
+    case novus::internal::AttributeType_MAT4:
+        return sizeof(glm::mat4);
+    case novus::internal::AttributeType_INT:
+        return sizeof(int);
+    case novus::internal::AttributeType_IVEC2:
+        return sizeof(glm::ivec2);
+    case novus::internal::AttributeType_IVEC3:
+        return sizeof(glm::ivec3);
+    case novus::internal::AttributeType_IVEC4:
+        return sizeof(glm::ivec4);
+    case novus::internal::AttributeType_BOOL:
+        return sizeof(bool);
+    default:
+        break;
+    }
+    return 0;
+}
+struct AttributeBuffer
+{
+    void* data = nullptr;
+    size_t size = 0;
+    uint8_t type = novus::internal::AttributeType_VOID;
+};
+class BufferManager
+{
+public:
+    virtual void AllocateUniformBuffer(std::string_view uniformName);
+    virtual void PushUniformData(novus::internal::ShaderStage stage, int32_t slot) = 0;
+private:
+    std::unordered_map<std::string, AttributeBuffer> bufferAttributeMap_;
+};
+}
 
 } // namespace core

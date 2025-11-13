@@ -33,10 +33,6 @@ extern "C"
     //void buffer_copy_data(int64_t bufferName, const void* data, int64_t size);
 }
 
-inline void set_vec3(int64_t drawCommand, const void* name, const glm::vec3& value)
-{
-	set_vec3_local(drawCommand, name, &value);
-}
 
 template<typename T>
 void set_vec3(int64_t drawCommand, const void* name, T value)
@@ -55,11 +51,6 @@ void set_vec3(int64_t drawCommand, const void* name, T value)
     }
 }
 
-inline void set_mat4(int64_t drawCommand, const void* name, const glm::mat4& value)
-{
-	set_mat4_local(drawCommand, name, &value);
-}
-
 template<typename T>
 void set_mat4(int64_t drawCommand, const void* name, T value)
 {
@@ -76,6 +67,7 @@ void set_mat4(int64_t drawCommand, const void* name, T value)
         set_mat4_local(drawCommand, name, &value);
     }
 }
+
 
 #define WASM_EXPORT __attribute__((used)) __attribute__((visibility ("default")))
 
