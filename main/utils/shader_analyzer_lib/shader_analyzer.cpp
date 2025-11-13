@@ -61,6 +61,23 @@ ShaderAttributeResult GenerateShaderAttributeFromJson(std::string_view jsonPath)
         }
         result.uniformBuffers = std::move(ubos);
     }
+    if (shaderReflectData.contains("ssbos"))
+    {
+        std::vector<internal::BufferAttributeT> ssbos;
+        ssbos.reserve(shaderReflectData["ssbos"].size());
+        for (auto& ssbo : shaderReflectData["ssbos"])
+        {
+            internal::BufferAttributeT bufferAttribute;
+            bufferAttribute.name = ssbo["name"];
+            bufferAttribute.type = core::GetAttributeType(ssbo["type"].get<std::string_view>());
+            bufferAttribute.block_size = ssbo["block_size"];
+            bufferAttribute.binding = ssbo["binding"];
+            bufferAttribute.type_name = ssbo["type"];
+            bufferAttribute.set = ssbo["set"];
+            ssbos.push_back(bufferAttribute);
+        }
+        result.storageBuffers = std::move(ssbos);
+    }
     return result;
 }
 }
