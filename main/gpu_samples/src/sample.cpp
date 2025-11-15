@@ -1,27 +1,25 @@
 #include "sample.h"
+#include "novus/mesh.h"
 
 #include <generated/renderer_generated.h>
 #include <imgui.h>
 
-#include "novus/mesh.h"
-#include "novus/scene.h"
-
 namespace sample
 {
 
-Sample MakeSample(std::string_view name, const novus::renderer::SceneT& sceneInfo)
+static Sample MakeSample(std::string_view name, const novus::renderer::SceneT& sceneInfo)
 {
-    return {name.data(), sceneInfo};
+    return {.sceneName = name.data(), .sceneInfo = sceneInfo, .scene = {}};
 }
 
 void SampleBrowser::Begin()
 {
-
-    samples_.push_back(MakeSample("scene1", Scene01()));
-    samples_.push_back(MakeSample("scene2", Scene02()));
-    samples_.push_back(MakeSample("scene3", Scene03()));
-    samples_.push_back(MakeSample("scene4", Scene04()));
-
+    
+    samples_.emplace_back("scene1", Scene01());
+    samples_.emplace_back("scene2", Scene02());
+    samples_.emplace_back("scene3", Scene03());
+    samples_.emplace_back("scene4", Scene04());
+    
 
     for(auto& sample : samples_)
     {

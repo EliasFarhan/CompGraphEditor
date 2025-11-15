@@ -17,6 +17,8 @@ struct UniformBufferObject
     glm::mat4 projection;
 };
 
+static UniformBufferObject ubo;
+
 extern "C"
 {
     static float t = 0.0f;
@@ -29,14 +31,16 @@ extern "C"
     UPDATE_FUNC(dt)
     {
         t += dt;
-        UniformBufferObject ubo;
         ubo.model = glm::rotate(glm::mat4(1.0f),
             t * glm::radians(90.0f),
             glm::vec3(0.0f, 0.0f, 1.0f));
         auto buffer = script::GetBuffer("ubo");
-        auto view = glm::mat4(1.0f);
-        ubo.view = glm::translate(view, glm::vec3(0,0,-5));
-        ubo.projection = glm::perspective(glm::radians(45.0f), get_aspect(), 0.1f, 100.0f);
+        const auto view = glm::lookAt(glm::vec3(2.0f, 2.0f, 2.0f),
+                            glm::vec3(0.0f, 0.0f, 0.0f),
+                            glm::vec3(0.0f, 0.0f, 1.0f));
+        ubo.view = view;
+        ubo.projection = glm::perspective(glm::radians(45.0f), get_aspect(), 0.1f, 10.0f);
+        ubo.projection[1][1] *= -1.0f;
         buffer.CopyData(ubo, 0);
 
     }

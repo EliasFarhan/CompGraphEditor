@@ -34,11 +34,13 @@ class Pipeline : public core::Pipeline
 {
 public:
     Pipeline() = default;
+    ~Pipeline() override = default;
     Pipeline(Pipeline const&) = delete;
     Pipeline& operator=(Pipeline const&) = delete;
     Pipeline(Pipeline&& other) noexcept:
         pipeline_(other.pipeline_),
         uniformBuffers_(std::move(other.uniformBuffers_)),
+        storageBuffersIds_(std::move(other.storageBuffersIds_)),
         uniformBufferReferenceMap_(std::move(other.uniformBufferReferenceMap_))
     {
 
@@ -48,6 +50,7 @@ public:
         std::swap(pipeline_, other.pipeline_);
         std::swap(uniformBuffers_, other.uniformBuffers_);
         std::swap(uniformBufferReferenceMap_, other.uniformBufferReferenceMap_);
+        std::swap(storageBuffersIds_, other.storageBuffersIds_);
         return *this;
     }
 
@@ -66,7 +69,7 @@ public:
         int binding = 0;
         int32_t blockSize = 0;
     };
-    std::span<const StorageBufferId> GetStorageBufferIds() const{return storageBuffersIds_;}
+    [[nodiscard]] std::span<const StorageBufferId> GetStorageBufferIds() const{return storageBuffersIds_;}
 protected:
     void SetUniformData(std::string_view uniformName, const void* data, size_t length) override;
 private:

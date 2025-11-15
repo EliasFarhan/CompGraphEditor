@@ -75,6 +75,20 @@ struct StorageBuffer
 class BufferManager: public core::BufferManager
 {
 public:
+    BufferManager() = default;
+    BufferManager(const BufferManager&) = delete;
+    BufferManager& operator=(const BufferManager&) = delete;
+    BufferManager(BufferManager&& other) noexcept:
+        storageBufferMap_(std::move(other.storageBufferMap_)), storageBuffers_(std::move(other.storageBuffers_))
+    {
+        
+    }
+    BufferManager& operator=(BufferManager&& other) noexcept
+    {
+        std::swap(storageBuffers_, other.storageBuffers_);
+        std::swap(storageBufferMap_, other.storageBufferMap_);
+        return *this;
+    }
 	core::BufferIdx CreateBuffer(std::string_view name, std::size_t count, std::size_t size) override;
 
 	void Clear() override;

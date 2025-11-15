@@ -110,7 +110,13 @@ core::BufferIdx BufferManager::CreateBuffer(std::string_view name, std::size_t c
 
 void BufferManager::Clear()
 {
-
+    for (auto& buffer: storageBuffers_)
+    {
+        buffer.transferBuffer.Destroy();
+        SDL_ReleaseGPUBuffer(GetDevice(), buffer.gpuBuffer);
+    }
+    storageBuffers_.clear();
+    storageBufferMap_.clear();
 }
 
 core::BufferIdx BufferManager::GetBuffer(std::string_view bufferName) const
@@ -122,6 +128,7 @@ void BufferManager::CopyData(core::BufferIdx index, const void* dataSrc, std::si
 {
     auto& storageBuffer = storageBuffers_[index.bufferId];
     auto& transferBuffer = storageBuffer.transferBuffer;
+    const glm::mat4* data = static_cast<const glm::mat4*>(dataSrc);
     transferBuffer.UploadBuffer(dataSrc, length, true);
     storageBuffer.isDirty = true;
 }

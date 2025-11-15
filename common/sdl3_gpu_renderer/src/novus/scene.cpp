@@ -21,6 +21,7 @@ void Scene::UnloadScene()
     {
         vertexInputBuffer.Destroy();
     }
+    bufferManager_.Clear();
 }
 
 void Scene::Update(float dt)
@@ -134,12 +135,11 @@ Scene::ImportStatus Scene::LoadShaders(std::span<const renderer::ShaderT> shader
 }
 Scene::ImportStatus Scene::LoadPipelines(std::span<const renderer::GraphicsPipelineT> pipelineInfos) {
     pipelines_.resize(pipelineInfos.size());
-    for (size_t i = 0; i < pipelines_.size(); ++i)
+    for (size_t pipelineIndex = 0; pipelineIndex < pipelines_.size(); ++pipelineIndex)
     {
-
-        auto& pipelineInfo = pipelineInfos[i];
-        Pipeline& pipeline = pipelines_[i];
-        pipeline.Load(pipelineInfos[i],
+        auto& pipelineInfo = pipelineInfos[pipelineIndex];
+        Pipeline& pipeline = pipelines_[pipelineIndex];
+        pipeline.Load(pipelineInfos[pipelineIndex],
             shaders_[pipelineInfo.vertex_shader_index],
             scene_.shaders[pipelineInfo.vertex_shader_index],
             shaders_[pipelineInfo.fragment_shader_index],
@@ -150,9 +150,9 @@ Scene::ImportStatus Scene::LoadPipelines(std::span<const renderer::GraphicsPipel
 Scene::ImportStatus Scene::LoadMaterials(std::span<const renderer::MaterialT> materials)
 {
     materials_.reserve(materials.size());
-    for (size_t i = 0; i < materials.size(); ++i)
+    for (size_t materialIndex = 0; materialIndex < materials.size(); ++materialIndex)
     {
-        const auto& materialInfo = materials[i];
+        const auto& materialInfo = materials[materialIndex];
         const auto pipelineIndex = materialInfo.pipeline_index;
         const auto& pipelineInfo = scene_.pipelines[pipelineIndex];
         const auto vertexIndex = pipelineInfo.vertex_shader_index;

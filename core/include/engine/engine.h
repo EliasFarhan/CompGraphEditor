@@ -18,14 +18,12 @@ namespace core
 class OnEventInterface
 {
 public:
-    virtual ~OnEventInterface() = default;
     virtual void OnEvent(SDL_Event& event) = 0;
 };
 
 class OnGuiInterface
 {
 public:
-    virtual ~OnGuiInterface() = default;
     virtual void OnGui() = 0;
 };
 

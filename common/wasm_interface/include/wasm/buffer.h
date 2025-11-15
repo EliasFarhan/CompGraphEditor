@@ -19,7 +19,7 @@ public:
     template<typename T>
     void CopyData(const T& data, size_t offset) const
     {
-        const uint8_t* ptr = reinterpret_cast<uint8_t*>(bufferId_) + offset;
+        auto ptr = reinterpret_cast<const uint8_t*>(&data) + offset;
         buffer_copy_data(bufferId_, ptr, sizeof(T));
     }
 private:

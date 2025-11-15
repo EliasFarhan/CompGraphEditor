@@ -59,6 +59,7 @@ private:
 class Scene : public OnEventInterface
 {
 public:
+    virtual ~Scene() = default;
     void LoadScene();
     virtual void UnloadScene() = 0;
     void SetScene(const novus::renderer::SceneT &scene);

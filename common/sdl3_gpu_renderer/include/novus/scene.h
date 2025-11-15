@@ -5,19 +5,20 @@
 #ifndef NEKO2_SCENE_H
 #define NEKO2_SCENE_H
 
-#include "buffer.h"
-#include "command.h"
+#include "novus/buffer.h"
+#include "novus/command.h"
 #include "engine/scene.h"
-#include "framebuffer.h"
-#include "material.h"
-#include "pipeline.h"
-#include "render_pass.h"
+#include "novus/framebuffer.h"
+#include "novus/material.h"
+#include "novus/pipeline.h"
+#include "novus/render_pass.h"
 
 namespace novus
 {
 class Scene: public core::Scene
 {
 public:
+    Scene() = default;
 	void UnloadScene() override;
 
 	void Update(float dt) override;
