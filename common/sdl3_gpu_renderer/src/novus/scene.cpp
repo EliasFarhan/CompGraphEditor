@@ -48,9 +48,7 @@ void Scene::Update(float dt)
             currentRenderPass_ = GenerateSubPass(commandBuffer, subpassInfo, colorTargets, nullptr);
             for (auto& command: subpass.GetDrawCommands())
             {
-                const auto& material = materials_[command.GetMaterialIndex()];
-                auto& pipeline = pipelines_[material.GetPipelineIndex()];
-                pipeline.Bind(currentRenderPass_);
+                command.Bind(currentRenderPass_);
 
                 if (command.GetMeshIndex() != -1)
                 {
@@ -68,6 +66,7 @@ void Scene::Update(float dt)
 
                 if (command.GetDrawCommandInfo().automatic_draw)
                 {
+                    command.PreDrawBind(currentRenderPass_);
                     if (command.GetDrawCommandInfo().draw_elements)
                     {
                         SDL_DrawGPUIndexedPrimitives(currentRenderPass_, command.GetDrawCommandInfo().count, 1, 0, 0, 0);

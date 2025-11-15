@@ -20,7 +20,6 @@ void Material::Load(const renderer::MaterialT& materialInfo,
 {
     name_ = materialInfo.name;
     pipelineIndex_ = materialInfo.pipeline_index;
-    //TODO gather the buffer from the material info and load from buffer manager
 
     int vertexBindingCount = 0;
     int fragmentBindingCount = 0;

@@ -32,7 +32,10 @@ ShaderAttributeResult GenerateShaderAttributeFromJson(std::string_view jsonPath)
                 internal::BufferStructAttributeT bufferStructAttribute;
                 bufferStructAttribute.name = member["name"];
                 bufferStructAttribute.type = member["type"];
-                bufferStructAttribute.offset = member["offset"];
+                if (member.contains("offset"))
+                {
+                    bufferStructAttribute.offset = member["offset"];
+                }
                 if (member.contains("matrix_stride"))
                 {
                     bufferStructAttribute.matrix_stride = member["matrix_stride"];

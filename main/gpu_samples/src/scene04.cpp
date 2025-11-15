@@ -13,7 +13,7 @@ novus::renderer::SceneT Scene04()
     novus::renderer::SceneT scene{};
     static constexpr std::string_view vertexPathBase = "data/shaders/04_hello_storage/triangle.vert";
     static constexpr std::string_view fragmentPathBase = "data/shaders/04_hello_storage/triangle.frag";
-    const auto vertexAnalyzeResult = novus::GenerateShaderAttributeFromJson(std::string(fragmentPathBase)+".json");
+    const auto vertexAnalyzeResult = novus::GenerateShaderAttributeFromJson(std::string(vertexPathBase)+".json");
 
     scene.shaders.push_back({.path = novus::AddFormatExtension(vertexPathBase),
         .types = vertexAnalyzeResult.types,
@@ -53,7 +53,6 @@ novus::renderer::SceneT Scene04()
     storageBufferBindings.push_back({.buffer_name = "ubo", .binding = 0, .shader_stage = novus::internal::ShaderStage_VERTEX});
     novus::renderer::MaterialT material{.name = "Quad Material",
         .pipeline_index = 0, .storage_buffer_bindings = std::move(storageBufferBindings)};
-    //TODO bind ssbo by name
     scene.materials.push_back(std::move(material));
 
     novus::renderer::MeshT mesh{.mesh_name = "Quad", .model_index = -1, .primitive_type = novus::renderer::MeshPrimitiveType_QUAD};
