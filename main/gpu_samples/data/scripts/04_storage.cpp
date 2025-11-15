@@ -1,7 +1,7 @@
 #define MODULE_NAME scene04
 
 #include "wasm/neko2.h"
-#include "wasm/draw_command.h"
+#include "wasm/buffer.h"
 
 #include <glm/vec3.hpp>
 #include <glm/mat4x4.hpp>
@@ -9,6 +9,13 @@
 #include "glm/ext/matrix_clip_space.hpp"
 #include "glm/ext/matrix_transform.hpp"
 #include <array>
+
+struct UniformBufferObject
+{
+    glm::mat4 model;
+    glm::mat4 view;
+    glm::mat4 projection;
+};
 
 extern "C"
 {
@@ -22,14 +29,15 @@ extern "C"
     UPDATE_FUNC(dt)
     {
         t += dt;
-        /*
-        auto viewBuffer = GetBuffer("view");
-        auto projectionBuffer = GetBuffer("projection");
+        UniformBufferObject ubo;
+        ubo.model = glm::rotate(glm::mat4(1.0f),
+            t * glm::radians(90.0f),
+            glm::vec3(0.0f, 0.0f, 1.0f));
+        auto buffer = script::GetBuffer("ubo");
         auto view = glm::mat4(1.0f);
-        view = glm::translate(view, glm::vec3(0,0,-5));
-        viewBuffer.SetMat4("view", view);
-        auto projection = glm::perspective(glm::radians(45.0f), get_aspect(), 0.1f, 100.0f);
-        drawCommand.SetMat4("projection", projection);
-        */
+        ubo.view = glm::translate(view, glm::vec3(0,0,-5));
+        ubo.projection = glm::perspective(glm::radians(45.0f), get_aspect(), 0.1f, 100.0f);
+        buffer.CopyData(ubo, 0);
+
     }
 }

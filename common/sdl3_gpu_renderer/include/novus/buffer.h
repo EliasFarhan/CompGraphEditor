@@ -34,7 +34,7 @@ public:
         std::memcpy(dst+offset, std::ranges::data(range), std::ranges::size(range)*sizeof(std::ranges::range_value_t<Range>));
         SDL_UnmapGPUTransferBuffer(novus::GetDevice(), transferBuffer);
     }
-    void UploadBuffer(void* buffer, size_t length, bool cycle = false, size_t offset = 0)
+    void UploadBuffer(const void* buffer, size_t length, bool cycle = false, size_t offset = 0)
     {
         auto transferBuffer = get();
         auto* dst = static_cast<uint8_t*>(SDL_MapGPUTransferBuffer(GetDevice(), transferBuffer, cycle));
@@ -64,20 +64,33 @@ private:
     TransferBuffer indexTransferBuffer_;
 };
 
+struct StorageBuffer
+{
+    TransferBuffer transferBuffer;
+    SDL_GPUBuffer* gpuBuffer;
+    uint32_t size;
+    bool isDirty = false;
+};
+
 class BufferManager: public core::BufferManager
 {
 public:
-	core::BufferId CreateBuffer(std::string_view name, std::size_t count, std::size_t size) override;
+	core::BufferIdx CreateBuffer(std::string_view name, std::size_t count, std::size_t size) override;
 
 	void Clear() override;
 
-	core::BufferId GetBuffer(std::string_view bufferName) override;
+	core::BufferIdx GetBuffer(std::string_view bufferName) const override;
 
-	core::ArrayBuffer GetArrayBuffer(core::BufferId id) override;
 
-	void CopyData(std::string_view bufferName, void* dataSrc, std::size_t length) override;
+	void CopyData(core::BufferIdx index, const void* dataSrc, std::size_t length) override;
 
-	void BindBuffer(core::BufferId id, int bindPoint) override;
+
+    void UploadStorageBuffers(SDL_GPUCommandBuffer* commandBuffer);
+
+    const StorageBuffer& GetStorageBuffer(core::BufferIdx id) const;
+private:
+    std::unordered_map<std::string, core::BufferIdx> storageBufferMap_;
+    std::vector<StorageBuffer> storageBuffers_;
 };
 
 }

@@ -16,6 +16,12 @@ public:
     {
         buffer_copy_data(bufferId_, std::ranges::data(data), std::ssize(data)*sizeof(std::ranges::range_value_t<R>));
     }
+    template<typename T>
+    void CopyData(const T& data, size_t offset) const
+    {
+        const uint8_t* ptr = reinterpret_cast<uint8_t*>(bufferId_) + offset;
+        buffer_copy_data(bufferId_, ptr, sizeof(T));
+    }
 private:
     int64_t bufferId_;
 };

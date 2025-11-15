@@ -183,7 +183,7 @@ int64_t get_system_camera()
     }
     return 0;
 }
-/*
+
 int64_t get_buffer(const void* bufferName)
 {
 #ifdef TRACY_ENABLE
@@ -198,13 +198,5 @@ void buffer_copy_data(int64_t buffer, const void* data, int64_t size)
     ZoneScoped;
 #endif
     auto& bufferManager = core::GetCurrentScene()->GetBufferManager();
-    auto arrayBuffer = bufferManager.GetArrayBuffer(static_cast<core::BufferId>(buffer));
-    if (size > arrayBuffer.count*arrayBuffer.typeSize)
-    {
-        LogError("Trying to copy buffer out of range");
-        std::terminate();
-    }
-    std::memcpy(arrayBuffer.data, data, size);
+    bufferManager.CopyData(static_cast<core::BufferIdx>(buffer), data, size);
 }
-
-*/

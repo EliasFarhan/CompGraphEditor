@@ -61,7 +61,7 @@ void DrawCommand::SetAngle(std::string_view uniformName, core::Radian angle)
 
 void DrawCommand::Bind(void* renderData)
 {
-    pipeline_->Bind(renderData);
+    material_->Bind(renderData);
 }
 
 void DrawCommand::PreDrawBind(void* renderData)

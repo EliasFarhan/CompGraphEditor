@@ -33,6 +33,7 @@ private:
 novus::renderer::SceneT Scene01();
 novus::renderer::SceneT Scene02();
 novus::renderer::SceneT Scene03();
+novus::renderer::SceneT Scene04();
 }
 
 

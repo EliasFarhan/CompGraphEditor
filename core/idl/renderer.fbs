@@ -21,10 +21,18 @@ table GraphicsPipeline
     info: internal.GraphicsPipelineInfo;
 }
 
+table StorageBufferBinding
+{
+    buffer_name: string;
+    binding: int32;
+    shader_stage : internal.ShaderStage;
+}
+
 table Material
 {
     name:string;
     pipeline_index: int32 = -1;
+    storage_buffer_bindings: [StorageBufferBinding] (native_inline);
 }
 enum MeshPrimitiveType : byte
 {
@@ -68,6 +76,11 @@ table Renderpass
     name: string;
 }
 
+table StorageBuffer
+{
+    name: string;
+    block_size: int64;
+}
 
 table Texture
 {
@@ -93,4 +106,5 @@ table Scene
     meshes: [Mesh] (native_inline);
     materials: [Material] (native_inline);
     systems: [engine.System] (native_inline);
+    buffers: [StorageBuffer] (native_inline);
 }

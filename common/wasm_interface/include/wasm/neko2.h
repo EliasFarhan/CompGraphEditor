@@ -28,8 +28,8 @@ extern "C"
     void set_camera_near(int64_t camera, float near);
     void set_camera_far(int64_t camera, float far);
 
-    //int64_t get_buffer(const void* bufferName);
-    //void buffer_copy_data(int64_t bufferName, const void* data, int64_t size);
+    int64_t get_buffer(const void* bufferName);
+    void buffer_copy_data(int64_t bufferName, const void* data, int64_t size);
 }
 
 

@@ -59,6 +59,14 @@ public:
 	void Bind(void* renderData) override;
     void Destroy();
     void UploadDirtyUniformData() override;
+
+    struct StorageBufferId
+    {
+        internal::ShaderStage stage= static_cast<internal::ShaderStage>(-1);
+        int binding = 0;
+        int32_t blockSize = 0;
+    };
+    std::span<const StorageBufferId> GetStorageBufferIds() const{return storageBuffersIds_;}
 protected:
     void SetUniformData(std::string_view uniformName, const void* data, size_t length) override;
 private:
@@ -66,7 +74,7 @@ private:
     {
         std::unique_ptr<uint8_t[]> data;
         int binding{};
-        internal::ShaderStage stage = (internal::ShaderStage)-1;
+        internal::ShaderStage stage = static_cast<internal::ShaderStage>(-1);
         uint8_t block_size;
         bool isDirty{};
     };
@@ -82,7 +90,7 @@ private:
         int currentUniformIndex);
     SDL_GPUGraphicsPipeline* pipeline_ = nullptr;
     std::vector<UniformBuffer> uniformBuffers_;
-
+    std::vector<StorageBufferId> storageBuffersIds_;
     std::unordered_map<std::string, UniformBufferReference> uniformBufferReferenceMap_{};
 };
 }

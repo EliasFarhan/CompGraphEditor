@@ -20,13 +20,14 @@ void SampleBrowser::Begin()
     samples_.push_back(MakeSample("scene1", Scene01()));
     samples_.push_back(MakeSample("scene2", Scene02()));
     samples_.push_back(MakeSample("scene3", Scene03()));
+    samples_.push_back(MakeSample("scene4", Scene04()));
 
 
     for(auto& sample : samples_)
     {
         sample.scene.SetScene(sample.sceneInfo);
     }
-    currentIndex_ = 1;
+    currentIndex_ = 3;
     sceneManager_.LoadScene(&samples_[currentIndex_].scene);
 }
 void SampleBrowser::Update(float dt)

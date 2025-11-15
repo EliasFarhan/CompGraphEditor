@@ -81,7 +81,7 @@ public:
     void OnEvent(SDL_Event& event) override;
     virtual DrawCommand& GetDrawCommand(int subPassIndex, int drawCommandIndex) = 0;
 
-    //virtual BufferManager& GetBufferManager() = 0;
+    virtual BufferManager& GetBufferManager() = 0;
 
     const novus::renderer::SceneT& GetInfo() const { return scene_; }
 protected:
@@ -101,7 +101,7 @@ protected:
     //virtual ImportStatus LoadFramebuffers(const PbRepeatField<pb::FrameBuffer>& framebuffers) = 0;
     //virtual ImportStatus LoadDrawCommands(std::span<const novus::renderer::DrawCommandT> commands) = 0;
     virtual ImportStatus LoadRenderPass(std::span<const novus::renderer::RenderpassT> renderPasses) = 0;
-    //virtual ImportStatus LoadBuffers(const PbRepeatField<pb::Buffer>& buffers) = 0;
+    virtual ImportStatus LoadBuffers(std::span<const novus::renderer::StorageBufferT> buffers) = 0;
     novus::renderer::SceneT scene_;
     std::vector<Script*> scripts_;
     

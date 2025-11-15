@@ -33,6 +33,11 @@ void Scene::LoadScene()
         LogError("Could not import models");
     }
     */
+
+    if (LoadBuffers(scene_.buffers) != ImportStatus::SUCCESS)
+    {
+        LogError("Could not import buffers");
+    }
     const auto& meshes = scene_.meshes;
     if (LoadMeshes(meshes) != ImportStatus::SUCCESS)
     {
@@ -69,10 +74,6 @@ void Scene::LoadScene()
         LogError("Count not import render pass");
     }
     /*
-    if (LoadBuffers(scene_.buffers()) != ImportStatus::SUCCESS)
-    {
-        LogError("Could not import buffers");
-    }
     */
     /* The render pass now generates the draw commands automatically
     if(LoadDrawCommands(scene_.draw_commands) != ImportStatus::SUCCESS)

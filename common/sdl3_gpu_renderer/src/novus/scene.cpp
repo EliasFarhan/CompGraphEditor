@@ -34,7 +34,7 @@ void Scene::Update(float dt)
             script->Update(dt);
         }
     }
-
+    bufferManager_.UploadStorageBuffers(commandBuffer);
     SDL_GPUTexture* swapchainTexture = GetSwapchainTexture();
     if (swapchainTexture != nullptr)
     {
@@ -150,11 +150,22 @@ Scene::ImportStatus Scene::LoadPipelines(std::span<const renderer::GraphicsPipel
 }
 Scene::ImportStatus Scene::LoadMaterials(std::span<const renderer::MaterialT> materials)
 {
-    materials_.resize(materials.size());
+    materials_.reserve(materials.size());
     for (size_t i = 0; i < materials.size(); ++i)
     {
+        const auto& materialInfo = materials[i];
+        const auto pipelineIndex = materialInfo.pipeline_index;
+        const auto& pipelineInfo = scene_.pipelines[pipelineIndex];
+        const auto vertexIndex = pipelineInfo.vertex_shader_index;
+        const auto fragmentIndex = pipelineInfo.fragment_shader_index;
+
+        Material material(&pipelines_[pipelineIndex]);
         //TODO add the specific texture sampler index? same texture path different texture settings
-        materials_[i].Load(materials[i]);
+        material.Load(materialInfo,
+            scene_.shaders[vertexIndex],
+            scene_.shaders[fragmentIndex],
+            bufferManager_);
+        materials_.push_back(std::move(material));
     }
     return ImportStatus::SUCCESS;
 }
@@ -212,6 +223,15 @@ Scene::ImportStatus Scene::LoadRenderPass(std::span<const renderer::RenderpassT>
     }
     return ImportStatus::SUCCESS;
 }
-
-
+Scene::ImportStatus Scene::LoadBuffers(std::span<const renderer::StorageBufferT> buffers)
+{
+    for (const auto& storageBufferInfo : buffers)
+    {
+        bufferManager_.CreateBuffer(storageBufferInfo.name,
+            storageBufferInfo.block_size, 1);
+    }
+    return ImportStatus::SUCCESS;
 }
+
+
+} // namespace novus

@@ -214,6 +214,15 @@ void Pipeline::Load(const renderer::GraphicsPipelineT& pipelineInfo,
         GenerateUniformBufferRef(vertexUniform.type_name, vertShaderInfo.types, currentUniformIndex);
         currentUniformIndex++;
     }
+    for (const auto& vertexSsbo: vertShaderInfo.storage_buffers)
+    {
+        if (vertexSsbo.block_size == 0) continue;
+        if (vertexSsbo.set != 0)
+        {
+            throw std::runtime_error("Invalid set for vertex storage buffer");
+        }
+        storageBuffersIds_.push_back({.stage = internal::ShaderStage_VERTEX, .binding = vertexSsbo.binding, .blockSize = vertexSsbo.block_size});
+    }
     for (const auto& fragmentUniform : fragShaderInfo.uniform_buffers)
     {
         if (fragmentUniform.block_size == 0)
@@ -228,6 +237,16 @@ void Pipeline::Load(const renderer::GraphicsPipelineT& pipelineInfo,
         uniformBuffers_.push_back(std::move(uniformBuffer));
         GenerateUniformBufferRef(fragmentUniform.type_name, fragShaderInfo.types, currentUniformIndex);
         currentUniformIndex++;
+    }
+
+    for (const auto& fragSsbo: fragShaderInfo.storage_buffers)
+    {
+        if (fragSsbo.block_size == 0) continue;
+        if (fragSsbo.set != 2)
+        {
+            throw std::runtime_error("Invalid set for fragment storage buffer");
+        }
+        storageBuffersIds_.push_back({.stage = internal::ShaderStage_FRAGMENT, .binding = fragSsbo.binding, .blockSize = fragSsbo.block_size});
     }
 }
 void Pipeline::Bind(void* renderData)

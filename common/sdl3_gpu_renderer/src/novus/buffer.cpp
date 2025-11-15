@@ -1,6 +1,7 @@
 #include "novus/buffer.h"
 
 #include "novus/engine.h"
+#include <format>
 
 namespace novus
 {
@@ -90,31 +91,73 @@ void VertexInputBuffer::Destroy()
     }
 }
 
-core::BufferId BufferManager::CreateBuffer(std::string_view name, std::size_t count, std::size_t size)
+core::BufferIdx BufferManager::CreateBuffer(std::string_view name, std::size_t count, std::size_t size)
 {
-    return {};
+    uint32_t totalSize = size * count;
+    SDL_GPUBufferCreateInfo bufferCreateInfo{.usage = SDL_GPU_BUFFERUSAGE_GRAPHICS_STORAGE_READ,
+        .size = totalSize};
+    StorageBuffer newStorageBuffer{
+    .transferBuffer = GenerateTransferBuffer(totalSize, SDL_GPU_TRANSFERBUFFERUSAGE_UPLOAD),
+    .gpuBuffer = SDL_CreateGPUBuffer(GetDevice(),&bufferCreateInfo),
+    .size = totalSize,
+    .isDirty = false};
+
+    core::BufferIdx idx{.bufferId = storageBuffers_.size()};
+    storageBuffers_.push_back(std::move(newStorageBuffer));
+    storageBufferMap_[name.data()] = idx;
+    return idx;
 }
 
 void BufferManager::Clear()
 {
+
 }
 
-core::BufferId BufferManager::GetBuffer(std::string_view bufferName)
+core::BufferIdx BufferManager::GetBuffer(std::string_view bufferName) const
 {
-    return {};
+    return storageBufferMap_.at(bufferName.data());
 }
 
-core::ArrayBuffer BufferManager::GetArrayBuffer(core::BufferId id)
+void BufferManager::CopyData(core::BufferIdx index, const void* dataSrc, std::size_t length)
 {
-    return {};
+    auto& storageBuffer = storageBuffers_[index.bufferId];
+    auto& transferBuffer = storageBuffer.transferBuffer;
+    transferBuffer.UploadBuffer(dataSrc, length, true);
+    storageBuffer.isDirty = true;
 }
 
-void BufferManager::CopyData(std::string_view bufferName, void* dataSrc, std::size_t length)
+void BufferManager::UploadStorageBuffers(SDL_GPUCommandBuffer* commandBuffer)
 {
-}
+    auto countDirty = std::ranges::count_if(storageBuffers_, [](const auto& buffer)
+    {
+        return buffer.isDirty;
+    });
+    if (countDirty == 0) return;
+    SDL_GPUCopyPass* copyPass = SDL_BeginGPUCopyPass(commandBuffer);
 
-void BufferManager::BindBuffer(core::BufferId id, int bindPoint)
+    for (auto& storageBuffer : storageBuffers_)
+    {
+        if (storageBuffer.isDirty)
+        {
+            SDL_GPUTransferBufferLocation ssboSrc
+            {
+                .transfer_buffer = storageBuffer.transferBuffer.get(),
+                .offset = 0
+            };
+            SDL_GPUBufferRegion ssboDst
+            {
+                .buffer = storageBuffer.gpuBuffer,
+                .size = storageBuffer.size,
+            };
+            SDL_UploadToGPUBuffer(copyPass, &ssboSrc, &ssboDst, true);
+            storageBuffer.isDirty = false;
+        }
+    }
+    SDL_EndGPUCopyPass(copyPass);
+}
+const StorageBuffer& BufferManager::GetStorageBuffer(core::BufferIdx id) const
 {
+    return storageBuffers_[id.bufferId];
 }
 void TransferBuffer::Destroy()
 {
