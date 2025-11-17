@@ -1,19 +1,18 @@
 #pragma once
 #include "editor_system.h"
+#include "generated/editor_generated.h"
 
-namespace editor
+namespace novus::editor
 {
 
 struct PipelineInfo
 {
     std::string path;
     std::string filename;
-    pb::EditorPipeline info;
-    pb::EditorRaytracingPipeline raytracingInfo;
+    EditorPipelineInfo info;
     ResourceId resourceId = INVALID_RESOURCE_ID;
     ResourceId vertexShaderId = INVALID_RESOURCE_ID;
     ResourceId fragmentShaderId = INVALID_RESOURCE_ID;
-    ResourceId geometryShaderId = INVALID_RESOURCE_ID;
     ResourceId computeShaderId = INVALID_RESOURCE_ID;
 };
 

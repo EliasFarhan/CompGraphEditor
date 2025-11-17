@@ -8,7 +8,7 @@
 #include "engine/filesystem.h"
 
 
-namespace editor
+namespace novus::editor
 {
 
 

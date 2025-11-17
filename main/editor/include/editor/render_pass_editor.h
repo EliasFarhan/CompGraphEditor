@@ -4,10 +4,9 @@
 
 #include "editor_system.h"
 #include "resource.h"
-#include "proto/editor.pb.h"
-#include "proto/renderer.pb.h"
+#include "generated/editor_generated.h"
 
-namespace editor
+namespace novus::editor
 {
 
 
@@ -15,7 +14,7 @@ struct RenderPassInfo
 {
     std::string path;
     std::string filename;
-    editor::pb::EditorRenderPass info;
+    EditorRenderPassInfo info;
     ResourceId resourceId = INVALID_RESOURCE_ID;
 };
 

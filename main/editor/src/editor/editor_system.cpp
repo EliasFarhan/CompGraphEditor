@@ -6,7 +6,7 @@
 
 #include "scene_editor.h"
 
-namespace editor
+namespace novus::editor
 {
 
 void EditorSystem::ImportResource(std::string_view path)

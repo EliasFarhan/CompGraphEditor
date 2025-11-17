@@ -1,10 +1,10 @@
 #pragma once
 
 #include "editor_system.h"
-#include "proto/editor.pb.h"
+#include "generated/editor_generated.h"
 #include "renderer/model.h"
 
-namespace editor
+namespace novus::editor
 {
 
 struct ModelDrawCommand
@@ -18,7 +18,7 @@ struct ModelInfo
 {
     std::string path;
     std::string filename;
-    editor::pb::EditorModel info;
+    editor::EditorModelInfo info;
     core::ModelIndex modelIndex;
     ResourceId resourceId = INVALID_RESOURCE_ID;
     std::vector<ModelDrawCommand> drawCommands;

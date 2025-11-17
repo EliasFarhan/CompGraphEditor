@@ -2,17 +2,16 @@
 
 #include "resource.h"
 #include "editor_system.h"
-#include "proto/editor.pb.h"
-#include "proto/renderer.pb.h"
+#include "generated/editor_generated.h"
 
-namespace editor
+namespace novus::editor
 {
 
 struct MeshInfo
 {
     std::string path;
     std::string filename;
-    editor::pb::EditorMesh info;
+    EditorMeshInfo info;
     ResourceId resourceId = INVALID_RESOURCE_ID;
 };
 

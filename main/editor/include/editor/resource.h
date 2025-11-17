@@ -2,7 +2,7 @@
 
 #include "editor_filesystem.h"
 
-namespace editor
+namespace novus::editor
 {
 
 struct ResourceId
@@ -35,9 +35,9 @@ public:
 }
 
 template<>
-struct std::hash<editor::ResourceId>
+struct std::hash<novus::editor::ResourceId>
 {
-    std::size_t operator()(editor::ResourceId const& s) const noexcept
+    std::size_t operator()(novus::editor::ResourceId const& s) const noexcept
     {
         return std::hash<std::uint32_t>{}(s.value);
     }

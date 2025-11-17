@@ -455,6 +455,13 @@ table BufferAttribute
     readonly: bool;
 }
 
+table ShaderSampler
+{
+    name: string;
+    set: int32;
+    binding: int32;
+}
+
 enum TextureType:byte
 {
     TEXTURETYPE_2D,         /**< The texture is a 2-dimensional image. */

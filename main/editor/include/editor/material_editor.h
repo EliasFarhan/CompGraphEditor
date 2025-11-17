@@ -2,16 +2,16 @@
 
 #include "editor_system.h"
 #include "pipeline_editor.h"
-#include "proto/editor.pb.h"
+#include "generated/editor_generated.h"
 
-namespace editor
+namespace novus::editor
 {
 
 struct MaterialInfo
 {
     std::string path;
     std::string filename;
-    pb::EditorMaterial info;
+    EditorMaterialInfo info;
     ResourceId resourceId = INVALID_RESOURCE_ID;
     ResourceId pipelineId = INVALID_RESOURCE_ID;
 };

@@ -10,7 +10,7 @@
 
 #include "imnodes.h"
 
-namespace editor
+namespace novus::editor
 {
     
 void PipelineEditor::DrawInspector()

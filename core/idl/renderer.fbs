@@ -5,11 +5,11 @@ namespace novus.renderer;
 table Shader
 {
     path: string;
-    num_samplers: uint32;
     num_storage_textures: uint32;
     uniform_buffers: [internal.BufferAttribute] (native_inline);
     types: [internal.BufferStruct] (native_inline);
     storage_buffers: [internal.BufferAttribute] (native_inline);
+    samplers: [internal.ShaderSampler] (native_inline);
     shader_stage: internal.ShaderStage;
 }
 table GraphicsPipeline

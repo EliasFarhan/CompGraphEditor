@@ -1,15 +1,15 @@
 #pragma once
 #include "editor_system.h"
-#include "proto/renderer.pb.h"
+#include "generated/renderer_generated.h"
 
-namespace editor
+namespace novus::editor
 {
 
 struct FramebufferInfo
 {
     std::string filename;
     std::string path;
-    core::pb::FrameBuffer info;
+    renderer::FramebufferT info;
     ResourceId resourceId;
 };
 

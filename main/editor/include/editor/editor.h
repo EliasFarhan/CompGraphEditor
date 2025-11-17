@@ -9,11 +9,11 @@
 #include "resource.h"
 #include "resource_manager.h"
 #include "editor_system.h"
-#include "proto/renderer.pb.h"
+#include "generated/renderer_generated.h"
 
 #include <memory>
 
-namespace editor
+namespace novus::editor
 {
 
 class Editor : public core::System, public core::OnGuiInterface,

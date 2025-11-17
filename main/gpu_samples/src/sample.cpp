@@ -19,7 +19,8 @@ void SampleBrowser::Begin()
     samples_.emplace_back("scene2", Scene02());
     samples_.emplace_back("scene3", Scene03());
     samples_.emplace_back("scene4", Scene04());
-    
+    samples_.emplace_back("scene5", Scene05());
+
 
     for(auto& sample : samples_)
     {

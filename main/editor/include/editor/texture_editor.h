@@ -4,7 +4,7 @@
 #include "editor_system.h"
 #include "renderer/texture.h"
 
-namespace editor
+namespace novus::editor
 {
 struct KtxExportInfo
 {

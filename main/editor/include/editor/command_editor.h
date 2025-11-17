@@ -2,19 +2,19 @@
 
 #include "editor_system.h"
 #include "resource.h"
-#include "proto/editor.pb.h"
+#include "generated/editor_generated.h"
 
 #include <variant>
 #include <string>
 
-namespace editor
+namespace novus::editor
 {
 
 struct CommandInfo
 {
     std::string filename;
     std::string path;
-    std::variant<pb::EditorDrawCommand, pb::EditorComputeCommand> info;
+    std::variant<EditorDrawCommandInfo, EditorComputeCommandInfo> info;
     ResourceId resourceId = INVALID_RESOURCE_ID;
     ResourceId materialId = INVALID_RESOURCE_ID;
     ResourceId meshId = INVALID_RESOURCE_ID;

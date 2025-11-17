@@ -1,14 +1,14 @@
 #pragma once
 #include "editor_system.h"
-#include "proto/renderer.pb.h"
+#include "generated/renderer_generated.h"
 
-namespace editor
+namespace novus::editor
 {
     struct ScriptInfo
     {
         std::string filename;
         ResourceId resourceId;
-        core::pb::System info;
+        engine::System info;
         std::vector<std::string> classesInScript;
 
     };

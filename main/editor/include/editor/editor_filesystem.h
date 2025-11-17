@@ -5,7 +5,7 @@
 
 namespace fs = std::filesystem;
 
-namespace editor
+namespace novus::editor
 {
 std::string GetFileExtension(std::string_view path);
 std::string GetFilename(std::string_view path, bool withExtension=true);

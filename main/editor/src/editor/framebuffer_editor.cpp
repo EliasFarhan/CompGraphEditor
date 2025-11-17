@@ -7,10 +7,8 @@
 #include <array>
 #include <fstream>
 
-#include "gl/framebuffer.h"
 
-
-namespace editor
+namespace novus::editor
 {
 void FramebufferEditor::AddResource(const Resource& resource)
 {

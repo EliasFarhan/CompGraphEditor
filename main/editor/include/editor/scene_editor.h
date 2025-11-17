@@ -2,15 +2,16 @@
 
 #include "resource.h"
 #include "editor_system.h"
+#include "generated/editor_generated.h"
 
-namespace editor
+namespace novus::editor
 {
 
 struct SceneInfo
 {
     std::string filename;
     std::string path;
-    editor::pb::EditorScene info;
+    EditorSceneInfo info;
     ResourceId resourceId = INVALID_RESOURCE_ID;
     ResourceId renderPassId = INVALID_RESOURCE_ID;
 };

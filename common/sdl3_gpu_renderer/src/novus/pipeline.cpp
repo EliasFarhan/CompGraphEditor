@@ -39,7 +39,7 @@ void Shader::LoadShader(const renderer::ShaderT& shaderInfo)
         .entrypoint = "main",
         .format = core::ConvertShaderFormat(core::GetShaderFormat()),
         .stage = TranslateShaderState(shaderInfo.shader_stage),
-        .num_samplers = shaderInfo.num_samplers,
+        .num_samplers = (uint32_t)shaderInfo.samplers.size(),
         .num_storage_textures = shaderInfo.num_storage_textures,
         .num_storage_buffers = static_cast<uint32_t>(shaderInfo.storage_buffers.size()),
         .num_uniform_buffers = static_cast<uint32_t>(shaderInfo.uniform_buffers.size())

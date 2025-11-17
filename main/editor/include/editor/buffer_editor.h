@@ -1,15 +1,15 @@
 #pragma once
 #include "editor.h"
-#include "proto/renderer.pb.h"
+#include "generated/renderer_generated.h"
 
-namespace editor
+namespace novus::editor
 {
 
 struct BufferInfo
 {
     std::string path;
     std::string filename;
-    core::pb::Buffer info;
+    renderer::StorageBufferT info;
     ResourceId resourceId = INVALID_RESOURCE_ID;
 };
 

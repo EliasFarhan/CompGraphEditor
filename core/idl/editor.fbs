@@ -1,0 +1,41 @@
+﻿
+namespace novus.editor;
+
+table EditorPipelineInfo
+{
+
+}
+
+table EditorSceneInfo
+{
+
+}
+
+table EditorMeshInfo
+{
+
+}
+
+table EditorMaterialInfo
+{
+
+}
+
+table EditorRenderPassInfo
+{
+}
+
+table EditorModelInfo
+{
+
+}
+
+table EditorDrawCommandInfo
+{
+
+}
+
+table EditorComputeCommandInfo
+{
+
+}

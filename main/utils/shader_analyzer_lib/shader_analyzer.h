@@ -15,6 +15,7 @@ struct ShaderAttributeResult
     std::vector<internal::BufferStructT> types;
     std::vector<internal::BufferAttributeT> uniformBuffers;
     std::vector<internal::BufferAttributeT> storageBuffers;
+    std::vector<internal::ShaderSamplerT> shaderSamplers;
 };
 
 ShaderAttributeResult GenerateShaderAttributeFromJson(std::string_view jsonPath);

@@ -1,15 +1,16 @@
-#include "novus/mesh.h"
+﻿#include "novus/mesh.h"
 #include "sample.h"
 #include "shader_analyzer.h"
 
 namespace sample
 {
-novus::renderer::SceneT Scene04()
+novus::renderer::SceneT Scene05()
 {
     novus::renderer::SceneT scene{};
-    static constexpr std::string_view vertexPathBase = "data/shaders/04_hello_storage/triangle.vert";
-    static constexpr std::string_view fragmentPathBase = "data/shaders/04_hello_storage/triangle.frag";
+    static constexpr std::string_view vertexPathBase = "data/shaders/05_hello_texture/texture.vert";
+    static constexpr std::string_view fragmentPathBase = "data/shaders/05_hello_texture/texture.frag";
     const auto vertexAnalyzeResult = novus::GenerateShaderAttributeFromJson(std::string(vertexPathBase)+".json");
+    const auto fragmentAnalyzeResult = novus::GenerateShaderAttributeFromJson(std::string(vertexPathBase)+".json");
 
     scene.shaders.push_back({.path = novus::AddFormatExtension(vertexPathBase),
         .types = vertexAnalyzeResult.types,
@@ -17,7 +18,7 @@ novus::renderer::SceneT Scene04()
         .shader_stage = novus::internal::ShaderStage_VERTEX});
     scene.shaders.push_back({.path = novus::AddFormatExtension(fragmentPathBase),
         .shader_stage = novus::internal::ShaderStage_FRAGMENT,});
-    scene.name = "04_Storage";
+    scene.name = "05_Texture";
 
     novus::renderer::GraphicsPipelineT graphicsPipeline{};
     graphicsPipeline.vertex_shader_index = 0;

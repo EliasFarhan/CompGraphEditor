@@ -54,6 +54,7 @@ TypeInfo GetPyTypeSize(std::string_view typeString)
     return {};
 }
 
+/*
 
 PYBIND11_EMBEDDED_MODULE(neko2, m)
 {
@@ -117,13 +118,13 @@ PYBIND11_EMBEDDED_MODULE(neko2, m)
         .def("draw", [](core::DrawCommand& drawCommand)
         {
                 auto* scene = core::GetCurrentScene();
-                drawCommand.PreDrawBind();
+                drawCommand.PreDrawBind(nullptr);
                 scene->Draw(drawCommand);
         })
         .def("draw_instanced", [](core::DrawCommand& drawCommand, int instance)
             {
                 auto* scene = core::GetCurrentScene();
-                drawCommand.PreDrawBind();
+                drawCommand.PreDrawBind(nullptr);
                 scene->Draw(drawCommand, instance);
             })
         .def("bind", &core::DrawCommand::Bind)
@@ -186,11 +187,11 @@ PYBIND11_EMBEDDED_MODULE(neko2, m)
             })
         .def_buffer([](glm::vec2& m) -> py::buffer_info {
                 return py::buffer_info(
-                    &m[0],                               /* Pointer to buffer */
-                    sizeof(float),                          /* Size of one scalar */
-                    py::format_descriptor<float>::format(), /* Python struct-style format descriptor */
-                    1,                                      /* Number of dimensions */
-                    { 2 },                 /* Buffer dimensions */
+                    &m[0],
+                    sizeof(float),
+                    py::format_descriptor<float>::format(),
+                    1,
+                    { 2 },
                     { sizeof(float) }
                 );
             })
@@ -224,11 +225,11 @@ PYBIND11_EMBEDDED_MODULE(neko2, m)
                 })
         .def_buffer([](glm::vec3& m) -> py::buffer_info {
                 return py::buffer_info(
-                    &m[0],                               /* Pointer to buffer */
-                    sizeof(float),                          /* Size of one scalar */
-                    py::format_descriptor<float>::format(), /* Python struct-style format descriptor */
-                    1,                                      /* Number of dimensions */
-                    { 3 },                 /* Buffer dimensions */
+                    &m[0],                               /* Pointer to buffer
+                    sizeof(float),                          /* Size of one scalar
+                    py::format_descriptor<float>::format(), /* Python struct-style format descriptor
+                    1,                                      /* Number of dimensions
+                    { 3 },                 /* Buffer dimensions
                     { sizeof(float) }
                 );
     })
@@ -261,11 +262,11 @@ PYBIND11_EMBEDDED_MODULE(neko2, m)
             })
         .def_buffer([](glm::vec4& m) -> py::buffer_info {
                 return py::buffer_info(
-                    &m[0],                               /* Pointer to buffer */
-                    sizeof(float),                          /* Size of one scalar */
-                    py::format_descriptor<float>::format(), /* Python struct-style format descriptor */
-                    1,                                      /* Number of dimensions */
-                    { 4 },                 /* Buffer dimensions */
+                    &m[0],                               /* Pointer to buffer
+                    sizeof(float),                          /* Size of one scalar
+                    py::format_descriptor<float>::format(), /* Python struct-style format descriptor
+                    1,                                      /* Number of dimensions
+                    { 4 },                 /* Buffer dimensions
                     { sizeof(float) }
                 );
             })
@@ -289,11 +290,11 @@ PYBIND11_EMBEDDED_MODULE(neko2, m)
         .def("transpose", [](const glm::mat3& m) {return glm::transpose(m); })
         .def_buffer([](glm::mat3& m) -> py::buffer_info {
         return py::buffer_info(
-            &m[0],                               /* Pointer to buffer */
-            sizeof(float),                          /* Size of one scalar */
-            py::format_descriptor<float>::format(), /* Python struct-style format descriptor */
-            2,                                      /* Number of dimensions */
-            { 3,3 },                 /* Buffer dimensions */
+            &m[0],                               /* Pointer to buffer
+            sizeof(float),                          /* Size of one scalar
+            py::format_descriptor<float>::format(), /* Python struct-style format descriptor
+            2,                                      /* Number of dimensions
+            { 3,3 },                 /* Buffer dimensions
             { sizeof(float)*3, sizeof(float)}
         );
             })
@@ -334,11 +335,11 @@ PYBIND11_EMBEDDED_MODULE(neko2, m)
         })
         .def_buffer([](glm::mat4& m) -> py::buffer_info {
         return py::buffer_info(
-            &m[0],                               /* Pointer to buffer */
-            sizeof(float),                          /* Size of one scalar */
-            py::format_descriptor<float>::format(), /* Python struct-style format descriptor */
-            2,                                      /* Number of dimensions */
-            { 4,4 },                 /* Buffer dimensions */
+            &m[0],                               /* Pointer to buffer
+            sizeof(float),                          /* Size of one scalar
+            py::format_descriptor<float>::format(), /* Python struct-style format descriptor
+            2,                                      /* Number of dimensions
+            { 4,4 },                 /* Buffer dimensions
             { sizeof(float) * 4, sizeof(float) }
         );
             })
@@ -464,7 +465,7 @@ PYBIND11_EMBEDDED_MODULE(neko2, m)
         }, py::return_value_policy::reference);
 
 }
-
+*/
 
 
 namespace core

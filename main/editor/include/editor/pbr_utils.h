@@ -2,7 +2,7 @@
 #include <engine/filesystem.h>
 #include <string_view>
 
-namespace editor
+namespace novus::editor
 {
 void GeneratePreComputeBrdfLUT();
 void GenerateIrradianceMap(std::string_view path);

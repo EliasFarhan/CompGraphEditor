@@ -3,7 +3,7 @@
 #include "editor_system.h"
 #include "generated/renderer_generated.h"
 
-namespace editor
+namespace novus::editor
 {
 
 struct ShaderInfo
@@ -34,7 +34,7 @@ public:
     void Clear() override;
 private:
     bool AnalyzeShader(std::string_view path, novus::renderer::ShaderT& shaderInfo) const;
-    static core::pb::Attribute::Type GetType(std::string_view attributeTypeString);
+    static internal::AttributeType GetType(std::string_view attributeTypeString);
     std::vector<ShaderInfo> shaderInfos_;
     std::size_t currentIndex_ = -1;
     std::string shaderText_;

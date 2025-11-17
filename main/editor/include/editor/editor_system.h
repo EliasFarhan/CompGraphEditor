@@ -4,7 +4,7 @@
 #include <span>
 #include <algorithm>
 
-namespace editor
+namespace novus::editor
 {
 
 enum class EditorType
