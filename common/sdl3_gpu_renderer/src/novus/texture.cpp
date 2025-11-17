@@ -1,7 +1,3 @@
-//
-// Created by unite on 10.10.2025.
-//
-
 #include "novus/texture.h"
 
 namespace novus
@@ -9,6 +5,9 @@ namespace novus
 core::TextureId TextureManager::LoadTexture(const renderer::TextureT& textureInfo)
 {
 	return {};
+}
+const Texture& TextureManager::GetTexture(core::TextureId textureId)
+{
 }
 
 void TextureManager::Clear()

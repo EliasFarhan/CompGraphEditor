@@ -74,6 +74,39 @@ novus::renderer::SceneT Scene05()
     subpass.commands.push_back(std::move(drawCommand));
     scene.sub_passes.push_back(subpass);
 
+    novus::renderer::TextureT texture;
+    auto samplerInfo = std::make_unique<novus::internal::SamplerInfoT>();
+    samplerInfo->address_mode_u = novus::internal::SamplerAddressMode_SAMPLERADDRESSMODE_CLAMP_TO_EDGE;
+    samplerInfo->address_mode_v = novus::internal::SamplerAddressMode_SAMPLERADDRESSMODE_CLAMP_TO_EDGE;
+    samplerInfo->address_mode_w = novus::internal::SamplerAddressMode_SAMPLERADDRESSMODE_CLAMP_TO_EDGE;
+    samplerInfo->min_filter = novus::internal::FilterMode_FILTER_LINEAR;
+    samplerInfo->mag_filter = novus::internal::FilterMode_FILTER_LINEAR;
+    samplerInfo->compare_op = novus::internal::CompareOp_COMPAREOP_ALWAYS;
+    samplerInfo->mipmap_mode = novus::internal::SamplerMipmapMode_SAMPLERMIPMAPMODE_LINEAR;
+    samplerInfo->max_anisotropy = 1.0f;
+    samplerInfo->max_lod = 0.0f;
+    samplerInfo->min_lod = 0.0f;
+    samplerInfo->mip_lod_bias = 0.0f;
+    samplerInfo->enable_anisotropy = true;
+    samplerInfo->enable_compare = false;
+
+    texture.sampler = std::move(samplerInfo);
+
+    auto textureInfo = std::make_unique<novus::internal::TextureInfoT>();
+    textureInfo->format = novus::internal::TextureFormat_TEXTUREFORMAT_R8G8B8A8_UNORM;
+    textureInfo->width = 512;
+    textureInfo->height = 512;
+    textureInfo->layer_count_or_depth = 1;
+    textureInfo->num_levels = 1;
+    textureInfo->sample_count = novus::internal::SampleCount_SAMPLECOUNT_1;
+    textureInfo->type = novus::internal::TextureType_TEXTURETYPE_2D;
+    textureInfo->usage = novus::internal::TextureUsageFlags_TEXTUREUSAGE_SAMPLER;
+
+    texture.info = std::move(textureInfo);
+    texture.path = "data/textures/texture.jpg";
+
+    scene.textures.push_back(std::move(texture));
+
     scene.systems.push_back({.module_ = "scene04", .class_ = "Scene04", .path = "data/scripts/04_storage.wasm"});
 
     scene.buffers.push_back({.name = "ubo", .block_size = 3*sizeof(glm::mat4)});

@@ -84,7 +84,9 @@ table StorageBuffer
 
 table Texture
 {
-
+    path: string;
+    sampler: internal.SamplerInfo;
+    info: internal.TextureInfo;
 }
 
 table Framebuffer
@@ -107,4 +109,5 @@ table Scene
     materials: [Material] (native_inline);
     systems: [engine.System] (native_inline);
     buffers: [StorageBuffer] (native_inline);
+    textures: [Texture] (native_inline);
 }
