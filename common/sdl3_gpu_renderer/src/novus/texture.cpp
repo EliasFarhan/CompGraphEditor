@@ -2,13 +2,32 @@
 
 #include "novus/engine.h"
 
+#include "novus/texture.h"
+
+#include <stb_image.h>
+
 namespace novus
 {
 core::TextureId TextureManager::LoadTexture(const renderer::TextureT& textureInfo)
 {
-
     auto* sampler = GenerateSampler(*textureInfo.sampler);
-	return {};
+    SDL_GPUTextureCreateInfo createInfo{
+        .type = static_cast<SDL_GPUTextureType>(textureInfo.info->type),
+        .format = static_cast<SDL_GPUTextureFormat>(textureInfo.info->format),
+        .usage = textureInfo.info->usage,
+        .width = textureInfo.info->width,
+        .height = textureInfo.info->height,
+        .layer_count_or_depth = textureInfo.info->layer_count_or_depth,
+        .num_levels = textureInfo.info->num_levels,
+        .sample_count = static_cast<SDL_GPUSampleCount>(textureInfo.info->sample_count),
+        };
+    auto* texture = SDL_CreateGPUTexture(GetDevice(), &createInfo);
+    core::TextureId textureId = {static_cast<core::TextureId>(textures_.size())};
+    textures_.push_back({.texture = texture,
+        .sampler = sampler,
+        .path = textureInfo.path,
+        .requiredChannels = 4});
+	return textureId;
 }
 const Texture& TextureManager::GetTexture(core::TextureId textureId) const
 {
@@ -17,7 +36,73 @@ const Texture& TextureManager::GetTexture(core::TextureId textureId) const
 
 void TextureManager::Clear()
 {
-    
+    for (auto& texture : textures_)
+    {
+        SDL_ReleaseGPUTexture(GetDevice(), texture.texture);
+    }
+    for (auto& samplerMapping: sampleMap_)
+    {
+        SDL_ReleaseGPUSampler(GetDevice(), samplerMapping.second);
+    }
+    textures_.clear();
+    sampleMap_.clear();
+
+}
+void TextureManager::UploadTextures()
+{
+    for (auto& texture : textures_)
+    {
+        Image image{};
+        image.buffer =image.buffer = stbi_load(texture.path.data(),
+        &image.width,
+        &image.height,
+        &image.channels,
+        texture.requiredChannels);
+        if(image.buffer == nullptr)
+        {
+            throw std::runtime_error(std::format("Could not load texture: {}", texture.path));
+        }
+        image.length = image.width * image.height * (texture.requiredChannels == 0 ? image.channels : texture.requiredChannels);
+        image.transferBuffer = GenerateTransferBuffer(image.length, SDL_GPU_TRANSFERBUFFERUSAGE_UPLOAD);
+        image.transferBuffer.UploadBuffer(image.buffer, image.length);
+        stbi_image_free(image.buffer);
+        image.buffer = nullptr;
+        images_.push_back(image);
+    }
+    auto* commandBuffer = SDL_AcquireGPUCommandBuffer(GetDevice());
+    SDL_GPUCopyPass* copyPass = SDL_BeginGPUCopyPass(commandBuffer);
+    for (int64_t i = 0; i < std::ssize(textures_); i++)
+    {
+        auto& image = images_[i];
+        auto& texture = textures_[i];
+        SDL_GPUTextureTransferInfo source
+                {
+                    .transfer_buffer = image.transferBuffer.get(),
+                    .offset = 0,
+                    .pixels_per_row = 0,
+                    .rows_per_layer = 0
+                    };
+        SDL_GPUTextureRegion destination
+            {
+                .texture = texture.texture,
+                .mip_level = 0,
+                .layer = 0,
+                .x = 0,
+                .y = 0,
+                .z = 0,
+                .w = static_cast<uint32_t>(image.width),
+                .h = static_cast<uint32_t>(image.height),
+                .d = 1
+                };
+        SDL_UploadToGPUTexture(copyPass, &source, &destination, false);
+    }
+    SDL_EndGPUCopyPass(copyPass);
+    SDL_SubmitGPUCommandBuffer(commandBuffer);
+    for (auto& image: images_)
+    {
+        image.transferBuffer.Destroy();
+    }
+    images_.clear();
 }
 SDL_GPUSampler* TextureManager::GenerateSampler(internal::SamplerInfoT& samplerInfo)
 {

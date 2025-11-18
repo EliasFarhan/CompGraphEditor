@@ -6,9 +6,8 @@
 #define NEKO2_BUFFER_H
 #include <SDL3/SDL_gpu.h>
 
-
-#include "engine.h"
 #include "renderer/buffer.h"
+#include "novus/engine.h"
 
 namespace novus
 {
@@ -93,7 +92,7 @@ public:
 
 	void Clear() override;
 
-	core::BufferIdx GetBuffer(std::string_view bufferName) const override;
+	[[nodiscard]] core::BufferIdx GetBuffer(std::string_view bufferName) const override;
 
 
 	void CopyData(core::BufferIdx index, const void* dataSrc, std::size_t length) override;
@@ -101,7 +100,7 @@ public:
 
     void UploadStorageBuffers(SDL_GPUCommandBuffer* commandBuffer);
 
-    const StorageBuffer& GetStorageBuffer(core::BufferIdx id) const;
+    [[nodiscard]] const StorageBuffer& GetStorageBuffer(core::BufferIdx id) const;
 private:
     std::unordered_map<std::string, core::BufferIdx> storageBufferMap_;
     std::vector<StorageBuffer> storageBuffers_;

@@ -19,13 +19,13 @@ static SceneManager* sceneManagerInstance = nullptr;
 
 void Scene::LoadScene()
 {
-    /*
-    const auto& textures = scene_.textures();
+
+    const auto& textures = scene_.textures;
     if (LoadTextures(textures) != ImportStatus::SUCCESS)
     {
         LogError("Could not import textures");
     }
-    */
+
     /*
     const auto& models = scene_.model_paths();
     if (LoadModels(models) != ImportStatus::SUCCESS)

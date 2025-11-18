@@ -3,6 +3,8 @@
 #include "novus/buffer.h"
 #include <SDL3/SDL_gpu.h>
 
+#include "novus/texture.h"
+
 namespace novus
 {
 Material::Material(Pipeline* pipeline) : pipeline_(pipeline)
@@ -13,10 +15,9 @@ std::string_view Material::GetName() const
 {
     return name_;
 }
-void Material::Load(const renderer::MaterialT& materialInfo,
-    const renderer::ShaderT& vertexShader,
-    const renderer::ShaderT& fragmentShader,
-    const BufferManager& bufferManager)
+void Material::Load(const renderer::MaterialT& materialInfo, 
+    const BufferManager& bufferManager, 
+    std::span<core::TextureId> textures)
 {
     name_ = materialInfo.name;
     pipelineIndex_ = materialInfo.pipeline_index;
@@ -55,6 +56,37 @@ void Material::Load(const renderer::MaterialT& materialInfo,
             break;
         }
     }
+    const auto vertexSamplerCount = std::ranges::count_if(materialInfo.texture_bindings, [](const auto& textureBindingInfo)
+    {
+        return textureBindingInfo.set == 0;
+    });
+    vertexTextures.resize(vertexSamplerCount);
+    const auto fragmentSamplerCount = std::ranges::count_if(materialInfo.texture_bindings, [](const auto& textureBindingInfo)
+    {
+        return textureBindingInfo.set == 2;
+    });
+    fragmentTextures.resize(fragmentSamplerCount);
+    auto& textureManager = GetTextureManager();
+    for (auto& textureBinding: materialInfo.texture_bindings)
+    {
+        switch (textureBinding.set)
+        {
+        case 0:
+        {
+            auto& texture = textureManager.GetTexture(textures[textureBinding.texture_index]);
+            vertexTextures[textureBinding.binding] = {.texture = texture.texture, .sampler = texture.sampler};
+            break;
+        }
+        case 2:
+        {
+            auto& texture = textureManager.GetTexture(textures[textureBinding.texture_index]);
+            fragmentTextures[textureBinding.binding] = {.texture = texture.texture, .sampler = texture.sampler};
+            break;
+        }
+        default:
+            break;
+        }
+    }
 }
 void Material::Bind(void* renderData)
 {
@@ -68,5 +100,14 @@ void Material::Bind(void* renderData)
     {
         SDL_BindGPUFragmentStorageBuffers(renderPass, 0, fragmentStorageBuffers.data(), fragmentStorageBuffers.size());
     }
+    if (!vertexTextures.empty())
+    {
+        SDL_BindGPUVertexSamplers(renderPass, 0, vertexTextures.data(), vertexTextures.size());
+    }
+    if (!fragmentTextures.empty())
+    {
+        SDL_BindGPUFragmentSamplers(renderPass, 0, fragmentTextures.data(), fragmentTextures.size());
+    }
+
 }
 } // namespace novus

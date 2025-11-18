@@ -9,6 +9,7 @@
 #include <span>
 #include <vector>
 
+#include "../../../cmake-build-debug/core/core_schemas/generated/renderer_generated.h"
 #include "utils/sdl_fb_impl.h"
 
 namespace core
@@ -95,7 +96,7 @@ protected:
 
     virtual ImportStatus LoadShaders(std::span<const novus::renderer::ShaderT> shadersPb) = 0;
     virtual ImportStatus LoadPipelines(std::span<const novus::renderer::GraphicsPipelineT> pipelines) = 0;
-    //virtual ImportStatus LoadTextures(const PbRepeatField<pb::Texture>& textures) = 0;
+    virtual ImportStatus LoadTextures(std::span<const novus::renderer::TextureT> textures) = 0;
     virtual ImportStatus LoadMaterials(std::span<const novus::renderer::MaterialT> materials) = 0;
     //virtual ImportStatus LoadModels(const PbRepeatField<std::string>& models) = 0;
     virtual ImportStatus LoadMeshes(std::span<const novus::renderer::MeshT> meshes) = 0;

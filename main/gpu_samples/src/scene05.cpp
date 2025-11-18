@@ -10,14 +10,15 @@ novus::renderer::SceneT Scene05()
     static constexpr std::string_view vertexPathBase = "data/shaders/05_hello_texture/texture.vert";
     static constexpr std::string_view fragmentPathBase = "data/shaders/05_hello_texture/texture.frag";
     const auto vertexAnalyzeResult = novus::GenerateShaderAttributeFromJson(std::string(vertexPathBase)+".json");
-    const auto fragmentAnalyzeResult = novus::GenerateShaderAttributeFromJson(std::string(vertexPathBase)+".json");
+    const auto fragmentAnalyzeResult = novus::GenerateShaderAttributeFromJson(std::string(fragmentPathBase)+".json");
 
     scene.shaders.push_back({.path = novus::AddFormatExtension(vertexPathBase),
         .types = vertexAnalyzeResult.types,
         .storage_buffers = vertexAnalyzeResult.storageBuffers,
         .shader_stage = novus::internal::ShaderStage_VERTEX});
     scene.shaders.push_back({.path = novus::AddFormatExtension(fragmentPathBase),
-        .shader_stage = novus::internal::ShaderStage_FRAGMENT,});
+        .samplers = fragmentAnalyzeResult.shaderSamplers,
+        .shader_stage = novus::internal::ShaderStage_FRAGMENT});
     scene.name = "05_Texture";
 
     novus::renderer::GraphicsPipelineT graphicsPipeline{};
@@ -48,8 +49,10 @@ novus::renderer::SceneT Scene05()
 
     std::vector<novus::renderer::StorageBufferBindingT> storageBufferBindings;
     storageBufferBindings.push_back({.buffer_name = "ubo", .binding = 0, .shader_stage = novus::internal::ShaderStage_VERTEX});
+    std::vector<novus::renderer::TextureMaterialBindingT> textureBindings;
+    textureBindings.push_back({.binding = 0, .set = 2, .texture_index = 0});
     novus::renderer::MaterialT material{.name = "Quad Material",
-        .pipeline_index = 0, .storage_buffer_bindings = std::move(storageBufferBindings)};
+        .pipeline_index = 0, .storage_buffer_bindings = std::move(storageBufferBindings), .texture_bindings = std::move(textureBindings)};
     scene.materials.push_back(std::move(material));
 
     novus::renderer::MeshT mesh{.mesh_name = "Quad", .model_index = -1, .primitive_type = novus::renderer::MeshPrimitiveType_QUAD};

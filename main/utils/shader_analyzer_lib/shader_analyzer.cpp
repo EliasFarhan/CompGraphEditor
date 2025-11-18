@@ -81,6 +81,20 @@ ShaderAttributeResult GenerateShaderAttributeFromJson(std::string_view jsonPath)
         }
         result.storageBuffers = std::move(ssbos);
     }
+    if (shaderReflectData.contains("textures"))
+    {
+        std::vector<internal::ShaderSamplerT> shaderSamplers;
+        shaderSamplers.reserve(shaderReflectData["textures"].size());
+        for (auto& texture : shaderReflectData["textures"])
+        {
+            internal::ShaderSamplerT shaderSamplerAttribute;
+            shaderSamplerAttribute.name = texture["name"];
+            shaderSamplerAttribute.binding = texture["binding"];
+            shaderSamplerAttribute.set = texture["set"];
+            shaderSamplers.push_back(shaderSamplerAttribute);
+        }
+        result.shaderSamplers = std::move(shaderSamplers);
+    }
     return result;
 }
 }

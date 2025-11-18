@@ -37,6 +37,7 @@ public:
 
     core::BufferManager& GetBufferManager() override {return bufferManager_;}
 protected:
+    ImportStatus LoadTextures(std::span<const renderer::TextureT> textures) override;
     ImportStatus LoadShaders(std::span<const renderer::ShaderT> shadersPb) override;
     ImportStatus LoadPipelines(std::span<const renderer::GraphicsPipelineT> pipelineInfos) override;
     ImportStatus LoadMaterials(std::span<const renderer::MaterialT> materials) override;
@@ -50,6 +51,7 @@ private:
     std::vector<Framebuffer> framebuffers_;
     std::vector<Material> materials_;
     std::vector<VertexInputBuffer> vertexInputBuffers_;
+    std::vector<core::TextureId> textures_;
     SDL_GPURenderPass* currentRenderPass_ = nullptr;
 
     BufferManager bufferManager_;

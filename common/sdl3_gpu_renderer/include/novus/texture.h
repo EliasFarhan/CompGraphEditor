@@ -7,6 +7,8 @@
 
 #include "renderer/texture.h"
 #include <SDL3/SDL_gpu.h>
+
+#include "novus/buffer.h"
 #include "generated/renderer_generated.h"
 
 namespace novus
@@ -59,21 +61,34 @@ struct MyHash
 
 namespace novus
 {
+struct Image
+{
+    TransferBuffer transferBuffer;
+    uint8_t* buffer = nullptr;
+    size_t length = 0;
+    int width = -1;
+    int height = -1;
+    int channels = -1;
+};
 struct Texture
 {
     SDL_GPUTexture* texture = nullptr;
     SDL_GPUSampler* sampler = nullptr;
+    std::string path;
+    int requiredChannels;
 };
 class TextureManager : public core::TextureManager
 {
 public:
-	core::TextureId LoadTexture(const renderer::TextureT& textureInfo) override;
-    const Texture& GetTexture(core::TextureId textureId) const;
+	[[nodiscard]] core::TextureId LoadTexture(const renderer::TextureT& textureInfo) override;
+    [[nodiscard]] const Texture& GetTexture(core::TextureId textureId) const;
 	void Clear() override;
+    void UploadTextures();
 private:
     SDL_GPUSampler* GenerateSampler(internal::SamplerInfoT& samplerInfo);
     std::unordered_map<SamplerInfo, SDL_GPUSampler*, MyHash> sampleMap_;
     std::vector<Texture> textures_;
+    std::vector<Image> images_;
 };
 }
 #endif //NEKO2_TEXTURE_H

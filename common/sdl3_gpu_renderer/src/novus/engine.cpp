@@ -1,4 +1,5 @@
 #include "novus/engine.h"
+#include "novus/texture.h"
 
 #include <imgui.h>
 #include <imgui_impl_sdl3.h>
@@ -8,7 +9,12 @@ namespace novus
 {
 namespace
 {
-Engine* instance_ = nullptr;
+
+TextureManager textureManager;
+SDL_GPUDevice* device_ = nullptr;
+SDL_GPUCommandBuffer* commandBuffer_ = nullptr;
+SDL_GPUTexture* swapchainTexture_ = nullptr;
+Engine* instance_;
 }
 
 constexpr SDL_GPUShaderFormat ConvertShaderFormat(engine::ShaderFormat shaderFormat)
@@ -37,7 +43,6 @@ core::TextureManager& Engine::GetTextureManager()
 {
     return textureManager;
 }
-
 void Engine::Begin()
 {
 
@@ -168,10 +173,14 @@ void Engine::SwapWindow()
 {
     SDL_SubmitGPUCommandBuffer(commandBuffer_);
 }
+TextureManager& GetTextureManager()
+{
+    return textureManager;
+}
 
 SDL_GPUDevice* GetDevice()
 {
-    return instance_->GetDevice();
+    return device_;
 }
 SDL_Window* GetWindow()
 {
@@ -179,10 +188,10 @@ SDL_Window* GetWindow()
 }
 SDL_GPUCommandBuffer* GetCommandBuffer()
 {
-    return instance_->GetCommandBuffer();
+    return commandBuffer_;
 }
 SDL_GPUTexture* GetSwapchainTexture()
 {
-    return instance_->GetSwapchainTexture();
+    return swapchainTexture_;
 }
 } // namespace novus

@@ -1,6 +1,4 @@
-//
-// Created by unite on 10.10.2025.
-//
+#include "novus/texture.h"
 #include "novus/scene.h"
 
 #include "novus/render_pass.h"
@@ -21,6 +19,7 @@ void Scene::UnloadScene()
     {
         vertexInputBuffer.Destroy();
     }
+    GetTextureManager().Clear();
     bufferManager_.Clear();
 }
 
@@ -124,6 +123,21 @@ core::DrawCommand& Scene::GetDrawCommand(int subPassIndex, int drawCommandIndex)
     return renderpasses_.at(subPassIndex).GetDrawCommands()[drawCommandIndex];
 }
 
+Scene::ImportStatus Scene::LoadTextures(std::span<const renderer::TextureT> textures)
+{
+
+    auto& textureManager = GetTextureManager();
+    textures_.resize(textures.size());
+    for (int64_t i = 0; i < std::ssize(textures); ++i)
+    {
+        auto& textureInfo = textures[i];
+        textures_[i] = textureManager.LoadTexture(textureInfo);
+    }
+
+    textureManager.UploadTextures();
+
+    return ImportStatus::SUCCESS;
+}
 Scene::ImportStatus Scene::LoadShaders(std::span<const renderer::ShaderT> shadersPb)
 {
     shaders_.resize(shadersPb.size());
@@ -150,20 +164,11 @@ Scene::ImportStatus Scene::LoadPipelines(std::span<const renderer::GraphicsPipel
 Scene::ImportStatus Scene::LoadMaterials(std::span<const renderer::MaterialT> materials)
 {
     materials_.reserve(materials.size());
-    for (size_t materialIndex = 0; materialIndex < materials.size(); ++materialIndex)
+    for (const auto & materialInfo : materials)
     {
-        const auto& materialInfo = materials[materialIndex];
         const auto pipelineIndex = materialInfo.pipeline_index;
-        const auto& pipelineInfo = scene_.pipelines[pipelineIndex];
-        const auto vertexIndex = pipelineInfo.vertex_shader_index;
-        const auto fragmentIndex = pipelineInfo.fragment_shader_index;
-
         Material material(&pipelines_[pipelineIndex]);
-        //TODO add the specific texture sampler index? same texture path different texture settings
-        material.Load(materialInfo,
-            scene_.shaders[vertexIndex],
-            scene_.shaders[fragmentIndex],
-            bufferManager_);
+        material.Load(materialInfo, bufferManager_, textures_);
         materials_.push_back(std::move(material));
     }
     return ImportStatus::SUCCESS;

@@ -28,11 +28,19 @@ table StorageBufferBinding
     shader_stage : internal.ShaderStage;
 }
 
+table TextureMaterialBinding
+{
+    binding: int32;
+    set: int32;
+    texture_index: int32;
+}
+
 table Material
 {
     name:string;
     pipeline_index: int32 = -1;
     storage_buffer_bindings: [StorageBufferBinding] (native_inline);
+    texture_bindings: [TextureMaterialBinding] (native_inline);
 }
 enum MeshPrimitiveType : byte
 {
