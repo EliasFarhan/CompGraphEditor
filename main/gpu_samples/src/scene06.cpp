@@ -40,9 +40,17 @@ novus::renderer::SceneT Scene06()
     //backbuffer format to get retrieve from the engine?
     colorTargetDescription->format = novus::internal::TextureFormat_TEXTUREFORMAT_B8G8R8A8_UNORM;
     targetInfo->color_target_descriptions.push_back(std::move(colorTargetDescription));
-    targetInfo->has_depth_stencil_target = false;
+    targetInfo->has_depth_stencil_target = true;
+    targetInfo->depth_stencil_format = novus::internal::TextureFormat_TEXTUREFORMAT_D24_UNORM_S8_UINT;
     graphicsPipelineInfo->target_info = std::move(targetInfo);
 
+    auto depthStencilState = std::make_unique<novus::internal::DepthStencilStateT>();
+    depthStencilState->enable_depth_test = true;
+    depthStencilState->enable_depth_write = true;
+    depthStencilState->compare_op = novus::internal::CompareOp_COMPAREOP_LESS;
+    depthStencilState->write_mask = 0xFF;
+    depthStencilState->compare_mask = 0xFF;
+    graphicsPipelineInfo->depth_stencil_state = std::move(depthStencilState);
 
     graphicsPipeline.info = std::move(graphicsPipelineInfo);
     scene.pipelines.push_back(std::move(graphicsPipeline));
@@ -74,6 +82,14 @@ novus::renderer::SceneT Scene06()
     renderPassInfo->color_target_infos.push_back({.mip_level = 0, .layer_or_depth_plane = 0,
         .clear_color = {0.0f,0.0f,0.0f,0.0f},
         .load_op = novus::internal::LoadOp_LOADOP_CLEAR, .store_op = novus::internal::StoreOp_STOREOP_STORE});
+    auto depthStencilTargetInfo = std::make_unique<novus::internal::DepthStencilTargetInfoT>();
+    depthStencilTargetInfo->clear_depth = 1.0f;
+    depthStencilTargetInfo->load_op = novus::internal::LoadOp_LOADOP_CLEAR;
+    depthStencilTargetInfo->store_op = novus::internal::StoreOp_STOREOP_STORE;
+    depthStencilTargetInfo->stencil_load_op = novus::internal::LoadOp_LOADOP_CLEAR;
+    depthStencilTargetInfo->stencil_store_op = novus::internal::StoreOp_STOREOP_STORE;
+    depthStencilTargetInfo->clear_stencil = 0;
+    renderPassInfo->depth_stencil_target_info = std::move(depthStencilTargetInfo);
     subpass.info = std::move(renderPassInfo);
     subpass.commands.push_back(std::move(drawCommand));
     scene.sub_passes.push_back(subpass);
@@ -98,8 +114,8 @@ novus::renderer::SceneT Scene06()
 
     auto textureInfo = std::make_unique<novus::internal::TextureInfoT>();
     textureInfo->format = novus::internal::TextureFormat_TEXTUREFORMAT_R8G8B8A8_UNORM;
-    textureInfo->width = 512;
-    textureInfo->height = 512;
+    textureInfo->width = 500;
+    textureInfo->height = 500;
     textureInfo->layer_count_or_depth = 1;
     textureInfo->num_levels = 1;
     textureInfo->sample_count = novus::internal::SampleCount_SAMPLECOUNT_1;

@@ -21,6 +21,10 @@ void Scene::UnloadScene()
     }
     GetTextureManager().Clear();
     bufferManager_.Clear();
+    if (depthTexture_ != nullptr)
+    {
+        SDL_ReleaseGPUTexture(GetDevice(), depthTexture_);
+    }
 }
 
 void Scene::Update(float dt)
@@ -45,7 +49,7 @@ void Scene::Update(float dt)
             auto& subpass = renderpasses_[subpassIndex];
             const auto& subpassInfo = scene_.sub_passes[subpassIndex];
             //TODO define framebuffer to get the needed textures (like in OpenGL?)
-            currentRenderPass_ = GenerateSubPass(commandBuffer, subpassInfo, colorTargets, nullptr);
+            currentRenderPass_ = GenerateSubPass(commandBuffer, subpassInfo, colorTargets, depthTexture_);
             for (auto& command: subpass.GetDrawCommands())
             {
                 command.Bind(currentRenderPass_);
@@ -80,8 +84,6 @@ void Scene::Update(float dt)
             SDL_EndGPURenderPass(currentRenderPass_);
             currentRenderPass_ = nullptr;
         }
-
-
     }
 }
 
@@ -223,7 +225,19 @@ Scene::ImportStatus Scene::LoadRenderPass(std::span<const renderer::RenderpassT>
     renderpasses_.reserve(renderPass.size());
     for (int64_t subpassIndex = 0; subpassIndex < std::ssize(renderPass); ++subpassIndex)
     {
-        renderpasses_.emplace_back(renderPass[subpassIndex], (int)subpassIndex, pipelines_, materials_);
+        auto& subpass = renderPass[subpassIndex];
+        if (subpass.info->depth_stencil_target_info && depthTexture_ == nullptr)
+        {
+            auto windowSize = core::GetWindowSize();
+            SDL_GPUTextureCreateInfo textureCreateInfo{
+                .type = SDL_GPU_TEXTURETYPE_2D, .format = SDL_GPU_TEXTUREFORMAT_D24_UNORM_S8_UINT,
+                .usage = SDL_GPU_TEXTUREUSAGE_DEPTH_STENCIL_TARGET,
+                .width = windowSize.x, .height = windowSize.y,
+                .layer_count_or_depth = 1, .num_levels = 1, .sample_count = SDL_GPU_SAMPLECOUNT_1};
+            depthTexture_ = SDL_CreateGPUTexture(GetDevice(), &textureCreateInfo);
+        }
+        //TODO generate depth buffer if available, what about framebuffer?
+        renderpasses_.emplace_back(subpass, (int)subpassIndex, pipelines_, materials_);
     }
     return ImportStatus::SUCCESS;
 }

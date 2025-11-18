@@ -85,12 +85,14 @@ static void FillPipelineInfo(SDL_GPUGraphicsPipelineCreateInfo& pipelineCreateIn
             .enable_mask = multisample_state->enable_mask,
         };
     }
-    //TODO needs to fill the other fields of depth stencil state
+    //TODO needs to fill the other fields of stencil state
     auto* depth_stencil_state = pipelineInfo->depth_stencil_state.get();
     if (depth_stencil_state != nullptr)
     {
+        //TODO needs to fill the other fields of stencil state
         pipelineCreateInfo.depth_stencil_state = {
             .compare_op = static_cast<SDL_GPUCompareOp>(depth_stencil_state->compare_op),
+            .compare_mask = depth_stencil_state->compare_mask,
             .write_mask = depth_stencil_state->write_mask,
             .enable_depth_test = depth_stencil_state->enable_depth_test,
             .enable_depth_write = depth_stencil_state->enable_depth_write,

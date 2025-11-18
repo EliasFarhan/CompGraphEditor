@@ -53,7 +53,7 @@ private:
     std::vector<VertexInputBuffer> vertexInputBuffers_;
     std::vector<core::TextureId> textures_;
     SDL_GPURenderPass* currentRenderPass_ = nullptr;
-
+    SDL_GPUTexture* depthTexture_ = nullptr;
     BufferManager bufferManager_;
 };
 }
