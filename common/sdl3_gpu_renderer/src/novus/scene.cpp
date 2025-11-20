@@ -49,7 +49,7 @@ void Scene::Update(float dt)
             auto& subpass = renderpasses_[subpassIndex];
             const auto& subpassInfo = scene_.sub_passes[subpassIndex];
             //TODO define framebuffer to get the needed textures (like in OpenGL?)
-            currentRenderPass_ = GenerateSubPass(commandBuffer, subpassInfo, colorTargets, depthTexture_);
+            currentRenderPass_ = GenerateSubPass(commandBuffer, subpassInfo, colorTargets, depthTexture_, TODO);
             for (auto& command: subpass.GetDrawCommands())
             {
                 command.Bind(currentRenderPass_);
@@ -226,18 +226,39 @@ Scene::ImportStatus Scene::LoadRenderPass(std::span<const renderer::RenderpassT>
     for (int64_t subpassIndex = 0; subpassIndex < std::ssize(renderPass); ++subpassIndex)
     {
         auto& subpass = renderPass[subpassIndex];
-        if (subpass.info->depth_stencil_target_info && depthTexture_ == nullptr)
+
+        if (subpass.framebuffer_index == -1) //means we use the backbuffer
         {
-            auto windowSize = core::GetWindowSize();
-            SDL_GPUTextureCreateInfo textureCreateInfo{
-                .type = SDL_GPU_TEXTURETYPE_2D, .format = SDL_GPU_TEXTUREFORMAT_D24_UNORM_S8_UINT,
-                .usage = SDL_GPU_TEXTUREUSAGE_DEPTH_STENCIL_TARGET,
-                .width = windowSize.x, .height = windowSize.y,
-                .layer_count_or_depth = 1, .num_levels = 1, .sample_count = SDL_GPU_SAMPLECOUNT_1};
-            depthTexture_ = SDL_CreateGPUTexture(GetDevice(), &textureCreateInfo);
+            if (depthTexture_ == nullptr)
+            {
+                bool generateDepthTexture = false;
+                for (auto& command: subpass.commands)
+                {
+                    const auto& material = materials_[command.material_index];
+                    const auto& pipeline = scene_.pipelines[subpassIndex];
+
+                    if (pipeline.info != nullptr && pipeline.info->depth_stencil_state != nullptr &&
+                        pipeline.info->depth_stencil_state->enable_depth_test)
+                    {
+                        generateDepthTexture = true;
+                    }
+                }
+                if (generateDepthTexture)
+                {
+                    auto windowSize = core::GetWindowSize();
+                    SDL_GPUTextureCreateInfo textureCreateInfo{
+                        .type = SDL_GPU_TEXTURETYPE_2D, .format = SDL_GPU_TEXTUREFORMAT_D24_UNORM_S8_UINT,
+                        .usage = SDL_GPU_TEXTUREUSAGE_DEPTH_STENCIL_TARGET,
+                        .width = windowSize.x, .height = windowSize.y,
+                        .layer_count_or_depth = 1, .num_levels = 1, .sample_count = SDL_GPU_SAMPLECOUNT_1};
+                    depthTexture_ = SDL_CreateGPUTexture(GetDevice(), &textureCreateInfo);
+                    //TODO generate framebuffer data
+                }
+            }
+
         }
         //TODO generate depth buffer if available, what about framebuffer?
-        renderpasses_.emplace_back(subpass, (int)subpassIndex, pipelines_, materials_);
+        renderpasses_.emplace_back(subpass, static_cast<int>(subpassIndex), pipelines_, materials_);
     }
     return ImportStatus::SUCCESS;
 }

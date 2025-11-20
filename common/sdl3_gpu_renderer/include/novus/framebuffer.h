@@ -14,5 +14,6 @@ public:
 	std::unique_ptr<core::Image> GetImage(std::string_view attachmentName) override;
     void Load(const renderer::FramebufferT& framebufferPb) override;
 };
+
 }
 #endif //NEKO2_FRAMEBUFFER_H

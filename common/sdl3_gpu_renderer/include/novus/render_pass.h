@@ -15,7 +15,9 @@
 namespace novus
 {
 //TODO will need a render target manager
-SDL_GPURenderPass* GenerateSubPass(SDL_GPUCommandBuffer* commandBuffer, const renderer::RenderpassT& subpass, std::span<SDL_GPUTexture*> colorTargets, SDL_GPUTexture* depthStencilTarget);
+SDL_GPURenderPass* GenerateSubPass(SDL_GPUCommandBuffer* commandBuffer, const renderer::RenderpassT& subpass,
+                                   std::span<SDL_GPUTexture*> colorTargets, SDL_GPUTexture* depthStencilTarget,
+                                   const renderer::FramebufferT& framebufferInfo);
 
 class Renderpass
 {

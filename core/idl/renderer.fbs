@@ -79,9 +79,9 @@ struct Dependency
 
 table Renderpass
 {
-    info: internal.RenderPassInfo;
-    commands: [DrawCommand] (native_inline);
     name: string;
+    commands: [DrawCommand] (native_inline);
+    framebuffer_index: int32;
 }
 
 table StorageBuffer
@@ -99,7 +99,9 @@ table Texture
 
 table Framebuffer
 {
-
+    name: string;
+    color_target_infos: [internal.ColorTargetInfo] (native_inline);
+    depth_stencil_target_info: internal.DepthStencilTargetInfo;
 }
 
 table Cubemap
@@ -109,7 +111,7 @@ table Cubemap
 
 table Scene
 {
-    name:string;
+    name: string;
     shaders: [Shader] (native_inline);
     pipelines: [GraphicsPipeline](native_inline);
     sub_passes: [Renderpass] (native_inline);
@@ -118,4 +120,5 @@ table Scene
     systems: [engine.System] (native_inline);
     buffers: [StorageBuffer] (native_inline);
     textures: [Texture] (native_inline);
+    framebuffer: [Framebuffer] (native_inline);
 }

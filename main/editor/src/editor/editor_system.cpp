@@ -11,7 +11,7 @@ namespace novus::editor
 
 void EditorSystem::ImportResource(std::string_view path)
 {
-    const auto& sceneName = GetSceneEditor()->GetCurrentSceneInfo()->info.name();
+    const auto& sceneName = GetSceneEditor()->GetCurrentSceneInfo()->name;
     const std::string dstPath{std::format("{}{}/{}{}",
         ResourceManager::dataFolder.data(),
         sceneName,

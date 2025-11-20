@@ -401,11 +401,7 @@ table DepthStencilTargetInfo
     clear_stencil: uint8;
 }
 
-table RenderPassInfo
-{
-    color_target_infos:[ColorTargetInfo] (native_inline);
-    depth_stencil_target_info:DepthStencilTargetInfo;
-}
+
 
 enum AttributeType: ubyte
 {

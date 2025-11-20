@@ -8,7 +8,7 @@ table EditorPipelineInfo
 
 table EditorSceneInfo
 {
-
+    name:string;
 }
 
 table EditorMeshInfo

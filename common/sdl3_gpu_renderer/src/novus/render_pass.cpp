@@ -7,13 +7,14 @@ namespace  novus
 {
 
 SDL_GPURenderPass* GenerateSubPass(SDL_GPUCommandBuffer* commandBuffer, const renderer::RenderpassT& subpass,
-                                   std::span<SDL_GPUTexture*> colorTargets, SDL_GPUTexture* depthStencilTarget)
+                                   std::span<SDL_GPUTexture*> colorTargets, SDL_GPUTexture* depthStencilTarget,
+                                   const renderer::FramebufferT& framebufferInfo)
 {
-    const auto& subpassInfo = subpass.info;
+    const auto& subpassInfo = framebufferInfo;
     std::vector<SDL_GPUColorTargetInfo> sdlColorTargetsInfos;
-    sdlColorTargetsInfos.reserve(subpassInfo->color_target_infos.size());
+    sdlColorTargetsInfos.reserve(subpassInfo.color_target_infos.size());
     int index = 0;
-    for (auto& colorTargetInfo : subpassInfo->color_target_infos)
+    for (auto& colorTargetInfo : subpassInfo.color_target_infos)
     {
         SDL_GPUColorTargetInfo colorTarget{};
         colorTarget.texture = colorTargets[index];
@@ -24,7 +25,7 @@ SDL_GPURenderPass* GenerateSubPass(SDL_GPUCommandBuffer* commandBuffer, const re
         index++;
     }
     bool isDepthTargetValid = false;
-    const auto& depthStencilTargetInfo = subpassInfo->depth_stencil_target_info;
+    const auto& depthStencilTargetInfo = subpassInfo.depth_stencil_target_info;
     SDL_GPUDepthStencilTargetInfo sdlDepthStencilTargetInfo{};
     if (depthStencilTargetInfo != nullptr)
     {

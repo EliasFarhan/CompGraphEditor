@@ -13,4 +13,5 @@ void Framebuffer::Load(const renderer::FramebufferT& framebufferPb)
 {
 
 }
+
 } // namespace novus

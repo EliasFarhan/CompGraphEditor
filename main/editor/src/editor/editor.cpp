@@ -28,7 +28,7 @@
 #include <filesystem>
 namespace fs = std::filesystem;
 
-namespace editor
+namespace novus::editor
 {
 
 void Editor::Begin()
@@ -179,18 +179,26 @@ void Editor::CreateNewFile(std::string_view path, EditorType type)
     }
     case EditorType::PIPELINE:
     {
-        core::pb::Pipeline emptyPipeline;
-        emptyPipeline.set_depth_mask(true);
-        emptyPipeline.set_depth_compare_op(core::pb::Pipeline_DepthCompareOp_LESS);
+        novus::renderer::GraphicsPipelineT emptyPipeline;
+        auto pipelineInfo = std::make_unique<novus::internal::GraphicsPipelineInfoT>();
+        auto depthStencilState = std::make_unique<novus::internal::DepthStencilStateT>();
+        depthStencilState->write_mask = 0xFF;
+        depthStencilState->compare_mask = 0xFF;
+        depthStencilState->compare_op = internal::CompareOp_COMPAREOP_LESS;
 
-        emptyPipeline.set_stencil_depth_fail(core::pb::Pipeline_StencilOp_KEEP);
-        emptyPipeline.set_stencil_depth_pass(core::pb::Pipeline_StencilOp_KEEP);
-        emptyPipeline.set_stencil_source_fail(core::pb::Pipeline_StencilOp_KEEP);
-        emptyPipeline.set_stencil_mask(0xFF);
+        auto frontStencilState = std::make_unique<internal::StencilOpStateT>();
+        frontStencilState->compare_op = internal::StencilOp_STENCILOP_KEEP;
+        frontStencilState->depth_fail_op = internal::StencilOp_STENCILOP_KEEP;
+        frontStencilState->fail_op = internal::StencilOp_STENCILOP_KEEP;
+        frontStencilState->pass_op = internal::StencilOp_STENCILOP_KEEP;
+        auto backStencilState = std::make_unique<internal::StencilOpStateT>();
+        *backStencilState = *frontStencilState;
+        depthStencilState->back_stencil_state = std::move(frontStencilState);
+        depthStencilState->front_stencil_state = std::move(backStencilState);
 
-        emptyPipeline.set_blending_source_factor(core::pb::Pipeline_BlendFunc_SRC_ALPHA);
-        emptyPipeline.set_blending_destination_factor(core::pb::Pipeline_BlendFunc_ONE_MINUS_SRC_ALPHA);
+        pipelineInfo->depth_stencil_state = std::move(depthStencilState);
 
+        emptyPipeline.info = std::move(pipelineInfo);
         core::WriteString(path, emptyPipeline.SerializeAsString());
         resourceManager_.AddResource(path);
         break;

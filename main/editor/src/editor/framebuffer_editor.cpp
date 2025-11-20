@@ -2,6 +2,7 @@
 #include "engine/filesystem.h"
 #include "utils/log.h"
 #include "editor.h"
+
 #include <format>
 #include <imgui_stdlib.h>
 #include <array>
@@ -29,9 +30,9 @@ void FramebufferEditor::AddResource(const Resource& resource)
         LogWarning(std::format("Could not open protobuf file: {}", resource.path.c_str()));
         return;
     }
-    if(framebufferInfo.info.name().empty())
+    if(framebufferInfo.info.name.empty())
     {
-        framebufferInfo.info.set_name(GetFilename(resource.path, false));
+        framebufferInfo.info.name = (GetFilename(resource.path, false));
     }
     framebufferInfos_.push_back(framebufferInfo);
 }
@@ -65,8 +66,7 @@ void FramebufferEditor::DrawInspector()
 
     auto* editor = Editor::GetInstance();
     auto& currentFramebufferInfo = framebufferInfos_[currentIndex_];
-    auto* framebufferName = currentFramebufferInfo.info.mutable_name();
-    ImGui::InputText("Framebuffer Name", framebufferName);
+    ImGui::InputText("Framebuffer Name", &currentFramebufferInfo.info.name);
     ImGui::Separator();
     int deletedColorAttachment = -1;
     for(int colorAttachmentIndex = 0; colorAttachmentIndex < currentFramebufferInfo.info.color_attachments_size(); colorAttachmentIndex++)

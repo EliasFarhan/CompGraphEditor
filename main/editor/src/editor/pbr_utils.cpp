@@ -25,6 +25,8 @@ namespace editor
 
 void GeneratePreComputeBrdfLUT()
 {
+    throw std::runtime_error("Generate pre-compute brdf LUT not yet implemented");
+    /*
     auto* sceneEditor = GetSceneEditor();
     const auto* currentScene = sceneEditor->GetCurrentSceneInfo();
     if(currentScene == nullptr)
@@ -98,11 +100,14 @@ void GeneratePreComputeBrdfLUT()
     pipeline.Unbind();
     pipeline.Destroy();
     glCheckError();
+    */
 }
 
 
 void GenerateIrradianceMap(std::string_view path)
 {
+    throw std::runtime_error("Generate irradiance map not yet implemented");
+    /*
     const auto baseDir = GetFolder(path);
     const auto filename = GetFilename(path, false);
     const auto irradianceMapPath = std::format("{}/{}_irrmap.hdr", baseDir.c_str(), filename);
@@ -403,10 +408,13 @@ void GenerateIrradianceMap(std::string_view path)
     cube.Destroy();
     quad.Destroy();
     glCheckError();
+    */
 }
 
 void GeneratePreFilterEnvMap(std::string_view path)
 {
+    throw std::runtime_error("Generate pre-filter env map not yet implemented");
+    /*
     const auto baseDir = GetFolder(path);
     const auto filename = GetFilename(path, false);
     const auto preFilterEnvMapPath = std::format("{}/{}_prefilter.ktx", baseDir.c_str(), filename);
@@ -655,6 +663,6 @@ void GeneratePreFilterEnvMap(std::string_view path)
     prefilterFBO.Destroy();
     captureFbo.Destroy();
     cube.Destroy();
-
+*/
 }
 } // namespace gpr5300
