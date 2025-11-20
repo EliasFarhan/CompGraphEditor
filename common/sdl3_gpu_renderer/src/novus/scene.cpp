@@ -42,14 +42,16 @@ void Scene::Update(float dt)
     SDL_GPUTexture* swapchainTexture = GetSwapchainTexture();
     if (swapchainTexture != nullptr)
     {
-        std::array colorTargets = {swapchainTexture};
+        std::array backBufferTarget = {swapchainTexture};
 
         for (int64_t subpassIndex = 0; subpassIndex < std::ssize(renderpasses_); subpassIndex++)
         {
             auto& subpass = renderpasses_[subpassIndex];
             const auto& subpassInfo = scene_.sub_passes[subpassIndex];
+            const auto framebufferIndex = subpassInfo.framebuffer_index;
             //TODO define framebuffer to get the needed textures (like in OpenGL?)
-            currentRenderPass_ = GenerateSubPass(commandBuffer, subpassInfo, colorTargets, depthTexture_, TODO);
+            currentRenderPass_ = GenerateSubPass(commandBuffer, subpassInfo, backBufferTarget, depthTexture_,
+                framebufferIndex == -1 ? backBufferInfo_ : scene_.framebuffer[framebufferIndex]);
             for (auto& command: subpass.GetDrawCommands())
             {
                 command.Bind(currentRenderPass_);
@@ -234,8 +236,8 @@ Scene::ImportStatus Scene::LoadRenderPass(std::span<const renderer::RenderpassT>
                 bool generateDepthTexture = false;
                 for (auto& command: subpass.commands)
                 {
-                    const auto& material = materials_[command.material_index];
-                    const auto& pipeline = scene_.pipelines[subpassIndex];
+                    const auto& material = scene_.materials[command.material_index];
+                    const auto& pipeline = scene_.pipelines[material.pipeline_index];
 
                     if (pipeline.info != nullptr && pipeline.info->depth_stencil_state != nullptr &&
                         pipeline.info->depth_stencil_state->enable_depth_test)
@@ -247,12 +249,21 @@ Scene::ImportStatus Scene::LoadRenderPass(std::span<const renderer::RenderpassT>
                 {
                     auto windowSize = core::GetWindowSize();
                     SDL_GPUTextureCreateInfo textureCreateInfo{
-                        .type = SDL_GPU_TEXTURETYPE_2D, .format = SDL_GPU_TEXTUREFORMAT_D24_UNORM_S8_UINT,
+                        .type = SDL_GPU_TEXTURETYPE_2D,
+                        .format = SDL_GPU_TEXTUREFORMAT_D24_UNORM_S8_UINT,
                         .usage = SDL_GPU_TEXTUREUSAGE_DEPTH_STENCIL_TARGET,
                         .width = windowSize.x, .height = windowSize.y,
                         .layer_count_or_depth = 1, .num_levels = 1, .sample_count = SDL_GPU_SAMPLECOUNT_1};
                     depthTexture_ = SDL_CreateGPUTexture(GetDevice(), &textureCreateInfo);
                     //TODO generate framebuffer data
+                    auto depthStencilTargetInfo = std::make_unique<novus::internal::DepthStencilTargetInfoT>();
+                    depthStencilTargetInfo->clear_depth = 1.0f;
+                    depthStencilTargetInfo->clear_stencil = 0;
+                    depthStencilTargetInfo->load_op = internal::LoadOp_LOADOP_CLEAR;
+                    depthStencilTargetInfo->store_op = internal::StoreOp_STOREOP_STORE;
+                    depthStencilTargetInfo->stencil_load_op = internal::LoadOp_LOADOP_CLEAR;
+                    depthStencilTargetInfo->stencil_store_op = internal::StoreOp_STOREOP_STORE;
+                    backBufferInfo_.depth_stencil_target_info = std::move(depthStencilTargetInfo);
                 }
             }
 
@@ -269,6 +280,17 @@ Scene::ImportStatus Scene::LoadBuffers(std::span<const renderer::StorageBufferT>
         bufferManager_.CreateBuffer(storageBufferInfo.name,
             storageBufferInfo.block_size, 1);
     }
+    return ImportStatus::SUCCESS;
+}
+Scene::ImportStatus Scene::LoadFramebuffers(std::span<const renderer::FramebufferT> framebuffers)
+{
+    internal::ColorTargetInfoT colorTargetInfo{.mip_level = 0,
+        .layer_or_depth_plane = 0,
+        .clear_color = {.r = 0, .g = 0, .b = 0, .a = 0},
+        .load_op = internal::LoadOp_LOADOP_CLEAR,
+        .store_op = internal::StoreOp_STOREOP_STORE};
+    backBufferInfo_.color_target_infos.push_back(colorTargetInfo);
+    //TODO actually do framebuffering
     return ImportStatus::SUCCESS;
 }
 

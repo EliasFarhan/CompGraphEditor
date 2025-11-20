@@ -194,4 +194,8 @@ SDL_GPUTexture* GetSwapchainTexture()
 {
     return swapchainTexture_;
 }
+SDL_GPUTextureFormat GetSwapchainTextureFormat()
+{
+    return SDL_GetGPUSwapchainTextureFormat(device_, GetWindow());
+}
 } // namespace novus

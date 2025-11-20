@@ -62,12 +62,7 @@ novus::renderer::SceneT Scene03()
 
     novus::renderer::RenderpassT subpass{};
     subpass.name = "Main subpass";
-
-    auto renderPassInfo = std::make_unique<novus::internal::RenderPassInfoT>();
-    renderPassInfo->color_target_infos.push_back({.mip_level = 0, .layer_or_depth_plane = 0,
-        .clear_color = {0.0f,0.0f,0.0f,0.0f},
-        .load_op = novus::internal::LoadOp_LOADOP_CLEAR, .store_op = novus::internal::StoreOp_STOREOP_STORE});
-    subpass.info = std::move(renderPassInfo);
+    subpass.framebuffer_index = -1;
     subpass.commands.push_back(std::move(drawCommand));
     scene.sub_passes.push_back(subpass);
 

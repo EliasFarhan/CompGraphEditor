@@ -43,13 +43,6 @@ void Scene::LoadScene()
     {
         LogError("Could not import meshes");
     }
-    /*
-    const auto& framebuffers = scene_.framebuffers();
-    if (LoadFramebuffers(framebuffers) != ImportStatus::SUCCESS)
-    {
-        LogError("Could not import framebuffers");
-    }
-    */
     const auto& shaders = scene_.shaders;
     if (LoadShaders(shaders) != ImportStatus::SUCCESS)
     {
@@ -68,6 +61,12 @@ void Scene::LoadScene()
     {
         LogError("Could not import materials");
     }
+    const auto& framebuffers = scene_.framebuffer;
+    if (LoadFramebuffers(framebuffers) != ImportStatus::SUCCESS)
+    {
+        LogError("Could not import framebuffers");
+    }
+
 
     if (LoadRenderPass(scene_.sub_passes) != ImportStatus::SUCCESS)
     {

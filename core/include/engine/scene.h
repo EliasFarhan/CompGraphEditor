@@ -100,7 +100,7 @@ protected:
     virtual ImportStatus LoadMaterials(std::span<const novus::renderer::MaterialT> materials) = 0;
     //virtual ImportStatus LoadModels(const PbRepeatField<std::string>& models) = 0;
     virtual ImportStatus LoadMeshes(std::span<const novus::renderer::MeshT> meshes) = 0;
-    //virtual ImportStatus LoadFramebuffers(const PbRepeatField<pb::FrameBuffer>& framebuffers) = 0;
+    virtual ImportStatus LoadFramebuffers(std::span<const novus::renderer::FramebufferT> framebuffers) = 0;
     //virtual ImportStatus LoadDrawCommands(std::span<const novus::renderer::DrawCommandT> commands) = 0;
     virtual ImportStatus LoadRenderPass(std::span<const novus::renderer::RenderpassT> renderPasses) = 0;
     virtual ImportStatus LoadBuffers(std::span<const novus::renderer::StorageBufferT> buffers) = 0;
