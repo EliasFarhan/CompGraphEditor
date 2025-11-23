@@ -11,17 +11,8 @@ namespace novus
 core::TextureId TextureManager::LoadTexture(const renderer::TextureT& textureInfo)
 {
     auto* sampler = GenerateSampler(*textureInfo.sampler);
-    SDL_GPUTextureCreateInfo createInfo{
-        .type = static_cast<SDL_GPUTextureType>(textureInfo.info->type),
-        .format = static_cast<SDL_GPUTextureFormat>(textureInfo.info->format),
-        .usage = textureInfo.info->usage,
-        .width = textureInfo.info->width,
-        .height = textureInfo.info->height,
-        .layer_count_or_depth = textureInfo.info->layer_count_or_depth,
-        .num_levels = textureInfo.info->num_levels,
-        .sample_count = static_cast<SDL_GPUSampleCount>(textureInfo.info->sample_count),
-        };
-    auto* texture = SDL_CreateGPUTexture(GetDevice(), &createInfo);
+
+    auto* texture = GenerateTexture(*textureInfo.info);
     core::TextureId textureId = {static_cast<core::TextureId>(textures_.size())};
     textures_.push_back({.texture = texture,
         .sampler = sampler,
@@ -141,5 +132,24 @@ SDL_GPUSampler* TextureManager::GenerateSampler(internal::SamplerInfoT& samplerI
     }
     sampleMap_.insert(std::make_pair(newSamplerInfo, sampler));
     return sampler;
+}
+SDL_GPUTexture* GenerateTexture(const internal::TextureInfoT& textureInfo)
+{
+    SDL_GPUTextureCreateInfo createInfo{
+        .type = static_cast<SDL_GPUTextureType>(textureInfo.type),
+        .format = static_cast<SDL_GPUTextureFormat>(textureInfo.format),
+        .usage = textureInfo.usage,
+        .width = textureInfo.width,
+        .height = textureInfo.height,
+        .layer_count_or_depth = textureInfo.layer_count_or_depth,
+        .num_levels = textureInfo.num_levels,
+        .sample_count = static_cast<SDL_GPUSampleCount>(textureInfo.sample_count),
+        };
+    auto* texture = SDL_CreateGPUTexture(GetDevice(), &createInfo);
+    if (texture == nullptr)
+    {
+        throw std::runtime_error("SDL_CreateGPUTexture failed");
+    }
+    return texture;
 }
 } // namespace novus

@@ -284,12 +284,15 @@ Scene::ImportStatus Scene::LoadBuffers(std::span<const renderer::StorageBufferT>
 }
 Scene::ImportStatus Scene::LoadFramebuffers(std::span<const renderer::FramebufferT> framebuffers)
 {
+    //Loading backbuffer
     internal::ColorTargetInfoT colorTargetInfo{.mip_level = 0,
         .layer_or_depth_plane = 0,
         .clear_color = {.r = 0, .g = 0, .b = 0, .a = 0},
         .load_op = internal::LoadOp_LOADOP_CLEAR,
         .store_op = internal::StoreOp_STOREOP_STORE};
     backBufferInfo_.color_target_infos.push_back(colorTargetInfo);
+
+
     //TODO actually do framebuffering
     return ImportStatus::SUCCESS;
 }

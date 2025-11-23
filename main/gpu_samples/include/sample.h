@@ -36,6 +36,7 @@ novus::renderer::SceneT Scene03();
 novus::renderer::SceneT Scene04();
 novus::renderer::SceneT Scene05();
 novus::renderer::SceneT Scene06();
+novus::renderer::SceneT Scene07();
 }
 
 

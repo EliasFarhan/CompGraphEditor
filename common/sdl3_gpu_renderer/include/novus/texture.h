@@ -90,5 +90,7 @@ private:
     std::vector<Texture> textures_;
     std::vector<Image> images_;
 };
+
+SDL_GPUTexture* GenerateTexture(const internal::TextureInfoT& textureInfo);
 }
 #endif //NEKO2_TEXTURE_H

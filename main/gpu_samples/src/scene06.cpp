@@ -59,7 +59,7 @@ novus::renderer::SceneT Scene06()
     storageBufferBindings.push_back({.buffer_name = "camera", .binding = 0, .shader_stage = novus::internal::ShaderStage_VERTEX});
     storageBufferBindings.push_back({.buffer_name = "transform", .binding = 1, .shader_stage = novus::internal::ShaderStage_VERTEX});
     std::vector<novus::renderer::TextureMaterialBindingT> textureBindings;
-    textureBindings.push_back({.binding = 0, .set = 2, .texture_index = 0});
+    textureBindings.push_back({.binding = 0, .set = 2, .texture_index = 0, .framebuffer_index = -1});
     novus::renderer::MaterialT material{.name = "Cube Material",
         .pipeline_index = 0, .storage_buffer_bindings = std::move(storageBufferBindings), .texture_bindings = std::move(textureBindings)};
     scene.materials.push_back(std::move(material));
