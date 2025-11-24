@@ -7,7 +7,7 @@
 #include <functional>
 #include <algorithm>
 
-namespace editor
+namespace novus::editor
 {
 
 void ResourceManager::CheckDataFolder(std::span<std::string> paths)

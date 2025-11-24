@@ -24,7 +24,7 @@
 #include "gl/texture.h"
 
 
-namespace editor
+namespace novus::editor
 {
 
 void TextureEditor::DrawInspector()

@@ -3,7 +3,6 @@
 #include "scene_editor.h"
 #include "model_editor.h"
 #include "render_pass_editor.h"
-#include "proto/renderer.pb.h"
 #include "resource.h"
 #include "editor_system.h"
 #include "engine/filesystem.h"
@@ -20,7 +19,7 @@
 
 
 
-namespace editor
+namespace novus::editor
 {
 void RenderPassEditor::DrawInspector()
 {

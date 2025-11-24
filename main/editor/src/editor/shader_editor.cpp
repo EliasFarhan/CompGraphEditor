@@ -4,7 +4,6 @@
 
 #include <imgui.h>
 #include <imgui_stdlib.h>
-#include "proto/renderer.pb.h"
 #include "utils/log.h"
 #include "engine/filesystem.h"
 #include "editor.h"
@@ -22,7 +21,7 @@ namespace py = pybind11;
 // for convenience
 using json = nlohmann::json;
 
-namespace editor
+namespace novus::editor
 {
 bool CheckVertexInput(const core::pb::Shader& shaderInfo)
 {
