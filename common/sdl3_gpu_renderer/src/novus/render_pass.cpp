@@ -12,8 +12,10 @@ SDL_GPURenderPass* GenerateSubPass(SDL_GPUCommandBuffer* commandBuffer, const re
                                    const Framebuffer& framebuffer)
 {
     const auto colorTargets = framebuffer.GetColorTargets();
-    return SDL_BeginGPURenderPass(commandBuffer, colorTargets.data(), colorTargets.size(),
-                                  framebuffer.GetDepthStencilTargetInfo());
+    return SDL_BeginGPURenderPass(commandBuffer,
+        colorTargets.data(),
+        colorTargets.size(),
+        framebuffer.GetDepthStencilTargetInfo());
 }
 Renderpass::Renderpass(const renderer::RenderpassT& renderpass,
     int subpassIndex,

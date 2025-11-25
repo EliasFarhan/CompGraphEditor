@@ -20,10 +20,15 @@ public:
     [[nodiscard]] std::span<const SDL_GPUColorTargetInfo> GetColorTargets() const{return colorTargets_;}
 
     [[nodiscard]] std::span<Texture> GetColorTextures(){return colorTextures_;}
-    const SDL_GPUDepthStencilTargetInfo* GetDepthStencilTargetInfo() const
+    [[nodiscard]] const SDL_GPUDepthStencilTargetInfo* GetDepthStencilTargetInfo() const
     {
         return depthTexture_ == nullptr ? nullptr : &depthStencilTargetInfo_;
     }
+
+    void UpdateColorTargetTexture(SDL_GPUTexture* sdl_gpu_texture);
+
+    void Clear();
+
 private:
     std::vector<Texture> colorTextures_;
     std::vector<SDL_GPUColorTargetInfo> colorTargets_;

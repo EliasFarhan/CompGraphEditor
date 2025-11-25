@@ -56,6 +56,8 @@ table Mesh
      mesh_name: string;
      model_index: int32;
      primitive_type: MeshPrimitiveType;
+     scale: maths.Vec3 (native_inline);
+     offset: maths.Vec3 (native_inline);
 }
 enum DrawMode : byte
 {
