@@ -102,8 +102,10 @@ table Framebuffer
 {
     name: string;
     color_texture_infos: [internal.TextureInfo] (native_inline);
+    color_sampler_infos: [internal.SamplerInfo];
     color_target_infos: [internal.ColorTargetInfo] (native_inline);
     depth_stencil_texture_info: internal.TextureInfo;
+    depth_stencil_sampler_info : internal.SamplerInfo;
     depth_stencil_target_info: internal.DepthStencilTargetInfo;
 }
 

@@ -85,12 +85,13 @@ public:
 	void Clear() override;
     void UploadTextures();
 private:
-    SDL_GPUSampler* GenerateSampler(internal::SamplerInfoT& samplerInfo);
+    SDL_GPUSampler* GenerateSampler(const internal::SamplerInfoT& samplerInfo);
     std::unordered_map<SamplerInfo, SDL_GPUSampler*, MyHash> sampleMap_;
     std::vector<Texture> textures_;
     std::vector<Image> images_;
 };
 
 SDL_GPUTexture* GenerateTexture(const internal::TextureInfoT& textureInfo);
+SDL_GPUSampler* GenerateSampler(const internal::SamplerInfoT& samplerInfo);
 }
 #endif //NEKO2_TEXTURE_H

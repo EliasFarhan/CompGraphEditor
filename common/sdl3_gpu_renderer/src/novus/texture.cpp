@@ -95,7 +95,7 @@ void TextureManager::UploadTextures()
     }
     images_.clear();
 }
-SDL_GPUSampler* TextureManager::GenerateSampler(internal::SamplerInfoT& samplerInfo)
+SDL_GPUSampler* TextureManager::GenerateSampler(const internal::SamplerInfoT& samplerInfo)
 {
     SamplerInfo newSamplerInfo{.mipLodBias = samplerInfo.mip_lod_bias,
         .maxAnisotropy = samplerInfo.max_anisotropy,
@@ -113,23 +113,7 @@ SDL_GPUSampler* TextureManager::GenerateSampler(internal::SamplerInfoT& samplerI
     {
         return it->second;
     }
-    SDL_GPUSamplerCreateInfo createInfo{.min_filter = (SDL_GPUFilter)samplerInfo.min_filter,
-        .mag_filter = (SDL_GPUFilter)samplerInfo.mag_filter,
-        .mipmap_mode = (SDL_GPUSamplerMipmapMode)samplerInfo.mipmap_mode,
-        .address_mode_u = (SDL_GPUSamplerAddressMode)samplerInfo.address_mode_u,
-        .address_mode_v = (SDL_GPUSamplerAddressMode)samplerInfo.address_mode_v,
-        .address_mode_w = (SDL_GPUSamplerAddressMode)samplerInfo.address_mode_w,
-        .mip_lod_bias = samplerInfo.mip_lod_bias, .max_anisotropy = samplerInfo.max_anisotropy,
-        .compare_op = (SDL_GPUCompareOp)samplerInfo.compare_op,
-        .min_lod = samplerInfo.min_lod,
-        .max_lod = samplerInfo.max_lod,
-        .enable_anisotropy = samplerInfo.enable_anisotropy,
-        .enable_compare = samplerInfo.enable_compare};
-    auto* sampler = SDL_CreateGPUSampler(GetDevice(), &createInfo);
-    if (sampler ==nullptr)
-    {
-        throw std::runtime_error("SDL_CreateGPUSampler failed");
-    }
+    auto* sampler = novus::GenerateSampler(samplerInfo);
     sampleMap_.insert(std::make_pair(newSamplerInfo, sampler));
     return sampler;
 }
@@ -151,5 +135,26 @@ SDL_GPUTexture* GenerateTexture(const internal::TextureInfoT& textureInfo)
         throw std::runtime_error("SDL_CreateGPUTexture failed");
     }
     return texture;
+}
+SDL_GPUSampler* GenerateSampler(const internal::SamplerInfoT& samplerInfo)
+{
+    SDL_GPUSamplerCreateInfo createInfo{.min_filter = (SDL_GPUFilter)samplerInfo.min_filter,
+        .mag_filter = (SDL_GPUFilter)samplerInfo.mag_filter,
+        .mipmap_mode = (SDL_GPUSamplerMipmapMode)samplerInfo.mipmap_mode,
+        .address_mode_u = (SDL_GPUSamplerAddressMode)samplerInfo.address_mode_u,
+        .address_mode_v = (SDL_GPUSamplerAddressMode)samplerInfo.address_mode_v,
+        .address_mode_w = (SDL_GPUSamplerAddressMode)samplerInfo.address_mode_w,
+        .mip_lod_bias = samplerInfo.mip_lod_bias, .max_anisotropy = samplerInfo.max_anisotropy,
+        .compare_op = (SDL_GPUCompareOp)samplerInfo.compare_op,
+        .min_lod = samplerInfo.min_lod,
+        .max_lod = samplerInfo.max_lod,
+        .enable_anisotropy = samplerInfo.enable_anisotropy,
+        .enable_compare = samplerInfo.enable_compare};
+    auto* sampler = SDL_CreateGPUSampler(GetDevice(), &createInfo);
+    if (sampler ==nullptr)
+    {
+        throw std::runtime_error("SDL_CreateGPUSampler failed");
+    }
+    return sampler;
 }
 } // namespace novus

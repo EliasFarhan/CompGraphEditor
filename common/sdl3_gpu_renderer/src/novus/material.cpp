@@ -3,6 +3,7 @@
 #include "novus/buffer.h"
 #include <SDL3/SDL_gpu.h>
 
+#include "novus/framebuffer.h"
 #include "novus/texture.h"
 
 namespace novus
@@ -17,7 +18,8 @@ std::string_view Material::GetName() const
 }
 void Material::Load(const renderer::MaterialT& materialInfo, 
     const BufferManager& bufferManager, 
-    std::span<core::TextureId> textures)
+    std::span<core::TextureId> textures,
+    std::span<Framebuffer> framebuffers)
 {
     name_ = materialInfo.name;
     pipelineIndex_ = materialInfo.pipeline_index;
@@ -69,11 +71,32 @@ void Material::Load(const renderer::MaterialT& materialInfo,
     auto& textureManager = GetTextureManager();
     for (auto& textureBinding: materialInfo.texture_bindings)
     {
-        switch (textureBinding.set)
+        if (textureBinding.framebuffer_index == -1)
+        {
+            switch (textureBinding.set)
+            {
+            case 0:
+            {
+                auto& texture = textureManager.GetTexture(textures[textureBinding.texture_index]);
+                vertexTextures[textureBinding.binding] = {.texture = texture.texture, .sampler = texture.sampler};
+                break;
+            }
+            case 2:
+            {
+                auto& texture = textureManager.GetTexture(textures[textureBinding.texture_index]);
+                fragmentTextures[textureBinding.binding] = {.texture = texture.texture, .sampler = texture.sampler};
+                break;
+            }
+            default:
+                break;
+            }
+        }
+        else
+        {switch (textureBinding.set)
         {
         case 0:
         {
-            auto& texture = textureManager.GetTexture(textures[textureBinding.texture_index]);
+            auto& texture = framebuffers[textureBinding.framebuffer_index].GetColorTextures()[textureBinding.texture_index];
             vertexTextures[textureBinding.binding] = {.texture = texture.texture, .sampler = texture.sampler};
             break;
         }
@@ -85,6 +108,8 @@ void Material::Load(const renderer::MaterialT& materialInfo,
         }
         default:
             break;
+        }
+
         }
     }
 }

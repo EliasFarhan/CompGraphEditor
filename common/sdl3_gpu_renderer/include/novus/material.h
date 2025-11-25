@@ -6,6 +6,7 @@
 
 
 #include "buffer.h"
+#include "framebuffer.h"
 #include "pipeline.h"
 #include "renderer/material.h"
 
@@ -17,7 +18,10 @@ class Material : public core::Material
 public:
     explicit Material(Pipeline* pipeline);
     [[nodiscard]] std::string_view GetName() const override;
-    void Load(const renderer::MaterialT& materialInfo, const BufferManager& bufferManager, std::span<core::TextureId> textures);
+    void Load(const renderer::MaterialT& materialInfo,
+        const BufferManager& bufferManager,
+        std::span<core::TextureId> textures,
+        std::span<Framebuffer> framebuffers);
     [[nodiscard]] int GetPipelineIndex() const{return pipelineIndex_;}
     void Bind(void* renderData);
     [[nodiscard]] std::span<const renderer::TextureMaterialBindingT> GetTextureBindings() const

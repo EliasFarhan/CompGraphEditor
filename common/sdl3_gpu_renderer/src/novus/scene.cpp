@@ -50,8 +50,8 @@ void Scene::Update(float dt)
             const auto& subpassInfo = scene_.sub_passes[subpassIndex];
             const auto framebufferIndex = subpassInfo.framebuffer_index;
             //TODO define framebuffer to get the needed textures (like in OpenGL?)
-            currentRenderPass_ = GenerateSubPass(commandBuffer, subpassInfo, backBufferTarget, depthTexture_,
-                framebufferIndex == -1 ? backBufferInfo_ : scene_.framebuffer[framebufferIndex]);
+
+            currentRenderPass_ = GenerateSubPass(commandBuffer, subpassInfo, framebufferIndex == -1 ? backBuffer_ : framebuffers_[framebufferIndex]);
             for (auto& command: subpass.GetDrawCommands())
             {
                 command.Bind(currentRenderPass_);
@@ -172,7 +172,7 @@ Scene::ImportStatus Scene::LoadMaterials(std::span<const renderer::MaterialT> ma
     {
         const auto pipelineIndex = materialInfo.pipeline_index;
         Material material(&pipelines_[pipelineIndex]);
-        material.Load(materialInfo, bufferManager_, textures_);
+        material.Load(materialInfo, bufferManager_, textures_, framebuffers_);
         materials_.push_back(std::move(material));
     }
     return ImportStatus::SUCCESS;
@@ -268,9 +268,10 @@ Scene::ImportStatus Scene::LoadRenderPass(std::span<const renderer::RenderpassT>
             }
 
         }
-        //TODO generate depth buffer if available, what about framebuffer?
         renderpasses_.emplace_back(subpass, static_cast<int>(subpassIndex), pipelines_, materials_);
     }
+    //generate back buffer
+    backBuffer_.Load(backBufferInfo_);
     return ImportStatus::SUCCESS;
 }
 Scene::ImportStatus Scene::LoadBuffers(std::span<const renderer::StorageBufferT> buffers)
@@ -285,13 +286,26 @@ Scene::ImportStatus Scene::LoadBuffers(std::span<const renderer::StorageBufferT>
 Scene::ImportStatus Scene::LoadFramebuffers(std::span<const renderer::FramebufferT> framebuffers)
 {
     //Loading backbuffer
+    const auto windowSize = core::GetWindowSize();
     internal::ColorTargetInfoT colorTargetInfo{.mip_level = 0,
-        .layer_or_depth_plane = 0,
+        .layer_or_depth_plane = 1,
         .clear_color = {.r = 0, .g = 0, .b = 0, .a = 0},
         .load_op = internal::LoadOp_LOADOP_CLEAR,
         .store_op = internal::StoreOp_STOREOP_STORE};
     backBufferInfo_.color_target_infos.push_back(colorTargetInfo);
+    auto format = GetSwapchainTextureFormat();
+    backBufferInfo_.color_texture_infos.push_back(internal::TextureInfoT{.width = windowSize.x, .height = windowSize.y, .format = (internal::TextureFormat)format,
+        .sample_count = internal::SampleCount_SAMPLECOUNT_1, .type = internal::TextureType_TEXTURETYPE_2D,
+        .usage = internal::TextureUsageFlags_TEXTUREUSAGE_COLOR_TARGET});
 
+    framebuffers_.reserve(framebuffers.size());
+    for (int64_t framebufferIndex = 0; framebufferIndex < framebuffers.size(); ++framebufferIndex)
+    {
+        auto& framebuffer = framebuffers[framebufferIndex];
+        Framebuffer newFramebuffer;
+        newFramebuffer.Load(framebuffer);
+        framebuffers_.push_back(std::move(newFramebuffer));
+    }
 
     //TODO actually do framebuffering
     return ImportStatus::SUCCESS;

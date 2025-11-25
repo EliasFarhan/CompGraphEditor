@@ -7,13 +7,7 @@ novus::renderer::SceneT Scene07()
 {
     novus::renderer::SceneT scene{};
 
-    novus::renderer::FramebufferT framebuffer{};
-    static constexpr auto renderColorTargetFormat = novus::internal::TextureFormat_TEXTUREFORMAT_R8G8B8A8_UNORM;
-    static constexpr auto renderDepthTargetFormat = novus::internal::TextureFormat_TEXTUREFORMAT_D24_UNORM_S8_UINT;
-    framebuffer.color_target_formats.push_back(renderColorTargetFormat);
-    framebuffer.depth_stencil_target_format = renderDepthTargetFormat;
-    //TODO add color/depth target to generate
-    scene.framebuffer.push_back(std::move(framebuffer));
+
 
     static constexpr std::string_view vertexPathBase = "data/shaders/07_hello_post_process/model.vert";
     static constexpr std::string_view fragmentPathBase = "data/shaders/07_hello_post_process/model.frag";
@@ -37,6 +31,39 @@ novus::renderer::SceneT Scene07()
         .samplers = postFragmentAnaylzeResult.shaderSamplers,
         .shader_stage = novus::internal::ShaderStage_FRAGMENT,
         });
+    novus::renderer::FramebufferT framebuffer{};
+    static constexpr auto renderColorTargetFormat = novus::internal::TextureFormat_TEXTUREFORMAT_R8G8B8A8_UNORM;
+    static constexpr auto renderDepthTargetFormat = novus::internal::TextureFormat_TEXTUREFORMAT_D24_UNORM_S8_UINT;
+    framebuffer.color_texture_infos.push_back(novus::internal::TextureInfoT{.width = 0, .height = 0, .layer_count_or_depth = 1, .num_levels = 1, .format = renderColorTargetFormat, .sample_count = novus::internal::SampleCount_SAMPLECOUNT_1, .type = novus::internal::TextureType_TEXTURETYPE_2D, .usage = (novus::internal::TextureUsageFlags)(novus::internal::TextureUsageFlags_TEXTUREUSAGE_SAMPLER | novus::internal::TextureUsageFlags_TEXTUREUSAGE_COLOR_TARGET)});
+    framebuffer.color_target_infos.push_back(novus::internal::ColorTargetInfoT{.mip_level = 0, .layer_or_depth_plane = 0, .clear_color = {0,0,0,0},
+        .load_op = novus::internal::LoadOp_LOADOP_CLEAR, .store_op = novus::internal::StoreOp_STOREOP_STORE});
+    auto colorSamplerInfo = std::make_unique<novus::internal::SamplerInfoT>();
+    colorSamplerInfo->address_mode_u = novus::internal::SamplerAddressMode_SAMPLERADDRESSMODE_CLAMP_TO_EDGE;
+    colorSamplerInfo->address_mode_v = novus::internal::SamplerAddressMode_SAMPLERADDRESSMODE_CLAMP_TO_EDGE;
+    colorSamplerInfo->address_mode_w = novus::internal::SamplerAddressMode_SAMPLERADDRESSMODE_CLAMP_TO_EDGE;
+    colorSamplerInfo->min_filter = novus::internal::FilterMode_FILTER_LINEAR;
+    colorSamplerInfo->mag_filter = novus::internal::FilterMode_FILTER_LINEAR;
+    colorSamplerInfo->compare_op = novus::internal::CompareOp_COMPAREOP_ALWAYS;
+    colorSamplerInfo->mipmap_mode = novus::internal::SamplerMipmapMode_SAMPLERMIPMAPMODE_LINEAR;
+    colorSamplerInfo->max_anisotropy = 1.0f;
+    colorSamplerInfo->max_lod = 0.0f;
+    colorSamplerInfo->min_lod = 0.0f;
+    colorSamplerInfo->mip_lod_bias = 0.0f;
+    colorSamplerInfo->enable_anisotropy = true;
+    colorSamplerInfo->enable_compare = false;
+    framebuffer.color_sampler_infos.push_back(std::move(colorSamplerInfo));
+    auto depthTextureInfo = std::make_unique<novus::internal::TextureInfoT>();
+    depthTextureInfo->width = 0;
+    depthTextureInfo->height = 0;
+    depthTextureInfo->format = renderDepthTargetFormat;
+    depthTextureInfo->layer_count_or_depth = 1;
+    depthTextureInfo->num_levels = 1;
+    depthTextureInfo->sample_count = novus::internal::SampleCount_SAMPLECOUNT_1;
+    depthTextureInfo->type = novus::internal::TextureType_TEXTURETYPE_2D;
+    depthTextureInfo->usage = novus::internal::TextureUsageFlags_TEXTUREUSAGE_DEPTH_STENCIL_TARGET;
+    framebuffer.depth_stencil_texture_info = std::move(depthTextureInfo);
+    //TODO add color/depth target to generate
+    scene.framebuffer.push_back(std::move(framebuffer));
     scene.name = "07_Post-Process";
     {
         novus::renderer::GraphicsPipelineT graphicsPipeline{};

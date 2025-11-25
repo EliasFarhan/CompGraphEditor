@@ -56,6 +56,7 @@ private:
     SDL_GPURenderPass* currentRenderPass_ = nullptr;
     SDL_GPUTexture* depthTexture_ = nullptr;
     BufferManager bufferManager_;
+    Framebuffer backBuffer_;
     renderer::FramebufferT backBufferInfo_;
 };
 }

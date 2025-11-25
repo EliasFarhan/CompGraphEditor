@@ -54,18 +54,19 @@ void Scene::LoadScene()
     {
         LogError("Could not import pipelines");
     }
-    
+    //Framebuffers need to be loaded before materials
+    const auto& framebuffers = scene_.framebuffer;
+    if (LoadFramebuffers(framebuffers) != ImportStatus::SUCCESS)
+    {
+        LogError("Could not import framebuffers");
+    }
 
     const auto& materials = scene_.materials;
     if(LoadMaterials(materials) != ImportStatus::SUCCESS)
     {
         LogError("Could not import materials");
     }
-    const auto& framebuffers = scene_.framebuffer;
-    if (LoadFramebuffers(framebuffers) != ImportStatus::SUCCESS)
-    {
-        LogError("Could not import framebuffers");
-    }
+
 
 
     if (LoadRenderPass(scene_.sub_passes) != ImportStatus::SUCCESS)
