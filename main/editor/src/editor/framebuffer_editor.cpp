@@ -8,6 +8,8 @@
 #include <array>
 #include <fstream>
 
+#include "utils/fb_file.h"
+
 
 namespace novus::editor
 {
@@ -24,8 +26,8 @@ void FramebufferEditor::AddResource(const Resource& resource)
         LogWarning(std::format("Could not find framebuffer file: {}", resource.path.c_str()));
         return;
     }
-    std::ifstream fileIn(resource.path.c_str(), std::ios::binary);
-    if (!framebufferInfo.info.ParseFromIstream(&fileIn))
+
+    if (!core::ReadFlatbufferFromFile<renderer::FramebufferT, renderer::Framebuffer>(resource.path, framebufferInfo.info))
     {
         LogWarning(std::format("Could not open protobuf file: {}", resource.path.c_str()));
         return;
@@ -69,13 +71,13 @@ void FramebufferEditor::DrawInspector()
     ImGui::InputText("Framebuffer Name", &currentFramebufferInfo.info.name);
     ImGui::Separator();
     int deletedColorAttachment = -1;
-    for(int colorAttachmentIndex = 0; colorAttachmentIndex < currentFramebufferInfo.info.color_attachments_size(); colorAttachmentIndex++)
+    for(size_t colorAttachmentIndex = 0; colorAttachmentIndex < currentFramebufferInfo.info.color_target_infos.size(); colorAttachmentIndex++)
     {
-        auto* colorAttachment = currentFramebufferInfo.info.mutable_color_attachments(colorAttachmentIndex);
+        auto& colorAttachment = currentFramebufferInfo.info.color_target_infos[colorAttachmentIndex];
         std::string id = std::format("Color Attachment {}", colorAttachmentIndex);
-        std::string colorAttachmentName = colorAttachment->name().empty() ? id : colorAttachment->name();
+        std::string colorAttachmentName = colorAttachment.name.empty() ? id : colorAttachment.name();
         ImGui::PushID(id.data());
-        if(ImGui::InputText("Color Attachment Name",&colorAttachmentName))
+        if(ImGui::InputText("Color Attachment Name", &colorAttachmentName))
         {
             *colorAttachment->mutable_name() = colorAttachmentName;
         }
@@ -86,7 +88,7 @@ void FramebufferEditor::DrawInspector()
             "RGB",
             "RGBA"
         };
-        if(ImGui::BeginCombo("Format", formatTxt[colorAttachment->format()].data()))
+        if(ImGui::BeginCombo("Format", formatTxt[colorAttachment.format()].data()))
         {
             for(std::size_t format = 0; format < formatTxt.size(); format++)
             {

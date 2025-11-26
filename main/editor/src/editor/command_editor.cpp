@@ -17,7 +17,7 @@
 
 #include "shader_editor.h"
 
-namespace editor
+namespace novus::editor
 {
 void CommandEditor::AddResource(const Resource& resource)
 {

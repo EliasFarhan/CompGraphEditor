@@ -8,20 +8,16 @@
 #include <fstream>
 
 #include "engine/filesystem.h"
-#include "gl/debug.h"
 
 #include <stb_image.h>
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #include <stb_image_write.h>
 #include <glm/ext/matrix_clip_space.hpp>
 #include <glm/ext/matrix_transform.hpp>
-#include <vulkan/vulkan_core.h>
 
+#include "novus/texture.h"
 #include "pbr_utils.h"
-#include "gl/buffer.h"
-#include "gl/framebuffer.h"
-#include "gl/pipeline.h"
-#include "gl/texture.h"
+#include "utils/fb_file.h"
 
 
 namespace novus::editor
@@ -36,6 +32,7 @@ void TextureEditor::DrawInspector()
     auto& currentTextureInfo = textureInfos_[currentIndex_];
     ImGui::Text("Filename: %s", currentTextureInfo.filename.c_str());
 
+/*
     if(GetFileExtension(currentTextureInfo.filename) == ".cube")
     {
         //choose cubemap textures
@@ -84,25 +81,30 @@ void TextureEditor::DrawInspector()
         }
 
     }
+    */
 
-    static constexpr std::array<std::string_view, 4> wrappingModeNames
+    static constexpr std::array<std::string_view, 3> wrappingModeNames
     {
         "REPEAT",
-        "MIRROR_REPEAT",
-        "CLAMP_TO_EDGE",
-        "CLAMP_TO_BORDER"
+        "MIRRORED_REPEAT",
+        "CLAMP_TO_EDGE"
     };
-    if(currentTextureInfo.info.wrapping_mode() > wrappingModeNames.size())
+    auto& samplerInfo = currentTextureInfo.info.sampler;
+    if(samplerInfo->address_mode_u > wrappingModeNames.size())
     {
-        currentTextureInfo.info.set_wrapping_mode(core::pb::Texture_WrappingMode_REPEAT);
+        samplerInfo->address_mode_u = internal::SamplerAddressMode_SAMPLERADDRESSMODE_REPEAT;
+        samplerInfo->address_mode_v = internal::SamplerAddressMode_SAMPLERADDRESSMODE_REPEAT;
+        samplerInfo->address_mode_w = internal::SamplerAddressMode_SAMPLERADDRESSMODE_REPEAT;
     }
-    if(ImGui::BeginCombo("Wrapping Mode", wrappingModeNames[currentTextureInfo.info.wrapping_mode()].data()))
+    if(ImGui::BeginCombo("Wrapping Mode", wrappingModeNames[samplerInfo->address_mode_u].data()))
     {
         for(std::size_t i = 0; i < wrappingModeNames.size(); ++i)
         {
-            if(ImGui::Selectable(wrappingModeNames[i].data(), i == currentTextureInfo.info.wrapping_mode()))
+            if(ImGui::Selectable(wrappingModeNames[i].data(), i == samplerInfo->address_mode_u))
             {
-                currentTextureInfo.info.set_wrapping_mode(static_cast<core::pb::Texture_WrappingMode>(i));
+                samplerInfo->address_mode_u = (internal::SamplerAddressMode)i;
+                samplerInfo->address_mode_v = (internal::SamplerAddressMode)i;
+                samplerInfo->address_mode_w = (internal::SamplerAddressMode)i;
             }
         }
         ImGui::EndCombo();
@@ -113,22 +115,26 @@ void TextureEditor::DrawInspector()
         "LINEAR"
     };
 
-    if (currentTextureInfo.info.filter_mode() > filterModeNames.size())
+    if (samplerInfo->mag_filter > filterModeNames.size())
     {
-        currentTextureInfo.info.set_filter_mode(core::pb::Texture_FilteringMode_NEAREST);
+        samplerInfo->mag_filter = internal::FilterMode_FILTER_NEAREST;
+        samplerInfo->min_filter = internal::FilterMode_FILTER_NEAREST;
     }
-    if (ImGui::BeginCombo("Filter Mode", filterModeNames[currentTextureInfo.info.filter_mode()].data()))
+    if (ImGui::BeginCombo("Filter Mode", filterModeNames[samplerInfo->mag_filter].data()))
     {
         for (std::size_t i = 0; i < filterModeNames.size(); ++i)
         {
-            if (ImGui::Selectable(filterModeNames[i].data(), i == currentTextureInfo.info.filter_mode()))
+            if (ImGui::Selectable(filterModeNames[i].data(), i == samplerInfo->mag_filter))
             {
-                currentTextureInfo.info.set_filter_mode(static_cast<core::pb::Texture_FilteringMode>(i));
+                samplerInfo->mag_filter = (internal::FilterMode)i;
+                samplerInfo->min_filter = (internal::FilterMode)i;
             }
         }
         ImGui::EndCombo();
     }
 
+    //TODO setup mipmapping and gamma correction
+    /*
     bool generateMipMaps = currentTextureInfo.info.generate_mipmaps();
     if(ImGui::Checkbox("Generate Mip Map", &generateMipMaps))
     {
@@ -139,7 +145,11 @@ void TextureEditor::DrawInspector()
     {
         currentTextureInfo.info.set_gamma_correction(gammaCorrection);
     }
-    const auto fileExtension = GetFileExtension(currentTextureInfo.info.path().c_str());
+    */
+    const auto fileExtension = GetFileExtension(currentTextureInfo.info.path);
+    //TODO implement PBR utils
+    /*
+
     if(fileExtension == ".hdr")
     {
         if(ImGui::Button("HDR Cubemap to KTX"))
@@ -148,13 +158,14 @@ void TextureEditor::DrawInspector()
         }
         if(ImGui::Button("Generate Irradiance Map"))
         {
-            GenerateIrradianceMap(currentTextureInfo.info.path().c_str());
+            GenerateIrradianceMap(currentTextureInfo.info.path);
         }
         if(ImGui::Button("Generate Pre-Filter Environment Map"))
         {
-            GeneratePreFilterEnvMap(currentTextureInfo.info.path().c_str());
+            GeneratePreFilterEnvMap(currentTextureInfo.info.path);
         }
     }
+    */
 
     static constexpr std::array<std::string_view, 6> extensions =
     {
@@ -171,6 +182,8 @@ void TextureEditor::DrawInspector()
         return extension == fileExtension;
     }))
     {
+        //TODO implement KTX export
+        /*
         ImGui::Separator();
         ImGui::TextUnformatted("KTX Exporter");
         ImGui::Checkbox("Compress", &currentTextureInfo.ktxInfo.compress);
@@ -194,14 +207,17 @@ void TextureEditor::DrawInspector()
         {
             ExportToKtx(currentTextureInfo);
         }
+        */
     }
     ImGui::Separator();
+
     ImGui::TextUnformatted("Texture Info");
-    auto& textureManager = static_cast<gl::TextureManager&>(core::GetTextureManager());
+    auto& textureManager = static_cast<novus::TextureManager&>(core::GetTextureManager());
     if (currentTextureInfo.textureId != core::INVALID_TEXTURE_ID)
     {
         const auto& texture = textureManager.GetTexture(currentTextureInfo.textureId);
-        ImGui::Text("Width %d, Height %d", texture.width, texture.height);
+        //TODO get texture info
+        ImGui::Text("Width %d, Height %d", -1, -1);
     }
 }
 
@@ -228,6 +244,8 @@ void TextureEditor::DrawCenterView()
     {
         return;
     }
+    //TODO implement sdl3 gpu texture -> imgui texture preview
+    /*
     const auto& currentTextureInfo = textureInfos_[currentIndex_];
     auto& textureManager = static_cast<gl::TextureManager&>(core::GetTextureManager());
     if (currentTextureInfo.textureId != core::INVALID_TEXTURE_ID)
@@ -239,6 +257,7 @@ void TextureEditor::DrawCenterView()
                 ImGui::GetContentRegionAvail());
         }
     }
+    */
 }
 
 std::string_view TextureEditor::GetSubFolder()
@@ -255,18 +274,21 @@ void TextureEditor::Save()
 {
     for(auto& textureInfo : textureInfos_)
     {
-        if(GetFileExtension(textureInfo.info.path().c_str()) == ".cube")
+        //TODO save cubemap
+        /*
+        if(GetFileExtension(textureInfo.info.path) == ".cube")
         {
-            std::ofstream cubeOut(textureInfo.info.path(), std::ios::binary);
+            std::ofstream cubeOut(textureInfo.info.path, std::ios::binary);
             if (!textureInfo.cubemap.SerializeToOstream(&cubeOut))
             {
-                LogWarning(std::format("Could not save cubemap info at: {}", textureInfo.info.path()));
+                LogWarning(std::format("Could not save cubemap info at: {}", textureInfo.info.path));
             }
         }
-        std::ofstream fileOut(textureInfo.infoPath.c_str(), std::ios::binary);
-        if (!textureInfo.info.SerializeToOstream(&fileOut))
+        */
+
+        if (!core::WriteFlatbufferToFile<renderer::TextureT, renderer::Texture>(textureInfo.info, textureInfo.infoPath))
         {
-            LogWarning(std::format("Could not save texture info at: {}", textureInfo.infoPath.c_str()));
+            LogWarning(std::format("Could not save texture info at: {}", textureInfo.infoPath));
         }
     }
 }
@@ -276,18 +298,20 @@ void TextureEditor::AddResource(const Resource &resource)
     TextureInfo textureInfo{};
     textureInfo.resourceId = resource.resourceId;
     textureInfo.filename = GetFilename(resource.path);
-    textureInfo.info.set_path(resource.path.c_str());
+    textureInfo.info.path = resource.path;
     textureInfo.infoPath = resource.path + ".meta";
     if(core::FileExists(textureInfo.infoPath))
     {
-        std::ifstream metaFile(textureInfo.infoPath.c_str(),std::ios::binary);
-        textureInfo.info.ParseFromIstream(&metaFile);
+        core::ReadFlatbufferFromFile<renderer::TextureT, renderer::Texture>(textureInfo.infoPath, textureInfo.info);
     }
+    //TODO load cubemap
+    /*
     if(GetFileExtension(resource.path) == ".cube")
     {
         std::ifstream cubemapFile(resource.path.c_str(), std::ios::binary);
         textureInfo.cubemap.ParseFromIstream(&cubemapFile);
     }
+    */
     auto& textureManager = core::GetTextureManager();
     textureInfo.textureId = textureManager.LoadTexture(textureInfo.info);
 
@@ -340,7 +364,7 @@ void TextureEditor::Delete()
     }
     auto* editor = Editor::GetInstance();
     auto& resourceManager = editor->GetResourceManager();
-    resourceManager.RemoveResource(textureInfos_[currentIndex_].info.path(), true);
+    resourceManager.RemoveResource(textureInfos_[currentIndex_].info.path, true);
 }
 
 std::span<const std::string_view> TextureEditor::GetExtensions() const
@@ -368,11 +392,11 @@ void TextureEditor::Clear()
 
 void TextureEditor::CubeToKtx(const TextureInfo& textureInfo)
 {
-
+/*
     const std::string ktxPath{
         std::format("{}/{}.ktx",
-                    GetFolder(textureInfo.info.path()).c_str(),
-                    GetFilename(textureInfo.info.path(), false))
+                    GetFolder(textureInfo.info.path).c_str(),
+                    GetFilename(textureInfo.info.path, false))
     };
 
     gl::Texture cubemap;
@@ -451,10 +475,12 @@ void TextureEditor::CubeToKtx(const TextureInfo& textureInfo)
     ktxTextureInfo->info.set_filter_mode(textureInfo.info.filter_mode());
     ktxTextureInfo->info.set_wrapping_mode(textureInfo.info.wrapping_mode());
     ktxTextureInfo->info.set_gamma_correction(textureInfo.info.gamma_correction());
+    */
 }
 
 void TextureEditor::HdrToKtx(const TextureInfo& textureInfo)
 {
+    /*
     const std::string_view path {textureInfo.info.path()};
     const auto baseDir = GetFolder(path);
     const auto filename = GetFilename(path, false);
@@ -637,14 +663,16 @@ void TextureEditor::HdrToKtx(const TextureInfo& textureInfo)
     cube.Destroy();
     captureFbo.Destroy();
     equirectangleToCubemap.Destroy();
+    */
 }
 
 void TextureEditor::ExportToKtx(const TextureInfo& textureInfo) const
 {
+    /*
     int w, h, channelCount;
-    auto* data = stbi_load(textureInfo.info.path().c_str(), &w, &h, &channelCount, 0);
-    std::string output = std::format("{}/{}.ktx", GetFolder(textureInfo.info.path()).c_str(),
-                                     GetFilename(textureInfo.info.path(), false));
+    auto* data = stbi_load(textureInfo.info.path.c_str(), &w, &h, &channelCount, 0);
+    std::string output = std::format("{}/{}.ktx", GetFolder(textureInfo.info.path).c_str(),
+                                     GetFilename(textureInfo.info.path, false));
     ktxTexture2* texture;
     ktxTextureCreateInfo createInfo;
 
@@ -730,5 +758,6 @@ void TextureEditor::ExportToKtx(const TextureInfo& textureInfo) const
     ktxTexture_WriteToNamedFile(ktxTexture(texture), output.data());
     ktxCheckError(result);
     ktxTexture_Destroy(ktxTexture(texture));
+    */
 }
 }

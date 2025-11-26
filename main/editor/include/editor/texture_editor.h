@@ -20,9 +20,9 @@ struct TextureInfo
 {
     std::string filename;
     std::string infoPath;
-    novus::renderer::Texture info;
+    novus::renderer::TextureT info;
     ResourceId resourceId = INVALID_RESOURCE_ID;
-    novus::renderer::Cubemap cubemap;
+    novus::renderer::CubemapT cubemap;
     core::TextureId textureId = core::INVALID_TEXTURE_ID;
     KtxExportInfo ktxInfo;
 };

@@ -23,8 +23,11 @@ using json = nlohmann::json;
 
 namespace novus::editor
 {
-bool CheckVertexInput(const core::pb::Shader& shaderInfo)
+bool CheckVertexInput(const renderer::ShaderT& shaderInfo)
 {
+    return true;
+    // TODO check vertex inputs according to the engine
+    /*
     if (shaderInfo.type() != core::pb::VERTEX)
         return true;
     for(int i = 0; i < shaderInfo.in_attributes_size(); i++)
@@ -63,16 +66,17 @@ bool CheckVertexInput(const core::pb::Shader& shaderInfo)
         }
     }
     return true;
+    */
 }
 void ShaderEditor::AddResource(const Resource& resource)
 {
     ShaderInfo shaderInfo{};
-    shaderInfo.info.set_type(core::GetTypeFromExtension(resource.extension));
+    shaderInfo.info.shader_stage = (core::GetShaderStageFromExtension(resource.extension));
     shaderInfo.compiledCorrectly = AnalyzeShader(resource.path, shaderInfo.info);
     shaderInfo.correctVertexInput = CheckVertexInput(shaderInfo.info);
     shaderInfo.filename = GetFilename(resource.path);
     shaderInfo.resourceId = resource.resourceId;
-    shaderInfo.info.set_path(resource.path.c_str());
+    shaderInfo.info.path = resource.path;
     shaderInfos_.push_back(shaderInfo);
 }
 void ShaderEditor::RemoveResource(const Resource& resource)
@@ -122,69 +126,44 @@ void ShaderEditor::DrawInspector()
     {
         ImGui::TextColored(ImVec4(1.0f, 0.0f, 0.0f, 1.0f), "Shader failed compilation!");
     }
-    if(currentShaderInfo.info.type() == core::pb::VERTEX &&
+    if(currentShaderInfo.info.shader_stage == internal::ShaderStage_VERTEX &&
         !currentShaderInfo.correctVertexInput)
     {
         ImGui::TextColored(ImVec4(1.0f, 0.0f, 0.0f, 1.0f), "Incorrect vertex inputs!");
 
     }
-    switch (currentShaderInfo.info.type())
+    switch (currentShaderInfo.info.shader_stage)
     {
-    case core::pb::VERTEX:
+    case internal::ShaderStage_VERTEX:
     {
         ImGui::Text("Type: Vertex Shader");
         break;
     }
-    case core::pb::FRAGMENT:
+    case internal::ShaderStage_FRAGMENT:
     {
         ImGui::Text("Type: Fragment Shader");
         break;
     }
-    case core::pb::COMPUTE: 
+    case internal::ShaderStage_COMPUTE:
         ImGui::Text("Type: Compute Shader");
         break;
-    case core::pb::GEOMETRY: 
-        ImGui::Text("Type: Geometry Shader");
-        break;
-    case core::pb::TESSELATION_CONTROL: 
-        ImGui::Text("Type: Tesselation Control Shader");
-        break;
-    case core::pb::TESSELATION_EVAL: 
-        ImGui::Text("Type: Tesselation Evaluation Shader");
-        break;
-    case core::pb::RAY_GEN: 
-        ImGui::Text("Type: Ray Generation Shader");
-        break;
-    case core::pb::RAY_INTERSECTION: 
-        ImGui::Text("Type: Ray Intersection Shader");
-        break;
-    case core::pb::RAY_ANY_HIT: 
-        ImGui::Text("Type: Ray Any-Hit Shader");
-        break;
-    case core::pb::RAY_CLOSEST_HIT: 
-        ImGui::Text("Type: Ray Closest-Hit Shader");
-        break;
-    case core::pb::RAY_MISS: 
-        ImGui::Text("Type: Ray Miss Shader");
-        break;
-    case core::pb::RAY_CALL: 
-        ImGui::Text("Type: Ray Callable Shader");
-        break;
+
     default:
         break;
     }
 
     if(ImGui::BeginListBox("Uniforms"))
     {
-        for(int i = 0; i < currentShaderInfo.info.uniforms_size(); i++)
+        for(int i = 0; i < currentShaderInfo.info.uniform_buffers.size(); i++)
         {
-            const auto& uniformInfo = currentShaderInfo.info.uniforms(i);
-            const auto text = std::format("Name: {} Type: {} Binding: {}", uniformInfo.name(), uniformInfo.type_name(), uniformInfo.binding());
+            const auto& uniformInfo = currentShaderInfo.info.uniform_buffers[i];
+            const auto text = std::format("Name: {} Type: {} Binding: {}", uniformInfo.name, uniformInfo.type_name, uniformInfo.binding);
             ImGui::Selectable(text.c_str(), false);
         }
         ImGui::EndListBox();
     }
-
+    //TODO Show in attributes
+    /*
     if(ImGui::BeginListBox("In Attributes"))
     {
         for(int i = 0; i < currentShaderInfo.info.in_attributes_size(); i++)
@@ -195,7 +174,9 @@ void ShaderEditor::DrawInspector()
         }
         ImGui::EndListBox();
     }
-
+    */
+    //TODO show out attributes
+    /*
     if(ImGui::BeginListBox("Out Attributes"))
     {
         for(int i = 0; i < currentShaderInfo.info.out_attributes_size(); i++)
@@ -206,12 +187,13 @@ void ShaderEditor::DrawInspector()
         }
         ImGui::EndListBox();
     }
+    */
     if (ImGui::BeginListBox("Structs"))
     {
-        for (int i = 0; i < currentShaderInfo.info.structs_size(); i++)
+        for (int i = 0; i < currentShaderInfo.info.types.size(); i++)
         {
-            const auto& structInfo = currentShaderInfo.info.structs(i);
-            const auto text = std::format("Name: {} Size: {} Alignment: {}", structInfo.name(), structInfo.size(), structInfo.alignment());
+            const auto& structInfo = currentShaderInfo.info.types[i];
+            const auto text = std::format("Name: {}", structInfo.name);
             ImGui::Selectable(text.c_str(), false);
         }
         ImGui::EndListBox();
@@ -219,10 +201,10 @@ void ShaderEditor::DrawInspector()
 
     if (ImGui::BeginListBox("Buffers"))
     {
-        for (int i = 0; i < currentShaderInfo.info.storage_buffers_size(); i++)
+        for (int i = 0; i < currentShaderInfo.info.storage_buffers.size(); i++)
         {
-            const auto& bufferInfo = currentShaderInfo.info.storage_buffers(i);
-            const auto text = std::format("Name: {} Binding: {}", bufferInfo.name(), bufferInfo.binding());
+            const auto& bufferInfo = currentShaderInfo.info.storage_buffers[i];
+            const auto text = std::format("Name: {} Binding: {}", bufferInfo.name, bufferInfo.binding);
             ImGui::Selectable(text.c_str(), false);
         }
         ImGui::EndListBox();
@@ -264,7 +246,7 @@ bool ShaderEditor::DrawContentList(bool unfocus)
         {
             currentIndex_ = i;
             wasFocused = true;
-            std::string_view shaderPath{shaderInfo.info.path()};
+            std::string_view shaderPath{shaderInfo.info.path};
             if (core::FileExists(shaderPath))
             {
                 const auto shaderContent = core::LoadFile(shaderPath);
@@ -316,7 +298,7 @@ void ShaderEditor::Delete()
     }
     auto* editor = Editor::GetInstance();
     auto& resourceManager = editor->GetResourceManager();
-    resourceManager.RemoveResource(shaderInfos_[currentIndex_].info.path(), true);
+    resourceManager.RemoveResource(shaderInfos_[currentIndex_].info.path, true);
 }
 
 std::span<const std::string_view> ShaderEditor::GetExtensions() const
@@ -345,7 +327,7 @@ void ShaderEditor::Clear()
     currentIndex_ = -1;
 }
 
-bool ShaderEditor::AnalyzeShader(std::string_view path, core::pb::Shader& shaderInfo) const
+bool ShaderEditor::AnalyzeShader(std::string_view path, renderer::ShaderT& shaderInfo) const
 {
     std::string result;
     json shaderJson;
@@ -385,7 +367,7 @@ bool ShaderEditor::AnalyzeShader(std::string_view path, core::pb::Shader& shader
             return false;
         }
         auto uniformsJson = shaderJson["uniforms"];
-        shaderInfo.mutable_uniforms()->Clear();
+        shaderInfo.uniform_buffers.clear();
         for(auto& uniformJson : uniformsJson)
         {
             auto uniformName = uniformJson["name"].get<std::string>();
