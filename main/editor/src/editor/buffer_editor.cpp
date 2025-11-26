@@ -10,7 +10,7 @@
 
 #include <format>
 
-namespace editor
+namespace novus::editor
 {
 void BufferEditor::AddResource(const Resource& resource)
 {

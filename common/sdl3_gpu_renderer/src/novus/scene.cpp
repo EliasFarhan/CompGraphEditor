@@ -251,14 +251,6 @@ Scene::ImportStatus Scene::LoadRenderPass(std::span<const renderer::RenderpassT>
                 }
                 if (generateDepthTexture)
                 {
-                    auto windowSize = core::GetWindowSize();
-                    SDL_GPUTextureCreateInfo textureCreateInfo{
-                        .type = SDL_GPU_TEXTURETYPE_2D,
-                        .format = SDL_GPU_TEXTUREFORMAT_D24_UNORM_S8_UINT,
-                        .usage = SDL_GPU_TEXTUREUSAGE_DEPTH_STENCIL_TARGET,
-                        .width = windowSize.x, .height = windowSize.y,
-                        .layer_count_or_depth = 1, .num_levels = 1, .sample_count = SDL_GPU_SAMPLECOUNT_1};
-                    //TODO generate framebuffer data
                     auto depthStencilTargetInfo = std::make_unique<novus::internal::DepthStencilTargetInfoT>();
                     depthStencilTargetInfo->clear_depth = 1.0f;
                     depthStencilTargetInfo->clear_stencil = 0;

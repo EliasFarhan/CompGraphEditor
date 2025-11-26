@@ -12,7 +12,7 @@
 #include <array>
 #include <fstream>
 
-namespace editor
+namespace novus::editor
 {
 
 void MeshEditor::DrawInspector()
@@ -24,7 +24,7 @@ void MeshEditor::DrawInspector()
 
     auto& currentMesh = meshInfos_[currentIndex_];
 
-    if(currentMesh.info.mesh().primitve_type() == core::pb::Mesh_PrimitveType_MODEL)
+    if(currentMesh.info.mesh.primitve_type == core::pb::Mesh_PrimitveType_MODEL)
     {
         const auto modelName = GetFilename(currentMesh.info.model_path());
         ImGui::Text("Generated from model: %s", modelName.c_str());

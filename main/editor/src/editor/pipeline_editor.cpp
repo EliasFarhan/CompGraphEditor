@@ -9,6 +9,7 @@
 #include <fstream>
 
 #include "imnodes.h"
+#include "utils/fb_file.h"
 
 namespace novus::editor
 {
@@ -22,28 +23,13 @@ void PipelineEditor::DrawInspector()
     auto* editor = Editor::GetInstance();
     auto& currentPipelineInfo = pipelineInfos_[currentIndex_];
 
-    const bool isVulkan = GetSceneEditor()->IsVulkanScene();
-    //Pipeline type
-    if(!isVulkan && currentPipelineInfo.info.pipeline().type() != core::pb::Pipeline_Type_RASTERIZE &&
-        currentPipelineInfo.info.pipeline().type() != core::pb::Pipeline_Type_COMPUTE)
-    {
-        currentPipelineInfo.info.mutable_pipeline()->set_type(core::pb::Pipeline_Type_RASTERIZE);
-    }
-    int index = currentPipelineInfo.info.pipeline().type();
-    const char* pipelineTypeText[] = {
-        "Rasterizer",
-        "Compute",
-        "Raytracing"
-    };
-    if(ImGui::Combo("Combo", &index, pipelineTypeText, isVulkan ? 3 : 2))
-    {
-        currentPipelineInfo.info.mutable_pipeline()->set_type(static_cast<core::pb::Pipeline_Type>(index));
-    }
+
+
 
     const auto* shaderEditor = dynamic_cast<ShaderEditor*>(editor->GetEditorSystem(EditorType::SHADER));
     const auto& shaders = shaderEditor->GetShaders();
     //Rasterizer pipeline
-    if (currentPipelineInfo.info.pipeline().type() == core::pb::Pipeline_Type_RASTERIZE)
+    //if (currentPipelineInfo.info.pipeline().type() == core::pb::Pipeline_Type_RASTERIZE)
     {
         if(currentPipelineInfo.vertexShaderId == INVALID_RESOURCE_ID || 
             currentPipelineInfo.fragmentShaderId == INVALID_RESOURCE_ID)
@@ -55,14 +41,14 @@ void PipelineEditor::DrawInspector()
         {
             for (auto& shader : shaders)
             {
-                if (shader.info.type() != core::pb::VERTEX)
+                if (shader.info.shader_stage != internal::ShaderStage_VERTEX)
                 {
                     continue;
                 }
                 if (ImGui::Selectable(shader.filename.c_str(), shader.resourceId == currentPipelineInfo.vertexShaderId))
                 {
                     currentPipelineInfo.vertexShaderId = shader.resourceId;
-                    currentPipelineInfo.info.set_vertex_shader_path(shader.info.path());
+                    currentPipelineInfo.info.vertex_shader_path = (shader.info.path);
                     ReloadPipeline(currentIndex_);
                 }
             }
@@ -74,137 +60,89 @@ void PipelineEditor::DrawInspector()
         {
             for (auto& shader : shaders)
             {
-                if (shader.info.type() != core::pb::FRAGMENT)
+                if (shader.info.shader_stage != internal::ShaderStage_FRAGMENT)
                 {
                     continue;
                 }
                 if (ImGui::Selectable(shader.filename.c_str(), shader.resourceId == currentPipelineInfo.fragmentShaderId))
                 {
                     currentPipelineInfo.fragmentShaderId = shader.resourceId;
-                    currentPipelineInfo.info.set_fragment_shader_path(shader.info.path());
+                    currentPipelineInfo.info.fragment_shader_path = shader.info.path;
                     ReloadPipeline(currentIndex_);
                 }
             }
             ImGui::EndCombo();
         }
-        const auto* geometryShader = shaderEditor->GetShader(currentPipelineInfo.geometryShaderId);
-        if (ImGui::BeginCombo("Geometry Shader", geometryShader ? geometryShader->filename.data() : "No Geometry shader"))
+
+        auto& pipelineStateInfo = currentPipelineInfo.info.pipeline->info;
+        if (pipelineStateInfo == nullptr)
         {
-            for (auto& shader : shaders)
-            {
-                if (shader.info.type() != core::pb::GEOMETRY)
-                {
-                    continue;
-                }
-                if (ImGui::Selectable(shader.filename.c_str(), shader.resourceId == currentPipelineInfo.geometryShaderId))
-                {
-                    currentPipelineInfo.geometryShaderId = shader.resourceId;
-                    currentPipelineInfo.info.set_geometry_shader_path(shader.info.path());
-                    ReloadPipeline(currentIndex_);
-                }
-            }
-            ImGui::EndCombo();
-        }
-        const auto* tessControlShader = shaderEditor->GetShader(currentPipelineInfo.tessControlShaderId);
-        if (ImGui::BeginCombo("Tesselation Control Shader", tessControlShader ? tessControlShader->filename.data() : "No Tesselation Control shader"))
-        {
-            for (auto& shader : shaders)
-            {
-                if (shader.info.type() != core::pb::TESSELATION_CONTROL)
-                {
-                    continue;
-                }
-                if (ImGui::Selectable(shader.filename.c_str(), shader.resourceId == currentPipelineInfo.tessControlShaderId))
-                {
-                    currentPipelineInfo.tessControlShaderId = shader.resourceId;
-                    currentPipelineInfo.info.set_tess_control_shader_path(shader.info.path());
-                    ReloadPipeline(currentIndex_);
-                }
-            }
-            ImGui::EndCombo();
-        }
-        const auto* tessEvalShader = shaderEditor->GetShader(currentPipelineInfo.tessEvalShaderId);
-        if (ImGui::BeginCombo("Tesselation Evaluation Shader", tessEvalShader ? tessEvalShader->filename.data() : "No Tesselation Evaluation shader"))
-        {
-            for (auto& shader : shaders)
-            {
-                if (shader.info.type() != core::pb::TESSELATION_EVAL)
-                {
-                    continue;
-                }
-                if (ImGui::Selectable(shader.filename.c_str(), shader.resourceId == currentPipelineInfo.tessEvalShaderId))
-                {
-                    currentPipelineInfo.tessEvalShaderId = shader.resourceId;
-                    currentPipelineInfo.info.set_tess_eval_shader_path(shader.info.path());
-                    ReloadPipeline(currentIndex_);
-                }
-            }
-            ImGui::EndCombo();
+            throw std::runtime_error("PipelineInfo needs to be allocated");
         }
         ImGui::Separator();
-        bool depthTesting = currentPipelineInfo.info.pipeline().depth_test_enable();
+        bool depthTesting = pipelineStateInfo->depth_stencil_state != nullptr &&
+            pipelineStateInfo->depth_stencil_state->enable_depth_test;
 
         if(ImGui::Checkbox("Depth Testing", &depthTesting))
         {
-            currentPipelineInfo.info.mutable_pipeline()->set_depth_test_enable(depthTesting);
-            currentPipelineInfo.info.mutable_pipeline()->set_depth_mask(true);
+            if (depthTesting && pipelineStateInfo->depth_stencil_state == nullptr)
+            {
+                pipelineStateInfo->depth_stencil_state = std::make_unique<internal::DepthStencilStateT>();
+            }
+            pipelineStateInfo->depth_stencil_state->enable_depth_test = depthTesting;
+            pipelineStateInfo->depth_stencil_state->compare_mask = 0xFF;
+            pipelineStateInfo->depth_stencil_state->write_mask = 0xFF;
         }
         if(depthTesting)
         {
-            static constexpr std::array<std::string_view, 8> depthCompareOpNames =
+            int index = pipelineStateInfo->depth_stencil_state->compare_op;
+            if(ImGui::BeginCombo("Depth Compare Op", internal::EnumNameCompareOp((internal::CompareOp)index)))
             {
-                "LESS",
-                "LESS_OR_EQUAL",
-                "EQUAL",
-                "GREATER",
-                "NOT_EQUAL",
-                "GREATER_OR_EQUAL",
-                "ALWAYS",
-                "NEVER"
-            };
-            int index = currentPipelineInfo.info.pipeline().depth_compare_op();
-            if(ImGui::BeginCombo("Depth Compare Op", depthCompareOpNames[index].data()))
-            {
-                for (std::size_t i = 0; i < depthCompareOpNames.size(); i++)
+                for (std::size_t i = 0; i <= internal::CompareOp_MAX; i++)
                 {
-                    if (ImGui::Selectable(depthCompareOpNames[i].data(), i == index))
+                    if (ImGui::Selectable(internal::EnumNameCompareOp((internal::CompareOp)i), i == index))
                     {
-                        currentPipelineInfo.info.mutable_pipeline()->set_depth_compare_op(static_cast<core::pb::Pipeline_DepthCompareOp>(i));
+                        pipelineStateInfo->depth_stencil_state->compare_op = (internal::CompareOp)i;
                     }
                 }
                 ImGui::EndCombo();
             }
-            bool depthMask = currentPipelineInfo.info.pipeline().depth_mask();
+            bool depthMask = pipelineStateInfo->depth_stencil_state->compare_mask == 0xFF;
             if(ImGui::Checkbox("Depth Mask", &depthMask))
             {
-                currentPipelineInfo.info.mutable_pipeline()->set_depth_mask(depthMask);
+                pipelineStateInfo->depth_stencil_state->compare_mask = depthMask ? 0xFF : 0;
+                pipelineStateInfo->depth_stencil_state->write_mask = depthMask ? 0xFF : 0;
             }
         }
         ImGui::Separator();
-        bool stencilEnable = currentPipelineInfo.info.pipeline().enable_stencil_test();
+        bool stencilEnable = pipelineStateInfo->depth_stencil_state != nullptr && pipelineStateInfo->depth_stencil_state->enable_stencil_test;
         if(ImGui::Checkbox("Enable Stencil Test", &stencilEnable))
         {
-            currentPipelineInfo.info.mutable_pipeline()->set_enable_stencil_test(stencilEnable);
+            if (stencilEnable && pipelineStateInfo->depth_stencil_state == nullptr)
+            {
+                pipelineStateInfo->depth_stencil_state = std::make_unique<internal::DepthStencilStateT>();
+            }
+            if (stencilEnable && pipelineStateInfo->depth_stencil_state->front_stencil_state == nullptr)
+            {
+                pipelineStateInfo->depth_stencil_state->front_stencil_state = std::make_unique<internal::StencilOpStateT>();
+            }
+            if (stencilEnable && pipelineStateInfo->depth_stencil_state->back_stencil_state == nullptr)
+            {
+                pipelineStateInfo->depth_stencil_state->back_stencil_state = std::make_unique<internal::StencilOpStateT>();
+            }
+            pipelineStateInfo->depth_stencil_state->enable_stencil_test = stencilEnable;
         }
+        //TODO implement stencil buffering
+        /*
         if(stencilEnable)
         {
-            static constexpr std::array<std::string_view, 8> stencilFuncTxt = {
-                "NEVER",
-                "LESS",
-                "LEQUAL",
-                "GREATER",
-                "GEQUAL",
-                "EQUAL",
-                "NOTEQUAL",
-                "ALWAYS"
-            };
-            if(ImGui::BeginCombo("Stencil Func", stencilFuncTxt[currentPipelineInfo.info.pipeline().stencil_func()].data()))
+            if(ImGui::BeginCombo("Stencil Func", internal::EnumNameStencilOp(pipelineStateInfo->depth_stencil_state->back_stencil_state->compare_op)))
             {
-                for(std::size_t i = 0; i < stencilFuncTxt.size(); ++i)
+                for(std::size_t i = 0; i <= internal::StencilOp_MAX; ++i)
                 {
-                    if(ImGui::Selectable(stencilFuncTxt[i].data(), i == currentPipelineInfo.info.pipeline().stencil_func()))
+                    if(ImGui::Selectable(internal::EnumNameStencilOp((internal::StencilOp)i), i == pipelineStateInfo->depth_stencil_state->front_stencil_state->compare_op))
                     {
-                        currentPipelineInfo.info.mutable_pipeline()->set_stencil_func(static_cast<core::pb::Pipeline_StencilFunc>(i));
+                        pipelineStateInfo->depth_stencil_state->front_stencil_state->compare_op = static_cast<internal::StencilOp>(i);
                     }
                 }
                 ImGui::EndCombo();
@@ -282,7 +220,11 @@ void PipelineEditor::DrawInspector()
             ImGui::Text("%s", stencilMaskCommand.data());
         }
 
+
         ImGui::Separator();
+        */
+        //TODO enable blending
+        /*
         bool enableBlend = currentPipelineInfo.info.pipeline().blend_enable();
         if(ImGui::Checkbox("Enable Blend", &enableBlend))
         {
@@ -342,9 +284,13 @@ void PipelineEditor::DrawInspector()
             ImGui::Text("%s", blendFuncCommand.c_str());
         }
         ImGui::Separator();
-        bool enableCulling = currentPipelineInfo.info.pipeline().enable_culling();
+        */
+        //TODO enable culling
+        /*
+        bool enableCulling = pipelineStateInfo->rasterizer_state->cull_mode != internal::CullMode_NONE;
         if(ImGui::Checkbox("Enable Culling", &enableCulling))
         {
+            pipelineStateInfo->rasterizer_state->cull_mode =
             currentPipelineInfo.info.mutable_pipeline()->set_enable_culling(enableCulling);
         }
         if(enableCulling)
@@ -384,11 +330,13 @@ void PipelineEditor::DrawInspector()
             }
         }
         ImGui::Separator();
+        */
 
-
+        //TODO show sampler table
+        /*
         if(ImGui::BeginTable("Samplers Table", 2))
         {
-            for(int i = 0; i < currentPipelineInfo.info.pipeline().samplers_size(); i++)
+            for(int i = 0; i < currentPipelineInfo.info.pipeline.samplers_size(); i++)
             {
                 auto* sampler = currentPipelineInfo.info.mutable_pipeline()->mutable_samplers(i);
                 ImGui::TableNextRow();
@@ -423,6 +371,9 @@ void PipelineEditor::DrawInspector()
 
 
         ImGui::Separator();
+        */
+        //TODO show unifors tables from shaders
+        /*
         if (ImGui::BeginListBox("Uniforms"))
         {
             for (int i = 0; i < currentPipelineInfo.info.pipeline().uniforms_size(); i++)
@@ -434,7 +385,9 @@ void PipelineEditor::DrawInspector()
             
             ImGui::EndListBox();
         }
-
+        */
+        //TODO show input attributes
+        /*
         if (ImGui::BeginListBox("In Attributes"))
         {
             for (int i = 0; i < currentPipelineInfo.info.pipeline().in_vertex_attributes_size(); i++)
@@ -445,7 +398,10 @@ void PipelineEditor::DrawInspector()
             }
             ImGui::EndListBox();
         }
+        */
     }
+    //TODO implement compute pipeline
+    /*
     else if(currentPipelineInfo.info.pipeline().type() == core::pb::Pipeline_Type_COMPUTE)
     {
         const auto* computeShader = shaderEditor->GetShader(currentPipelineInfo.computeShaderId);
@@ -467,6 +423,9 @@ void PipelineEditor::DrawInspector()
             ImGui::EndCombo();
         }
     }
+    */
+    //TODO implement raytracing pipeline
+    /*
     else if(currentPipelineInfo.info.pipeline().type() == core::pb::Pipeline_Type_RAYTRACING)
     {
         const auto* rayGenShader = shaderEditor->GetShader(currentPipelineInfo.rayGenShaderId);
@@ -565,6 +524,7 @@ void PipelineEditor::DrawInspector()
             currentPipelineInfo.raytracingInfo.mutable_pipeline()->set_max_recursion_depth(static_cast<std::uint32_t>(maxRecursiveDepth));
         }
     }
+    */
 }
 bool PipelineEditor::DrawContentList(bool unfocus)
 {
@@ -604,13 +564,13 @@ void PipelineEditor::AddResource(const Resource& resource)
         return;
     }
     std::ifstream fileIn (resource.path.c_str(), std::ios::binary);
-    if (!pipelineInfo.info.ParseFromIstream(&fileIn))
+    if (!core::ReadFlatbufferFromFile<EditorPipelineInfoT, EditorPipelineInfo>(resource.path, pipelineInfo.info))
     {
         LogWarning(std::format("Could not open protobuf file: {}", resource.path.c_str()));
         return;
     }
     
-    pipelineInfo.info.mutable_pipeline()->set_name(GetFilename(resource.path, false));
+    pipelineInfo.info.pipeline->name = (GetFilename(resource.path, false));
     
 
     pipelineInfos_.push_back(pipelineInfo);
@@ -624,69 +584,16 @@ void PipelineEditor::RemoveResource(const Resource& resource)
         if(pipelineInfo.vertexShaderId == resource.resourceId)
         {
             pipelineInfo.vertexShaderId = INVALID_RESOURCE_ID;
-            pipelineInfo.info.clear_vertex_shader_path();
+            pipelineInfo.info.vertex_shader_path.clear();
             modified = true;
         }
         if (pipelineInfo.fragmentShaderId == resource.resourceId)
         {
             pipelineInfo.fragmentShaderId = INVALID_RESOURCE_ID;
-            pipelineInfo.info.clear_fragment_shader_path();
+            pipelineInfo.info.fragment_shader_path.clear();
             modified = true;
         }
-        if(pipelineInfo.geometryShaderId == resource.resourceId)
-        {
-            pipelineInfo.geometryShaderId = INVALID_RESOURCE_ID;
-            pipelineInfo.info.clear_geometry_shader_path();
-            modified = true;
-        }
-        if(pipelineInfo.tessControlShaderId == resource.resourceId)
-        {
-            pipelineInfo.tessControlShaderId = INVALID_RESOURCE_ID;
-            pipelineInfo.info.clear_tess_control_shader_path();
-            modified = true;
-        }
-        if(pipelineInfo.tessEvalShaderId == resource.resourceId)
-        {
-            pipelineInfo.tessEvalShaderId = resource.resourceId;
-            pipelineInfo.info.clear_tess_eval_shader_path();
-            modified = true;
-        }
-        if(pipelineInfo.computeShaderId == resource.resourceId)
-        {
-            pipelineInfo.computeShaderId = INVALID_RESOURCE_ID;
-            pipelineInfo.info.clear_compute_shader_path();
-            modified = true;
-        }
-        if (pipelineInfo.rayGenShaderId == resource.resourceId)
-        {
-            pipelineInfo.rayGenShaderId = INVALID_RESOURCE_ID;
-            pipelineInfo.raytracingInfo.clear_ray_gen_shader_path();
-            modified = true;
-        }
-        if (pipelineInfo.missHitShaderId == resource.resourceId)
-        {
-            pipelineInfo.missHitShaderId = INVALID_RESOURCE_ID;
-            pipelineInfo.raytracingInfo.clear_miss_hit_shader_path();
-            modified = true;
-        }
-        if (pipelineInfo.anyHitShaderId == resource.resourceId)
-        {
-            pipelineInfo.anyHitShaderId = INVALID_RESOURCE_ID;
-            pipelineInfo.raytracingInfo.clear_any_hit_shader_path();
-            modified = true;
-        }
-        if (pipelineInfo.closestHitShaderId == resource.resourceId)
-        {
-            pipelineInfo.closestHitShaderId = INVALID_RESOURCE_ID;
-            pipelineInfo.raytracingInfo.clear_closest_hit_shader_path();
-            modified = true;
-        }
-        if (pipelineInfo.intersectionHitShaderId == resource.resourceId)
-        {
-            pipelineInfo.intersectionHitShaderId = INVALID_RESOURCE_ID;
-            pipelineInfo.raytracingInfo.clear_intersection_hit_shader_path();
-            modified = true;
-        }
+
         if(modified)
         {
             ReloadPipeline(i);
@@ -725,38 +632,7 @@ void PipelineEditor::UpdateExistingResource(const Resource& resource)
         {
             modified = true;
         }
-        if(pipelineInfo.geometryShaderId == resource.resourceId)
-        {
-            modified = true;
-        }
-        if(pipelineInfo.tessControlShaderId == resource.resourceId)
-        {
-            modified = true;
-        }
-        if(pipelineInfo.tessEvalShaderId == resource.resourceId)
-        {
-            modified = true;
-        }
-        if(pipelineInfo.rayGenShaderId == resource.resourceId)
-        {
-            modified = true;
-        }
-        if(pipelineInfo.closestHitShaderId == resource.resourceId)
-        {
-            modified = true;
-        }
-        if(pipelineInfo.missHitShaderId == resource.resourceId)
-        {
-            modified = true;
-        }
-        if(pipelineInfo.intersectionHitShaderId == resource.resourceId)
-        {
-            modified = true;
-        }
-        if(pipelineInfo.anyHitShaderId == resource.resourceId)
-        {
-            modified = true;
-        }
+
         if (modified)
         {
             ReloadPipeline(i);
@@ -778,10 +654,9 @@ void PipelineEditor::Save()
 {
     for(auto& pipelineInfo : pipelineInfos_)
     {
-        std::ofstream fileOut(pipelineInfo.path.c_str(), std::ios::binary);
-        if (!pipelineInfo.info.SerializeToOstream(&fileOut))
+        if (!core::WriteFlatbufferToFile<EditorPipelineInfoT, EditorPipelineInfo>(pipelineInfo.info, pipelineInfo.path))
         {
-            LogWarning(std::format("Could not save pipeline at: {}", pipelineInfo.path.c_str()));
+            LogWarning(std::format("Could not save pipeline at: {}", pipelineInfo.path));
         }
         
     }
@@ -841,16 +716,20 @@ void PipelineEditor::DrawCenterView()
     ImNodes::BeginNodeEditor();
 
     std::vector<std::pair<int, int>> links;
-    switch(currentPipeline.info.pipeline().type())
+    /*
+    switch(currentPipeline.info.pipeline.type())
     {
     case core::pb::Pipeline_Type_RASTERIZE:
+    */
     {
 
         constexpr int vertexInputBaseIndex = 100;
         constexpr int vertexOutputBaseIndex = 300;
         constexpr int uniformsBaseIndex = 200;
 
-		if(currentPipeline.info.pipeline().in_vertex_attributes_size() != 0)
+        //TODO show input vertex attributes
+        /*
+		if(currentPipeline.info.pipeline.in_vertex_attributes_size() != 0)
 		{
 			ImNodes::BeginNode(-1);
 			ImNodes::BeginNodeTitleBar();
@@ -868,6 +747,7 @@ void PipelineEditor::DrawCenterView()
 			ImNodes::EndNode();
 			ImNodes::SetNodeGridSpacePos(-1, { 50, 50 });
 		}
+		*/
         //Vertex Shader Node
         ImNodes::BeginNode(0);
         ImNodes::BeginNodeTitleBar();
@@ -880,11 +760,13 @@ void PipelineEditor::DrawCenterView()
         ImGui::TextUnformatted("Uniforms");
         ImNodes::EndInputAttribute();
 
-        if(!currentPipeline.info.vertex_shader_path().empty())
+        if(!currentPipeline.info.vertex_shader_path.empty())
         {
             ImGui::TextUnformatted("Outputs");
             const auto* vertexShaderInfo = shaderEditor->GetShader(
-                    resourceManager.FindResourceByPath(currentPipeline.info.vertex_shader_path()));
+                    resourceManager.FindResourceByPath(currentPipeline.info.vertex_shader_path));
+            //TODO show output attributes from shader
+            /*
             for (int i = 0; i < vertexShaderInfo->info.out_attributes_size(); i++)
             {
                 const auto& vertexOutput = vertexShaderInfo->info.out_attributes(i);
@@ -894,6 +776,7 @@ void PipelineEditor::DrawCenterView()
                 ImNodes::EndOutputAttribute();
                 links.emplace_back(vertexOutputBaseIndex, vertexOutputBaseIndex + i + 1);
             }
+            */
         }
         ImNodes::EndNode();
 
@@ -913,8 +796,9 @@ void PipelineEditor::DrawCenterView()
 
         ImNodes::SetNodeGridSpacePos(1, { 450.0f,150 });
         
-
-		if(currentPipeline.info.pipeline().uniforms_size() != 0)
+        //TODO show uniforms
+        /*
+		if(currentPipeline.info.pipeline.uniforms_size() != 0)
 		{
 			ImNodes::BeginNode(-2);
 			ImNodes::BeginNodeTitleBar();
@@ -954,21 +838,21 @@ void PipelineEditor::DrawCenterView()
 
         	ImNodes::SetNodeGridSpacePos(-2, { 50.0f,250.0f });
 		}
-        //TODO add geometry shader node if shader exists
-        //TODO add tesselation control shader node if shader exists
-        //TODO add tesselation eval shader node if shader exists
+		*/
         
 
         for(std::size_t i = 0; i < links.size(); i++)
         {
             ImNodes::Link(i, links[i].first, links[i].second);
         }
-        break;
+        //break;
     }
+    /*
     case core::pb::Pipeline_Type_COMPUTE: break;
     case core::pb::Pipeline_Type_RAYTRACING: break;
     default: ;
     }
+    */
     
 
     ImNodes::EndNodeEditor();
@@ -985,38 +869,21 @@ void PipelineEditor::ReloadPipeline(int index)
     const auto* shaderEditor = dynamic_cast<ShaderEditor*>(editor->GetEditorSystem(EditorType::SHADER));
 
     auto& pipelineInfo = pipelineInfos_[index];
-    if (pipelineInfo.info.pipeline().type() == core::pb::Pipeline_Type_RASTERIZE)
+    //if (pipelineInfo.info.pipeline().type() == core::pb::Pipeline_Type_RASTERIZE)
     {
-        if (pipelineInfo.vertexShaderId == INVALID_RESOURCE_ID && !pipelineInfo.info.vertex_shader_path().empty())
+        if (pipelineInfo.vertexShaderId == INVALID_RESOURCE_ID && !pipelineInfo.info.vertex_shader_path.empty())
         {
-            pipelineInfo.vertexShaderId = resourceManager.FindResourceByPath(pipelineInfo.info.vertex_shader_path());
+            pipelineInfo.vertexShaderId = resourceManager.FindResourceByPath(pipelineInfo.info.vertex_shader_path);
         }
 
-        if (pipelineInfo.fragmentShaderId == INVALID_RESOURCE_ID && !pipelineInfo.info.fragment_shader_path().empty())
+        if (pipelineInfo.fragmentShaderId == INVALID_RESOURCE_ID && !pipelineInfo.info.fragment_shader_path.empty())
         {
-            pipelineInfo.fragmentShaderId = resourceManager.FindResourceByPath(pipelineInfo.info.fragment_shader_path());
+            pipelineInfo.fragmentShaderId = resourceManager.FindResourceByPath(pipelineInfo.info.fragment_shader_path);
         }
 
-        if(pipelineInfo.computeShaderId == INVALID_RESOURCE_ID && !pipelineInfo.info.compute_shader_path().empty())
-        {
-            pipelineInfo.computeShaderId = resourceManager.FindResourceByPath(pipelineInfo.info.compute_shader_path());
-        }
-
-        if(pipelineInfo.geometryShaderId == INVALID_RESOURCE_ID && !pipelineInfo.info.geometry_shader_path().empty())
-        {
-            pipelineInfo.geometryShaderId = resourceManager.FindResourceByPath(pipelineInfo.info.geometry_shader_path());
-        }
-
-        if(pipelineInfo.tessControlShaderId == INVALID_RESOURCE_ID && !pipelineInfo.info.tess_control_shader_path().empty())
-        {
-            pipelineInfo.tessControlShaderId = resourceManager.FindResourceByPath(pipelineInfo.info.tess_control_shader_path());
-        }
-
-        if(pipelineInfo.tessEvalShaderId == INVALID_RESOURCE_ID && !pipelineInfo.info.tess_eval_shader_path().empty())
-        {
-            pipelineInfo.tessEvalShaderId = resourceManager.FindResourceByPath(pipelineInfo.info.tess_eval_shader_path());
-        }
     }
+    //TODO add compute pipeline
+    /*
     else if(pipelineInfo.info.pipeline().type() == core::pb::Pipeline_Type_COMPUTE)
     {
         if (pipelineInfo.computeShaderId == INVALID_RESOURCE_ID && !pipelineInfo.info.compute_shader_path().empty())
@@ -1024,6 +891,9 @@ void PipelineEditor::ReloadPipeline(int index)
             pipelineInfo.computeShaderId = resourceManager.FindResourceByPath(pipelineInfo.info.compute_shader_path());
         }
     }
+    */
+    //TODO add raytracing pipeline
+    /*
     else if(pipelineInfo.info.pipeline().type() == core::pb::Pipeline_Type_RAYTRACING)
     {
         if (pipelineInfo.rayGenShaderId == INVALID_RESOURCE_ID && !pipelineInfo.raytracingInfo.ray_gen_shader_path().empty())
@@ -1047,6 +917,10 @@ void PipelineEditor::ReloadPipeline(int index)
             pipelineInfo.intersectionHitShaderId = resourceManager.FindResourceByPath(pipelineInfo.raytracingInfo.intersection_hit_shader_path());
         }
     }
+    */
+
+    //TODO reload pipeline object
+    /*
     std::vector<core::pb::Sampler> samplers;
     samplers.reserve(pipelineInfo.info.pipeline().samplers_size());
     for(int i = 0; i < pipelineInfo.info.pipeline().samplers_size(); i++)
@@ -1077,76 +951,12 @@ void PipelineEditor::ReloadPipeline(int index)
             *pipelineInfo.info.mutable_pipeline()->add_uniforms() = fragmentShader->info.uniforms(i);
         }
     }
-    if(pipelineInfo.geometryShaderId != INVALID_RESOURCE_ID)
-    {
-        const auto* geometryShader = shaderEditor->GetShader(pipelineInfo.geometryShaderId);
-        for (int i = 0; i < geometryShader->info.uniforms_size(); i++)
-        {
-            *pipelineInfo.info.mutable_pipeline()->add_uniforms() = geometryShader->info.uniforms(i);
-        }
-    }
     if(pipelineInfo.computeShaderId != INVALID_RESOURCE_ID)
     {
         const auto* computeShader = shaderEditor->GetShader(pipelineInfo.computeShaderId);
         for (int i = 0; i < computeShader->info.uniforms_size(); i++)
         {
             *pipelineInfo.info.mutable_pipeline()->add_uniforms() = computeShader->info.uniforms(i);
-        }
-    }
-    if(pipelineInfo.tessControlShaderId != INVALID_RESOURCE_ID)
-    {
-        const auto* tessControlShader = shaderEditor->GetShader(pipelineInfo.tessControlShaderId);
-        for (int i = 0; i < tessControlShader->info.uniforms_size(); i++)
-        {
-            *pipelineInfo.info.mutable_pipeline()->add_uniforms() = tessControlShader->info.uniforms(i);
-        }
-    }
-    if(pipelineInfo.tessEvalShaderId != INVALID_RESOURCE_ID)
-    {
-        const auto* tessEvalShader = shaderEditor->GetShader(pipelineInfo.tessEvalShaderId);
-        for (int i = 0; i < tessEvalShader->info.uniforms_size(); i++)
-        {
-            *pipelineInfo.info.mutable_pipeline()->add_uniforms() = tessEvalShader->info.uniforms(i);
-        }
-    }
-    if (pipelineInfo.rayGenShaderId != INVALID_RESOURCE_ID)
-    {
-        const auto* rayGenShader = shaderEditor->GetShader(pipelineInfo.rayGenShaderId);
-        for (int i = 0; i < rayGenShader->info.uniforms_size(); i++)
-        {
-            *pipelineInfo.info.mutable_pipeline()->add_uniforms() = rayGenShader->info.uniforms(i);
-        }
-    }
-    if (pipelineInfo.missHitShaderId != INVALID_RESOURCE_ID)
-    {
-        const auto* missHitShader = shaderEditor->GetShader(pipelineInfo.missHitShaderId);
-        for (int i = 0; i < missHitShader->info.uniforms_size(); i++)
-        {
-            *pipelineInfo.info.mutable_pipeline()->add_uniforms() = missHitShader->info.uniforms(i);
-        }
-    }
-    if (pipelineInfo.closestHitShaderId != INVALID_RESOURCE_ID)
-    {
-        const auto* closestHitShader = shaderEditor->GetShader(pipelineInfo.closestHitShaderId);
-        for (int i = 0; i < closestHitShader->info.uniforms_size(); i++)
-        {
-            *pipelineInfo.info.mutable_pipeline()->add_uniforms() = closestHitShader->info.uniforms(i);
-        }
-    }
-    if (pipelineInfo.anyHitShaderId != INVALID_RESOURCE_ID)
-    {
-        const auto* anyHitShader = shaderEditor->GetShader(pipelineInfo.anyHitShaderId);
-        for (int i = 0; i < anyHitShader->info.uniforms_size(); i++)
-        {
-            *pipelineInfo.info.mutable_pipeline()->add_uniforms() = anyHitShader->info.uniforms(i);
-        }
-    }
-    if (pipelineInfo.intersectionHitShaderId != INVALID_RESOURCE_ID)
-    {
-        const auto* intersectionHitShader = shaderEditor->GetShader(pipelineInfo.intersectionHitShaderId);
-        for (int i = 0; i < intersectionHitShader->info.uniforms_size(); i++)
-        {
-            *pipelineInfo.info.mutable_pipeline()->add_uniforms() = intersectionHitShader->info.uniforms(i);
         }
     }
     for(int i = 0; i < pipelineInfo.info.pipeline().uniforms_size(); i++)
@@ -1176,6 +986,8 @@ void PipelineEditor::ReloadPipeline(int index)
             newSampler->set_name(uniform.name());
             newSampler->set_type(core::pb::NONE);
         }
+
     }
+    */
 }
 }

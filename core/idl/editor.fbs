@@ -1,19 +1,22 @@
-﻿
+﻿include "renderer.fbs";
 namespace novus.editor;
 
 table EditorPipelineInfo
 {
-
+    pipeline: renderer.GraphicsPipeline;
+    vertex_shader_path: string;
+    fragment_shader_path: string;
 }
 
 table EditorSceneInfo
 {
     name:string;
+    path: string;
 }
 
 table EditorMeshInfo
 {
-
+    mesh: renderer.Mesh;
 }
 
 table EditorMaterialInfo
