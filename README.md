@@ -1,4 +1,4 @@
-# Neko3d -~~~~ Computer Graphics Editor~~~~
+# Neko3d - ~~~~Computer Graphics Editor~~~~
 
 ## How to build
 ### On Windows

@@ -34,8 +34,16 @@ novus::renderer::SceneT Scene07()
     novus::renderer::FramebufferT framebuffer{};
     static constexpr auto renderColorTargetFormat = novus::internal::TextureFormat_TEXTUREFORMAT_R8G8B8A8_UNORM;
     static constexpr auto renderDepthTargetFormat = novus::internal::TextureFormat_TEXTUREFORMAT_D24_UNORM_S8_UINT;
-    framebuffer.color_texture_infos.push_back(novus::internal::TextureInfoT{.width = 0, .height = 0, .layer_count_or_depth = 1, .num_levels = 1, .format = renderColorTargetFormat, .sample_count = novus::internal::SampleCount_SAMPLECOUNT_1, .type = novus::internal::TextureType_TEXTURETYPE_2D, .usage = (novus::internal::TextureUsageFlags)(novus::internal::TextureUsageFlags_TEXTUREUSAGE_SAMPLER | novus::internal::TextureUsageFlags_TEXTUREUSAGE_COLOR_TARGET)});
-    framebuffer.color_target_infos.push_back(novus::internal::ColorTargetInfoT{.mip_level = 0, .layer_or_depth_plane = 0, .clear_color = {0,0,0,0},
+    framebuffer.color_texture_infos.push_back(novus::internal::TextureInfoT{.width = 0, .height = 0,
+        .layer_count_or_depth = 1,
+        .num_levels = 1,
+        .format = renderColorTargetFormat,
+        .sample_count = novus::internal::SampleCount_SAMPLECOUNT_1,
+        .type = novus::internal::TextureType_TEXTURETYPE_2D,
+        .usage = (novus::internal::TextureUsageFlags)(novus::internal::TextureUsageFlags_TEXTUREUSAGE_SAMPLER | novus::internal::TextureUsageFlags_TEXTUREUSAGE_COLOR_TARGET)});
+    framebuffer.color_target_infos.push_back(novus::internal::ColorTargetInfoT{.mip_level = 0,
+        .layer_or_depth_plane = 0,
+        .clear_color = {0,0,0,0},
         .load_op = novus::internal::LoadOp_LOADOP_CLEAR, .store_op = novus::internal::StoreOp_STOREOP_STORE});
     auto colorSamplerInfo = std::make_unique<novus::internal::SamplerInfoT>();
     colorSamplerInfo->address_mode_u = novus::internal::SamplerAddressMode_SAMPLERADDRESSMODE_CLAMP_TO_EDGE;
@@ -62,7 +70,12 @@ novus::renderer::SceneT Scene07()
     depthTextureInfo->type = novus::internal::TextureType_TEXTURETYPE_2D;
     depthTextureInfo->usage = novus::internal::TextureUsageFlags_TEXTUREUSAGE_DEPTH_STENCIL_TARGET;
     framebuffer.depth_stencil_texture_info = std::move(depthTextureInfo);
-    //TODO add color/depth target to generate
+    auto depthStencilTargetInfo = std::make_unique<novus::internal::DepthStencilTargetInfoT>();
+    depthStencilTargetInfo->clear_depth = 1.0f;
+    depthStencilTargetInfo->load_op = novus::internal::LoadOp_LOADOP_CLEAR;
+    depthStencilTargetInfo->store_op = novus::internal::StoreOp_STOREOP_STORE;
+    framebuffer.depth_stencil_target_info = std::move(depthStencilTargetInfo);
+
     scene.framebuffer.push_back(std::move(framebuffer));
     scene.name = "07_Post-Process";
     {
@@ -128,23 +141,30 @@ novus::renderer::SceneT Scene07()
     }
     {
         std::vector<novus::renderer::StorageBufferBindingT> storageBufferBindings;
-        storageBufferBindings.push_back({.buffer_name = "ubo", .binding = 0, .shader_stage = novus::internal::ShaderStage_VERTEX});
+        storageBufferBindings.push_back({.buffer_name = "ubo",
+            .binding = 0,
+            .shader_stage = novus::internal::ShaderStage_VERTEX});
         std::vector<novus::renderer::TextureMaterialBindingT> textureBindings;
         textureBindings.push_back({.binding = 0, .set = 2, .texture_index = 0});
         novus::renderer::MaterialT material{.name = "Cube Material",
-            .pipeline_index = 0, .storage_buffer_bindings = std::move(storageBufferBindings),
+            .pipeline_index = 0,
+            .storage_buffer_bindings = std::move(storageBufferBindings),
             .texture_bindings = std::move(textureBindings)};
         scene.materials.push_back(std::move(material));
     }
     {
         novus::renderer::MaterialT postMaterial{.name = "Screen Material",
-        .pipeline_index = 0};
-        postMaterial.texture_bindings.push_back({.binding = 0, .set = 2, .texture_index = 0, .framebuffer_index = 0});
+        .pipeline_index = 1};
+        postMaterial.texture_bindings.push_back(
+            {.binding = 0,
+                .set = 2,
+                .texture_index = 0,
+                .framebuffer_index = 0});
         scene.materials.push_back(std::move(postMaterial));
     }
     novus::renderer::MeshT cube{.mesh_name = "Cube", .model_index = -1, .primitive_type = novus::renderer::MeshPrimitiveType_CUBE};
     scene.meshes.push_back(std::move(cube));
-    novus::renderer::MeshT screenQuad{.mesh_name = "Screen Quad", .model_index = -1, .primitive_type = novus::renderer::MeshPrimitiveType_QUAD};
+    novus::renderer::MeshT screenQuad{.mesh_name = "Screen Quad", .model_index = -1, .primitive_type = novus::renderer::MeshPrimitiveType_QUAD, .scale = glm::vec3(2.0f)};
     scene.meshes.emplace_back(std::move(screenQuad));
 
     novus::renderer::DrawCommandT drawCommand{.name = "Draw Cube",
@@ -177,7 +197,8 @@ novus::renderer::SceneT Scene07()
 
     scene.systems.push_back({.module_ = "scene04", .class_ = "Scene04", .path = "data/scripts/04_storage.wasm"});
 
-    scene.buffers.push_back({.name = "ubo", .block_size = 3*sizeof(glm::mat4)});
+    scene.buffers.push_back({.name = "ubo",
+        .block_size = 3*sizeof(glm::mat4)});
     novus::renderer::TextureT texture;
     auto samplerInfo = std::make_unique<novus::internal::SamplerInfoT>();
     samplerInfo->address_mode_u = novus::internal::SamplerAddressMode_SAMPLERADDRESSMODE_CLAMP_TO_EDGE;

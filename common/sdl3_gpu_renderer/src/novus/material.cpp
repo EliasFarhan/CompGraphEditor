@@ -102,7 +102,7 @@ void Material::Load(const renderer::MaterialT& materialInfo,
         }
         case 2:
         {
-            auto& texture = textureManager.GetTexture(textures[textureBinding.texture_index]);
+            auto& texture = framebuffers[textureBinding.framebuffer_index].GetColorTextures()[textureBinding.texture_index];
             fragmentTextures[textureBinding.binding] = {.texture = texture.texture, .sampler = texture.sampler};
             break;
         }

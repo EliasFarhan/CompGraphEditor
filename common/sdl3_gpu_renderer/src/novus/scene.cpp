@@ -21,10 +21,11 @@ void Scene::UnloadScene()
     }
     GetTextureManager().Clear();
     bufferManager_.Clear();
-    if (depthTexture_ != nullptr)
+    for (auto& framebuffer : framebuffers_)
     {
-        SDL_ReleaseGPUTexture(GetDevice(), depthTexture_);
+        framebuffer.Clear();
     }
+
 }
 
 void Scene::Update(float dt)
@@ -42,15 +43,16 @@ void Scene::Update(float dt)
     SDL_GPUTexture* swapchainTexture = GetSwapchainTexture();
     if (swapchainTexture != nullptr)
     {
-        std::array backBufferTarget = {swapchainTexture};
-
         for (int64_t subpassIndex = 0; subpassIndex < std::ssize(renderpasses_); subpassIndex++)
         {
             auto& subpass = renderpasses_[subpassIndex];
             const auto& subpassInfo = scene_.sub_passes[subpassIndex];
             const auto framebufferIndex = subpassInfo.framebuffer_index;
-            //TODO define framebuffer to get the needed textures (like in OpenGL?)
 
+            if (subpassInfo.framebuffer_index == -1)
+            {
+                backBuffer_.UpdateColorTargetTexture(GetSwapchainTexture());
+            }
             currentRenderPass_ = GenerateSubPass(commandBuffer, subpassInfo, framebufferIndex == -1 ? backBuffer_ : framebuffers_[framebufferIndex]);
             for (auto& command: subpass.GetDrawCommands())
             {
@@ -189,23 +191,25 @@ Scene::ImportStatus Scene::LoadMeshes(std::span<const renderer::MeshT> meshes)
             continue;
 
         auto& vertexInputBuffer = vertexInputBuffers_[i];
+        const auto scale = meshInfo.scale == glm::vec3() ? glm::vec3(1.0f) : meshInfo.scale;
+        const auto offset = meshInfo.offset;
         switch (meshInfo.primitive_type)
         {
         case renderer::MeshPrimitiveType_CUBE:
         {
-            auto mesh = core::GenerateCube(glm::vec3(1.0f), glm::vec3(0.0f));
+            auto mesh = core::GenerateCube(scale, offset);
             vertexInputBuffer.CreateFromMesh(mesh, copyPass);
             break;
         }
         case renderer::MeshPrimitiveType_QUAD:
         {
-            auto mesh = core::GenerateQuad(glm::vec3(1.0f), glm::vec3(0.0f));
+            auto mesh = core::GenerateQuad(scale, offset);
             vertexInputBuffer.CreateFromMesh(mesh, copyPass);
             break;
         }
         case renderer::MeshPrimitiveType_SPHERE:
         {
-            auto mesh = core::GenerateSphere(1.0f, glm::vec3(0.0f));
+            auto mesh = core::GenerateSphere(scale.x, offset);
             vertexInputBuffer.CreateFromMesh(mesh, copyPass);
             break;
         }
@@ -231,7 +235,7 @@ Scene::ImportStatus Scene::LoadRenderPass(std::span<const renderer::RenderpassT>
 
         if (subpass.framebuffer_index == -1) //means we use the backbuffer
         {
-            if (depthTexture_ == nullptr)
+            if (backBufferInfo_.depth_stencil_target_info == nullptr)
             {
                 bool generateDepthTexture = false;
                 for (auto& command: subpass.commands)
@@ -254,7 +258,6 @@ Scene::ImportStatus Scene::LoadRenderPass(std::span<const renderer::RenderpassT>
                         .usage = SDL_GPU_TEXTUREUSAGE_DEPTH_STENCIL_TARGET,
                         .width = windowSize.x, .height = windowSize.y,
                         .layer_count_or_depth = 1, .num_levels = 1, .sample_count = SDL_GPU_SAMPLECOUNT_1};
-                    depthTexture_ = SDL_CreateGPUTexture(GetDevice(), &textureCreateInfo);
                     //TODO generate framebuffer data
                     auto depthStencilTargetInfo = std::make_unique<novus::internal::DepthStencilTargetInfoT>();
                     depthStencilTargetInfo->clear_depth = 1.0f;
@@ -283,31 +286,32 @@ Scene::ImportStatus Scene::LoadBuffers(std::span<const renderer::StorageBufferT>
     }
     return ImportStatus::SUCCESS;
 }
-Scene::ImportStatus Scene::LoadFramebuffers(std::span<const renderer::FramebufferT> framebuffers)
+Scene::ImportStatus Scene::LoadFramebuffers(std::span<const renderer::FramebufferT> framebufferInfos)
 {
     //Loading backbuffer
     const auto windowSize = core::GetWindowSize();
     internal::ColorTargetInfoT colorTargetInfo{.mip_level = 0,
-        .layer_or_depth_plane = 1,
+        .layer_or_depth_plane = 0,
         .clear_color = {.r = 0, .g = 0, .b = 0, .a = 0},
         .load_op = internal::LoadOp_LOADOP_CLEAR,
         .store_op = internal::StoreOp_STOREOP_STORE};
     backBufferInfo_.color_target_infos.push_back(colorTargetInfo);
     auto format = GetSwapchainTextureFormat();
-    backBufferInfo_.color_texture_infos.push_back(internal::TextureInfoT{.width = windowSize.x, .height = windowSize.y, .format = (internal::TextureFormat)format,
-        .sample_count = internal::SampleCount_SAMPLECOUNT_1, .type = internal::TextureType_TEXTURETYPE_2D,
+    backBufferInfo_.color_texture_infos.push_back(internal::TextureInfoT{
+        .width = windowSize.x, .height = windowSize.y,
+        .layer_count_or_depth = 1,
+        .format = (internal::TextureFormat)format,
+        .sample_count = internal::SampleCount_SAMPLECOUNT_1,
+        .type = internal::TextureType_TEXTURETYPE_2D,
         .usage = internal::TextureUsageFlags_TEXTUREUSAGE_COLOR_TARGET});
 
-    framebuffers_.reserve(framebuffers.size());
-    for (int64_t framebufferIndex = 0; framebufferIndex < framebuffers.size(); ++framebufferIndex)
+    framebuffers_.reserve(framebufferInfos.size());
+    for (const auto & framebuffer : framebufferInfos)
     {
-        auto& framebuffer = framebuffers[framebufferIndex];
         Framebuffer newFramebuffer;
         newFramebuffer.Load(framebuffer);
         framebuffers_.push_back(std::move(newFramebuffer));
     }
-
-    //TODO actually do framebuffering
     return ImportStatus::SUCCESS;
 }
 

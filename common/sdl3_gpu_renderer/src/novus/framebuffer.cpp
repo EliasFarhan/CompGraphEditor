@@ -45,9 +45,12 @@ void Framebuffer::Load(const renderer::FramebufferT& framebufferPb)
             sampler = GenerateSampler(samplerInfo);
         }
         colorTextures_.emplace_back(colorTexture, sampler);
-        SDL_GPUColorTargetInfo targetInfo{.texture = colorTexture, .mip_level = colorTargetInfo.mip_level,
-            .layer_or_depth_plane = colorTextureInfo.layer_count_or_depth, .clear_color = colorTargetInfo.clear_color,
-            .load_op = (SDL_GPULoadOp)colorTargetInfo.load_op, .store_op = (SDL_GPUStoreOp)colorTargetInfo.store_op };
+        SDL_GPUColorTargetInfo targetInfo{.texture = colorTexture,
+            .mip_level = colorTargetInfo.mip_level,
+            .layer_or_depth_plane = colorTargetInfo.layer_or_depth_plane,
+            .clear_color = colorTargetInfo.clear_color,
+            .load_op = (SDL_GPULoadOp)colorTargetInfo.load_op,
+            .store_op = (SDL_GPUStoreOp)colorTargetInfo.store_op };
         colorTargets_.emplace_back(targetInfo);
 
     }
@@ -76,4 +79,30 @@ void Framebuffer::Load(const renderer::FramebufferT& framebufferPb)
     }
 }
 
+void Framebuffer::UpdateColorTargetTexture(SDL_GPUTexture* sdl_gpu_texture)
+{
+    colorTargets_[0].texture = sdl_gpu_texture;
+}
+
+void Framebuffer::Clear()
+{
+    auto device = GetDevice();
+    for (auto& colorTexture : colorTextures_)
+    {
+        if (colorTexture.texture != nullptr)
+        {
+            SDL_ReleaseGPUTexture(device, colorTexture.texture);
+        }
+        if (colorTexture.sampler != nullptr)
+        {
+            SDL_ReleaseGPUSampler(device, colorTexture.sampler);
+        }
+    }
+    colorTextures_.clear();
+    if (depthTexture_ != nullptr)
+    {
+        SDL_ReleaseGPUTexture(device, depthTexture_);
+        depthTexture_ = nullptr;
+    }
+}
 } // namespace novus
