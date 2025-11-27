@@ -235,7 +235,7 @@ Scene::ImportStatus Scene::LoadRenderPass(std::span<const renderer::RenderpassT>
 
         if (subpass.framebuffer_index == -1) //means we use the backbuffer
         {
-            if (backBufferInfo_.depth_stencil_target_info == nullptr)
+            if (backBufferInfo_.depth_stencil_attachment == nullptr)
             {
                 bool generateDepthTexture = false;
                 for (auto& command: subpass.commands)
@@ -251,6 +251,7 @@ Scene::ImportStatus Scene::LoadRenderPass(std::span<const renderer::RenderpassT>
                 }
                 if (generateDepthTexture)
                 {
+                    backBufferInfo_.depth_stencil_attachment = std::make_unique<renderer::DepthStencilAttachmentT>();
                     auto depthStencilTargetInfo = std::make_unique<novus::internal::DepthStencilTargetInfoT>();
                     depthStencilTargetInfo->clear_depth = 1.0f;
                     depthStencilTargetInfo->clear_stencil = 0;
@@ -258,7 +259,7 @@ Scene::ImportStatus Scene::LoadRenderPass(std::span<const renderer::RenderpassT>
                     depthStencilTargetInfo->store_op = internal::StoreOp_STOREOP_STORE;
                     depthStencilTargetInfo->stencil_load_op = internal::LoadOp_LOADOP_CLEAR;
                     depthStencilTargetInfo->stencil_store_op = internal::StoreOp_STOREOP_STORE;
-                    backBufferInfo_.depth_stencil_target_info = std::move(depthStencilTargetInfo);
+                    backBufferInfo_.depth_stencil_attachment->target_info = std::move(depthStencilTargetInfo);
                 }
             }
 
@@ -282,20 +283,26 @@ Scene::ImportStatus Scene::LoadFramebuffers(std::span<const renderer::Framebuffe
 {
     //Loading backbuffer
     const auto windowSize = core::GetWindowSize();
-    internal::ColorTargetInfoT colorTargetInfo{.mip_level = 0,
+    renderer::ColorAttachmentT backBufferColorAttachment{};
+    auto colorTargetInfo = std::make_unique<novus::internal::ColorTargetInfoT>();
+
+    *colorTargetInfo = {.mip_level = 0,
         .layer_or_depth_plane = 0,
         .clear_color = {.r = 0, .g = 0, .b = 0, .a = 0},
         .load_op = internal::LoadOp_LOADOP_CLEAR,
         .store_op = internal::StoreOp_STOREOP_STORE};
-    backBufferInfo_.color_target_infos.push_back(colorTargetInfo);
+    backBufferColorAttachment.target_info = std::move(colorTargetInfo);
     auto format = GetSwapchainTextureFormat();
-    backBufferInfo_.color_texture_infos.push_back(internal::TextureInfoT{
+    auto textureInfo = std::make_unique<novus::internal::TextureInfoT>();
+    *textureInfo = internal::TextureInfoT{
         .width = windowSize.x, .height = windowSize.y,
         .layer_count_or_depth = 1,
         .format = (internal::TextureFormat)format,
         .sample_count = internal::SampleCount_SAMPLECOUNT_1,
         .type = internal::TextureType_TEXTURETYPE_2D,
-        .usage = internal::TextureUsageFlags_TEXTUREUSAGE_COLOR_TARGET});
+        .usage = internal::TextureUsageFlags_TEXTUREUSAGE_COLOR_TARGET};
+    backBufferColorAttachment.texture_info = std::move(textureInfo);
+    backBufferInfo_.color_attachments.push_back(std::move(backBufferColorAttachment));
 
     framebuffers_.reserve(framebufferInfos.size());
     for (const auto & framebuffer : framebufferInfos)

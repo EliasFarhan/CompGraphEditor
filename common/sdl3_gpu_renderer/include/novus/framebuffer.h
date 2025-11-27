@@ -16,7 +16,7 @@ class Framebuffer : public core::Framebuffer
 {
 public:
 	std::unique_ptr<core::Image> GetImage(std::string_view attachmentName) override;
-    void Load(const renderer::FramebufferT& framebufferPb) override;
+    void Load(const renderer::FramebufferT& framebufferInfo) override;
     [[nodiscard]] std::span<const SDL_GPUColorTargetInfo> GetColorTargets() const{return colorTargets_;}
 
     [[nodiscard]] std::span<Texture> GetColorTextures(){return colorTextures_;}

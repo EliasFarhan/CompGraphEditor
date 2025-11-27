@@ -36,7 +36,7 @@ void RenderPassEditor::DrawInspector()
     auto& currentRenderPass = renderPassInfos_[currentIndex_];
     int deleteSubpassIndex = -1;
     ImGui::Separator();
-    for (int subpassIndex = 0; subpassIndex < currentRenderPass.info.sub_passes_size(); subpassIndex++)
+    for (int subpassIndex = 0; subpassIndex < currentRenderPass.info.subpasses.size(); subpassIndex++)
     {
         const auto headerTitle = std::format("Subpass {}", subpassIndex);
         ImGui::PushID(headerTitle.c_str());

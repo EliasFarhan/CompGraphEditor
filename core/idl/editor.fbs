@@ -26,6 +26,7 @@ table EditorMaterialInfo
 
 table EditorRenderPassInfo
 {
+    subpasses: [renderer.Renderpass];
 }
 
 table EditorModelInfo

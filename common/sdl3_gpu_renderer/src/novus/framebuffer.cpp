@@ -9,15 +9,15 @@ std::unique_ptr<core::Image> Framebuffer::GetImage(std::string_view attachmentNa
 {
     return nullptr;
 }
-void Framebuffer::Load(const renderer::FramebufferT& framebufferPb)
+void Framebuffer::Load(const renderer::FramebufferT& framebufferInfo)
 {
     const auto windowSize = core::GetWindowSize();
-    colorTextures_.reserve(framebufferPb.color_texture_infos.size());
-    colorTargets_.reserve(framebufferPb.color_target_infos.size());
-    for (int64_t colorTargetIndex = 0; colorTargetIndex < std::ssize(framebufferPb.color_texture_infos); colorTargetIndex++)
+    colorTextures_.reserve(framebufferInfo.color_attachments.size());
+    colorTargets_.reserve(framebufferInfo.color_attachments.size());
+    for (int64_t colorTargetIndex = 0; colorTargetIndex < std::ssize(framebufferInfo.color_attachments); colorTargetIndex++)
     {
-        auto colorTextureInfo = framebufferPb.color_texture_infos[colorTargetIndex];
-        const auto& colorTargetInfo = framebufferPb.color_target_infos[colorTargetIndex];
+        auto colorTextureInfo = *framebufferInfo.color_attachments[colorTargetIndex].texture_info;
+        const auto& colorTargetInfo = *framebufferInfo.color_attachments[colorTargetIndex].target_info;
         if (colorTextureInfo.width  == 0)
         {
             colorTextureInfo.width  = windowSize.x;
@@ -38,10 +38,9 @@ void Framebuffer::Load(const renderer::FramebufferT& framebufferPb)
             colorTexture = GenerateTexture(colorTextureInfo);
         }
         SDL_GPUSampler* sampler = nullptr;
-        if (std::ssize(framebufferPb.color_sampler_infos) > colorTargetIndex &&
-            framebufferPb.color_sampler_infos[colorTargetIndex] != nullptr)
+        if (framebufferInfo.color_attachments[colorTargetIndex].sampler_info != nullptr)
         {
-            const auto& samplerInfo = *framebufferPb.color_sampler_infos[colorTargetIndex];
+            const auto& samplerInfo = *framebufferInfo.color_attachments[colorTargetIndex].sampler_info;
             sampler = GenerateSampler(samplerInfo);
         }
         colorTextures_.emplace_back(colorTexture, sampler);
@@ -54,9 +53,9 @@ void Framebuffer::Load(const renderer::FramebufferT& framebufferPb)
         colorTargets_.emplace_back(targetInfo);
 
     }
-    if (framebufferPb.depth_stencil_texture_info != nullptr)
+    if (framebufferInfo.depth_stencil_attachment != nullptr)
     {
-        auto depthTextureInfo = *framebufferPb.depth_stencil_texture_info;
+        auto depthTextureInfo = *framebufferInfo.depth_stencil_attachment->texture_info;
         if (depthTextureInfo.width  == 0)
         {
             depthTextureInfo.width  = windowSize.x;
@@ -67,9 +66,9 @@ void Framebuffer::Load(const renderer::FramebufferT& framebufferPb)
         }
         depthTexture_ = GenerateTexture(depthTextureInfo);
     }
-    if (framebufferPb.depth_stencil_target_info != nullptr)
+    if (framebufferInfo.depth_stencil_attachment != nullptr)
     {
-        const auto& depthStencilTargetInfo = *framebufferPb.depth_stencil_target_info;
+        const auto& depthStencilTargetInfo = *framebufferInfo.depth_stencil_attachment->target_info;
         depthStencilTargetInfo_ = {.texture = depthTexture_, .clear_depth = depthStencilTargetInfo.clear_depth,
             .load_op = (SDL_GPULoadOp)depthStencilTargetInfo.load_op, .store_op = (SDL_GPUStoreOp)depthStencilTargetInfo.store_op,
             .stencil_load_op = (SDL_GPULoadOp)depthStencilTargetInfo.stencil_load_op,
