@@ -12,6 +12,8 @@
 #include <array>
 #include <fstream>
 
+#include "utils/fb_file.h"
+
 namespace novus::editor
 {
 
@@ -24,32 +26,32 @@ void MeshEditor::DrawInspector()
 
     auto& currentMesh = meshInfos_[currentIndex_];
 
-    if(currentMesh.info.mesh.primitve_type == core::pb::Mesh_PrimitveType_MODEL)
+    if(currentMesh.info.mesh->primitive_type == renderer::MeshPrimitiveType_MODEL)
     {
-        const auto modelName = GetFilename(currentMesh.info.model_path());
+        const auto modelName = GetFilename(currentMesh.info.model_path);
         ImGui::Text("Generated from model: %s", modelName.c_str());
         return;
     }
 
-    bool none = currentMesh.info.mesh().primitve_type() == core::pb::Mesh_PrimitveType_NONE;
+    bool none = currentMesh.info.mesh->primitive_type == renderer::MeshPrimitiveType_NONE;
     if(ImGui::Checkbox("No Mesh", &none))
     {
         if(none)
         {
-            currentMesh.info.mutable_mesh()->set_primitve_type(core::pb::Mesh_PrimitveType_NONE);
+            currentMesh.info.mesh->primitive_type = renderer::MeshPrimitiveType_NONE;
         }
     }
-    bool primitive = !none && currentMesh.info.mesh().primitve_type() != core::pb::Mesh_PrimitveType_MODEL;
+    bool primitive = !none && currentMesh.info.mesh->primitive_type != renderer::MeshPrimitiveType_MODEL;
     if(ImGui::Checkbox("Primitive", &primitive))
     {
         if((primitive && none) ||
-            (primitive && currentMesh.info.mesh().primitve_type() == core::pb::Mesh_PrimitveType_MODEL))
+            (primitive && currentMesh.info.mesh->primitive_type == renderer::MeshPrimitiveType_MODEL))
         {
-            currentMesh.info.mutable_mesh()->set_primitve_type(core::pb::Mesh_PrimitveType_QUAD);
+            currentMesh.info.mesh->primitive_type = renderer::MeshPrimitiveType_QUAD;
         }
         if(!primitive)
         {
-            currentMesh.info.mutable_mesh()->set_primitve_type(core::pb::Mesh_PrimitveType_NONE);
+            currentMesh.info.mesh->primitive_type = renderer::MeshPrimitiveType_NONE;
         }
     }
     if(primitive)
@@ -60,11 +62,11 @@ void MeshEditor::DrawInspector()
                         "Cube",
                         "Sphere"
                 };
-        int index = currentMesh.info.mesh().primitve_type();
+        int index = currentMesh.info.mesh->primitive_type;
         if(index < 0 || index >= primitiveTypes.size())
         {
             index = 0;
-            currentMesh.info.mutable_mesh()->set_primitve_type(core::pb::Mesh_PrimitveType_QUAD);
+            currentMesh.info.mesh->primitive_type = renderer::MeshPrimitiveType_QUAD;
         }
         if(ImGui::BeginCombo("Primitive Type", primitiveTypes[index].data()))
         {
@@ -72,39 +74,27 @@ void MeshEditor::DrawInspector()
             {
                 if(ImGui::Selectable(primitiveTypes[i].data(), i == index))
                 {
-                    currentMesh.info.mutable_mesh()->set_primitve_type(
-                            static_cast<core::pb::Mesh_PrimitveType>(core::pb::Mesh_PrimitveType_QUAD + i));
+                    currentMesh.info.mesh->primitive_type = (renderer::MeshPrimitiveType)(renderer::MeshPrimitiveType_QUAD + i);
                 }
             }
             ImGui::EndCombo();
         }
-        if(currentMesh.info.mesh().primitve_type() == core::pb::Mesh_PrimitveType_QUAD ||
-            currentMesh.info.mesh().primitve_type() == core::pb::Mesh_PrimitveType_CUBE ||
-            currentMesh.info.mesh().primitve_type() == core::pb::Mesh_PrimitveType_SPHERE)
+        if(currentMesh.info.mesh->primitive_type == renderer::MeshPrimitiveType_QUAD ||
+            currentMesh.info.mesh->primitive_type == renderer::MeshPrimitiveType_CUBE ||
+            currentMesh.info.mesh->primitive_type == renderer::MeshPrimitiveType_SPHERE)
         {
-            if(!currentMesh.info.mesh().has_scale())
+            if(currentMesh.info.mesh->scale.x == 0.0f)
             {
-                auto* scale = currentMesh.info.mutable_mesh()->mutable_scale();
-                scale->set_x(1.0f);
-                scale->set_y(1.0f);
-                scale->set_z(1.0f);
+                currentMesh.info.mesh->scale = {1,1,1};
             }
-            auto* scale = currentMesh.info.mutable_mesh()->mutable_scale();
-            std::array scaleInput{ scale->x(), scale->y(), scale->z() };
-            if(ImGui::InputFloat3("Scale", scaleInput.data()))
+            auto* scale = &currentMesh.info.mesh->scale[0];
+            if(ImGui::InputFloat3("Scale", scale))
             {
-                scale->set_x(scaleInput[0]);
-                scale->set_y(scaleInput[1]);
-                scale->set_z(scaleInput[2]);
             }
 
-            auto* offset = currentMesh.info.mutable_mesh()->mutable_offset();
-            std::array offsetInput{ offset->x(), offset->y(), offset->z() };
-            if(ImGui::InputFloat3("Offset", offsetInput.data()))
+            auto* offset = &currentMesh.info.mesh->offset[0];
+            if(ImGui::InputFloat3("Offset", offset))
             {
-                offset->set_x(offsetInput[0]);
-                offset->set_y(offsetInput[1]);
-                offset->set_z(offsetInput[2]);
             }
         }
     }
@@ -142,9 +132,9 @@ void MeshEditor::Save()
     for(auto& meshInfo : meshInfos_)
     {
         std::ofstream fileOut(meshInfo.path.c_str(), std::ios::binary);
-        if (!meshInfo.info.SerializeToOstream(&fileOut))
+        if (!core::WriteFlatbufferToFile<EditorMeshInfoT, EditorMeshInfo>(meshInfo.info, meshInfo.path))
         {
-            LogWarning(std::format("Could not save mesh at: {}", meshInfo.path.c_str()));
+            LogWarning(std::format("Could not save mesh at: {}", meshInfo.path));
         }
         
     }
@@ -164,7 +154,7 @@ void MeshEditor::AddResource(const Resource &resource)
         return;
     }
     std::ifstream fileIn(resource.path.c_str(), std::ios::binary);
-    if (!meshInfo.info.ParseFromIstream(&fileIn))
+    if (!core::ReadFlatbufferFromFile<EditorMeshInfoT, EditorMeshInfo>(resource.path, meshInfo.info))
     {
         LogWarning(std::format("Could not open protobuf file: {}", resource.path.c_str()));
         return;

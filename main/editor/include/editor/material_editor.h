@@ -11,7 +11,7 @@ struct MaterialInfo
 {
     std::string path;
     std::string filename;
-    EditorMaterialInfo info;
+    EditorMaterialInfoT info;
     ResourceId resourceId = INVALID_RESOURCE_ID;
     ResourceId pipelineId = INVALID_RESOURCE_ID;
 };

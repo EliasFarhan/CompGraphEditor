@@ -14,8 +14,6 @@
 
 namespace novus::editor
 {
-    
-    
 
 void MaterialEditor::DrawInspector()
 {
@@ -67,10 +65,10 @@ void MaterialEditor::DrawInspector()
         {
             for(const auto& texture : textureEditor->GetTextures())
             {
-                if(ImGui::Selectable(texture.filename.c_str(), texture.info.path() == materialTexture->material_texture().sampler_name()))
+                if(ImGui::Selectable(texture.filename.c_str(), texture.info.path == materialTexture->material_texture().sampler_name()))
                 {
                     materialTexture->mutable_material_texture()->clear_attachment_name();
-                    materialTexture->set_texture_name(texture.info.path());
+                    materialTexture->set_texture_name(texture.info.path);
                 }
             }
             const auto& framebuffers = framebufferEditor->GetFramebuffers();
@@ -82,13 +80,11 @@ void MaterialEditor::DrawInspector()
 
                 for (auto& framebuffer : framebuffers)
                 {
-                    const auto& framebufferName = framebuffer.info.name();
+                    const auto& framebufferName = framebuffer.info.name;
 
-                    for (auto& colorAttachment : framebuffer.info.color_attachments())
+                    for (auto& colorAttachment : framebuffer.info.color_attachments)
                     {
-                        if (colorAttachment.rbo())
-                            continue;
-                        const auto& colorAttachmentName = colorAttachment.name();
+                        const auto& colorAttachmentName = colorAttachment.name;
                         const auto attachmentUniqueName = std::format("{}_{}", framebufferName, colorAttachmentName);
                         if (ImGui::Selectable(attachmentUniqueName.data(), 
                             colorAttachmentName == materialTexture->material_texture().sampler_name() &&
@@ -99,9 +95,9 @@ void MaterialEditor::DrawInspector()
                             materialTexture->mutable_material_texture()->set_framebuffer_name(framebufferName);
                         }
                     }
-                    if(framebuffer.info.has_depth_stencil_attachment() && !framebuffer.info.depth_stencil_attachment().rbo())
+                    if(framebuffer.info.depth_stencil_attachment != nullptr)
                     {
-                        const auto& depthAttachmentName = framebuffer.info.depth_stencil_attachment().name();
+                        const auto& depthAttachmentName = framebuffer.info.depth_stencil_attachment->name;
                         const auto attachmentUniqueName = std::format("{}_{}", framebufferName, depthAttachmentName);
                         if(ImGui::Selectable(attachmentUniqueName.data(), 
                             materialTexture->material_texture().attachment_name() == depthAttachmentName &&
@@ -123,9 +119,9 @@ void MaterialEditor::DrawInspector()
     {
         if (ImGui::BeginListBox("Uniforms"))
         {
-            for(int i = 0; i < pipelineInfo->info.pipeline().uniforms_size(); i++)
+            for(int i = 0; i < pipelineInfo->info.pipeline.uniforms_size(); i++)
             {
-                auto& uniformInfo = pipelineInfo->info.pipeline().uniforms(i);
+                auto& uniformInfo = pipelineInfo->info.pipeline.uniforms(i);
                 const auto text = std::format("Name: {} Type: {}",
                                               uniformInfo.name(),
                                               uniformInfo.type_name());
@@ -135,9 +131,9 @@ void MaterialEditor::DrawInspector()
         }
         if (ImGui::BeginListBox("Vertex In Attributes"))
         {
-            for(int i = 0; i < pipelineInfo->info.pipeline().in_vertex_attributes_size(); i++)
+            for(int i = 0; i < pipelineInfo->info.pipeline.in_vertex_attributes_size(); i++)
             {
-                auto& inVertexAttribute = pipelineInfo->info.pipeline().in_vertex_attributes(i);
+                auto& inVertexAttribute = pipelineInfo->info.pipeline.in_vertex_attributes(i);
                 const auto text = std::format("Name: {} Type: {}",
                                               inVertexAttribute.name(),
                                               inVertexAttribute.type_name());
@@ -181,7 +177,7 @@ void MaterialEditor::DrawCenterView()
 	constexpr int samplerBaseIndex = 300;
 
 	std::vector<std::pair<int, int>> links;
-	links.reserve(currentMaterial.info.textures_size() + currentMaterial.info.material().uniforms_size());
+	links.reserve(currentMaterial.info.textures_size() + currentMaterial.info.material.uniforms_size());
 
 	ImNodes::BeginNodeEditor();
 	if(currentMaterial.info.textures_size() != 0)
@@ -212,9 +208,9 @@ void MaterialEditor::DrawCenterView()
 		if (currentMaterial.pipelineId != INVALID_RESOURCE_ID)
 		{
 			const auto* pipeline = pipelineEditor->GetPipeline(currentMaterial.pipelineId);
-			for (int i = 0; i < pipeline->info.pipeline().uniforms_size(); i++)
+			for (int i = 0; i < pipeline->info.pipeline.uniforms_size(); i++)
 			{
-				const auto& uniform = pipeline->info.pipeline().uniforms(i);
+				const auto& uniform = pipeline->info.pipeline.uniforms(i);
 				if (uniform.type() == core::pb::Attribute_Type_SAMPLER2D
 					|| uniform.type() == core::pb::Attribute_Type_SAMPLERCUBE)
 					continue;

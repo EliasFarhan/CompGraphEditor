@@ -79,7 +79,7 @@ void CommandEditor::RemoveResource(const Resource& resource)
         {
             if (command.info.index() == 0)
             {
-                std::get<pb::EditorDrawCommand>(command.info).clear_material_path();
+                std::get<EditorDrawCommandT>(command.info).clear_material_path();
             }
             else
             {

@@ -17,6 +17,7 @@ table EditorSceneInfo
 table EditorMeshInfo
 {
     mesh: renderer.Mesh;
+    model_path: string;
 }
 
 table EditorMaterialInfo

@@ -14,7 +14,7 @@ struct CommandInfo
 {
     std::string filename;
     std::string path;
-    std::variant<EditorDrawCommandInfo, EditorComputeCommandInfo> info;
+    std::variant<EditorDrawCommandInfoT, EditorComputeCommandInfoT> info;
     ResourceId resourceId = INVALID_RESOURCE_ID;
     ResourceId materialId = INVALID_RESOURCE_ID;
     ResourceId meshId = INVALID_RESOURCE_ID;

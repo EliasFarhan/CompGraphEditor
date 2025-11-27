@@ -23,10 +23,11 @@
 using json = nlohmann::json;
 namespace py = pybind11;
 
-namespace editor
+namespace novus::editor
 {
 void ModelEditor::AddResource(const Resource& resource)
 {
+    /*
     const auto extension = GetFileExtension(resource.path);
     if(extension != ".model")
         return;
@@ -57,6 +58,7 @@ void ModelEditor::AddResource(const Resource& resource)
     }
     modelInfo.path = resource.path;
     modelInfos_.push_back(modelInfo);
+    */
 }
 
 void ModelEditor::RemoveResource(const Resource& resource)
@@ -75,6 +77,7 @@ void ModelEditor::DrawInspector()
     {
         return;
     }
+    /*
     auto& currentModelInfo = modelInfos_[currentIndex_];
     const auto baseDir = GetFolder(currentModelInfo.path);
     auto* editor = Editor::GetInstance();
@@ -167,6 +170,7 @@ void ModelEditor::DrawInspector()
     {
         currentModelInfo.info.add_draw_commands();
     }
+    */
 }
 
 bool ModelEditor::DrawContentList(bool unfocus)
@@ -198,6 +202,7 @@ EditorType ModelEditor::GetEditorType()
 
 void ModelEditor::Save()
 {
+    /*
     for (auto& modelInfo : modelInfos_)
     {
         std::ofstream fileOut(modelInfo.path.c_str(), std::ios::binary);
@@ -207,6 +212,7 @@ void ModelEditor::Save()
         }
 
     }
+    */
 }
 
 void ModelEditor::ReloadId()
@@ -254,6 +260,7 @@ void ModelEditor::ImportResource(std::string_view path)
         LogError("Can only import obj file");
         return;
     }
+    /*
 
     auto& modelManager = core::GetModelManager();
     const auto modelId = modelManager.ImportModel(path);
@@ -411,7 +418,7 @@ void ModelEditor::ImportResource(std::string_view path)
     resourceManager.AddResource(modelInfoPath);
     sceneEditor->AddResource(*resourceManager.GetResource(resourceManager.FindResourceByPath(modelInfoPath)));
 
-
+*/
 
 }
 
@@ -423,6 +430,7 @@ void ModelEditor::Clear()
 
 void ModelEditor::GenerateMaterialsAndCommands(int commandIndex)
 {
+    /*
     auto& currentModelInfo = modelInfos_[currentIndex_];
     auto* drawCommandInfo = currentModelInfo.info.mutable_draw_commands(commandIndex);
     auto& drawCommand = currentModelInfo.drawCommands[commandIndex];
@@ -534,10 +542,12 @@ void ModelEditor::GenerateMaterialsAndCommands(int commandIndex)
             }
         }
     }
+    */
 }
 
 void ModelEditor::ReloadDrawCommands(std::size_t modelIndex)
 {
+    /*
     auto* editor = Editor::GetInstance();
     const auto& resourceManager = editor->GetResourceManager();
     auto& modelInfo = modelInfos_[modelIndex];
@@ -581,5 +591,6 @@ void ModelEditor::ReloadDrawCommands(std::size_t modelIndex)
             drawCommand.pipelineId = resourceManager.FindResourceByPath(drawCommandInfo.pipeline_path());
         }
     }
+    */
 }
 }

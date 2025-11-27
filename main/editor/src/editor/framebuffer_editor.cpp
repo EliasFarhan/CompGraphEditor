@@ -71,200 +71,167 @@ void FramebufferEditor::DrawInspector()
     ImGui::InputText("Framebuffer Name", &currentFramebufferInfo.info.name);
     ImGui::Separator();
     int deletedColorAttachment = -1;
-    for(size_t colorAttachmentIndex = 0; colorAttachmentIndex < currentFramebufferInfo.info.color_target_infos.size(); colorAttachmentIndex++)
+    for(size_t colorAttachmentIndex = 0; colorAttachmentIndex < currentFramebufferInfo.info.color_attachments.size(); colorAttachmentIndex++)
     {
-        auto& colorAttachment = currentFramebufferInfo.info.color_target_infos[colorAttachmentIndex];
+        auto& colorAttachment = currentFramebufferInfo.info.color_attachments[colorAttachmentIndex];
         std::string id = std::format("Color Attachment {}", colorAttachmentIndex);
-        std::string colorAttachmentName = colorAttachment.name.empty() ? id : colorAttachment.name();
+        std::string colorAttachmentName = colorAttachment.name.empty() ? id : colorAttachment.name;
         ImGui::PushID(id.data());
         if(ImGui::InputText("Color Attachment Name", &colorAttachmentName))
         {
-            *colorAttachment->mutable_name() = colorAttachmentName;
+            colorAttachment.name = colorAttachmentName;
         }
-        static constexpr std::array<std::string_view, 4> formatTxt =
+
+        if(ImGui::BeginCombo("Format",internal::EnumNameTextureFormat(colorAttachment.texture_info->format)))
         {
-            "RED",
-            "RG",
-            "RGB",
-            "RGBA"
-        };
-        if(ImGui::BeginCombo("Format", formatTxt[colorAttachment.format()].data()))
-        {
-            for(std::size_t format = 0; format < formatTxt.size(); format++)
+            for(std::size_t format = 0; format <= internal::TextureFormat_MAX; format++)
             {
-                if(ImGui::Selectable(formatTxt[format].data(), format == colorAttachment->format()))
+                if(ImGui::Selectable(internal::EnumNameTextureFormat((internal::TextureFormat)format),
+                    format == colorAttachment.texture_info->format))
                 {
-                    colorAttachment->set_format(static_cast<core::pb::RenderTarget_Format>(format));
-                }
-            }
-            ImGui::EndCombo();
-        }
-        static constexpr std::array<std::string_view, 4> sizeTxt =
-        {
-            "8",
-            "16",
-            "24",
-            "32"
-        };
-        if(ImGui::BeginCombo("Size", sizeTxt[colorAttachment->format_size()].data()))
-        {
-            for(std::size_t sizeType = 0; sizeType < sizeTxt.size(); sizeType++)
-            {
-                if(ImGui::Selectable(sizeTxt[sizeType].data(), sizeType == colorAttachment->format_size()))
-                {
-                    colorAttachment->set_format_size(static_cast<core::pb::RenderTarget_FormatSize>(sizeType));
-                }
-            }
-            ImGui::EndCombo();
-        }
-        static constexpr std::array<std::string_view, 3> typeTxt
-        {
-            "unsigned",
-            "int",
-            "float"
-        };
-        if(ImGui::BeginCombo("Type", typeTxt[colorAttachment->type()].data()))
-        {
-            for(std::size_t type = 0; type < typeTxt.size(); type++)
-            {
-                if(ImGui::Selectable(typeTxt[type].data(), type == colorAttachment->type()))
-                {
-                    colorAttachment->set_type(static_cast<core::pb::RenderTarget_Type>(type));
+                    colorAttachment.texture_info->format = (internal::TextureFormat)format;
                 }
             }
             ImGui::EndCombo();
         }
 
-        bool fixedSize = colorAttachment->size_type() == core::pb::RenderTarget_Size_FIXED_SIZE;
+        bool fixedSize = colorAttachment.texture_info->width != 0;
         if(ImGui::Checkbox("Fixed Size", &fixedSize))
         {
-            colorAttachment->set_size_type(fixedSize ? core::pb::RenderTarget_Size_FIXED_SIZE : core::pb::RenderTarget_Size_WINDOW_SIZE);
+            if (fixedSize)
+            {
+                colorAttachment.texture_info->width = 512;
+                colorAttachment.texture_info->height = 512;
+            }
+            else
+            {
+                colorAttachment.texture_info->width = 0;
+                colorAttachment.texture_info->height = 0;
+            }
         }
         if(fixedSize)
         {
-            std::array targetSize{colorAttachment->target_size().x(), colorAttachment->target_size().y()};
+            std::array targetSize{(int)colorAttachment.texture_info->width, (int)colorAttachment.texture_info->height};
             if(ImGui::InputInt2("Target Size", targetSize.data()))
             {
-                colorAttachment->mutable_target_size()->set_x(targetSize[0]);
-                colorAttachment->mutable_target_size()->set_y(targetSize[1]);
+                colorAttachment.texture_info->width = (targetSize[0]);
+                colorAttachment.texture_info->height = (targetSize[1]);
             }
         }
 
-        bool rbo = colorAttachment->rbo();
-        if(ImGui::Checkbox("RBO", &rbo))
-        {
-            colorAttachment->set_rbo(rbo);
-        }
-        bool snorm = colorAttachment->snorm();
-        if(ImGui::Checkbox("SNORM", &snorm))
-        {
-            colorAttachment->set_snorm(snorm);
-        }
-        const auto status = gl::GetAttachmentType(*colorAttachment);
-        if(status.error != 0)
-        {
-            ImGui::TextColored({ 1,0,0,1 }, "Invalid attachment format");
-        }
+
+
 
         if(ImGui::Button("Remove Color Attachment"))
         {
             deletedColorAttachment = colorAttachmentIndex;
         }
+
+        //TODO add sampler info
         
         ImGui::PopID();
         ImGui::Separator();
     }
     if(deletedColorAttachment != -1)
     {
-        currentFramebufferInfo.info.mutable_color_attachments()->DeleteSubrange(deletedColorAttachment, 1);
+        currentFramebufferInfo.info.color_attachments.erase(currentFramebufferInfo.info.color_attachments.begin()+deletedColorAttachment);
     }
     if(ImGui::Button("Add Color Attachment"))
     {
-        currentFramebufferInfo.info.add_color_attachments();
+        renderer::ColorAttachmentT newColorAttachment{};
+        newColorAttachment.texture_info = std::make_unique<internal::TextureInfoT>();
+        newColorAttachment.target_info = std::make_unique<internal::ColorTargetInfoT>();
+        currentFramebufferInfo.info.color_attachments.push_back(std::move(newColorAttachment));
     }
     //depth/stencil attachment
-    if(currentFramebufferInfo.info.has_depth_stencil_attachment())
+    if(currentFramebufferInfo.info.depth_stencil_attachment != nullptr)
     {
-        auto* depthStencilAttachment = currentFramebufferInfo.info.mutable_depth_stencil_attachment();
+        auto* depthStencilAttachment = currentFramebufferInfo.info.depth_stencil_attachment.get();
         std::string id = "Depth Stencil Attachment";
-        std::string depthStencilAttachmentName = depthStencilAttachment->name().empty() ? id : depthStencilAttachment->name();
+        std::string depthStencilAttachmentName = depthStencilAttachment->name.empty() ? id : depthStencilAttachment->name;
         if (ImGui::InputText("Depth Stencil Attachment Name", &depthStencilAttachmentName))
         {
-            *depthStencilAttachment->mutable_name() = depthStencilAttachmentName;
+            depthStencilAttachment->name = depthStencilAttachmentName;
         }
-        bool stencil = depthStencilAttachment->format() == core::pb::RenderTarget_Format_DEPTH_STENCIL;
+        bool stencil = depthStencilAttachment->texture_info->format == internal::TextureFormat_TEXTUREFORMAT_D24_UNORM_S8_UINT ||
+            internal::TextureFormat_TEXTUREFORMAT_D32_FLOAT_S8_UINT;
         if(ImGui::Checkbox("Stencil", &stencil))
         {
-            depthStencilAttachment->set_format(stencil ? core::pb::RenderTarget_Format_DEPTH_STENCIL : core::pb::RenderTarget_Format_DEPTH_COMP);
-        }
-
-        static constexpr std::array<std::string_view, 3> sizeTxt =
-        {
-            "16",
-            "24",
-            "32"
-        };
-        if (ImGui::BeginCombo("Size", sizeTxt[depthStencilAttachment->format_size()-1].data()))
-        {
-            for (std::size_t sizeType = 0; sizeType < sizeTxt.size(); sizeType++)
+            if (stencil)
             {
-                if (ImGui::Selectable(sizeTxt[sizeType].data(), sizeType+1 == depthStencilAttachment->format_size()))
+                switch (depthStencilAttachment->texture_info->format)
                 {
-                    depthStencilAttachment->set_format_size(static_cast<core::pb::RenderTarget_FormatSize>(sizeType+1));
-                    switch(depthStencilAttachment->format_size())
+                case internal::TextureFormat_TEXTUREFORMAT_D16_UNORM:
+                case internal::TextureFormat_TEXTUREFORMAT_D24_UNORM:
+                {
+                    depthStencilAttachment->texture_info->format = internal::TextureFormat_TEXTUREFORMAT_D24_UNORM_S8_UINT;
+                    break;
+                }
+                case internal::TextureFormat_TEXTUREFORMAT_D32_FLOAT:
+                {
+                    depthStencilAttachment->texture_info->format = internal::TextureFormat_TEXTUREFORMAT_D32_FLOAT_S8_UINT;
+                    break;
+                }
+                default:
+                {
+                    depthStencilAttachment->texture_info->format = internal::TextureFormat_TEXTUREFORMAT_D24_UNORM_S8_UINT;
+                    break;
+                }
+                }
+            }
+            else
+            {
+                switch (depthStencilAttachment->texture_info->format)
+                {
+                    case internal::TextureFormat_TEXTUREFORMAT_D32_FLOAT_S8_UINT:
                     {
-                    case core::pb::RenderTarget_FormatSize_SIZE_16:
-                    case core::pb::RenderTarget_FormatSize_SIZE_24:
-                        depthStencilAttachment->set_type(core::pb::RenderTarget_Type_UNSIGNED);
+                        depthStencilAttachment->texture_info->format = internal::TextureFormat_TEXTUREFORMAT_D32_FLOAT;
                         break;
-                    case core::pb::RenderTarget_FormatSize_SIZE_32:
-                        depthStencilAttachment->set_type(core::pb::RenderTarget_Type_FLOAT);
-                        break;
-                    default: 
-                        break;
+                    }
+                    default:
+                    {
+                        depthStencilAttachment->texture_info->format = internal::TextureFormat_TEXTUREFORMAT_D24_UNORM;
                     }
                 }
             }
-            ImGui::EndCombo();
         }
-        bool rbo = depthStencilAttachment->rbo();
-        if (ImGui::Checkbox("RBO", &rbo))
-        {
-            depthStencilAttachment->set_rbo(rbo);
-        }
-        bool fixedSize = depthStencilAttachment->size_type() == core::pb::RenderTarget_Size_FIXED_SIZE;
+
+
+
+        bool fixedSize = depthStencilAttachment->texture_info->width == 0;
         if (ImGui::Checkbox("Fixed Size", &fixedSize))
         {
-            depthStencilAttachment->set_size_type(fixedSize ? core::pb::RenderTarget_Size_FIXED_SIZE : core::pb::RenderTarget_Size_WINDOW_SIZE);
+            if (fixedSize)
+            {
+                depthStencilAttachment->texture_info->width = 512;
+                depthStencilAttachment->texture_info->height = 512;
+            }
+            else
+            {
+                depthStencilAttachment->texture_info->width = 0;
+                depthStencilAttachment->texture_info->height = 0;
+            }
         }
         if (fixedSize)
         {
-            std::array targetSize{depthStencilAttachment->target_size().x(), depthStencilAttachment->target_size().y()};
+            std::array targetSize{(int)depthStencilAttachment->texture_info->width, (int)depthStencilAttachment->texture_info->height};
             if (ImGui::InputInt2("Target Size", targetSize.data()))
             {
-                depthStencilAttachment->mutable_target_size()->set_x(targetSize[0]);
-                depthStencilAttachment->mutable_target_size()->set_y(targetSize[1]);
+                depthStencilAttachment->texture_info->width = (targetSize[0]);
+                depthStencilAttachment->texture_info->height = (targetSize[1]);
             }
-        }
-
-        const auto status = gl::GetAttachmentType(*depthStencilAttachment);
-        if (status.error != 0)
-        {
-            ImGui::TextColored({ 1,0,0,1 }, "Invalid attachment format");
-        }
-        if(ImGui::Button("Remove Depth/Stencil Attachment"))
-        {
-            currentFramebufferInfo.info.clear_depth_stencil_attachment();
         }
     }
     else
     {
         if(ImGui::Button("Add Depth/Stencil Attachment"))
         {
-            auto* depthStencilAttachment = currentFramebufferInfo.info.mutable_depth_stencil_attachment();
-            depthStencilAttachment->set_format(core::pb::RenderTarget_Format_DEPTH_STENCIL);
-            depthStencilAttachment->set_format_size(core::pb::RenderTarget_FormatSize_SIZE_24);
-            depthStencilAttachment->set_type(core::pb::RenderTarget_Type_UNSIGNED);
+            auto depthStencilAttachment = std::make_unique<renderer::DepthStencilAttachmentT>();
+            depthStencilAttachment->texture_info = std::make_unique<internal::TextureInfoT>();
+            depthStencilAttachment->texture_info->format = internal::TextureFormat_TEXTUREFORMAT_D24_UNORM_S8_UINT;
+            depthStencilAttachment->target_info = std::make_unique<internal::DepthStencilTargetInfoT>();
+
+            currentFramebufferInfo.info.depth_stencil_attachment = std::move(depthStencilAttachment);
         }
     }
 }
@@ -300,8 +267,7 @@ void FramebufferEditor::Save()
 {
     for (auto& framebufferInfo : framebufferInfos_)
     {
-        std::ofstream fileOut(framebufferInfo.path.c_str(), std::ios::binary);
-        if (!framebufferInfo.info.SerializeToOstream(&fileOut))
+        if (!core::WriteFlatbufferToFile<renderer::FramebufferT, renderer::Framebuffer>(framebufferInfo.info, framebufferInfo.path))
         {
             LogWarning(std::format("Could not save framebuffer at: {}", framebufferInfo.path.c_str()));
         }

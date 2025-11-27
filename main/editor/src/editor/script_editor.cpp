@@ -18,14 +18,10 @@ namespace py = pybind11;
 
 // for convenience
 using json = nlohmann::json;
-namespace editor
+namespace novus::editor
 {
 void ScriptEditor::AddResource(const Resource& resource)
 {
-    if (resource.path.contains("neko2.py"))
-    {
-        return;
-    }
     ScriptInfo scriptInfo{};
     scriptInfo.resourceId = resource.resourceId;
     scriptInfo.filename = GetFilename(resource.path);
@@ -34,8 +30,8 @@ void ScriptEditor::AddResource(const Resource& resource)
     std::ranges::replace(module, '\\', '.');
     module = (module | std::views::split(std::string{ ".." }) | std::views::join_with(std::string{ "." })) | std::ranges::to<std::string>();
     module = std::format("{}.{}", module, GetFilename(resource.path, false));
-    scriptInfo.info.set_module(module);
-    scriptInfo.info.set_path(resource.path.c_str());
+    scriptInfo.info.module_ = (module);
+    scriptInfo.info.path = resource.path;
 
     const auto analyzeScriptFunc = py::module_::import("scripts.script_parser").attr("analyze_script");
     try
@@ -48,7 +44,7 @@ void ScriptEditor::AddResource(const Resource& resource)
         }
         if(!scriptInfo.classesInScript.empty())
         {
-            scriptInfo.info.set_class_(scriptInfo.classesInScript[0]);
+            scriptInfo.info.class_ = (scriptInfo.classesInScript[0]);
         }
     }
     catch(py::error_already_set& e)
@@ -79,10 +75,6 @@ void ScriptEditor::UpdateExistingResource(const Resource& resource)
     {
         if(scriptInfo.resourceId == resource.resourceId)
         {
-            if(resource.path.contains("neko2.py"))
-            {
-                continue;
-            }
             const auto analyzeScriptFunc = py::module_::import("scripts.script_parser").attr("analyze_script");
             try
             {
@@ -94,7 +86,7 @@ void ScriptEditor::UpdateExistingResource(const Resource& resource)
                 }
                 if (!scriptInfo.classesInScript.empty())
                 {
-                    scriptInfo.info.set_class_(scriptInfo.classesInScript[0]);
+                    scriptInfo.info.class_ = (scriptInfo.classesInScript[0]);
                 }
             }
             catch (py::error_already_set& e)
@@ -115,15 +107,15 @@ void ScriptEditor::DrawInspector()
 
     const auto& currentScriptInfo = scriptInfos_[currentIndex_];
 
-    ImGui::Text("Path: %s", currentScriptInfo.info.path().c_str());
-    ImGui::Text("Module %s", currentScriptInfo.info.module().c_str());
-    if(currentScriptInfo.info.class_().empty())
+    ImGui::Text("Path: %s", currentScriptInfo.info.path.c_str());
+    ImGui::Text("Module %s", currentScriptInfo.info.module_.c_str());
+    if(currentScriptInfo.info.class_.empty())
     {
         ImGui::TextColored(ImVec4(1.0f, 0.f, 0.f, 1.0f), "Missing class name in script");
     }
     else
     {
-        ImGui::Text("Class Name: %s", currentScriptInfo.info.class_().c_str());
+        ImGui::Text("Class Name: %s", currentScriptInfo.info.class_.c_str());
     }
 
 
@@ -153,7 +145,7 @@ bool ScriptEditor::DrawContentList(bool unfocus)
         if (ImGui::Selectable(scriptInfo.filename.data(), currentIndex_ == i))
         {
             currentIndex_ = i;
-            const auto scriptContent = core::LoadFile(scriptInfo.info.path());
+            const auto scriptContent = core::LoadFile(scriptInfo.info.path);
             scriptText_ = reinterpret_cast<const char*>(scriptContent.data);
             wasFocused = true;
         }
@@ -209,12 +201,12 @@ void ScriptEditor::Delete()
     }
     auto* editor = Editor::GetInstance();
     auto& resourceManager = editor->GetResourceManager();
-    resourceManager.RemoveResource(scriptInfos_[currentIndex_].info.path(), true);
+    resourceManager.RemoveResource(scriptInfos_[currentIndex_].info.path, true);
 }
 
 std::span<const std::string_view> ScriptEditor::GetExtensions() const
 {
-    static constexpr std::array<std::string_view, 1> extensions = { ".py" };
+    static constexpr std::array<std::string_view, 1> extensions = { ".wasm" };
     return std::span{ extensions };
 }
 

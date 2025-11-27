@@ -37,13 +37,13 @@ bool ReadFlatbufferFromFile(std::string_view path, ObjectT& object) {
         buffer.size()
     );
 
-    if (!Object::Verify(verifier)) {
-        return false; // Data is corrupt or wrong schema
-    }
 
     // Get the root
     const Object* table = flatbuffers::GetRoot<Object>(buffer.data());
 
+    if (!table->Verify(verifier)) {
+        return false; // Data is corrupt or wrong schema
+    }
     // Convert FlatBuffer → object-representation
     table->UnPackTo(&object);
 

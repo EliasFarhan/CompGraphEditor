@@ -8,7 +8,7 @@ namespace novus::editor
     {
         std::string filename;
         ResourceId resourceId;
-        engine::System info;
+        engine::SystemT info;
         std::vector<std::string> classesInScript;
 
     };
