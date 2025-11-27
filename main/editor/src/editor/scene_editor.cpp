@@ -76,10 +76,6 @@ void SceneEditor::AddResource(const Resource& resource)
 
     if (!CheckExtensions(resource.extension))
     {
-        if (resource.path.contains("neko2.py") || resource.path.contains("__pycache__"))
-        {
-            return;
-        }
         //Adding a resource to the list
         const auto* sceneInfo = GetCurrentSceneInfo();
         if (std::ranges::none_of(sceneInfo->resources, [&resource](const auto& path)
@@ -122,7 +118,7 @@ void SceneEditor::AddResource(const Resource& resource)
     auto& resourceManager = editor->GetResourceManager();
     std::vector<int> unexistingResources;
     
-    for(int i = 0; i < sceneInfo.info.resources_size(); i++)
+    for(int i = 0; i < sceneInfo.info.resources.size(); i++)
     {
         std::string_view resourcePath {sceneInfo.info.resources(i)};
         if(!core::FileExists(resourcePath))
@@ -399,7 +395,7 @@ bool SceneEditor::ExportAndPlayScene() const
     auto* currentRenderPass = renderPassEditor->GetRenderPass(currentScene.renderPassId);
     auto* exportRenderPass = exportScene.mutable_render_pass();
     //*exportRenderPass = currentRenderPass->info;
-    for(int subPassIndex = 0; subPassIndex < currentRenderPass->info.sub_passes_size(); subPassIndex++)
+    for(int subPassIndex = 0; subPassIndex < currentRenderPass->info.subpasses.size(); subPassIndex++)
     {
         auto* exportSubPass = exportRenderPass->add_sub_passes();
         exportSubPass->set_type(core::pb::Pipeline_Type_NONE);

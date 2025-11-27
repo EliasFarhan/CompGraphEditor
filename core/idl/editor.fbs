@@ -1,11 +1,13 @@
 ﻿include "renderer.fbs";
 namespace novus.editor;
 
+
 table EditorPipelineInfo
 {
     pipeline: renderer.GraphicsPipeline;
     vertex_shader_path: string;
     fragment_shader_path: string;
+    samplers: [internal.ShaderSampler] (native_inline);
 }
 
 table EditorSceneInfo
@@ -20,15 +22,30 @@ table EditorMeshInfo
     mesh: renderer.Mesh;
     model_path: string;
 }
-
+table EditorMaterialTextureInfo
+{
+    path: string;
+    attachment_name: string; //when using framebuffer
+    framebuffer_name: string;
+    sampler_name: string;
+}
 table EditorMaterialInfo
 {
+    name:string;
+    textures: [EditorMaterialTextureInfo] (native_inline);
+    pipeline_path: string;
+}
 
+table EditorSubpassInfo
+{
+    command_paths: [string];
+    framebuffer_path: string;
+    framebuffer_index: int32;
 }
 
 table EditorRenderPassInfo
 {
-    subpasses: [renderer.Renderpass];
+    subpass_infos: [EditorSubpassInfo] (native_inline);
 }
 
 table EditorModelInfo
@@ -39,6 +56,8 @@ table EditorModelInfo
 table EditorDrawCommandInfo
 {
     draw_command: renderer.DrawCommand;
+    material_path: string;
+    mesh_path: string;
 }
 
 table EditorComputeCommandInfo

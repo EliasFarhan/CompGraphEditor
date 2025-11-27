@@ -17,6 +17,7 @@
 #include <array>
 #include <fstream>
 
+#include "utils/fb_file.h"
 
 
 namespace novus::editor
@@ -36,52 +37,36 @@ void RenderPassEditor::DrawInspector()
     auto& currentRenderPass = renderPassInfos_[currentIndex_];
     int deleteSubpassIndex = -1;
     ImGui::Separator();
-    for (int subpassIndex = 0; subpassIndex < currentRenderPass.info.subpasses.size(); subpassIndex++)
+    for (int subpassIndex = 0; subpassIndex < currentRenderPass.info.subpass_infos.size(); subpassIndex++)
     {
         const auto headerTitle = std::format("Subpass {}", subpassIndex);
         ImGui::PushID(headerTitle.c_str());
         ImGui::Text("%s", headerTitle.c_str());
 
-        auto* subpassInfo = currentRenderPass.info.mutable_sub_passes(subpassIndex);
+        auto& subpassInfo = currentRenderPass.info.subpass_infos[subpassIndex];
+
+        //TODO clear color is to be moved into framebuffer
+        /*
         std::array color
         {
-            subpassInfo->subpass().clear_color().r(),
-            subpassInfo->subpass().clear_color().g(),
-            subpassInfo->subpass().clear_color().b(),
-            subpassInfo->subpass().clear_color().a(),
+            subpassObj->subpass.clear_color().r(),
+            subpassObj->subpass.clear_color().g(),
+            subpassObj->subpass.clear_color().b(),
+            subpassObj->subpass.clear_color().a(),
         };
         if (ImGui::ColorEdit4("Clear Color", color.data()))
         {
-            auto* clearColor = subpassInfo->mutable_subpass()->mutable_clear_color();
+            auto* clearColor = subpassObj->mutable_subpass()->mutable_clear_color();
             clearColor->set_r(color[0]);
             clearColor->set_g(color[1]);
             clearColor->set_b(color[2]);
             clearColor->set_a(color[3]);
         }
+        */
 
-        if(subpassInfo->subpass().has_viewport_size())
-        {
-            std::array viewport = {subpassInfo->subpass().viewport_size().x(), subpassInfo->subpass().viewport_size().y()};
-            if(ImGui::InputInt2("Viewport Size", viewport.data()))
-            {
-                subpassInfo->mutable_subpass()->mutable_viewport_size()->set_x(viewport[0]);
-                subpassInfo->mutable_subpass()->mutable_viewport_size()->set_y(viewport[1]);
-            }
-            if (ImGui::Button("Remove Viewport Size"))
-            {
-                subpassInfo->mutable_subpass()->clear_viewport_size();
-            }
-        }
-        else
-        {
-            if(ImGui::Button("Add Viewport Size"))
-            {
-                auto* viewportSize = subpassInfo->mutable_subpass()->mutable_viewport_size();
-            }
-        }
 
         const auto& framebufferInfos = framebufferEditor->GetFramebuffers();
-        const auto& framebufferPath = subpassInfo->framebuffer_path();
+        const auto& framebufferPath = subpassInfo.framebuffer_path;
         if (ImGui::BeginCombo("Framebuffer", framebufferPath.empty() ? "Backbuffer" : framebufferPath.data()))
         {
             for (std::size_t framebufferIndex = 0; framebufferIndex < framebufferInfos.size(); framebufferIndex++)
@@ -90,24 +75,25 @@ void RenderPassEditor::DrawInspector()
                                      !framebufferPath.empty() &&
                                      fs::equivalent(framebufferInfos[framebufferIndex].path.c_str(), framebufferPath)))
                 {
-                    subpassInfo->set_framebuffer_path(framebufferInfos[framebufferIndex].path.c_str());
+                    subpassInfo.framebuffer_path = (framebufferInfos[framebufferIndex].path);
                 }
             }
             ImGui::EndCombo();
         }
         if(ImGui::Button("Reset Framebuffer to Backbuffer"))
         {
-            subpassInfo->clear_framebuffer_path();
+            subpassInfo.framebuffer_path.clear();
+            subpassInfo.framebuffer_index = -1;
         }
 
         std::vector<int> removedCommandIndices;
-        for (int commandIndex = 0; commandIndex < subpassInfo->command_paths_size(); commandIndex++)
+        for (size_t commandIndex = 0; commandIndex < subpassInfo.command_paths.size(); commandIndex++)
         {
-            std::string_view commandPath {subpassInfo->command_paths(commandIndex)};
+            std::string_view commandPath {subpassInfo.command_paths[commandIndex]};
             const auto commandId = resourceManager.FindResourceByPath(commandPath);
             if (!commandPath.empty() && commandId == INVALID_RESOURCE_ID)
             {
-                subpassInfo->mutable_command_paths(commandIndex)->clear();
+                subpassInfo.command_paths[commandIndex].clear();
                 commandPath = "";
             }
             const auto* command = commandEditor->GetCommand(commandId);
@@ -126,7 +112,7 @@ void RenderPassEditor::DrawInspector()
                     {
                         if (ImGui::Selectable(availableCommand.filename.c_str(), availableCommand.resourceId == commandId))
                         {
-                            subpassInfo->set_command_paths(commandIndex, availableCommand.path.c_str());
+                            subpassInfo.command_paths[commandIndex] = availableCommand.path;
                         }
                     }
                     ImGui::EndCombo();
@@ -143,13 +129,13 @@ void RenderPassEditor::DrawInspector()
         std::ranges::reverse(removedCommandIndices);
         for (const auto removedCommandIndex : removedCommandIndices)
         {
-            subpassInfo->mutable_command_paths()->DeleteSubrange(removedCommandIndex, 1);
+            subpassInfo.command_paths.erase(subpassInfo.command_paths.begin() + removedCommandIndex);
         }
         const auto buttonId = std::format("{}_add_command_button", headerTitle);
         ImGui::PushID(buttonId.c_str());
         if (ImGui::Button("Add Command"))
         {
-            subpassInfo->add_command_paths();
+            subpassInfo.command_paths.push_back({});
         }
         ImGui::PopID();
         const auto importId = std::format("{}_import_model_command", headerTitle);
@@ -187,7 +173,7 @@ void RenderPassEditor::DrawInspector()
                             //TODO import commands
                             for (auto commandId : command.drawCommandIds)
                             {
-                                *subpassInfo->add_command_paths() = resourceManager.GetResource(commandId)->path;
+                                subpassInfo.command_paths.push_back(resourceManager.GetResource(commandId)->path);
                             }
                             ImGui::CloseCurrentPopup();
                         }
@@ -203,11 +189,11 @@ void RenderPassEditor::DrawInspector()
     }
     if(deleteSubpassIndex != -1)
     {
-        currentRenderPass.info.mutable_sub_passes()->DeleteSubrange(deleteSubpassIndex, 1);
+        currentRenderPass.info.subpass_infos.erase(currentRenderPass.info.subpass_infos.begin()+deleteSubpassIndex);
     }
     if (ImGui::Button("Add SubPass"))
     {
-        currentRenderPass.info.add_sub_passes();
+        currentRenderPass.info.subpass_infos.push_back({});
     }
 }
 
@@ -237,14 +223,14 @@ void RenderPassEditor::DrawCenterView()
     auto* commandEditor = dynamic_cast<CommandEditor*>(editor->GetEditorSystem(EditorType::COMMAND));
     const auto& resourceManager = editor->GetResourceManager();
     ImNodes::BeginNodeEditor();
-    const auto subpassCount = currentRenderPassInfo.info.sub_passes_size();
+    const auto subpassCount = currentRenderPassInfo.info.subpass_infos.size();
     constexpr auto inputAttribIndex = 100;
     constexpr auto outputAttribIndex = 200;
     std::vector<std::pair<int, int>> links;
 
     for(int i = 0; i < subpassCount; i++)
     {
-        const auto& subpass = currentRenderPassInfo.info.sub_passes(i);
+        const auto& subpass = currentRenderPassInfo.info.subpass_infos[i];
         ImNodes::BeginNode(i);
 
         ImNodes::BeginNodeTitleBar();
@@ -264,20 +250,21 @@ void RenderPassEditor::DrawCenterView()
             ImNodes::EndOutputAttribute();
         }
         ImGui::TextUnformatted("Commands:");
-        for(int commandIndex = 0; commandIndex < subpass.command_paths_size(); commandIndex++)
+        for(int commandIndex = 0; commandIndex < subpass.command_paths.size(); commandIndex++)
         {
-            const std::string commandPath{subpass.command_paths(commandIndex)};
+            const std::string commandPath{subpass.command_paths[commandIndex]};
             const auto commandResource = resourceManager.FindResourceByPath(commandPath);
             const auto& commandInfo = commandEditor->GetCommand(commandResource);
             if (commandInfo != nullptr)
             {
                 if (commandInfo->info.index() == 0)
                 {
-                    ImGui::Text("%s", std::get<pb::EditorDrawCommand>(commandInfo->info).draw_command().name().c_str());
+                    ImGui::Text("%s", std::get<EditorDrawCommandInfoT>(commandInfo->info).draw_command->name);
                 }
                 else
                 {
-                    ImGui::Text("%s", std::get<pb::EditorComputeCommand>(commandInfo->info).compute_command().name().c_str());
+                    //TODO show compute command name
+                    //ImGui::Text("%s", std::get<pb::EditorComputeCommand>(commandInfo->info).compute_command().name().c_str());
                 }
             }
         }
@@ -307,8 +294,7 @@ void RenderPassEditor::Save()
 {
     for (auto& renderPassInfo : renderPassInfos_)
     {
-        std::ofstream fileOut(renderPassInfo.path.c_str(), std::ios::binary);
-        if (!renderPassInfo.info.SerializeToOstream(&fileOut))
+        if (!core::WriteFlatbufferToFile<EditorRenderPassInfoT, EditorRenderPassInfo>(renderPassInfo.info, renderPassInfo.path))
         {
             LogWarning(std::format("Could not save render pass at: {}", renderPassInfo.path.c_str()));
         }
@@ -323,15 +309,14 @@ void RenderPassEditor::AddResource(const Resource& resource)
     renderPassInfo.filename = GetFilename(resource.path);
 
 
-    if (!core::IsRegularFile(resource.path.c_str()))
+    if (!core::IsRegularFile(resource.path))
     {
-        LogWarning(std::format("Could not find render pass file: {}", resource.path.c_str()));
+        LogWarning(std::format("Could not find render pass file: {}", resource.path));
         return;
     }
-    std::ifstream fileIn(resource.path.c_str(), std::ios::binary);
-    if (!renderPassInfo.info.ParsePartialFromIstream(&fileIn))
+    if (!core::ReadFlatbufferFromFile<EditorRenderPassInfoT, EditorRenderPassInfo>(resource.path, renderPassInfo.info))
     {
-        LogWarning(std::format("Could not open render pass protobuf file: {}", resource.path.c_str()));
+        LogWarning(std::format("Could not open render pass protobuf file: {}", resource.path));
         return;
     }
     renderPassInfos_.push_back(renderPassInfo);

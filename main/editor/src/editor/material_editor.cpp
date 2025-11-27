@@ -11,6 +11,7 @@
 #include <fstream>
 
 #include "imnodes.h"
+#include "utils/fb_file.h"
 
 namespace novus::editor
 {
@@ -44,31 +45,31 @@ void MaterialEditor::DrawInspector()
     }
     ImGui::Separator();
     ImGui::Text("Samplers");
-    for(int i = 0; i < currentMaterialInfo.info.textures_size(); i++)
+    for(int i = 0; i < currentMaterialInfo.info.textures.size(); i++)
     {
-        auto* materialTexture = currentMaterialInfo.info.mutable_textures(i);
-        std::string_view texturePath{materialTexture->texture_name()};
-        const auto& fbAttachment = materialTexture->material_texture().attachment_name();
+        auto& materialTexture = currentMaterialInfo.info.textures[i];
+        std::string_view texturePath{materialTexture.path};
+        const auto& fbAttachment = materialTexture.attachment_name;
         if (!texturePath.empty())
         {
 
             const auto textureId = resourceManager.FindResourceByPath(texturePath);
             if(textureId == INVALID_RESOURCE_ID)
             {
-                materialTexture->clear_texture_name();
+                materialTexture.path.clear();
                 texturePath = "";
             }
         }
-        if(ImGui::BeginCombo(materialTexture->material_texture().sampler_name().c_str(), 
+        if(ImGui::BeginCombo(materialTexture.sampler_name.c_str(),
             texturePath.empty() && fbAttachment.empty() ?
             "Empty texture" : texturePath.empty()?fbAttachment.data():texturePath.data()))
         {
             for(const auto& texture : textureEditor->GetTextures())
             {
-                if(ImGui::Selectable(texture.filename.c_str(), texture.info.path == materialTexture->material_texture().sampler_name()))
+                if(ImGui::Selectable(texture.filename.c_str(), texture.info.path == materialTexture.sampler_name))
                 {
-                    materialTexture->mutable_material_texture()->clear_attachment_name();
-                    materialTexture->set_texture_name(texture.info.path);
+                    materialTexture.attachment_name.clear();
+                    materialTexture.path = (texture.info.path);
                 }
             }
             const auto& framebuffers = framebufferEditor->GetFramebuffers();
@@ -87,12 +88,12 @@ void MaterialEditor::DrawInspector()
                         const auto& colorAttachmentName = colorAttachment.name;
                         const auto attachmentUniqueName = std::format("{}_{}", framebufferName, colorAttachmentName);
                         if (ImGui::Selectable(attachmentUniqueName.data(), 
-                            colorAttachmentName == materialTexture->material_texture().sampler_name() &&
-                            framebufferName == materialTexture->material_texture().framebuffer_name()))
+                            colorAttachmentName == materialTexture.sampler_name &&
+                            framebufferName == materialTexture.framebuffer_name))
                         {
-                            materialTexture->clear_texture_name();
-                            materialTexture->mutable_material_texture()->set_attachment_name(colorAttachmentName);
-                            materialTexture->mutable_material_texture()->set_framebuffer_name(framebufferName);
+                            materialTexture.path.clear();
+                            materialTexture.attachment_name = (colorAttachmentName);
+                            materialTexture.framebuffer_name = (framebufferName);
                         }
                     }
                     if(framebuffer.info.depth_stencil_attachment != nullptr)
@@ -100,12 +101,12 @@ void MaterialEditor::DrawInspector()
                         const auto& depthAttachmentName = framebuffer.info.depth_stencil_attachment->name;
                         const auto attachmentUniqueName = std::format("{}_{}", framebufferName, depthAttachmentName);
                         if(ImGui::Selectable(attachmentUniqueName.data(), 
-                            materialTexture->material_texture().attachment_name() == depthAttachmentName &&
-                            materialTexture->material_texture().framebuffer_name() == framebufferName))
+                            materialTexture.attachment_name == depthAttachmentName &&
+                            materialTexture.framebuffer_name == framebufferName))
                         {
-                            materialTexture->clear_texture_name();
-                            materialTexture->mutable_material_texture()->set_attachment_name(depthAttachmentName);
-                            materialTexture->mutable_material_texture()->set_framebuffer_name(framebufferName);
+                            materialTexture.path.clear();
+                            materialTexture.attachment_name = (depthAttachmentName);
+                            materialTexture.framebuffer_name = (framebufferName);
                         }
                     }
                 }
@@ -117,6 +118,8 @@ void MaterialEditor::DrawInspector()
     ImGui::Separator();
     if(pipelineInfo != nullptr)
     {
+        //TODO listing of uniforms
+        /*
         if (ImGui::BeginListBox("Uniforms"))
         {
             for(int i = 0; i < pipelineInfo->info.pipeline.uniforms_size(); i++)
@@ -129,6 +132,9 @@ void MaterialEditor::DrawInspector()
             }
             ImGui::EndListBox();
         }
+        */
+        //TODO listing of vertex input attributes
+        /*
         if (ImGui::BeginListBox("Vertex In Attributes"))
         {
             for(int i = 0; i < pipelineInfo->info.pipeline.in_vertex_attributes_size(); i++)
@@ -141,6 +147,7 @@ void MaterialEditor::DrawInspector()
             }
             ImGui::EndListBox();
         }
+        */
 
     }
 
@@ -177,28 +184,32 @@ void MaterialEditor::DrawCenterView()
 	constexpr int samplerBaseIndex = 300;
 
 	std::vector<std::pair<int, int>> links;
-	links.reserve(currentMaterial.info.textures_size() + currentMaterial.info.material.uniforms_size());
+	links.reserve(currentMaterial.info.textures.size());//TODO add uniforms + currentMaterial.info.material.uniforms_size());
 
 	ImNodes::BeginNodeEditor();
-	if(currentMaterial.info.textures_size() != 0)
+	if(currentMaterial.info.textures.size() != 0)
 	{
 		ImNodes::BeginNode(0);
 		ImNodes::BeginNodeTitleBar();
 		ImGui::TextUnformatted("Textures");
 		ImNodes::EndNodeTitleBar();
-		for (int i = 0; i < currentMaterial.info.textures_size(); i++)
+		for (int i = 0; i < currentMaterial.info.textures.size(); i++)
 		{
-			const auto& materialTexture = currentMaterial.info.textures(i);
+			const auto& materialTexture = currentMaterial.info.textures[i];
 			ImNodes::BeginOutputAttribute(textureBaseIndex + i);
-			auto textureName = GetFilename(materialTexture.texture_name());
-			const auto textureType = aiTextureTypeToString(static_cast<aiTextureType>(materialTexture.texture_type()));
+			auto textureName = GetFilename(materialTexture.path);
+            /*
+		    const auto textureType = aiTextureTypeToString(static_cast<aiTextureType>(materialTexture.texture_type()));
 			ImGui::Text("%s %s", textureName.c_str(), textureType);
+			*/
+		    ImGui::Text("%s", textureName.c_str());
 			ImNodes::EndOutputAttribute();
 		}
 		ImNodes::EndNode();
 		ImNodes::SetNodeGridSpacePos(0, { 50, 50 });
 	}
-
+    //TODO show uniforms in node view
+/*
 	if(currentMaterial.pipelineId != INVALID_RESOURCE_ID && pipelineEditor->GetPipeline(currentMaterial.pipelineId)->info.pipeline().uniforms_size() != 0)
 	{
 		ImNodes::BeginNode(1);
@@ -224,6 +235,7 @@ void MaterialEditor::DrawCenterView()
 		ImNodes::EndNode();
 		ImNodes::SetNodeGridSpacePos(1, { 50, 250 });
 	}
+	*/
     ImNodes::BeginNode(2);
     ImNodes::BeginNodeTitleBar();
     ImGui::TextUnformatted("Material");
@@ -231,14 +243,15 @@ void MaterialEditor::DrawCenterView()
     ImNodes::BeginInputAttribute(0);
     ImGui::TextUnformatted("Uniforms");
     ImNodes::EndInputAttribute();
+    /*
     if (currentMaterial.pipelineId != INVALID_RESOURCE_ID)
     {
         const auto* pipeline = pipelineEditor->GetPipeline(currentMaterial.pipelineId);
 
         ImGui::TextUnformatted("Samplers:");
-        for (int i = 0; i < pipeline->info.pipeline().uniforms_size(); i++)
+        for (int i = 0; i < pipeline->info.pipeline.uniforms_size(); i++)
         {
-            const auto& uniform = pipeline->info.pipeline().uniforms(i);
+            const auto& uniform = pipeline->info.pipeline.uniforms(i);
 
             if (uniform.type() != core::pb::Attribute_Type_SAMPLER2D &&
                 uniform.type() != core::pb::Attribute_Type_SAMPLERCUBE)
@@ -264,6 +277,7 @@ void MaterialEditor::DrawCenterView()
 
         }
     }
+    */
     ImNodes::EndNode();
     ImNodes::SetNodeGridSpacePos(2, { 300,150 });
 
@@ -286,10 +300,9 @@ void MaterialEditor::Save()
 {
     for(auto& materialInfo : materialInfos_)
     {
-        std::ofstream fileOut(materialInfo.path.c_str(), std::ios::binary);
-        if (!materialInfo.info.SerializeToOstream(&fileOut))
+        if (!core::WriteFlatbufferToFile<EditorMaterialInfoT, EditorMaterialInfo>(materialInfo.info, materialInfo.path))
         {
-            LogWarning(std::format("Could not save material at: {}", materialInfo.path.c_str()));
+            LogWarning(std::format("Could not save material at: {}", materialInfo.path));
         }
         
     }
@@ -307,15 +320,15 @@ void MaterialEditor::AddResource(const Resource &resource)
         LogWarning(std::format("Could not find material file: {}", resource.path.c_str()));
         return;
     }
-    std::ifstream fileIn(resource.path.c_str(), std::ios::binary);
-    if (!materialInfo.info.ParsePartialFromIstream(&fileIn))
+    if (!core::ReadFlatbufferFromFile<EditorMaterialInfoT, EditorMaterialInfo>(resource.path,materialInfo.info))
     {
         LogWarning(std::format("Could not open protobuf file: {}", resource.path.c_str()));
         return;
     }
-    if(materialInfo.info.material().name().empty())
+    //material name?
+    if(materialInfo.info.name.empty())
     {
-        materialInfo.info.mutable_material()->set_name(GetFilename(resource.path, false));
+        materialInfo.info.name = (GetFilename(resource.path, false));
     }
     materialInfos_.push_back(materialInfo);
 }
@@ -328,9 +341,9 @@ void MaterialEditor::RemoveResource(const Resource &resource)
     {
         if (material.pipelineId == resource.resourceId)
         {
-            material.info.clear_pipeline_path();
+            material.info.pipeline_path.clear();
             material.pipelineId = INVALID_RESOURCE_ID;
-            material.info.mutable_textures()->Clear();
+            material.info.textures.clear();
         }
         
     }
@@ -387,9 +400,9 @@ void MaterialEditor::ReloadId()
     int i = 0;
     for (auto& currentMaterialInfo : materialInfos_)
     {
-        if (currentMaterialInfo.pipelineId == INVALID_RESOURCE_ID && !currentMaterialInfo.info.pipeline_path().empty())
+        if (currentMaterialInfo.pipelineId == INVALID_RESOURCE_ID && !currentMaterialInfo.info.pipeline_path.empty())
         {
-            currentMaterialInfo.pipelineId = resourceManager.FindResourceByPath(currentMaterialInfo.info.pipeline_path());
+            currentMaterialInfo.pipelineId = resourceManager.FindResourceByPath(currentMaterialInfo.info.pipeline_path);
             const auto* pipeline = pipelineEditor->GetPipeline(currentMaterialInfo.pipelineId);
             if (pipeline != nullptr)
             {
@@ -428,32 +441,32 @@ void MaterialEditor::ReloadMaterialPipeline(const PipelineInfo& pipelineInfo, in
 
     auto& currentMaterialInfo = materialInfos_[materialIndex];
     currentMaterialInfo.pipelineId = pipelineInfo.resourceId;
-    currentMaterialInfo.info.set_pipeline_path(pipelineInfo.path.c_str());
+    currentMaterialInfo.info.pipeline_path = (pipelineInfo.path);
 
     std::unordered_set<std::string> samplerNames;
-    for (int i = 0; i < pipelineInfo.info.pipeline().samplers_size(); i++)
+    for (int i = 0; i < pipelineInfo.info.samplers.size(); i++)
     {
-        const auto& samplerInfo = pipelineInfo.info.pipeline().samplers(i);
+        const auto& samplerInfo = pipelineInfo.info.samplers(i);
         samplerNames.emplace(samplerInfo.name());
         
     }
-    std::vector<editor::pb::EditorMaterialTexture> materialTextures;
-    for(int i = 0; i < currentMaterialInfo.info.textures_size(); i++)
+    std::vector<EditorMaterialTextureInfoT> materialTextures;
+    for(int i = 0; i < currentMaterialInfo.info.textures.size(); i++)
     {
-        const auto& materialTexture = currentMaterialInfo.info.textures(i);
-        if(samplerNames.contains(materialTexture.material_texture().sampler_name()))
+        const auto& materialTexture = currentMaterialInfo.info.textures[i];
+        if(samplerNames.contains(materialTexture.sampler_name))
         {
             materialTextures.push_back(materialTexture);
         }
     }
-    currentMaterialInfo.info.mutable_textures()->Clear();
-    for(int i = 0; i < pipelineInfo.info.pipeline().samplers_size(); i++)
+    currentMaterialInfo.info.textures.clear();
+    for(int i = 0; i < pipelineInfo.info.samplers.size(); i++)
     {
         auto* newMaterialTexture = currentMaterialInfo.info.add_textures();
-        const auto& sampler = pipelineInfo.info.pipeline().samplers(i);
+        const auto& sampler = pipelineInfo.info.samplers[i];
         const auto it = std::ranges::find_if(materialTextures, [&sampler](const auto& matText)
             {
-                return sampler.name() == matText.material_texture().sampler_name();
+                return sampler.name == matText.sampler_name;
             });
         if (it != materialTextures.end())
         {

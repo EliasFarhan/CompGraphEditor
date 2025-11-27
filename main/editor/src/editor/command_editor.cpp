@@ -16,6 +16,7 @@
 #include <fstream>
 
 #include "shader_editor.h"
+#include "utils/fb_file.h"
 
 namespace novus::editor
 {
@@ -36,18 +37,20 @@ void CommandEditor::AddResource(const Resource& resource)
         std::ifstream fileIn(resource.path.c_str(), std::ios::binary);
         commandInfo.info.emplace<EditorDrawCommandInfoT>();
         auto& info = std::get<EditorDrawCommandInfoT>(commandInfo.info);
-        if (!info.ParseFromIstream(&fileIn))
+        if (!core::ReadFlatbufferFromFile<EditorDrawCommandInfoT, EditorDrawCommandInfo>(resource.path, info))
         {
             LogWarning(std::format("Could not open protobuf file: {}", resource.path.c_str()));
             return;
         }
-        if (info.draw_command.name().empty())
+        if (info.draw_command->name.empty())
         {
-            info.mutable_draw_command()->set_name(GetFilename(resource.path, false));
+            info.draw_command->name = (GetFilename(resource.path, false));
         }
     }
     else if(extension ==".compcmd")
     {
+        //TODO load compute command
+        /*
         if (!core::IsRegularFile(resource.path.c_str()))
         {
             LogWarning(std::format("Could not find command file: {}", resource.path.c_str()));
@@ -65,6 +68,7 @@ void CommandEditor::AddResource(const Resource& resource)
         {
             info.mutable_compute_command()->set_name(GetFilename(resource.path, false));
         }
+        */
     }
     
     commandInfo.path = resource.path;
@@ -79,11 +83,12 @@ void CommandEditor::RemoveResource(const Resource& resource)
         {
             if (command.info.index() == 0)
             {
-                std::get<EditorDrawCommandT>(command.info).clear_material_path();
+                std::get<EditorDrawCommandInfoT>(command.info).material_path.clear();
             }
             else
             {
-                std::get<pb::EditorComputeCommand>(command.info).clear_material_path();
+                //TODO clear material path in compute command
+                //std::get<pb::EditorComputeCommand>(command.info).clear_material_path();
             }
             command.materialId = INVALID_RESOURCE_ID;
         }
@@ -92,7 +97,7 @@ void CommandEditor::RemoveResource(const Resource& resource)
         {
             if (command.info.index() == 0)
             {
-                std::get<pb::EditorDrawCommand>(command.info).clear_mesh_path();
+                std::get<EditorDrawCommandInfoT>(command.info).mesh_path.clear();
             }
             command.meshId = INVALID_RESOURCE_ID;
         }
@@ -131,13 +136,11 @@ void CommandEditor::DrawInspector()
     auto& currentCommand = commandInfos_[currentIndex_];
 
     //name editor
-    if (currentCommand.info.index() == 0)
+    if (currentCommand.info.index() == 0) // if command is graphics
     {
-        auto& drawCommandInfo = std::get<pb::EditorDrawCommand>(currentCommand.info);
-        std::string drawCommandName = drawCommandInfo.draw_command().name();
-        if (ImGui::InputText("Name: ", &drawCommandName))
+        auto& drawCommandInfo = std::get<EditorDrawCommandInfoT>(currentCommand.info);
+        if (ImGui::InputText("Name: ", &drawCommandInfo.draw_command->name))
         {
-            drawCommandInfo.mutable_draw_command()->set_name(drawCommandName);
         }
 
         const auto& materials = materialEditor->GetMaterials();
@@ -149,7 +152,7 @@ void CommandEditor::DrawInspector()
                 if (ImGui::Selectable(material.filename.c_str(), material.resourceId == currentCommand.materialId))
                 {
                     currentCommand.materialId = material.resourceId;
-                    drawCommandInfo.set_material_path(material.path.c_str());
+                    drawCommandInfo.material_path = (material.path);
                 }
             }
             ImGui::EndCombo();
@@ -163,7 +166,7 @@ void CommandEditor::DrawInspector()
                 if (ImGui::Selectable(mesh.filename.c_str(), mesh.resourceId == currentCommand.meshId))
                 {
                     currentCommand.meshId = mesh.resourceId;
-                    drawCommandInfo.set_mesh_path(mesh.path.c_str());
+                    drawCommandInfo.mesh_path = (mesh.path);
                 }
             }
             ImGui::EndCombo();
@@ -177,16 +180,10 @@ void CommandEditor::DrawInspector()
         std::array resourceIds = {
             pipelineInfo->vertexShaderId,
             pipelineInfo->fragmentShaderId,
-            pipelineInfo->geometryShaderId,
-            pipelineInfo->tessControlShaderId,
-            pipelineInfo->tessEvalShaderId,
-            pipelineInfo->computeShaderId,
-            pipelineInfo->rayGenShaderId,
-            pipelineInfo->anyHitShaderId,
-            pipelineInfo->closestHitShaderId,
-            pipelineInfo->intersectionHitShaderId,
-            pipelineInfo->missHitShaderId,
+            pipelineInfo->computeShaderId
         };
+        //TODO ssbo binding list?
+        /*
         core::pb::Attribute ssbo{};
         ssbo.set_binding(-1);
         const auto checkSsboPresence = [&resourceIds, shaderEditor, pipelineInfo, &ssbo](ResourceId shaderId)
@@ -223,18 +220,16 @@ void CommandEditor::DrawInspector()
                 ImGui::EndCombo();
             }
         }
+        */
 
-        switch (pipelineInfo->info.pipeline().type())
         {
-        case core::pb::Pipeline_Type_RASTERIZE:
-        {
-            bool automaticDraw = drawCommandInfo.draw_command().automatic_draw();
-            if (ImGui::Checkbox("Automatic Draw", &automaticDraw))
+            bool automaticDraw = drawCommandInfo.draw_command->automatic_draw;
+            if (ImGui::Checkbox("Automatic Draw", &drawCommandInfo.draw_command->automatic_draw))
             {
-                drawCommandInfo.mutable_draw_command()->set_automatic_draw(automaticDraw);
             }
 
-            //Model matrix
+            //TODO add Model matrix to command
+            /*
             core::pb::Transform* transform = nullptr;
             if (drawCommandInfo.draw_command().has_model_transform())
             {
@@ -285,30 +280,27 @@ void CommandEditor::DrawInspector()
                     drawCommandInfo.mutable_draw_command()->clear_model_transform();
                 }
             }
+            */
 
             UpdateMeshInCommand(currentIndex_);
             if (meshInfo != nullptr)
             {
-                switch (meshInfo->info.mesh().primitve_type())
+                switch (meshInfo->info.mesh->primitive_type)
                 {
-                case core::pb::Mesh_PrimitveType_NONE:
+                case renderer::MeshPrimitiveType_NONE:
                 {
-                    int count = drawCommandInfo.mutable_draw_command()->count();
-                    if (ImGui::InputInt("Vertex Count", &count))
+                    if (ImGui::InputInt("Vertex Count", &drawCommandInfo.draw_command->count))
                     {
-                        drawCommandInfo.mutable_draw_command()->set_count(count);
                     }
-                    bool drawElements = drawCommandInfo.mutable_draw_command()->draw_elements();
-                    if (ImGui::Checkbox("Draw Elements", &drawElements))
+                    if (ImGui::Checkbox("Draw Elements", &drawCommandInfo.draw_command->draw_elements))
                     {
-                        drawCommandInfo.mutable_draw_command()->set_draw_elements(drawElements);
                     }
 
                     break;
                 }
-                case core::pb::Mesh_PrimitveType_MODEL:
+                case renderer::MeshPrimitiveType_MODEL:
                 {
-                    ImGui::Text("Vertex Count: %d", drawCommandInfo.draw_command().count());
+                    ImGui::Text("Vertex Count: %d", drawCommandInfo.draw_command->count);
                     break;
                 }
                 default:
@@ -316,16 +308,11 @@ void CommandEditor::DrawInspector()
                 }
             }
         }
-        case core::pb::Pipeline_Type_COMPUTE:
-        {
-            break;
-        }
-        default:
-            break;
-        }
+
     }
     else
     {
+        /*
         //Compute shader
         auto& computeCommandInfo = std::get<pb::EditorComputeCommand>(currentCommand.info);
         std::string drawCommandName = computeCommandInfo.compute_command().name();
@@ -348,6 +335,7 @@ void CommandEditor::DrawInspector()
             }
             ImGui::EndCombo();
         }
+        */
     }
 
 }
@@ -386,17 +374,20 @@ void CommandEditor::Save()
         std::ofstream fileOut(commandInfo.path.c_str(), std::ios::binary);
         if (commandInfo.info.index() == 0)
         {
-            if (!std::get<pb::EditorDrawCommand>(commandInfo.info).SerializeToOstream(&fileOut))
+            if (!core::WriteFlatbufferToFile<EditorDrawCommandInfoT, EditorDrawCommandInfo>(std::get<EditorDrawCommandInfoT>(commandInfo.info), commandInfo.path))
             {
-                LogWarning(std::format("Could not save command at: {}", commandInfo.path.c_str()));
+                LogWarning(std::format("Could not save command at: {}", commandInfo.path));
             }
         }
         else
         {
+            //TODO saving compute command
+            /*
             if (!std::get<pb::EditorComputeCommand>(commandInfo.info).SerializeToOstream(&fileOut))
             {
                 LogWarning(std::format("Could not save command at: {}", commandInfo.path.c_str()));
             }
+            */
         }
 
     }
@@ -426,15 +417,19 @@ void CommandEditor::ReloadId()
         std::string bufferPath;
         if(commandInfo.info.index() == 0)
         {
-            const auto& drawCommandInfo = std::get<pb::EditorDrawCommand>(commandInfo.info);
-            materialPath = drawCommandInfo.material_path();
-            meshPath = drawCommandInfo.mesh_path();
-            bufferPath = drawCommandInfo.buffer_path();
+            const auto& drawCommandInfo = std::get<EditorDrawCommandInfoT>(commandInfo.info);
+            materialPath = drawCommandInfo.material_path;
+            meshPath = drawCommandInfo.mesh_path;
+            //TODO why buffer for a command?
+            //bufferPath = drawCommandInfo.buffer_path; //buffer?
         }
         else
         {
+            //TODO compute material path
+            /*
             const auto& drawCommandInfo = std::get<pb::EditorComputeCommand>(commandInfo.info);
             materialPath = drawCommandInfo.material_path();
+            */
         }
         if (commandInfo.materialId == INVALID_RESOURCE_ID && !materialPath.empty())
         {
@@ -485,31 +480,31 @@ void CommandEditor::UpdateMeshInCommand(int index)
     {
         return;
     }
-    auto& drawCommandInfo = std::get<pb::EditorDrawCommand>(currentCommand.info);
+    auto& drawCommandInfo = std::get<EditorDrawCommandInfoT>(currentCommand.info);
     const auto* editor = Editor::GetInstance();
     auto* meshEditor = dynamic_cast<MeshEditor*>(editor->GetEditorSystem(EditorType::MESH));
     const auto* meshInfo = meshEditor->GetMesh(currentCommand.meshId);
     if (meshInfo != nullptr)
     {
-        switch (meshInfo->info.mesh().primitve_type())
+        switch (meshInfo->info.mesh->primitive_type)
         {
-        case core::pb::Mesh_PrimitveType_QUAD:
+        case renderer::MeshPrimitiveType_QUAD:
         {
-            drawCommandInfo.mutable_draw_command()->set_draw_elements(true);
-            drawCommandInfo.mutable_draw_command()->set_count(6);
+            drawCommandInfo.draw_command->draw_elements = (true);
+            drawCommandInfo.draw_command->count = (6);
             break;
         }
-        case core::pb::Mesh_PrimitveType_CUBE:
+        case renderer::MeshPrimitiveType_CUBE:
         {
-            drawCommandInfo.mutable_draw_command()->set_draw_elements(true);
-            drawCommandInfo.mutable_draw_command()->set_count(36);
+            drawCommandInfo.draw_command->draw_elements = (true);
+            drawCommandInfo.draw_command->count = (36);
             break;
         }
-        case core::pb::Mesh_PrimitveType_SPHERE:
+        case renderer::MeshPrimitiveType_SPHERE:
         {
-            drawCommandInfo.mutable_draw_command()->set_draw_elements(true);
-            drawCommandInfo.mutable_draw_command()->set_count(core::sphereIndices);
-            drawCommandInfo.mutable_draw_command()->set_mode(core::pb::DrawCommand_Mode_TRIANGLE_STRIP);
+            drawCommandInfo.draw_command->draw_elements = (true);
+            drawCommandInfo.draw_command->count = (core::sphereIndices);
+            drawCommandInfo.draw_command->mode = renderer::DrawMode_TRIANGLE_STRIP;
             break;
         }
         default: break;

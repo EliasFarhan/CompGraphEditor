@@ -169,7 +169,7 @@ void ScriptEditor::Save()
     {
         return;
     }
-    core::WriteString(scriptInfos_[currentIndex_].info.path(), scriptText_);
+    core::WriteString(scriptInfos_[currentIndex_].info.path, scriptText_);
     auto& resourceManager = Editor::GetInstance()->GetResourceManager();
     auto* resource = resourceManager.GetResource(scriptInfos_[currentIndex_].resourceId);
     resourceManager.UpdateExistingResource(*resource);

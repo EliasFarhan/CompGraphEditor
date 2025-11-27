@@ -247,7 +247,7 @@ void Editor::CreateNewFile(std::string_view path, EditorType type)
                 continue;
             std::string subFolder { std::format("{}{}/{}",
                 ResourceManager::dataFolder.data(),
-                sceneEditor->GetCurrentSceneInfo()->name,
+                sceneEditor->GetCurrentSceneInfo()->info.name,
                 editorSystem->GetSubFolder())};
             if (!core::IsDirectory(subFolder.c_str()))
             {
@@ -391,7 +391,7 @@ bool Editor::UpdateCreateNewFile()
         {
             path = std::format("{}{}/{}{}",
                 ResourceManager::dataFolder.data(),
-                sceneInfo ? sceneInfo->name : newCreateFilename_,
+                sceneInfo ? sceneInfo->info.name : newCreateFilename_,
                 editorSystem->GetSubFolder(),
                 actualFilename.c_str());
         }
@@ -496,7 +496,7 @@ void Editor::OnEvent(SDL_Event& event)
         const auto* sceneInfo = GetSceneEditor()->GetCurrentSceneInfo();
         if (sceneInfo == nullptr)
             break;
-        resourceManager_.CheckDataFolder(sceneInfo->resources);
+        resourceManager_.CheckDataFolder(sceneInfo->info.resources);
         RecursiveSceneFileReload();
         break;
     }
@@ -620,7 +620,7 @@ void Editor::LoadFileIntoEditor(std::string_view path)
                 continue;
             const auto subFolder{ std::format("{}{}/{}",
                 ResourceManager::dataFolder,
-                sceneEditor->GetCurrentSceneInfo()->name,
+                sceneEditor->GetCurrentSceneInfo()->info.name,
                 editorSystem->GetSubFolder())};
             if (!core::IsDirectory(subFolder))
                 CreateNewDirectory(subFolder);
@@ -657,7 +657,7 @@ void Editor::RecursiveSceneFileReload()
                 if(folderContentPath.extension() == ".scene" || folderContentPath.extension() == ".pkg")
                     continue;
                 const auto filePath = folderContentPath.string();
-                if (std::ranges::none_of(sceneInfo->resources,
+                if (std::ranges::none_of(sceneInfo->info.resources,
                     [&filePath](const auto& path)
                     {
                         if (!fs::exists(path))
@@ -665,7 +665,7 @@ void Editor::RecursiveSceneFileReload()
                         return fs::equivalent(filePath.c_str(), path);
                     }))
                 {
-                    sceneInfo->resources.push_back(filePath);
+                    sceneInfo->info.resources.push_back(filePath);
                     resourceManager_.AddResource(filePath);
                 }
             }
