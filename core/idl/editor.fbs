@@ -10,12 +10,7 @@ table EditorPipelineInfo
     samplers: [internal.ShaderSampler] (native_inline);
 }
 
-table EditorSceneInfo
-{
-    name:string;
-    path: string;
-    resources: [string];
-}
+
 
 table EditorMeshInfo
 {
@@ -28,6 +23,7 @@ table EditorMaterialTextureInfo
     attachment_name: string; //when using framebuffer
     framebuffer_name: string;
     sampler_name: string;
+    model_texture_type: internal.ModelTextureType;
 }
 table EditorMaterialInfo
 {
@@ -63,4 +59,13 @@ table EditorDrawCommandInfo
 table EditorComputeCommandInfo
 {
 
+}
+
+table EditorSceneInfo
+{
+    name:string;
+    path: string;
+    resources: [string];
+    renderpass_path: string;
+    system_paths: [string];
 }

@@ -446,8 +446,8 @@ void MaterialEditor::ReloadMaterialPipeline(const PipelineInfo& pipelineInfo, in
     std::unordered_set<std::string> samplerNames;
     for (int i = 0; i < pipelineInfo.info.samplers.size(); i++)
     {
-        const auto& samplerInfo = pipelineInfo.info.samplers(i);
-        samplerNames.emplace(samplerInfo.name());
+        const auto& samplerInfo = pipelineInfo.info.samplers[i];
+        samplerNames.emplace(samplerInfo.name);
         
     }
     std::vector<EditorMaterialTextureInfoT> materialTextures;
@@ -462,7 +462,7 @@ void MaterialEditor::ReloadMaterialPipeline(const PipelineInfo& pipelineInfo, in
     currentMaterialInfo.info.textures.clear();
     for(int i = 0; i < pipelineInfo.info.samplers.size(); i++)
     {
-        auto* newMaterialTexture = currentMaterialInfo.info.add_textures();
+        EditorMaterialTextureInfoT newMaterialTexture{};
         const auto& sampler = pipelineInfo.info.samplers[i];
         const auto it = std::ranges::find_if(materialTextures, [&sampler](const auto& matText)
             {
@@ -470,17 +470,18 @@ void MaterialEditor::ReloadMaterialPipeline(const PipelineInfo& pipelineInfo, in
             });
         if (it != materialTextures.end())
         {
-            *newMaterialTexture = *it;
-            if (newMaterialTexture->texture_type() == core::pb::NONE && sampler.type() != core::pb::NONE)
+            newMaterialTexture = *it;
+            if (newMaterialTexture.model_texture_type == internal::ModelTextureType_NONE && sampler.model_texture_type != internal::ModelTextureType_NONE)
             {
-                newMaterialTexture->set_texture_type(sampler.type());
+                newMaterialTexture.model_texture_type = (sampler.model_texture_type);
             }
         }
         else
         {
-            newMaterialTexture->mutable_material_texture()->set_sampler_name(sampler.name());
-            newMaterialTexture->set_texture_type(sampler.type());
+            newMaterialTexture.sampler_name  = (sampler.name);
+            newMaterialTexture.model_texture_type = (sampler.model_texture_type);
         }
+        currentMaterialInfo.info.textures.push_back(newMaterialTexture);
     }
 }
 }

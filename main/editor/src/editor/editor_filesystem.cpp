@@ -4,7 +4,7 @@
 #include "utils/log.h"
 #include "engine/filesystem.h"
 
-namespace editor
+namespace novus::editor
 {
 
 std::string GetFileExtension(std::string_view path)

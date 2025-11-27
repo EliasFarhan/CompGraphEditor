@@ -556,6 +556,7 @@ void PipelineEditor::AddResource(const Resource& resource)
     pipelineInfo.filename = GetFilename(resource.path);
     pipelineInfo.resourceId = resource.resourceId;
     pipelineInfo.path = resource.path;
+    pipelineInfo.info.pipeline = std::make_unique<renderer::GraphicsPipelineT>();
 
 
     if (!core::IsRegularFile(resource.path))

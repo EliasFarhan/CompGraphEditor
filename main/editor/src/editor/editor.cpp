@@ -181,7 +181,9 @@ void Editor::CreateNewFile(std::string_view path, EditorType type)
     }
     case EditorType::PIPELINE:
     {
-        novus::renderer::GraphicsPipelineT emptyPipeline;
+        novus::editor::EditorPipelineInfoT editorPipelineInfo{};
+
+        auto emptyPipeline = std::make_unique<novus::renderer::GraphicsPipelineT>();
         auto pipelineInfo = std::make_unique<novus::internal::GraphicsPipelineInfoT>();
         auto depthStencilState = std::make_unique<novus::internal::DepthStencilStateT>();
         depthStencilState->write_mask = 0xFF;
@@ -200,23 +202,26 @@ void Editor::CreateNewFile(std::string_view path, EditorType type)
 
         pipelineInfo->depth_stencil_state = std::move(depthStencilState);
 
-        emptyPipeline.info = std::move(pipelineInfo);
-        core::WriteFlatbufferToFile<renderer::GraphicsPipelineT, renderer::GraphicsPipeline>(emptyPipeline, path);
+        emptyPipeline->info = std::move(pipelineInfo);
+        editorPipelineInfo.pipeline = std::move(emptyPipeline);
+        core::WriteFlatbufferToFile<EditorPipelineInfoT, EditorPipelineInfo>(editorPipelineInfo, path);
         resourceManager_.AddResource(path);
         break;
     }
     case EditorType::MESH: 
     {
-        renderer::MeshT emptyMesh;
-        emptyMesh.scale = {1,1,1};
-        core::WriteFlatbufferToFile<renderer::MeshT, renderer::Mesh>(emptyMesh, path);
+        EditorMeshInfoT editorMeshInfo{};
+        auto emptyMesh = std::make_unique<renderer::MeshT>();
+        emptyMesh->scale = {1,1,1};
+        editorMeshInfo.mesh = std::move(emptyMesh);
+        core::WriteFlatbufferToFile<EditorMeshInfoT, EditorMeshInfo>(editorMeshInfo, path);
         resourceManager_.AddResource(path);
         break;
     }
     case EditorType::MATERIAL: 
     {
-        renderer::MaterialT emptyMaterial;
-        core::WriteFlatbufferToFile<renderer::MaterialT, renderer::Material>(emptyMaterial, path);
+        EditorMaterialInfoT editorMaterialInfo{};
+        core::WriteFlatbufferToFile<EditorMaterialInfoT, EditorMaterialInfo>(editorMaterialInfo, path);
         resourceManager_.AddResource(path);
         break;
     }
@@ -270,8 +275,10 @@ void Editor::CreateNewFile(std::string_view path, EditorType type)
     }
     case EditorType::COMMAND:
     {
-        renderer::DrawCommandT emptyDrawCommand;
-        core::WriteFlatbufferToFile<renderer::DrawCommandT, renderer::DrawCommand>(emptyDrawCommand, path);
+        EditorDrawCommandInfoT editorDrawCommandInfo{};
+        auto emptyDrawCommand = std::make_unique<renderer::DrawCommandT>();
+        editorDrawCommandInfo.draw_command = std::move(emptyDrawCommand);
+        core::WriteFlatbufferToFile<EditorDrawCommandInfoT, EditorDrawCommandInfo>(editorDrawCommandInfo, path);
         resourceManager_.AddResource(path);
         break;
     }
@@ -901,11 +908,14 @@ void Editor::DrawEditorContent()
             OpenFileBrowserDialog(editorSystems_[static_cast<int>(EditorType::TEXTURE)]->GetExtensions());
         }
 
+        //TODO generate BRDF lut
+        /*
         if(ImGui::Button("Generate BRDF LUT"))
         {
             auto* textureEditor = dynamic_cast<TextureEditor*>(GetEditorSystem(EditorType::TEXTURE));
             GeneratePreComputeBrdfLUT();
         }
+        */
         ImGui::EndPopup();
     }
     if (open)

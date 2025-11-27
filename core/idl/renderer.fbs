@@ -2,6 +2,7 @@ include "internal_renderer.fbs";
 include "engine.fbs";
 namespace novus.renderer;
 
+
 table Shader
 {
     path: string;

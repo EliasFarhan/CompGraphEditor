@@ -78,14 +78,14 @@ void SceneEditor::AddResource(const Resource& resource)
     {
         //Adding a resource to the list
         const auto* sceneInfo = GetCurrentSceneInfo();
-        if (std::ranges::none_of(sceneInfo->resources, [&resource](const auto& path)
+        if (std::ranges::none_of(sceneInfo->info.resources, [&resource](const auto& path)
             {
                 return path == resource.path;
             }))
         {
             if (core::FileExists(resource.path))
             {
-                GetCurrentSceneInfo()->resources.push_back(resource.path);
+                GetCurrentSceneInfo()->info.resources.push_back(resource.path);
             }
         }
         return;
@@ -120,7 +120,7 @@ void SceneEditor::AddResource(const Resource& resource)
     
     for(int i = 0; i < sceneInfo.info.resources.size(); i++)
     {
-        std::string_view resourcePath {sceneInfo.info.resources(i)};
+        std::string_view resourcePath {sceneInfo.info.resources[i]};
         if(!core::FileExists(resourcePath))
         {
             unexistingResources.push_back(i);
@@ -132,13 +132,13 @@ void SceneEditor::AddResource(const Resource& resource)
         }
 
     }
-    auto* resourcesPb = GetCurrentSceneInfo()->info.mutable_resources();
+    auto& resourcesPb = GetCurrentSceneInfo()->info.resources;
     for(int i = static_cast<int>(unexistingResources.size()) - 1; i >= 0; i--)
     {
-        LogWarning(std::format("Removing file {} from scene: file does not exists", sceneInfo.info.resources(unexistingResources[i])));
-        resourcesPb->erase(resourcesPb->begin()+unexistingResources[i]);
+        LogWarning(std::format("Removing file {} from scene: file does not exists", sceneInfo.info.resources[unexistingResources[i]]));
+        resourcesPb.erase(resourcesPb.begin()+unexistingResources[i]);
     }
-    core::SetWindowName(std::format("Neko2 Editor - {}", sceneInfo.info.name()));
+    core::SetWindowName(std::format("Neko2 Editor - {}", sceneInfo.info.name));
 }
 
 void SceneEditor::RemoveResource(const Resource& resource)
@@ -146,12 +146,12 @@ void SceneEditor::RemoveResource(const Resource& resource)
     if(!CheckExtensions(resource.extension))
     {
         //Removing a resource to the list
-        auto* resources = GetCurrentSceneInfo()->info.mutable_resources();
-        for(int i = 0; i < resources->size(); i++)
+        auto& resources = GetCurrentSceneInfo()->info.resources;
+        for(size_t i = 0; i < resources.size(); i++)
         {
-            if(resources->Get(i) == resource.path.c_str())
+            if(resources[i] == resource.path)
             {
-                resources->erase(resources->begin() + i);
+                resources.erase(resources.begin() + i);
                 return;
             }
         }
@@ -162,7 +162,7 @@ void SceneEditor::RemoveResource(const Resource& resource)
         if(resource.resourceId == sceneInfo.renderPassId)
         {
             sceneInfo.renderPassId = INVALID_RESOURCE_ID;
-            sceneInfo.info.clear_render_pass_path();
+            sceneInfo.info.renderpass_path.clear();
         }
     }
 
@@ -204,7 +204,7 @@ void SceneEditor::DrawInspector()
             if(ImGui::Selectable(renderPass.filename.c_str(), renderPass.resourceId == currentScene.renderPassId))
             {
                 currentScene.renderPassId = renderPass.resourceId;
-                currentScene.info.set_render_pass_path(renderPass.path.c_str());
+                currentScene.info.renderpass_path = (renderPass.path);
             }
         }
         ImGui::EndCombo();
@@ -213,9 +213,9 @@ void SceneEditor::DrawInspector()
     ImGui::Text("Scripts");
     
     std::vector<int> removedScripts;
-    for (int i = 0; i < currentScene.info.py_system_paths_size(); i++)
+    for (size_t i = 0; i < currentScene.info.system_paths.size(); i++)
     {
-        std::string_view pySystemPath {currentScene.info.py_system_paths(i)};
+        std::string_view pySystemPath {currentScene.info.system_paths[i]};
         std::string name = std::format("Script: {}", i);
         const ScriptInfo* scriptInfo = nullptr;
         ResourceId pySystemId = INVALID_RESOURCE_ID;
@@ -228,12 +228,12 @@ void SceneEditor::DrawInspector()
                 pySystemId = resourceManager.FindResourceByPath(pySystemPath);
                 if (pySystemId == INVALID_RESOURCE_ID)
                 {
-                    currentScene.info.mutable_py_system_paths(i)->clear();
+                    currentScene.info.system_paths[i].clear();
                 }
                 else
                 {
                     scriptInfo = scriptEditor->GetScriptInfo(pySystemId);
-                    name = std::format("Script: {}.{}", scriptInfo->info.module(), scriptInfo->info.class_());
+                    name = std::format("Script: {}.{}", scriptInfo->info.module_, scriptInfo->info.class_);
                 }
             }
             else
@@ -244,29 +244,29 @@ void SceneEditor::DrawInspector()
         bool visible = true;
         if (ImGui::CollapsingHeader(name.c_str(), &visible))
         {
-            const auto& pySystems = scriptEditor->GetScriptInfos();
+            const auto& wasmScripts = scriptEditor->GetScriptInfos();
             const auto scriptsId = std::format("script {} combo", i);
             ImGui::PushID(scriptsId.c_str());
             if (ImGui::BeginCombo("Available Scripts", scriptInfo ? 
-                scriptInfo->info.class_().c_str() : 
-                currentScene.info.py_system_paths(i).empty()?"Missing script": currentScene.info.py_system_paths(i).c_str()))
+                scriptInfo->info.class_.c_str() :
+                currentScene.info.system_paths[i].empty()?"Missing script": currentScene.info.system_paths[i].c_str()))
             {
-                for (auto& pySystemInfo : pySystems)
+                for (auto& wasmSystemInfo : wasmScripts)
                 {
                     const auto selectedName = std::format("{}.{}", 
-                        pySystemInfo.info.module(), 
-                        pySystemInfo.info.class_());
-                    if (ImGui::Selectable(selectedName.c_str(), pySystemId == pySystemInfo.resourceId))
+                        wasmSystemInfo.info.module_,
+                        wasmSystemInfo.info.class_);
+                    if (ImGui::Selectable(selectedName.c_str(), pySystemId == wasmSystemInfo.resourceId))
                     {
-                        *currentScene.info.mutable_py_system_paths(i) = pySystemInfo.info.path();
+                        currentScene.info.system_paths[i] = wasmSystemInfo.info.path;
                     }
                 }
                 for(auto nativeScript: core::GetNativeScriptClassNames())
                 {
                     const auto selectedName = std::format("{}.{}", core::nativeModuleName, nativeScript);
-                    if(ImGui::Selectable(selectedName.c_str(), currentScene.info.py_system_paths(i) == nativeScript))
+                    if(ImGui::Selectable(selectedName.c_str(), currentScene.info.system_paths[i] == nativeScript))
                     {
-                        *currentScene.info.mutable_py_system_paths(i) = nativeScript;
+                        currentScene.info.system_paths[i] = nativeScript;
                     }
                 }
                 ImGui::EndCombo();
@@ -283,17 +283,17 @@ void SceneEditor::DrawInspector()
     std::ranges::reverse(removedScripts);
     for(const auto index : removedScripts)
     {
-        currentScene.info.mutable_py_system_paths()->DeleteSubrange(index, 1);
+        currentScene.info.system_paths.erase(currentScene.info.system_paths.begin()+index);
     }
     if(ImGui::Button("Add Script"))
     {
-        currentScene.info.add_py_system_paths();
+        currentScene.info.system_paths.push_back({});
     }
     if (ImGui::BeginListBox("Editor Scene Resources"))
     {
-        for (int i = 0; i < currentScene.info.resources_size(); i++)
+        for (size_t i = 0; i < currentScene.info.resources.size(); i++)
         {
-            auto& resource = currentScene.info.resources(i);
+            auto& resource = currentScene.info.resources[i];
             ImGui::Selectable(resource.c_str(), false);
         }
         ImGui::EndListBox();
@@ -349,7 +349,7 @@ void SceneEditor::Save()
     for (auto& sceneInfo : sceneInfos_)
     {
         std::ofstream fileOut(sceneInfo.path.c_str(), std::ios::binary);
-        if (!sceneInfo.info.SerializeToOstream(&fileOut))
+        if (!core::WriteFlatbufferToFile<EditorSceneInfoT, EditorSceneInfo>(sceneInfo.info, sceneInfo.path))
         {
             LogWarning(std::format("Could not save scene at: {}", sceneInfo.path.c_str()));
         }
@@ -363,7 +363,6 @@ bool SceneEditor::ExportAndPlayScene() const
         LogWarning("Could not export no scene selected");
         return false;
     }
-    bool isVulkan = IsVulkanScene();
     auto* editor = Editor::GetInstance();
     const auto& resourceManager = editor->GetResourceManager();
     const auto* renderPassEditor = dynamic_cast<RenderPassEditor*>(editor->GetEditorSystem(EditorType::RENDER_PASS));
@@ -380,7 +379,7 @@ bool SceneEditor::ExportAndPlayScene() const
     //TODO reload all editors to get all correct resourceId
     commandEditor->ReloadId();
     const auto& currentScene = sceneInfos_[currentIndex_];
-    core::pb::Scene exportScene;
+    novus::renderer::SceneT exportScene;
     //auto exportingScene = sceneInfos_[currentIndex_];
     const auto pkgSceneName = currentScene.path + ".pkg";
     //Validate scene
@@ -393,9 +392,10 @@ bool SceneEditor::ExportAndPlayScene() const
     std::unordered_map<ResourceId, int> resourceIndexMap;
     std::vector<std::string> cubemapTextures;
     auto* currentRenderPass = renderPassEditor->GetRenderPass(currentScene.renderPassId);
-    auto* exportRenderPass = exportScene.mutable_render_pass();
     //*exportRenderPass = currentRenderPass->info;
-    for(int subPassIndex = 0; subPassIndex < currentRenderPass->info.subpasses.size(); subPassIndex++)
+    //TODO export scene
+    /*
+    for(int subPassIndex = 0; subPassIndex < currentRenderPass->info.subpass_infos.size(); subPassIndex++)
     {
         auto* exportSubPass = exportRenderPass->add_sub_passes();
         exportSubPass->set_type(core::pb::Pipeline_Type_NONE);
@@ -820,68 +820,72 @@ bool SceneEditor::ExportAndPlayScene() const
             }
         }
     }
-    for(int i = 0; i < currentScene.info.py_system_paths_size();i++)
+    */
+    for(size_t i = 0; i < currentScene.info.system_paths.size();i++)
     {
-        const std::string_view pySystemPath = currentScene.info.py_system_paths(i);
-        if(std::ranges::any_of(core::GetNativeScriptClassNames(), [&pySystemPath](auto nativeScript){return nativeScript == pySystemPath;}))
+        const std::string_view systemPath = currentScene.info.system_paths[i];
+        if(std::ranges::any_of(core::GetNativeScriptClassNames(), [&systemPath](auto nativeScript){return nativeScript == systemPath;}))
         {
-            auto* newSystem = exportScene.add_systems();
-            *newSystem->mutable_module() = core::nativeModuleName;
-            *newSystem->mutable_class_() = pySystemPath;
+            engine::SystemT system;
+            system.module_ = core::nativeModuleName;
+            system.class_ = systemPath;
         }
         else
         {
-            const auto pySystemId = resourceManager.FindResourceByPath(pySystemPath);
-            const auto* pySystemInfo = scriptEditor->GetScriptInfo(pySystemId);
+            const auto systemId = resourceManager.FindResourceByPath(systemPath);
+            const auto* systemInfo = scriptEditor->GetScriptInfo(systemId);
 
-            *exportScene.add_systems() = pySystemInfo->info;
+            exportScene.systems.push_back(systemInfo->info);
         }
     }
     static constexpr std::string_view exportScenePath = "root.scene";
     //Write scene
-    std::ofstream fileOut(exportScenePath.data(), std::ios::binary);
-    if (!exportScene.SerializeToOstream(&fileOut))
+    if (!core::WriteFlatbufferToFile<renderer::SceneT, renderer::Scene>(exportScene, exportScenePath))
     {
         LogWarning(std::format("Could not save scene for export at: {}", exportScenePath));
         return false;
     }
-    fileOut.close(); //force write
     //Create scene json
     json sceneJson;
     sceneJson["scene"] = exportScenePath.data();
     std::vector<std::string> shaderPaths;
-    shaderPaths.reserve(exportScene.shaders_size());
-    for(int i = 0; i < exportScene.shaders_size(); i++)
+    shaderPaths.reserve(exportScene.shaders.size());
+    for(size_t i = 0; i < exportScene.shaders.size(); i++)
     {
-        shaderPaths.push_back(fs::path(exportScene.shaders(i).path(), std::filesystem::path::generic_format).string());
+        shaderPaths.push_back(fs::path(exportScene.shaders[i].path, std::filesystem::path::generic_format).string());
     }
     sceneJson["shaders"] = shaderPaths;
     std::vector<std::string> scriptPaths;
-    scriptPaths.reserve(exportScene.systems_size());
-    for (int i = 0; i < exportScene.systems_size(); i++)
+    scriptPaths.reserve(exportScene.systems.size());
+    for (size_t i = 0; i < exportScene.systems.size(); i++)
     {
-        if(exportScene.systems(i).path().empty())
+        if(exportScene.systems[i].path.empty())
             continue;
-        scriptPaths.push_back(fs::path(exportScene.systems(i).path(), std::filesystem::path::generic_format).string());
+        scriptPaths.push_back(fs::path(exportScene.systems[i].path, std::filesystem::path::generic_format).string());
     }
     sceneJson["scripts"] = scriptPaths;
     std::vector<std::string> texturePaths;
-    texturePaths.reserve(exportScene.textures_size());
-    for(int i = 0; i < exportScene.textures_size(); i++)
+    texturePaths.reserve(exportScene.textures.size());
+    for(size_t i = 0; i < exportScene.textures.size(); i++)
     {
-        texturePaths.push_back(exportScene.textures(i).path());
+        texturePaths.push_back(exportScene.textures[i].path);
     }
     sceneJson["textures"] = texturePaths;
     sceneJson["cubemap_textures"] = cubemapTextures;
     std::vector<std::string> objPaths;
-    objPaths.reserve(exportScene.model_paths_size());
+    //TODO add models
+    /*
+    objPaths.reserve(exportScene.model_paths.size());
     for(int i = 0; i < exportScene.model_paths_size(); i++)
     {
         objPaths.push_back(exportScene.model_paths(i));
     }
+    */
     sceneJson["models"] = objPaths;
 
     std::vector<std::string> others;
+    //TODO add models
+    /*
     for(auto& objFile : objPaths)
     {
         const auto modelPath{
@@ -893,6 +897,7 @@ bool SceneEditor::ExportAndPlayScene() const
             others.push_back(model->info.mtl_paths(i));
         }
     }
+    */
     sceneJson["others"] = others;
 
     //Call python function exporting the scene
@@ -917,9 +922,9 @@ void SceneEditor::ReloadId()
     const auto& resourceManager = editor->GetResourceManager();
     for(auto& sceneInfo: sceneInfos_)
     {
-        if (sceneInfo.renderPassId == INVALID_RESOURCE_ID && !sceneInfo.info.render_pass_path().empty())
+        if (sceneInfo.renderPassId == INVALID_RESOURCE_ID && !sceneInfo.info.renderpass_path.empty())
         {
-            sceneInfo.renderPassId = resourceManager.FindResourceByPath(sceneInfo.info.render_pass_path());
+            sceneInfo.renderPassId = resourceManager.FindResourceByPath(sceneInfo.info.renderpass_path);
         }
     }
 }
