@@ -11,7 +11,7 @@ struct SceneInfo
 {
     std::string filename;
     std::string path;
-    EditorSceneInfo info;
+    EditorSceneInfoT info;
     ResourceId resourceId = INVALID_RESOURCE_ID;
     ResourceId renderPassId = INVALID_RESOURCE_ID;
 };
@@ -36,7 +36,6 @@ public:
     void SetCurrentScene() { currentIndex_ = 0; }
 
     void Clear() override;
-    bool IsVulkanScene() const;
 
 private:
     std::vector<EditorSceneInfoT> sceneInfos_;

@@ -15,26 +15,25 @@
 #include <nlohmann/json.hpp>
 
 #include "buffer_editor.h"
+#include "framebuffer_editor.h"
 #include "material_editor.h"
 #include "mesh_editor.h"
+#include "model_editor.h"
 #include "pipeline_editor.h"
 #include "script_editor.h"
 #include "shader_editor.h"
 #include "texture_editor.h"
-#include "model_editor.h"
-#include "framebuffer_editor.h"
-#include "gl/engine.h"
+#include "utils/fb_file.h"
 
 namespace py = pybind11;
 using json = nlohmann::json;
 
-namespace editor
+namespace novus::editor
 {
 
 void ExecutePlayer(std::string_view scenePkg)
 {
-    const bool isVulkan = GetSceneEditor()->IsVulkanScene();
-    std::string baseName = isVulkan ? "vk_player" : "gl_player";
+    std::string baseName = "gpu_player";
     std::string command; 
 #ifdef _MSC_VER
     fs::path executable = std::format("{}.exe", baseName);
@@ -53,11 +52,7 @@ void ExecutePlayer(std::string_view scenePkg)
 #else
     command = std::format("./{} {}", baseName, scenePkg);
 #endif
-    if(!isVulkan)
-    {
-        const auto glVersion = gl::GetGlVersion();
-        command = std::format("{} --major={} --minor={} {}", command, glVersion.major, glVersion.minor, glVersion.es ? "--es" : "");
-    }
+
     if(command.empty())
     {
         return;
@@ -87,14 +82,14 @@ void SceneEditor::AddResource(const Resource& resource)
         }
         //Adding a resource to the list
         const auto* sceneInfo = GetCurrentSceneInfo();
-        if (std::ranges::none_of(sceneInfo->info.resources(), [&resource](const auto& path)
+        if (std::ranges::none_of(sceneInfo->resources, [&resource](const auto& path)
             {
-                return path == resource.path.c_str();
+                return path == resource.path;
             }))
         {
             if (core::FileExists(resource.path))
             {
-                GetCurrentSceneInfo()->info.add_resources(resource.path.c_str());
+                GetCurrentSceneInfo()->resources.push_back(resource.path);
             }
         }
         return;
@@ -112,7 +107,7 @@ void SceneEditor::AddResource(const Resource& resource)
             return;
         }
         std::ifstream fileIn(resource.path.c_str(), std::ios::binary);
-        if (!sceneInfo.info.ParseFromIstream(&fileIn))
+        if (!core::ReadFlatbufferFromFile<EditorSceneInfoT, EditorSceneInfo>(resource.path, sceneInfo.info))
         {
             LogWarning(std::format("Could not open protobuf file: {}", resource.path.c_str()));
             return;
@@ -956,14 +951,7 @@ void SceneEditor::Clear()
     currentIndex_ = -1;
 }
 
-bool SceneEditor::IsVulkanScene() const
-{
-    if(currentIndex_ == 0)
-    {
-        return sceneInfos_[0].info.scene().is_vulkan();
-    }
-    return false;
-}
+
 
 SceneEditor* GetSceneEditor()
 {

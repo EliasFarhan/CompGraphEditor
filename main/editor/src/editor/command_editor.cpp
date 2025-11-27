@@ -34,14 +34,14 @@ void CommandEditor::AddResource(const Resource& resource)
             return;
         }
         std::ifstream fileIn(resource.path.c_str(), std::ios::binary);
-        commandInfo.info.emplace<pb::EditorDrawCommand>();
-        auto& info = std::get<pb::EditorDrawCommand>(commandInfo.info);
+        commandInfo.info.emplace<EditorDrawCommandInfoT>();
+        auto& info = std::get<EditorDrawCommandInfoT>(commandInfo.info);
         if (!info.ParseFromIstream(&fileIn))
         {
             LogWarning(std::format("Could not open protobuf file: {}", resource.path.c_str()));
             return;
         }
-        if (info.draw_command().name().empty())
+        if (info.draw_command.name().empty())
         {
             info.mutable_draw_command()->set_name(GetFilename(resource.path, false));
         }

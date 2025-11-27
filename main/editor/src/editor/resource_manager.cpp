@@ -10,7 +10,7 @@
 namespace novus::editor
 {
 
-void ResourceManager::CheckDataFolder(std::span<std::string> paths)
+void ResourceManager::CheckDataFolder(std::span<const std::string> paths)
 {
     // Remove deleted file
     for(auto& pathStr : paths)

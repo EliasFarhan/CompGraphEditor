@@ -10,6 +10,9 @@
 
 #include <format>
 
+#include "novus/buffer.h"
+#include "utils/fb_file.h"
+
 namespace novus::editor
 {
 void BufferEditor::AddResource(const Resource& resource)
@@ -25,8 +28,7 @@ void BufferEditor::AddResource(const Resource& resource)
         LogWarning(std::format("Could not find buffer file: {}", resource.path.c_str()));
         return;
     }
-    std::ifstream fileIn(resource.path.c_str(), std::ios::binary);
-    if (!bufferInfo.info.ParseFromIstream(&fileIn))
+    if (!core::ReadFlatbufferFromFile<renderer::StorageBufferT, renderer::StorageBuffer>(resource.path, bufferInfo.info))
     {
         LogWarning(std::format("Could not open protobuf file: {}", resource.path.c_str()));
         return;
@@ -64,10 +66,12 @@ void BufferEditor::DrawInspector()
     }
     auto& currentBuffer = buffersInfo_[currentIndex_];
 
-    if(ImGui::InputText("Name",currentBuffer.info.mutable_name()))
+    if(ImGui::InputText("Name", &currentBuffer.info.name))
     {
         
     }
+    //TODO manage byte count for buffer (type * count?)
+    /*
     const auto currentType = currentBuffer.info.type();
     const auto& currentTypeString = core::pb::Attribute_Type_Name(currentType);
     if(ImGui::BeginCombo("Type", currentTypeString.data()))
@@ -93,6 +97,7 @@ void BufferEditor::DrawInspector()
     {
         currentBuffer.info.set_count(count);
     }
+    */
 }
 
 bool BufferEditor::DrawContentList(bool unfocus)
@@ -157,8 +162,7 @@ void BufferEditor::Save()
 {
     for (auto& bufferInfo : buffersInfo_)
     {
-        std::ofstream fileOut(bufferInfo.path.c_str(), std::ios::binary);
-        if (!bufferInfo.info.SerializeToOstream(&fileOut))
+        if (!core::WriteFlatbufferToFile<renderer::StorageBufferT, renderer::StorageBuffer>(bufferInfo.info, bufferInfo.path))
         {
             LogWarning(std::format("Could not save buffer at: {}", bufferInfo.path.c_str()));
         }

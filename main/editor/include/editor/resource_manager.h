@@ -16,7 +16,7 @@ class ResourceManager
 {
 public:
 
-    void CheckDataFolder(std::span<std::string> paths);
+    void CheckDataFolder(std::span<const std::string> paths);
     [[nodiscard]] ResourceId FindResourceByPath(std::string_view path) const;
     [[nodiscard]] const Resource* GetResource(ResourceId resource) const;
     static constexpr std::string_view dataFolder = "data/";

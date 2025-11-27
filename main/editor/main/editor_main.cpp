@@ -4,8 +4,8 @@
 #include "engine/filesystem.h"
 #include "editor.h"
 #include "py_interface.h"
-#include "gl/engine.h"
 #include "utils/log.h"
+#include "novus/engine.h"
 
 int main([[maybe_unused]] int argc, char** argv)
 {
@@ -14,17 +14,12 @@ int main([[maybe_unused]] int argc, char** argv)
 
 
     core::EnableLogRecording();
-    gl::Engine engine;
-    int major = 0, minor = 0;
-    if (cmdl({ "-M", "--major" }) >> major && cmdl({ "-m", "--minor" }) >> minor)
-    {
-        engine.SetVersion(major, minor, cmdl[{ "-es", "--es" }]);
-    }
+    novus::Engine engine;
     engine.SetWindowName("Neko3d Editor");
 
     core::PyManager pyManager;
 
-    editor::Editor editor;
+    novus::editor::Editor editor;
     engine.RegisterSystem(&editor);
     engine.RegisterOnGuiInterface(&editor);
     engine.RegisterEventObserver(&editor);

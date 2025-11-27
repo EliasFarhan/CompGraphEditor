@@ -12,6 +12,7 @@ table EditorSceneInfo
 {
     name:string;
     path: string;
+    resources: [string];
 }
 
 table EditorMeshInfo
@@ -37,7 +38,7 @@ table EditorModelInfo
 
 table EditorDrawCommandInfo
 {
-
+    draw_command: renderer.DrawCommand;
 }
 
 table EditorComputeCommandInfo

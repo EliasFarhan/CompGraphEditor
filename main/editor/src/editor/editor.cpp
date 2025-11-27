@@ -26,6 +26,8 @@
 
 
 #include <filesystem>
+
+#include "utils/fb_file.h"
 namespace fs = std::filesystem;
 
 namespace novus::editor
@@ -199,25 +201,22 @@ void Editor::CreateNewFile(std::string_view path, EditorType type)
         pipelineInfo->depth_stencil_state = std::move(depthStencilState);
 
         emptyPipeline.info = std::move(pipelineInfo);
-        core::WriteString(path, emptyPipeline.SerializeAsString());
+        core::WriteFlatbufferToFile<renderer::GraphicsPipelineT, renderer::GraphicsPipeline>(emptyPipeline, path);
         resourceManager_.AddResource(path);
         break;
     }
     case EditorType::MESH: 
     {
-        core::pb::Mesh emptyMesh;
-        auto* scale = emptyMesh.mutable_scale();
-        scale->set_x(1.0f);
-        scale->set_y(1.0f);
-        scale->set_z(1.0f);
-        core::WriteString(path, emptyMesh.SerializeAsString());
+        renderer::MeshT emptyMesh;
+        emptyMesh.scale = {1,1,1};
+        core::WriteFlatbufferToFile<renderer::MeshT, renderer::Mesh>(emptyMesh, path);
         resourceManager_.AddResource(path);
         break;
     }
     case EditorType::MATERIAL: 
     {
-        const core::pb::Material emptyMaterial;
-        core::WriteString(path, emptyMaterial.SerializeAsString());
+        renderer::MaterialT emptyMaterial;
+        core::WriteFlatbufferToFile<renderer::MaterialT, renderer::Material>(emptyMaterial, path);
         resourceManager_.AddResource(path);
         break;
     }
@@ -236,10 +235,10 @@ void Editor::CreateNewFile(std::string_view path, EditorType type)
             }
             resourceManager_.Clear();
         }
-        core::pb::Scene emptyScene;
-        emptyScene.set_name(GetFilename(path, false));
+        renderer::SceneT emptyScene;
+        emptyScene.name = (GetFilename(path, false));
         CreateNewDirectory(GetFolder(path));
-        core::WriteString(path, emptyScene.SerializeAsString());
+        core::WriteFlatbufferToFile<renderer::SceneT, renderer::Scene>(emptyScene, path);
         resourceManager_.AddResource(path);
         sceneEditor->SetCurrentScene();
         for (const auto& editorSystem : editorSystems_)
@@ -248,7 +247,7 @@ void Editor::CreateNewFile(std::string_view path, EditorType type)
                 continue;
             std::string subFolder { std::format("{}{}/{}",
                 ResourceManager::dataFolder.data(),
-                sceneEditor->GetCurrentSceneInfo()->info.name(), 
+                sceneEditor->GetCurrentSceneInfo()->name,
                 editorSystem->GetSubFolder())};
             if (!core::IsDirectory(subFolder.c_str()))
             {
@@ -256,7 +255,7 @@ void Editor::CreateNewFile(std::string_view path, EditorType type)
             }
             if(editorSystem->GetEditorType() == EditorType::SCRIPT)
             {
-                CopyFileFromTo("scripts/neko2.py", std::format("{}/neko2.py", subFolder.c_str()), true);
+                //CopyFileFromTo("scripts/neko2.py", std::format("{}/neko2.py", subFolder.c_str()), true);
             }
             editorSystem->ReloadId();
         }
@@ -264,37 +263,35 @@ void Editor::CreateNewFile(std::string_view path, EditorType type)
     }
     case EditorType::RENDER_PASS:
     {
-        const core::pb::RenderPass emptyRenderPass;
-        core::WriteString(path, emptyRenderPass.SerializeAsString());
+        EditorRenderPassInfoT emptyRenderPassInfo;
+        core::WriteFlatbufferToFile<EditorRenderPassInfoT, EditorRenderPassInfo>(emptyRenderPassInfo, path);
         resourceManager_.AddResource(path);
         break;
     }
     case EditorType::COMMAND:
     {
-        core::pb::DrawCommand emptyDrawCommand;
-        core::WriteString(path, emptyDrawCommand.SerializeAsString());
+        renderer::DrawCommandT emptyDrawCommand;
+        core::WriteFlatbufferToFile<renderer::DrawCommandT, renderer::DrawCommand>(emptyDrawCommand, path);
         resourceManager_.AddResource(path);
         break;
     }
     case EditorType::FRAMEBUFFER:
     {
-        core::pb::FrameBuffer emptyFramebuffer;
-        core::WriteString(path, emptyFramebuffer.SerializeAsString());
+        renderer::FramebufferT emptyFramebuffer;
+        core::WriteFlatbufferToFile<renderer::FramebufferT, renderer::Framebuffer>(emptyFramebuffer, path);
         resourceManager_.AddResource(path);
         break;
     }
     case EditorType::BUFFER:
     {
-        core::pb::Buffer emptyBuffer{};
-        emptyBuffer.set_type(core::pb::Attribute_Type_CUSTOM);
-        emptyBuffer.set_count(-1);
-        const auto content = emptyBuffer.SerializeAsString();
-        core::WriteString(path, content);
+        renderer::StorageBufferT emptyBuffer{};
+        core::WriteFlatbufferToFile<renderer::StorageBufferT, renderer::StorageBuffer>(emptyBuffer, path);
         resourceManager_.AddResource(path);
         break;
     }
     case EditorType::SCRIPT: 
     {
+        //TODO generate basic cpp wasm script
         core::WriteString(path, "from neko2 import *\n");
         resourceManager_.AddResource(path);
         break;
@@ -303,8 +300,8 @@ void Editor::CreateNewFile(std::string_view path, EditorType type)
     {
         if(GetFileExtension(path) == ".cube")
         {
-            core::pb::Cubemap emptyCubemap;
-            core::WriteString(path, emptyCubemap.SerializeAsString());
+            renderer::CubemapT emptyCubemap;
+            core::WriteFlatbufferToFile<renderer::CubemapT, renderer::Cubemap>(emptyCubemap, path);
             resourceManager_.AddResource(path);
         }
         break;
@@ -394,7 +391,7 @@ bool Editor::UpdateCreateNewFile()
         {
             path = std::format("{}{}/{}{}",
                 ResourceManager::dataFolder.data(),
-                sceneInfo ? sceneInfo->info.name() : newCreateFilename_,
+                sceneInfo ? sceneInfo->name : newCreateFilename_,
                 editorSystem->GetSubFolder(),
                 actualFilename.c_str());
         }
@@ -404,10 +401,6 @@ bool Editor::UpdateCreateNewFile()
             if (ImGui::Button("Confirm"))
             {
                 CreateNewFile(path, currentCreateFileSystem_);
-                if (currentCreateFileSystem_ == EditorType::SCENE)
-                {
-                    sceneEditor->GetCurrentSceneInfo()->info.mutable_scene()->set_is_vulkan(isVulkanScene);
-                }
                 ImGui::CloseCurrentPopup();
                 ImGui::EndPopup();
                 return true;
@@ -503,7 +496,7 @@ void Editor::OnEvent(SDL_Event& event)
         const auto* sceneInfo = GetSceneEditor()->GetCurrentSceneInfo();
         if (sceneInfo == nullptr)
             break;
-        resourceManager_.CheckDataFolder(sceneInfo->info.resources());
+        resourceManager_.CheckDataFolder(sceneInfo->resources);
         RecursiveSceneFileReload();
         break;
     }
@@ -610,8 +603,8 @@ void Editor::LoadFileIntoEditor(std::string_view path)
     editorSystem->ImportResource(path);
     if(isScene)
     {
-        CopyFileFromTo("scripts/neko2.py",
-                std::format("data/{}/scripts/neko2.py", sceneEditor->GetCurrentSceneInfo()->info.name()));
+        //CopyFileFromTo("scripts/neko2.py",
+          //      std::format("data/{}/scripts/neko2.py", sceneEditor->GetCurrentSceneInfo()->name));
         for(auto& tmp: editorSystems_)
         {
             if(tmp)
@@ -627,7 +620,7 @@ void Editor::LoadFileIntoEditor(std::string_view path)
                 continue;
             const auto subFolder{ std::format("{}{}/{}",
                 ResourceManager::dataFolder,
-                sceneEditor->GetCurrentSceneInfo()->info.name(),
+                sceneEditor->GetCurrentSceneInfo()->name,
                 editorSystem->GetSubFolder())};
             if (!core::IsDirectory(subFolder))
                 CreateNewDirectory(subFolder);
@@ -664,15 +657,15 @@ void Editor::RecursiveSceneFileReload()
                 if(folderContentPath.extension() == ".scene" || folderContentPath.extension() == ".pkg")
                     continue;
                 const auto filePath = folderContentPath.string();
-                if (std::ranges::none_of(sceneInfo->info.resources(),
-                    [&folderContentPath, &filePath](const auto& path)
+                if (std::ranges::none_of(sceneInfo->resources,
+                    [&filePath](const auto& path)
                     {
                         if (!fs::exists(path))
                             return false;
                         return fs::equivalent(filePath.c_str(), path);
                     }))
                 {
-                    sceneInfo->info.add_resources(filePath.c_str());
+                    sceneInfo->resources.push_back(filePath);
                     resourceManager_.AddResource(filePath);
                 }
             }

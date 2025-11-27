@@ -267,7 +267,7 @@ void ShaderEditor::Save()
     {
         return;
     }
-    core::WriteString(shaderInfos_[currentIndex_].info.path(), shaderText_);
+    core::WriteString(shaderInfos_[currentIndex_].info.path, shaderText_);
     auto& resourceManager = Editor::GetInstance()->GetResourceManager();
     auto* resource = resourceManager.GetResource(shaderInfos_[currentIndex_].resourceId);
     resourceManager.UpdateExistingResource(*resource);
@@ -329,8 +329,10 @@ void ShaderEditor::Clear()
 
 bool ShaderEditor::AnalyzeShader(std::string_view path, renderer::ShaderT& shaderInfo) const
 {
+    //TODO Analyze new shader (to check if valid)
     std::string result;
     json shaderJson;
+    /*
     if(GetSceneEditor()->IsVulkanScene())
     {
         py::function analyzeShaderFunc = py::module_::import("scripts.shader_parser").attr("analyze_vk_shader");
@@ -460,35 +462,7 @@ bool ShaderEditor::AnalyzeShader(std::string_view path, renderer::ShaderT& shade
     {
         LogError(std::format("Could not parse shader info of file: {} from script\n{}\n{}", path, e.what(), result));
     }
+    */
     return false;
-}
-core::pb::Attribute::Type ShaderEditor::GetType(std::string_view attibuteTypeString)
-{
-    static constexpr std::array<std::string_view, 17> typeString =
-        {
-        "float",
-        "vec2",
-        "vec3",
-        "vec4",
-        "mat2",
-        "mat3",
-        "mat4",
-        "int",
-        "ivec2",
-        "ivec3",
-        "ivec4",
-        "bool",
-        "sampler2D",
-        "samplerCube",
-        "void",
-        "custom",
-        "image2D"
-        };
-    const auto it = std::ranges::find(typeString, attibuteTypeString);
-    if(it != typeString.end())
-    {
-        return static_cast<core::pb::Attribute::Type>(std::distance(typeString.begin(), it));
-    }
-    return core::pb::Attribute_Type_CUSTOM;
 }
 }

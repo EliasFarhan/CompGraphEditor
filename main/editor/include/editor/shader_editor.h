@@ -34,7 +34,6 @@ public:
     void Clear() override;
 private:
     bool AnalyzeShader(std::string_view path, novus::renderer::ShaderT& shaderInfo) const;
-    static internal::AttributeType GetType(std::string_view attributeTypeString);
     std::vector<ShaderInfo> shaderInfos_;
     std::size_t currentIndex_ = -1;
     std::string shaderText_;
