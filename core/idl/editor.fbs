@@ -10,8 +10,6 @@ table EditorPipelineInfo
     samplers: [internal.ShaderSampler] (native_inline);
 }
 
-
-
 table EditorMeshInfo
 {
     mesh: renderer.Mesh;

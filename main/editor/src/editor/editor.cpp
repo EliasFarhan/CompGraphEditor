@@ -175,17 +175,17 @@ void Editor::CreateNewFile(std::string_view path, EditorType type)
     {
     case EditorType::SHADER:
     {
-        core::WriteString(path, "#version 310 es\nprecision highp float;\nvoid main() {}");
+        core::WriteString(path, "#version 450 \n#extension GL_ARB_separate_shader_objects : enable\nvoid main() {}");
         resourceManager_.AddResource(path);
         break;
     }
     case EditorType::PIPELINE:
     {
-        novus::editor::EditorPipelineInfoT editorPipelineInfo{};
+        EditorPipelineInfoT editorPipelineInfo{};
 
-        auto emptyPipeline = std::make_unique<novus::renderer::GraphicsPipelineT>();
-        auto pipelineInfo = std::make_unique<novus::internal::GraphicsPipelineInfoT>();
-        auto depthStencilState = std::make_unique<novus::internal::DepthStencilStateT>();
+        auto emptyPipeline = std::make_unique<renderer::GraphicsPipelineT>();
+        auto pipelineInfo = std::make_unique<internal::GraphicsPipelineInfoT>();
+        auto depthStencilState = std::make_unique<internal::DepthStencilStateT>();
         depthStencilState->write_mask = 0xFF;
         depthStencilState->compare_mask = 0xFF;
         depthStencilState->compare_op = internal::CompareOp_COMPAREOP_LESS;
@@ -240,10 +240,10 @@ void Editor::CreateNewFile(std::string_view path, EditorType type)
             }
             resourceManager_.Clear();
         }
-        renderer::SceneT emptyScene;
-        emptyScene.name = (GetFilename(path, false));
+        EditorSceneInfoT editorSceneInfo{};
+        editorSceneInfo.name = (GetFilename(path, false));
         CreateNewDirectory(GetFolder(path));
-        core::WriteFlatbufferToFile<renderer::SceneT, renderer::Scene>(emptyScene, path);
+        core::WriteFlatbufferToFile<EditorSceneInfoT, EditorSceneInfo>(editorSceneInfo, path);
         resourceManager_.AddResource(path);
         sceneEditor->SetCurrentScene();
         for (const auto& editorSystem : editorSystems_)
@@ -299,18 +299,21 @@ void Editor::CreateNewFile(std::string_view path, EditorType type)
     case EditorType::SCRIPT: 
     {
         //TODO generate basic cpp wasm script
-        core::WriteString(path, "from neko2 import *\n");
+        core::WriteString(path, "");
         resourceManager_.AddResource(path);
         break;
     }
     case EditorType::TEXTURE:
     {
+        //TODO Generate editor cubemap
+        /*
         if(GetFileExtension(path) == ".cube")
         {
             renderer::CubemapT emptyCubemap;
             core::WriteFlatbufferToFile<renderer::CubemapT, renderer::Cubemap>(emptyCubemap, path);
             resourceManager_.AddResource(path);
         }
+        */
         break;
     }
     default: 
@@ -384,7 +387,6 @@ bool Editor::UpdateCreateNewFile()
             }
         }
         std::string path;
-        static bool isVulkanScene = false;
         
         if(currentCreateFileSystem_ == EditorType::SCENE)
         {
@@ -392,7 +394,6 @@ bool Editor::UpdateCreateNewFile()
                 ResourceManager::dataFolder.data(),
                 newCreateFilename_,
                 actualFilename.c_str());
-            ImGui::Checkbox("Vulkan", &isVulkanScene);
         }
         else
         {

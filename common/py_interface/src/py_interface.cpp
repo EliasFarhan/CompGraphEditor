@@ -494,61 +494,13 @@ void PyManager::End()
         LogError("Python Script Loader should be initiliazed");
         std::terminate();
     }
-    for(auto& object : pySystems_)
-    {
-        auto& system = object.cast<Script&>();
-        system.End();
-    }
-    pySystems_.clear();
     py::finalize_interpreter();
     initialized = false;
 }
 
 Script* PyManager::LoadScript(std::string_view path, std::string_view module, std::string_view className)
 {
-    auto* nativeScript = MinimalScriptLoader::LoadScript(path, module, className);
-    if(nativeScript != nullptr)
-    {
-        nativeScript->Begin();
-        return nativeScript;
-    }
-    if(!FileExists(path))
-    {
-        LogError(std::format("Could not find script file at path: {}", path));
-        return nullptr;
-    }
-    try
-    {
-        const auto moduleObj = py::module_::import(module.data());
-        auto newObject = moduleObj.attr(className.data())();
-        pySystems_.push_back(std::move(newObject));
-        auto* newSystem = pySystems_.back().cast<Script*>();
-        newSystem->Begin();
-        
-        return newSystem;
-    }
-    catch (pybind11::error_already_set& e)
-    {
-        /*try
-        {
-            const auto scriptFile = filesystem.LoadFile(path);
-            const auto locals = py::dict();
-            py::exec(reinterpret_cast<const char*>(scriptFile.data), 
-                py::globals(), 
-                locals);
-            const auto classObject = locals[className.data()];
-            auto newObject = classObject();
-            auto* newSystem = newObject.cast<Script*>();
-            pySystems_.push_back(std::move(newObject));
-            newSystem->Begin();
-            return newSystem;
-        }
-        catch(pybind11::error_already_set& e)
-        {*/
-            LogError(std::format("{}", e.what()));
-        //}
-        return nullptr;
-    }
+    return nullptr;
 
 }
 

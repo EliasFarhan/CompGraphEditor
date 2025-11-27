@@ -50,9 +50,9 @@ target_precompile_headers(editor PRIVATE
 #gpu player
 file(GLOB_RECURSE GPU_PLAYER_SRC src/gpu_player/*.cpp include/gpu_player/*.h)
 
-add_executable(gpu_player ${GL_PLAYER_SRC} main/gpu_player_main.cpp)
-target_include_directories(gpu_player PRIVATE include/gpu_player/)
-target_link_libraries(gpu_player PRIVATE CommonNovus CommonWasm argh PhysFilesystem)
+add_executable(gpu_player ${GPU_PLAYER_SRC} main/gpu_player_main.cpp)
+target_include_directories(gpu_player PUBLIC include/)
+target_link_libraries(gpu_player PUBLIC CommonNovus CommonWasm argh PhysFilesystem)
 
 set_target_properties (gpu_player PROPERTIES FOLDER Main)
 add_dependencies(editor gpu_player)

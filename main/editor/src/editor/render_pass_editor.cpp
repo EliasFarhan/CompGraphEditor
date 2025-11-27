@@ -259,7 +259,7 @@ void RenderPassEditor::DrawCenterView()
             {
                 if (commandInfo->info.index() == 0)
                 {
-                    ImGui::Text("%s", std::get<EditorDrawCommandInfoT>(commandInfo->info).draw_command->name);
+                    ImGui::Text("%s", std::get<EditorDrawCommandInfoT>(commandInfo->info).draw_command->name.c_str());
                 }
                 else
                 {

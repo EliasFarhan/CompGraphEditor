@@ -184,7 +184,6 @@ public:
     void End() override;
     Script* LoadScript(std::string_view path, std::string_view module, std::string_view className) override;
 private:
-    std::vector<py::object> pySystems_;
     bool initialized = false;
 };
 
