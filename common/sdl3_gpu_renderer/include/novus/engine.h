@@ -36,6 +36,6 @@ SDL_GPUDevice* GetDevice();
 SDL_Window* GetWindow();
 SDL_GPUCommandBuffer* GetCommandBuffer();
 SDL_GPUTexture* GetSwapchainTexture();
-
+void EnableDrawSomething();
 SDL_GPUTextureFormat GetSwapchainTextureFormat();
 } // namespace novus

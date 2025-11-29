@@ -5,16 +5,20 @@
 #include <imgui_impl_sdl3.h>
 #include <imgui_impl_sdlgpu3.h>
 
+#ifdef TRACY_ENABLE
+#include <tracy/Tracy.hpp>
+#endif
+
 namespace novus
 {
 namespace
 {
-
 TextureManager textureManager;
 SDL_GPUDevice* device_ = nullptr;
 SDL_GPUCommandBuffer* commandBuffer_ = nullptr;
 SDL_GPUTexture* swapchainTexture_ = nullptr;
 Engine* instance_;
+bool hasDrawnSomething_ = false;
 }
 
 constexpr SDL_GPUShaderFormat ConvertShaderFormat(engine::ShaderFormat shaderFormat)
@@ -129,7 +133,7 @@ void Engine::PreUpdate()
     commandBuffer_ = SDL_AcquireGPUCommandBuffer(device_);
     Uint32 swapchainWidth = 0, swapchainHeight = 0;
     SDL_WaitAndAcquireGPUSwapchainTexture(commandBuffer_, window_, &swapchainTexture_, &swapchainWidth, &swapchainHeight);
-
+    hasDrawnSomething_ = false;
 }
 
 void Engine::PreImGuiDraw()
@@ -142,29 +146,29 @@ void Engine::PreImGuiDraw()
 void Engine::PostImGuiDraw()
 {
 
-    ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
+    ImVec4 clearColor = ImVec4(0.0f, 0.0f, 0.0f, 1.00f);
     ImGui::Render();
-    ImDrawData* draw_data = ImGui::GetDrawData();
+    ImDrawData* drawData = ImGui::GetDrawData();
     if (swapchainTexture_ != nullptr)
     {
         // This is mandatory: call ImGui_ImplSDLGPU3_PrepareDrawData() to upload the vertex/index buffer!
-        Imgui_ImplSDLGPU3_PrepareDrawData(draw_data, commandBuffer_);
+        Imgui_ImplSDLGPU3_PrepareDrawData(drawData, commandBuffer_);
 
         // Setup and start a render pass
-        SDL_GPUColorTargetInfo target_info = {};
-        target_info.texture = swapchainTexture_;
-        target_info.clear_color = SDL_FColor { clear_color.x, clear_color.y, clear_color.z, clear_color.w };
-        target_info.load_op = SDL_GPU_LOADOP_DONT_CARE;
-        target_info.store_op = SDL_GPU_STOREOP_STORE;
-        target_info.mip_level = 0;
-        target_info.layer_or_depth_plane = 0;
-        target_info.cycle = false;
-        SDL_GPURenderPass* render_pass = SDL_BeginGPURenderPass(commandBuffer_, &target_info, 1, nullptr);
+        SDL_GPUColorTargetInfo targetInfo = {};
+        targetInfo.texture = swapchainTexture_;
+        targetInfo.clear_color = SDL_FColor { clearColor.x, clearColor.y, clearColor.z, clearColor.w };
+        targetInfo.load_op = hasDrawnSomething_ ? SDL_GPU_LOADOP_DONT_CARE : SDL_GPU_LOADOP_CLEAR;
+        targetInfo.store_op = SDL_GPU_STOREOP_STORE;
+        targetInfo.mip_level = 0;
+        targetInfo.layer_or_depth_plane = 0;
+        targetInfo.cycle = false;
+        SDL_GPURenderPass* renderPass = SDL_BeginGPURenderPass(commandBuffer_, &targetInfo, 1, nullptr);
 
         // Render ImGui
-        ImGui_ImplSDLGPU3_RenderDrawData(draw_data, commandBuffer_, render_pass);
+        ImGui_ImplSDLGPU3_RenderDrawData(drawData, commandBuffer_, renderPass);
 
-        SDL_EndGPURenderPass(render_pass);
+        SDL_EndGPURenderPass(renderPass);
     }
 
 }
@@ -193,6 +197,10 @@ SDL_GPUCommandBuffer* GetCommandBuffer()
 SDL_GPUTexture* GetSwapchainTexture()
 {
     return swapchainTexture_;
+}
+void EnableDrawSomething()
+{
+    hasDrawnSomething_ = true;
 }
 SDL_GPUTextureFormat GetSwapchainTextureFormat()
 {

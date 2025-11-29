@@ -140,5 +140,5 @@ table Scene
     systems: [engine.System] (native_inline);
     buffers: [StorageBuffer] (native_inline);
     textures: [Texture] (native_inline);
-    framebuffer: [Framebuffer] (native_inline);
+    framebuffers: [Framebuffer] (native_inline);
 }

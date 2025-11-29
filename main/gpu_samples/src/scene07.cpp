@@ -87,7 +87,7 @@ novus::renderer::SceneT Scene07()
 
     framebuffer.depth_stencil_attachment = std::move(depthStencilAttachment);
 
-    scene.framebuffer.push_back(std::move(framebuffer));
+    scene.framebuffers.push_back(std::move(framebuffer));
     scene.name = "07_Post-Process";
     {
         novus::renderer::GraphicsPipelineT graphicsPipeline{};

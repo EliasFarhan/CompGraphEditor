@@ -31,6 +31,7 @@ void Scene::UnloadScene()
 void Scene::Update(float dt)
 {
     auto* commandBuffer = GetCommandBuffer();
+    EnableDrawSomething();
 
     for (auto& script: scripts_)
     {
