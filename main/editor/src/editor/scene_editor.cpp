@@ -594,6 +594,13 @@ bool SceneEditor::ExportAndPlayScene() const
                 {
                     const auto pipelineIndex = exportScene.pipelines.size();
                     renderer::GraphicsPipelineT exportPipeline{};
+                    auto exportPipelineInfo = std::make_unique<internal::GraphicsPipelineInfoT>();
+                    //TODO import all pipeline states
+                    //TODO generate target description from current framebuffer
+                    auto rasterizerState = std::make_unique<internal::RasterizerStateT>();
+                    *rasterizerState = *pipeline->info.pipeline->info->rasterizer_state;
+                    exportPipelineInfo->rasterizer_state = std::move(rasterizerState);
+                    exportPipeline.info = std::move(exportPipelineInfo);
                     resourceIndexMap[pipeline->resourceId] = pipelineIndex;
                     const auto shaderExportFunc = [&resourceIndexMap, &exportScene, &shaderEditor](ResourceId shaderId)
                     {
@@ -870,6 +877,7 @@ bool SceneEditor::ExportAndPlayScene() const
     for(auto & shader : exportScene.shaders)
     {
         shaderPaths.push_back(shader.path);
+        shaderPaths.push_back(shader.path+".spv");
     }
     sceneJson["shaders"] = shaderPaths;
     std::vector<std::string> scriptPaths;

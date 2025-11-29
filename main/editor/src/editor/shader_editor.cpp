@@ -14,6 +14,7 @@
 #include <pybind11/embed.h>
 #include <pybind11/pybind11.h>
 
+#include "../../../utils/shader_analyzer_lib/shader_analyzer.h"
 #include "scene_editor.h"
 
 namespace py = pybind11;
@@ -329,34 +330,20 @@ void ShaderEditor::Clear()
 
 bool ShaderEditor::AnalyzeShader(std::string_view path, renderer::ShaderT& shaderInfo) const
 {
-    //TODO Analyze new shader (to check if valid)
+    //TODO fill info about shader
     std::string result;
     json shaderJson;
-    /*
-    if(GetSceneEditor()->IsVulkanScene())
+
+    py::function analyzeShaderFunc = py::module_::import("scripts.shader_parser").attr("analyze_shader");
+    try
     {
-        py::function analyzeShaderFunc = py::module_::import("scripts.shader_parser").attr("analyze_vk_shader");
-        try 
-        {
-            result = static_cast<py::str>(analyzeShaderFunc(path.data()));
-        }
-        catch (py::error_already_set& e)
-        {
-            LogError(std::format("Analyze shader failed for file: {}\n{}", path, e.what()));
-        }
+        result = static_cast<py::str>(analyzeShaderFunc(path.data()));
     }
-    else
+    catch (py::error_already_set& e)
     {
-        py::function analyzeShaderFunc = py::module_::import("scripts.shader_parser").attr("analyze_gl_shader");
-        try
-        {
-            result = static_cast<py::str>(analyzeShaderFunc(path));
-        }
-        catch (py::error_already_set& e)
-        {
-            LogError(std::format("Analyze shader failed for file: {}\n{}", path, e.what()));
-        }
+        LogError(std::format("Analyze shader failed for file: {}\n{}", path, e.what()));
     }
+
     try
     {
         LogDebug(std::format("JSON content {}", result));
@@ -368,101 +355,17 @@ bool ShaderEditor::AnalyzeShader(std::string_view path, renderer::ShaderT& shade
             LogError(shaderJson["stderr"].get<std::string>());
             return false;
         }
-        auto uniformsJson = shaderJson["uniforms"];
-        shaderInfo.uniform_buffers.clear();
-        for(auto& uniformJson : uniformsJson)
-        {
-            auto uniformName = uniformJson["name"].get<std::string>();
-            auto typeName = uniformJson["type_name"].get<std::string>();
-            int binding = -1;
-            if(uniformJson.contains("binding"))
-            {
-                binding = uniformJson["binding"].get<int>();
-            }
-            int count = 1;
-            if(uniformJson.contains("count"))
-            {
-                count = uniformJson["count"].get<int>();
-            }
-            auto type = GetType(typeName);
-            auto* newUniformInfo = shaderInfo.add_uniforms();
-            newUniformInfo->set_name(uniformName);
-            newUniformInfo->set_type(type);
-            newUniformInfo->set_type_name(typeName);
-            newUniformInfo->set_stage(shaderInfo.type());
-            newUniformInfo->set_binding(binding);
-            newUniformInfo->set_count(count);
-            
-        }
-        shaderInfo.mutable_in_attributes()->Clear();
-        auto inAttributesJson = shaderJson["in_attributes"];
-        for(auto& inAttributeJson : inAttributesJson)
-        {
-            auto inAttributeName = inAttributeJson["name"].get<std::string>();
-            auto typeName = inAttributeJson["type_name"].get<std::string>();
-            auto type = GetType(typeName);
-            auto* newInAttribute = shaderInfo.add_in_attributes();
-            newInAttribute->set_name(inAttributeName);
-            newInAttribute->set_type(type);
-            newInAttribute->set_type_name(typeName);
-            auto it = inAttributeJson.find("location");
-            if(it != inAttributeJson.end())
-            {
-                newInAttribute->set_location(it.value().get<int>());
-            }
-        }
-        shaderInfo.mutable_out_attributes()->Clear();
-        auto& outAttributesJson = shaderJson["out_attributes"];
-        for(auto& outAttributeJson : outAttributesJson)
-        {
-            auto outAttributeName = outAttributeJson["name"].get<std::string>();
-            auto typeName = outAttributeJson["type_name"].get<std::string>();
-            auto type = GetType(typeName);
-            auto* newOutAttribute = shaderInfo.add_out_attributes();
-            newOutAttribute->set_name(outAttributeName);
-            newOutAttribute->set_type(type);
-            newOutAttribute->set_type_name(typeName);
-        }
-        auto& structsJson = shaderJson["structs"];
-        shaderInfo.mutable_structs()->Clear();
-        for(auto& structJson: structsJson)
-        {
-            const auto structName = structJson["name"].get<std::string>();
-            const auto size = structJson["size"].get<int>();
-            const auto alignment = structJson["alignment"].get<int>();
-
-            auto* newStruct = shaderInfo.add_structs();
-            newStruct->set_name(structName);
-            newStruct->set_size(size);
-            newStruct->set_alignment(alignment);
-            for(auto& structAttributeJson: structJson["attributes"])
-            {
-                auto* attribute = newStruct->add_attributes();
-                attribute->set_name(structAttributeJson["name"].get<std::string>());
-                attribute->set_stage(shaderInfo.type());
-                auto typeName = structAttributeJson["type_name"].get<std::string>();
-                auto type = GetType(typeName);
-                attribute->set_type_name(typeName);
-                attribute->set_type(type);
-            }
-        }
-        auto& buffersJson = shaderJson["buffers"];
-        shaderInfo.mutable_storage_buffers()->Clear();
-        for(auto& bufferJson: buffersJson)
-        {
-            const auto name = bufferJson["name"].get<std::string>();
-            const auto binding = bufferJson["binding"].get<int>();
-            auto* buffer = shaderInfo.add_storage_buffers();
-            buffer->set_name(name);
-            buffer->set_binding(binding);
-        }
-        return true;
     }
     catch (json::exception& e)
     {
         LogError(std::format("Could not parse shader info of file: {} from script\n{}\n{}", path, e.what(), result));
     }
-    */
-    return false;
+
+    const auto attributeResult = novus::GenerateShaderAttributeFromJson(std::string(path)+".json");
+    shaderInfo.storage_buffers = std::move(attributeResult.storageBuffers);
+    shaderInfo.samplers = std::move(attributeResult.shaderSamplers);
+    shaderInfo.types = std::move(attributeResult.types);
+    shaderInfo.uniform_buffers = std::move(attributeResult.uniformBuffers);
+    return true;
 }
 }

@@ -557,17 +557,17 @@ void PipelineEditor::AddResource(const Resource& resource)
     pipelineInfo.resourceId = resource.resourceId;
     pipelineInfo.path = resource.path;
     pipelineInfo.info.pipeline = std::make_unique<renderer::GraphicsPipelineT>();
-
+    pipelineInfo.info.pipeline->info = std::make_unique<internal::GraphicsPipelineInfoT>();
+    pipelineInfo.info.pipeline->info->rasterizer_state = std::make_unique<internal::RasterizerStateT>();
 
     if (!core::IsRegularFile(resource.path))
     {
-        LogWarning(std::format("Could not find pipeline file: {}", resource.path.c_str()));
+        LogWarning(std::format("Could not find pipeline file: {}", resource.path));
         return;
     }
-    std::ifstream fileIn (resource.path.c_str(), std::ios::binary);
     if (!core::ReadFlatbufferFromFile<EditorPipelineInfoT, EditorPipelineInfo>(resource.path, pipelineInfo.info))
     {
-        LogWarning(std::format("Could not open protobuf file: {}", resource.path.c_str()));
+        LogWarning(std::format("Could not open protobuf file: {}", resource.path));
         return;
     }
     

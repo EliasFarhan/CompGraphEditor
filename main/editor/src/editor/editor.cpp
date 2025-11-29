@@ -202,6 +202,8 @@ void Editor::CreateNewFile(std::string_view path, EditorType type)
 
         pipelineInfo->depth_stencil_state = std::move(depthStencilState);
 
+        pipelineInfo->rasterizer_state = std::make_unique<internal::RasterizerStateT>();
+
         emptyPipeline->info = std::move(pipelineInfo);
         editorPipelineInfo.pipeline = std::move(emptyPipeline);
         core::WriteFlatbufferToFile<EditorPipelineInfoT, EditorPipelineInfo>(editorPipelineInfo, path);

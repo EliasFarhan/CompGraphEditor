@@ -35,7 +35,7 @@ file(GLOB_RECURSE EDITOR_SRC src/editor/*.cpp include/editor/*.h)
 add_executable(editor ${EDITOR_SRC} ${SCRIPT_FILES} main/editor_main.cpp)
 
 target_include_directories(editor PRIVATE include/editor/)
-target_link_libraries(editor PRIVATE CommonNovus nlohmann_json::nlohmann_json CommonPy argh imnodes)
+target_link_libraries(editor PRIVATE CommonNovus nlohmann_json::nlohmann_json CommonPy argh imnodes shader_analyzer_lib)
 
 add_dependencies(editor editor_scripts)
 
