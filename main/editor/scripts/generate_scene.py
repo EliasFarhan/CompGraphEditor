@@ -1,10 +1,10 @@
 import json
 from zipfile import ZipFile
+from pathlib import Path
 
-
-def export_scene(path, scene_json_txt):
+def export_scene(path, scene_json_txt, base):
 	scene_json = json.loads(scene_json_txt)
-
+	base_folder = Path(base)
 	with ZipFile(path, 'w') as scene_zip:
 		scene_zip.write(scene_json["scene"])
 

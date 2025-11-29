@@ -8,6 +8,8 @@
 #include "flatbuffers/flatbuffer_builder.h"
 #include <flatbuffers/util.h>
 
+#include "engine/filesystem.h"
+
 namespace core
 {
 
@@ -23,25 +25,27 @@ bool WriteFlatbufferToFile(const ObjectT& object, std::string_view path)
 template <typename ObjectT, typename Object>
 bool ReadFlatbufferFromFile(std::string_view path, ObjectT& object) {
 
-    std::string buffer;
 
     // Load the entire file into memory
-    bool ok = flatbuffers::LoadFile(path.data(), /*binary=*/true, &buffer);
-    if (!ok) {
+    FileBuffer buffer = core::LoadFile(path);
+    if (buffer.data == nullptr)
+    {
+        LogError(std::format("Failed to load file '{}'", path));
         return false;
     }
 
     // Verify buffer (optional but strongly recommended)
     flatbuffers::Verifier verifier(
-        reinterpret_cast<const uint8_t*>(buffer.data()),
-        buffer.size()
+        buffer.data,
+        buffer.size
     );
 
 
     // Get the root
-    const Object* table = flatbuffers::GetRoot<Object>(buffer.data());
+    const Object* table = flatbuffers::GetRoot<Object>(buffer.data);
 
     if (!table->Verify(verifier)) {
+        LogError(std::format("Data is corrupt of wrong schema for '{}'", path));
         return false; // Data is corrupt or wrong schema
     }
     // Convert FlatBuffer → object-representation

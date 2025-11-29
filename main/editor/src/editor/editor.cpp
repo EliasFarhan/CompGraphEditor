@@ -650,7 +650,7 @@ void Editor::RecursiveSceneFileReload()
         return;
     const auto sceneFolder = GetFolder(sceneInfo->path);
     //recursive search file
-    std::function<void(std::string_view)> recursiveSearch = [&recursiveSearch, &sceneInfo, this](std::string_view folder)
+    std::function<void(std::string_view)> recursiveSearch = [&recursiveSearch, &sceneInfo, this, &sceneFolder](std::string_view folder)
     {
         const fs::path folderPath = folder;
         for (const auto& entry : fs::directory_iterator(folderPath))
@@ -664,15 +664,16 @@ void Editor::RecursiveSceneFileReload()
             {
                 if(folderContentPath.extension() == ".scene" || folderContentPath.extension() == ".pkg")
                     continue;
-                const auto filePath = folderContentPath.string();
+
                 if (std::ranges::none_of(sceneInfo->info.resources,
-                    [&filePath](const auto& path)
+                    [&folderContentPath](const auto& path)
                     {
                         if (!fs::exists(path))
                             return false;
-                        return fs::equivalent(filePath.c_str(), path);
+                        return fs::equivalent(folderContentPath, path);
                     }))
                 {
+                    const auto filePath = fs::relative(folderContentPath, fs::current_path()).generic_string();
                     sceneInfo->info.resources.push_back(filePath);
                     resourceManager_.AddResource(filePath);
                 }

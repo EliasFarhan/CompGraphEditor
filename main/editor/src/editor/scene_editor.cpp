@@ -120,7 +120,7 @@ void SceneEditor::AddResource(const Resource& resource)
     
     for(int i = 0; i < sceneInfo.info.resources.size(); i++)
     {
-        std::string_view resourcePath {sceneInfo.info.resources[i]};
+        const auto& resourcePath = sceneInfo.info.resources[i];
         if(!core::FileExists(resourcePath))
         {
             unexistingResources.push_back(i);
@@ -866,9 +866,10 @@ bool SceneEditor::ExportAndPlayScene() const
     sceneJson["scene"] = exportScenePath.data();
     std::vector<std::string> shaderPaths;
     shaderPaths.reserve(exportScene.shaders.size());
-    for(size_t i = 0; i < exportScene.shaders.size(); i++)
+    const auto sceneBasePath = fs::path(currentScene.path).parent_path();
+    for(auto & shader : exportScene.shaders)
     {
-        shaderPaths.push_back(fs::path(exportScene.shaders[i].path, std::filesystem::path::generic_format).string());
+        shaderPaths.push_back(shader.path);
     }
     sceneJson["shaders"] = shaderPaths;
     std::vector<std::string> scriptPaths;
@@ -920,7 +921,7 @@ bool SceneEditor::ExportAndPlayScene() const
     try
     {
         py::function exportSceneFunc = py::module_::import("scripts.generate_scene").attr("export_scene");
-        exportSceneFunc(pkgSceneName, sceneJson.dump());
+        exportSceneFunc(pkgSceneName, sceneJson.dump(), sceneBasePath.generic_string());
     }
     catch (py::error_already_set& e)
     {

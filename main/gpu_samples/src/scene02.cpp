@@ -13,8 +13,8 @@ novus::renderer::SceneT Scene02()
     static constexpr std::string_view vertexPathBase = "data/shaders/02_hello_quad/quad.vert";
     static constexpr std::string_view fragmentPathBase = "data/shaders/02_hello_quad/quad.frag";
 
-    scene.shaders.push_back({.path = novus::AddFormatExtension(vertexPathBase), .shader_stage = novus::internal::ShaderStage_VERTEX});
-    scene.shaders.push_back({.path = novus::AddFormatExtension(fragmentPathBase), .shader_stage = novus::internal::ShaderStage_FRAGMENT});
+    scene.shaders.push_back({.path = vertexPathBase.data(), .shader_stage = novus::internal::ShaderStage_VERTEX});
+    scene.shaders.push_back({.path = fragmentPathBase.data(), .shader_stage = novus::internal::ShaderStage_FRAGMENT});
     scene.name = "02_Quad";
 
     novus::renderer::GraphicsPipelineT graphicsPipeline{};

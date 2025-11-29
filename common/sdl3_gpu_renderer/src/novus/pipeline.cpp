@@ -26,16 +26,40 @@ constexpr SDL_GPUShaderStage TranslateShaderState(internal::ShaderStage stage)
     throw std::runtime_error("Invalid Shader Stage");
 }
 
+static std::string AddFormatExtension(std::string_view glslPath)
+{
+    std::string newPath = glslPath.data();
+    switch (core::GetShaderFormat())
+    {
+    case novus::engine::ShaderFormat_SPIRV:
+        newPath += ".spv";
+        break;
+    case novus::engine::ShaderFormat_DXIL:
+        newPath += ".dxil";
+        break;
+    case novus::engine::ShaderFormat_MSL:
+        newPath += ".msl";
+        break;
+    case novus::engine::ShaderFormat_METALLIB:
+        newPath += "metallib";
+        break;
+    case novus::engine::ShaderFormat_DXBC:
+        newPath += ".cso";
+        break;
+    }
+    return newPath;
+}
+
 void Shader::LoadShader(const renderer::ShaderT& shaderInfo)
 {
-    size_t dataSize = 0;
-    auto* shaderFile = SDL_LoadFile(shaderInfo.path.c_str(), &dataSize);
-    if (shaderFile == nullptr)
+    const auto pathWithExtension = AddFormatExtension(shaderInfo.path);
+    auto shaderFile = core::LoadFile(pathWithExtension);
+    if (shaderFile.data == nullptr)
     {
         throw std::runtime_error(std::format("Could not open {}", shaderInfo.path));
     }
-    SDL_GPUShaderCreateInfo creationInfo{.code_size = dataSize,
-        .code = static_cast<Uint8*>(shaderFile),
+    SDL_GPUShaderCreateInfo creationInfo{.code_size = shaderFile.size,
+        .code = shaderFile.data,
         .entrypoint = "main",
         .format = core::ConvertShaderFormat(core::GetShaderFormat()),
         .stage = TranslateShaderState(shaderInfo.shader_stage),
@@ -101,29 +125,7 @@ static void FillPipelineInfo(SDL_GPUGraphicsPipelineCreateInfo& pipelineCreateIn
     }
 
 }
-std::string AddFormatExtension(std::string_view glslPath)
-{
-    std::string newPath = glslPath.data();
-    switch (core::GetShaderFormat())
-    {
-    case novus::engine::ShaderFormat_SPIRV:
-        newPath += ".spv";
-        break;
-    case novus::engine::ShaderFormat_DXIL:
-        newPath += ".dxil";
-        break;
-    case novus::engine::ShaderFormat_MSL:
-        newPath += ".msl";
-        break;
-    case novus::engine::ShaderFormat_METALLIB:
-        newPath += "metallib";
-        break;
-    case novus::engine::ShaderFormat_DXBC:
-        newPath += ".cso";
-        break;
-    }
-    return newPath;
-}
+
 void Pipeline::Load(const renderer::GraphicsPipelineT& pipelineInfo,
     const Shader& vertShader,
     const renderer::ShaderT& vertShaderInfo,

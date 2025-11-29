@@ -12,9 +12,9 @@ novus::renderer::SceneT Scene03()
     static constexpr std::string_view vertexPathBase = "data/shaders/03_hello_uniform/quad.vert";
     static constexpr std::string_view fragmentPathBase = "data/shaders/03_hello_uniform/quad.frag";
 
-    scene.shaders.push_back({.path = novus::AddFormatExtension(vertexPathBase), .shader_stage = novus::internal::ShaderStage_VERTEX});
+    scene.shaders.push_back({.path = (vertexPathBase.data()), .shader_stage = novus::internal::ShaderStage_VERTEX});
     const auto framgentAnalyzeResult = novus::GenerateShaderAttributeFromJson(std::string(fragmentPathBase)+".json");
-    scene.shaders.push_back({.path = novus::AddFormatExtension(fragmentPathBase),
+    scene.shaders.push_back({.path = (fragmentPathBase.data()),
         .uniform_buffers = std::move(framgentAnalyzeResult.uniformBuffers),
         .types = std::move(framgentAnalyzeResult.types),
         .shader_stage = novus::internal::ShaderStage_FRAGMENT,});

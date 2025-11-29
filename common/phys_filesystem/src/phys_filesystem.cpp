@@ -45,7 +45,7 @@ namespace core
     {
         std::string genericPath = path.data();
         std::ranges::replace(genericPath, '\\', '/');
-        core::FileBuffer newFile;
+        core::FileBuffer newFile{};
         if (!FileExists(genericPath))
         {
             LogError(std::format("File does not exist: {}", genericPath.data()));

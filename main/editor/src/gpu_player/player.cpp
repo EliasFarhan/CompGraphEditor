@@ -64,8 +64,11 @@ void Player::OnGui()
             if (ImGui::Selectable(scene.c_str()))
             {
                 core::AddMount(scene, "", 1);
-                novus::renderer::SceneT newScene;
-                core::ReadFlatbufferFromFile<renderer::SceneT, renderer::Scene>("root.scene", newScene);
+                renderer::SceneT newScene;
+                if (!core::ReadFlatbufferFromFile<renderer::SceneT, renderer::Scene>("root.scene", newScene))
+                {
+                    throw std::runtime_error("Failed to load scene");
+                }
                 playerScene_.SetScene(newScene);
                 sceneManager_.LoadScene(&playerScene_);
                 sceneLoaded_ = true;

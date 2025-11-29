@@ -12,11 +12,11 @@ novus::renderer::SceneT Scene05()
     const auto vertexAnalyzeResult = novus::GenerateShaderAttributeFromJson(std::string(vertexPathBase)+".json");
     const auto fragmentAnalyzeResult = novus::GenerateShaderAttributeFromJson(std::string(fragmentPathBase)+".json");
 
-    scene.shaders.push_back({.path = novus::AddFormatExtension(vertexPathBase),
+    scene.shaders.push_back({.path = (vertexPathBase.data()),
         .types = vertexAnalyzeResult.types,
         .storage_buffers = vertexAnalyzeResult.storageBuffers,
         .shader_stage = novus::internal::ShaderStage_VERTEX});
-    scene.shaders.push_back({.path = novus::AddFormatExtension(fragmentPathBase),
+    scene.shaders.push_back({.path = (fragmentPathBase.data()),
         .samplers = fragmentAnalyzeResult.shaderSamplers,
         .shader_stage = novus::internal::ShaderStage_FRAGMENT});
     scene.name = "05_Texture";

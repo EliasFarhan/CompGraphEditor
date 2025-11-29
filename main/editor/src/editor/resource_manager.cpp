@@ -3,8 +3,6 @@
 #include "utils/log.h"
 
 #include <format>
-#include <unordered_set>
-#include <functional>
 #include <algorithm>
 
 namespace novus::editor
@@ -28,7 +26,7 @@ void ResourceManager::CheckDataFolder(std::span<const std::string> paths)
                     {
                         return false;
                     }
-                    return fs::equivalent(resource.path.c_str(), path.data());
+                    return fs::equivalent(resource.path, path.data());
                 });
             if(it != resources_.end())
             {
