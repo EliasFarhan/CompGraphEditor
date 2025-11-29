@@ -460,7 +460,7 @@ bool SceneEditor::ExportAndPlayScene() const
             */
             if (editorCommand->materialId == INVALID_RESOURCE_ID)
             {
-                LogWarning(std::format("Could not export scene, missing material in command. Command {}", exportDrawCommand ? exportDrawCommand->name():exportComputeCommand->name()));
+                LogWarning(std::format("Could not export scene, missing material in command. Command {}", exportDrawCommand->name));
                 return false;
             }
             int exportedPipelineIndex = -1;
@@ -574,7 +574,9 @@ bool SceneEditor::ExportAndPlayScene() const
                     return false;
                 }
                 const auto* pipeline = pipelineEditor->GetPipeline(material->pipelineId);
-                if (exportSubPass->type() == core::pb::Pipeline_Type_NONE)
+                //TODO setup type for subpass
+                /*
+                if (exportSubPass.type == core::pb::Pipeline_Type_NONE)
                 {
                     exportSubPass->set_type(pipeline->info.pipeline().type());
                 }
@@ -586,15 +588,14 @@ bool SceneEditor::ExportAndPlayScene() const
                         return false;
                     }
                 }
+                */
                 auto pipelineIndexIt = resourceIndexMap.find(pipeline->resourceId);
                 if (pipelineIndexIt == resourceIndexMap.end())
                 {
                     const auto pipelineIndex = exportScene.pipelines.size();
-                    
-                    auto* newPipeline = exportScene.add_pipelines();
-                    *newPipeline = pipeline->info.pipeline();
+                    renderer::GraphicsPipelineT exportPipeline{};
                     resourceIndexMap[pipeline->resourceId] = pipelineIndex;
-                    const auto shaderExportFunc = [&resourceIndexMap, &exportScene, &shaderEditor, isVulkan](ResourceId shaderId)
+                    const auto shaderExportFunc = [&resourceIndexMap, &exportScene, &shaderEditor](ResourceId shaderId)
                     {
                         if (shaderId == INVALID_RESOURCE_ID)
                         {
@@ -605,11 +606,12 @@ bool SceneEditor::ExportAndPlayScene() const
                         if (shaderIt == resourceIndexMap.end())
                         {
                             const auto shaderIndex = exportScene.shaders.size();
-                            auto* newShader = exportScene.add_shaders();
-                            *newShader = shader->info;
-                            newShader->set_path(shader->info.path);
+                            renderer::ShaderT exportShader{};
+                            exportShader = shader->info;
+                            exportShader.path = (shader->info.path);
                             resourceIndexMap[shader->resourceId] = shaderIndex;
-                            return shaderIndex;
+                            exportScene.shaders.push_back(std::move(exportShader));
+                            return (int)shaderIndex;
                         }
                         else
                         {
@@ -626,7 +628,7 @@ bool SceneEditor::ExportAndPlayScene() const
                             LogWarning(std::format("Could not export scene, missing vertex shader in pipeline. Pipeline: {}", pipeline->path));
                             return false;
                         }
-                        newPipeline->set_vertex_shader_index(vertexShaderIndex);
+                        exportPipeline.vertex_shader_index = (vertexShaderIndex);
 
                         int fragmentShaderIndex = shaderExportFunc(pipeline->fragmentShaderId);
                         if (fragmentShaderIndex == -1)
@@ -634,11 +636,11 @@ bool SceneEditor::ExportAndPlayScene() const
                             LogWarning(std::format("Could not export scene, missing fragment shader in pipeline. Pipeline: {}", pipeline->path));
                             return false;
                         }
-                        newPipeline->set_fragment_shader_index(fragmentShaderIndex);
+                        exportPipeline.fragment_shader_index = (fragmentShaderIndex);
 
-                        exportMaterial->set_pipeline_index(pipelineIndex);
+                        exportMaterial.pipeline_index = (pipelineIndex);
                         exportedPipelineIndex = pipelineIndex;
-                        break;
+                        //break;
                     }
                     //TODO implement compute and raytracing pipeline
                     /*
@@ -699,17 +701,18 @@ bool SceneEditor::ExportAndPlayScene() const
                     default: break;
                     }
                     */
+                    exportScene.pipelines.push_back(exportPipeline);
                     
                 }
                 else
                 {
-                    exportMaterial->set_pipeline_index(pipelineIndexIt->second);
+                    exportMaterial.pipeline_index = (pipelineIndexIt->second);
 
                     exportedPipelineIndex = pipelineIndexIt->second;
                 }
                 if (exportDrawCommand)
                 {
-                    exportDrawCommand->material_index = (materialIndex);
+                    exportDrawCommand->material_index = (int)materialIndex;
                 }
                 //TODO when compute command are added, set material index
                 /*
@@ -746,6 +749,8 @@ bool SceneEditor::ExportAndPlayScene() const
                 //add model if not done already
 
                 int meshModel = -1;
+                // TODO export model mesh
+                /*
                 if (!mesh->info.model_path.empty())
                 {
                     for (int modelIndex = 0; modelIndex < exportScene.model_paths.size(); modelIndex++)
@@ -767,15 +772,17 @@ bool SceneEditor::ExportAndPlayScene() const
                         mesh->info.mutable_mesh()->set_model_index(meshModel);
                     }
                 }
+                */
                 auto meshIndexIt = resourceIndexMap.find(mesh->resourceId);
                 if (meshIndexIt == resourceIndexMap.end())
                 {
                     const auto meshIndex = exportScene.meshes.size();
-                    auto* newMesh = exportScene.add_meshes();
-                    *newMesh = mesh->info.mesh;
-                    newMesh->set_model_index(meshModel);
+                    renderer::MeshT newMesh{};
+                    newMesh = *mesh->info.mesh;
+                    newMesh.model_index = (meshModel);
                     resourceIndexMap[mesh->resourceId] = meshIndex;
                     exportDrawCommand->mesh_index = (meshIndex);
+                    exportScene.meshes.push_back(std::move(newMesh));
                 }
                 else
                 {
@@ -800,7 +807,7 @@ bool SceneEditor::ExportAndPlayScene() const
                     {
                         continue;
                     }
-                    if(shader->info.storage_buffers.size() > 0)
+                    if(!shader->info.storage_buffers.empty())
                     {
                         LogWarning(std::format("Could not export scene, missing buffer binding in command. Command: {}", editorCommand->path));
                         return false;
@@ -814,14 +821,16 @@ bool SceneEditor::ExportAndPlayScene() const
                 {
                     auto* buffer = bufferEditor->GetBuffer(editorCommand->bufferId);
                     int bufferIndex = exportScene.buffers.size();
-                    auto* newBuffer = exportScene.add_buffers();
-                    *newBuffer = buffer->info;
+                    renderer::StorageBufferT exportBuffer{};
+                    exportBuffer = buffer->info;
                     resourceIndexMap[editorCommand->bufferId] = bufferIndex;
+                    exportScene.buffers.push_back(std::move(exportBuffer));
                 }
                 else
                 {
+                    //TODO add buffer index to draw command?
                     //FIXME binding buffer index in draw command? was it not material?
-                    exportDrawCommand->buffer_index = (it->second);
+                    //exportDrawCommand->buffer_index = (it->second);
                 }
             }
             exportSubPass.commands.push_back(std::move(*exportDrawCommand));
