@@ -20,6 +20,7 @@
 #include "mesh_editor.h"
 #include "model_editor.h"
 #include "novus/engine.h"
+#include "novus/mesh.h"
 #include "pipeline_editor.h"
 #include "script_editor.h"
 #include "shader_editor.h"
@@ -617,6 +618,7 @@ bool SceneEditor::ExportAndPlayScene() const
                     auto rasterizerState = std::make_unique<internal::RasterizerStateT>();
                     *rasterizerState = *pipeline->info.pipeline->info->rasterizer_state;
                     exportPipelineInfo->rasterizer_state = std::move(rasterizerState);
+
                     exportPipeline.info = std::move(exportPipelineInfo);
                     resourceIndexMap[pipeline->resourceId] = pipelineIndex;
                     const auto shaderExportFunc = [&resourceIndexMap, &exportScene, &shaderEditor](ResourceId shaderId)
@@ -646,11 +648,22 @@ bool SceneEditor::ExportAndPlayScene() const
                     //{
                     //case core::pb::Pipeline_Type_RASTERIZE:
                     {
+
                         int vertexShaderIndex = shaderExportFunc(pipeline->vertexShaderId);
                         if (vertexShaderIndex == -1)
                         {
                             LogWarning(std::format("Could not export scene, missing vertex shader in pipeline. Pipeline: {}", pipeline->path));
                             return false;
+                        }
+                        const auto& vertexShaderInfo = exportScene.shaders[vertexShaderIndex];
+                        const auto inputSize = vertexShaderInfo.inputs.size();
+                        if (inputSize != 0)
+                        {
+                            exportPipeline.info->vertex_input_state = GenerateVertexInputState(
+                                inputSize >= 2 ? EnableTexCoords::Yes : EnableTexCoords::No,
+                                inputSize >= 3 ? EnableNormal::Yes : EnableNormal::No,
+                                inputSize >= 4 ? EnableTangent::Yes : EnableTangent::No,
+                                inputSize >= 5 ? EnableBitangent::Yes : EnableBitangent::No);
                         }
                         exportPipeline.vertex_shader_index = (vertexShaderIndex);
 

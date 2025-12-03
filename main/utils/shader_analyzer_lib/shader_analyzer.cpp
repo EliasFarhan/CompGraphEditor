@@ -95,6 +95,19 @@ ShaderAttributeResult GenerateShaderAttributeFromJson(std::string_view jsonPath)
         }
         result.shaderSamplers = std::move(shaderSamplers);
     }
+    if (shaderReflectData.contains("inputs"))
+    {
+        std::vector<renderer::ShaderInputT> shaderInputs;
+        for (auto& input : shaderReflectData["inputs"])
+        {
+            renderer::ShaderInputT shaderInput;
+            shaderInput.location = input["location"].get<int>();
+            shaderInput.format = core::GetVertexElementFormat(input["type"].get<std::string_view>());
+            shaderInput.name = input["name"];
+            shaderInputs.push_back(shaderInput);
+        }
+        result.shaderInputs = std::move(shaderInputs);
+    }
     return result;
 }
 }

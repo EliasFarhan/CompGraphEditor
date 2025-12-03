@@ -13,7 +13,11 @@
 
 namespace novus
 {
-
+enum class EnableTexCoords
+{
+    Yes,
+    No
+};
 enum class EnableNormal
 {
     Yes,
@@ -29,7 +33,9 @@ enum class EnableBitangent
     Yes,
     No
 };
-std::unique_ptr<internal::VertexInputStateT> GenerateVertexInputState(EnableNormal enableNormal=EnableNormal::No,
+std::unique_ptr<internal::VertexInputStateT> GenerateVertexInputState(
+    EnableTexCoords enableTexCoords = EnableTexCoords::Yes,
+    EnableNormal enableNormal=EnableNormal::No,
     EnableTangent enableTangent = EnableTangent::No,
     EnableBitangent enableBiTangent= EnableBitangent::No);
 }

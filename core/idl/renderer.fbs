@@ -2,6 +2,12 @@ include "internal_renderer.fbs";
 include "engine.fbs";
 namespace novus.renderer;
 
+table ShaderInput
+{
+    name: string;
+    location: ubyte;
+    format: internal.VertexElementFormat;
+}
 
 table Shader
 {
@@ -12,6 +18,7 @@ table Shader
     storage_buffers: [internal.BufferAttribute] (native_inline);
     samplers: [internal.ShaderSampler] (native_inline);
     shader_stage: internal.ShaderStage;
+    inputs: [ShaderInput] (native_inline);
 }
 table GraphicsPipeline
 {

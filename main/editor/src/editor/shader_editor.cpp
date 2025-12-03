@@ -14,7 +14,7 @@
 #include <pybind11/embed.h>
 #include <pybind11/pybind11.h>
 
-#include "../../../utils/shader_analyzer_lib/shader_analyzer.h"
+#include "shader_analyzer.h"
 #include "scene_editor.h"
 
 namespace py = pybind11;
@@ -26,55 +26,35 @@ namespace novus::editor
 {
 bool CheckVertexInput(const renderer::ShaderT& shaderInfo)
 {
-    return true;
-    // TODO check vertex inputs according to the engine
-    /*
-    if (shaderInfo.type() != core::pb::VERTEX)
-        return true;
-    for(int i = 0; i < shaderInfo.in_attributes_size(); i++)
+    for (const auto& input: shaderInfo.inputs)
     {
-        switch (shaderInfo.in_attributes(i).location())
+        if (input.location == 0 && input.format != internal::VertexElementFormat_FLOAT3)
         {
-        case 0:
-        case 2:
-        case 3:
-        case 4:
+            LogWarning(std::format("First vertex input is position and must be a vec3"));
+            return false;
+        }
+        if (input.location == 1 && input.format != internal::VertexElementFormat_FLOAT2)
         {
-            if (shaderInfo.in_attributes(i).type() != core::pb::Attribute_Type_VEC3)
-            {
-                LogWarning(std::format("Vertex input {} must be vec3, found {}. Shader: {}",
-                    shaderInfo.in_attributes(i).location(),
-                    shaderInfo.in_attributes(i).type_name(),
-                    shaderInfo.path()));
-                return false;
-            }
-            break;
+            LogWarning(std::format("Second vertex input is texCoords must be a vec2"));
+            return false;
         }
-        case 1:
+        if (input.location == 2 && input.format != internal::VertexElementFormat_FLOAT3)
         {
-            if (shaderInfo.in_attributes(i).type() != core::pb::Attribute_Type_VEC2)
-            {
-                LogWarning(std::format("Vertex input {} must be vec2, found {}. Shader: {}",
-                    shaderInfo.in_attributes(i).location(),
-                    shaderInfo.in_attributes(i).type_name(),
-                    shaderInfo.path()));
-                return false;
-            }
-            break;
+            LogWarning(std::format("Third vertex input is normal must be a vec3"));
+            return false;
         }
-        default: 
-            break;
-        }
+
     }
+
     return true;
-    */
 }
 void ShaderEditor::AddResource(const Resource& resource)
 {
     ShaderInfo shaderInfo{};
     shaderInfo.info.shader_stage = (core::GetShaderStageFromExtension(resource.extension));
     shaderInfo.compiledCorrectly = AnalyzeShader(resource.path, shaderInfo.info);
-    shaderInfo.correctVertexInput = CheckVertexInput(shaderInfo.info);
+
+    shaderInfo.correctVertexInput = shaderInfo.info.shader_stage == internal::ShaderStage_VERTEX ? CheckVertexInput(shaderInfo.info) : true;
     shaderInfo.filename = GetFilename(resource.path);
     shaderInfo.resourceId = resource.resourceId;
     shaderInfo.info.path = resource.path;
@@ -103,7 +83,7 @@ void ShaderEditor::UpdateExistingResource(const Resource& resource)
         if(shaderInfo.resourceId == resource.resourceId)
         {
             shaderInfo.compiledCorrectly = AnalyzeShader(resource.path, shaderInfo.info);
-            shaderInfo.correctVertexInput = CheckVertexInput(shaderInfo.info);
+            shaderInfo.correctVertexInput = shaderInfo.info.shader_stage == internal::ShaderStage_VERTEX ? CheckVertexInput(shaderInfo.info) : true;
             pipelineEditor->UpdateExistingResource(resource);
             return;
         }
@@ -362,10 +342,12 @@ bool ShaderEditor::AnalyzeShader(std::string_view path, renderer::ShaderT& shade
     }
 
     const auto attributeResult = novus::GenerateShaderAttributeFromJson(std::string(path)+".json");
+
     shaderInfo.storage_buffers = std::move(attributeResult.storageBuffers);
     shaderInfo.samplers = std::move(attributeResult.shaderSamplers);
     shaderInfo.types = std::move(attributeResult.types);
     shaderInfo.uniform_buffers = std::move(attributeResult.uniformBuffers);
+    shaderInfo.inputs = std::move(attributeResult.shaderInputs);
     return true;
 }
 }

@@ -7,15 +7,21 @@
 namespace novus
 {
 std::unique_ptr<internal::VertexInputStateT>
-GenerateVertexInputState(EnableNormal enableNormal, EnableTangent enableTangent, EnableBitangent enableBiTangent)
+GenerateVertexInputState(EnableTexCoords enableTexCoords,
+    EnableNormal enableNormal,
+    EnableTangent enableTangent,
+    EnableBitangent enableBiTangent)
 {
     auto vertexInputState = std::make_unique<internal::VertexInputStateT>();
     vertexInputState->vertex_attributes.push_back(
         {.location = 0, .buffer_slot = 0, .format = internal::VertexElementFormat_FLOAT3, .offset = 0});
-    vertexInputState->vertex_attributes.push_back({.location = 1,
-                                                   .buffer_slot = 0,
-                                                   .format = internal::VertexElementFormat_FLOAT2,
-                                                   .offset = sizeof(float) * 3});
+    if (enableTexCoords == EnableTexCoords::Yes)
+    {
+        vertexInputState->vertex_attributes.push_back({.location = 1,
+                                                       .buffer_slot = 0,
+                                                       .format = internal::VertexElementFormat_FLOAT2,
+                                                       .offset = sizeof(float) * 3});
+    }
     if (enableNormal == EnableNormal::Yes)
     {
         vertexInputState->vertex_attributes.push_back({.location = 2,

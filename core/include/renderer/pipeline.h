@@ -137,6 +137,23 @@ constexpr novus::internal::AttributeType GetAttributeType(std::string_view name)
     }
     return novus::internal::AttributeType_CUSTOM_STRUCT;
 }
+
+constexpr novus::internal::VertexElementFormat GetVertexElementFormat(std::string_view name)
+{
+    if (name == "vec2")
+    {
+        return novus::internal::VertexElementFormat_FLOAT2;
+    }
+    if (name == "vec3")
+    {
+        return novus::internal::VertexElementFormat_FLOAT3;
+    }
+    if (name == "vec4")
+    {
+        return novus::internal::VertexElementFormat_FLOAT4;
+    }
+    throw std::runtime_error("Unknown vertex element format name");
+}
 /*
 constexpr TypeInfo GetTypeInfo(pb::Attribute_Type attributeType, bool array=false)
 {
