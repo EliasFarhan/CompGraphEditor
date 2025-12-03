@@ -36,9 +36,9 @@ novus::renderer::SceneT Scene05()
     graphicsPipelineInfo->rasterizer_state = std::move(rasterizerState);
 
     auto targetInfo = std::make_unique<novus::internal::GraphicsPipelineTargetInfoT>();
-    auto colorTargetDescription = std::make_unique<novus::internal::ColorTargetDescriptionT>();
+    novus::internal::ColorTargetDescriptionT colorTargetDescription{};
     //backbuffer format to get retrieve from the engine?
-    colorTargetDescription->format = novus::internal::TextureFormat_TEXTUREFORMAT_B8G8R8A8_UNORM;
+    colorTargetDescription.format = novus::internal::TextureFormat_TEXTUREFORMAT_B8G8R8A8_UNORM;
     targetInfo->color_target_descriptions.push_back(std::move(colorTargetDescription));
     targetInfo->has_depth_stencil_target = false;
     graphicsPipelineInfo->target_info = std::move(targetInfo);

@@ -517,7 +517,7 @@ table ColorTargetDescription
 }
 table GraphicsPipelineTargetInfo
 {
-    color_target_descriptions:[ColorTargetDescription];
+    color_target_descriptions:[ColorTargetDescription] (native_inline);
     depth_stencil_format:TextureFormat;
     has_depth_stencil_target:bool;
 }

@@ -105,9 +105,9 @@ novus::renderer::SceneT Scene07()
         graphicsPipelineInfo->rasterizer_state = std::move(rasterizerState);
 
         auto targetInfo = std::make_unique<novus::internal::GraphicsPipelineTargetInfoT>();
-        auto colorTargetDescription = std::make_unique<novus::internal::ColorTargetDescriptionT>();
+        novus::internal::ColorTargetDescriptionT colorTargetDescription{};
         //Settings from the frambuffer, maybe cache it first?
-        colorTargetDescription->format = renderColorTargetFormat;
+        colorTargetDescription.format = renderColorTargetFormat;
         targetInfo->color_target_descriptions.push_back(std::move(colorTargetDescription));
         targetInfo->has_depth_stencil_target = true;
         targetInfo->depth_stencil_format = renderDepthTargetFormat;
@@ -140,9 +140,9 @@ novus::renderer::SceneT Scene07()
         postGraphicsPipelineInfo->rasterizer_state = std::move(postRasterizerState);
 
         auto postTargetInfo = std::make_unique<novus::internal::GraphicsPipelineTargetInfoT>();
-        auto postColorTargetDescription = std::make_unique<novus::internal::ColorTargetDescriptionT>();
+        novus::internal::ColorTargetDescriptionT postColorTargetDescription{};
         //Settings from the frambuffer, maybe cache it first?
-        postColorTargetDescription->format = (novus::internal::TextureFormat)novus::GetSwapchainTextureFormat();
+        postColorTargetDescription.format = (novus::internal::TextureFormat)novus::GetSwapchainTextureFormat();
         postTargetInfo->color_target_descriptions.push_back(std::move(postColorTargetDescription));
         postTargetInfo->has_depth_stencil_target = false;
         postGraphicsPipelineInfo->target_info = std::move(postTargetInfo);

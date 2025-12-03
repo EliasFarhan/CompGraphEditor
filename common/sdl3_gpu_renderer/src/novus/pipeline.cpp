@@ -186,7 +186,7 @@ void Pipeline::Load(const renderer::GraphicsPipelineT& pipelineInfo,
     auto& targets = targetInfo->color_target_descriptions;
     for (const auto& color_target : targets) {
         SDL_GPUColorTargetDescription color_target_info{
-            .format = static_cast<SDL_GPUTextureFormat>(color_target->format)
+            .format = static_cast<SDL_GPUTextureFormat>(color_target.format)
             //TODO add blend state
     };
         color_target_descriptions.push_back(color_target_info);

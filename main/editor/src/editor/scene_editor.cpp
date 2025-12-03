@@ -19,6 +19,7 @@
 #include "material_editor.h"
 #include "mesh_editor.h"
 #include "model_editor.h"
+#include "novus/engine.h"
 #include "pipeline_editor.h"
 #include "script_editor.h"
 #include "shader_editor.h"
@@ -597,6 +598,22 @@ bool SceneEditor::ExportAndPlayScene() const
                     auto exportPipelineInfo = std::make_unique<internal::GraphicsPipelineInfoT>();
                     //TODO import all pipeline states
                     //TODO generate target description from current framebuffer
+                    auto exportPipelineTargetInfo = std::make_unique<internal::GraphicsPipelineTargetInfoT>();
+                    if (exportSubPass.framebuffer_index == -1)
+                    {
+                        //add backbuffer target
+                        internal::ColorTargetDescriptionT colorTargetDescription{};
+                        colorTargetDescription.format = (internal::TextureFormat)GetSwapchainTextureFormat();
+                        exportPipelineTargetInfo->color_target_descriptions.push_back(colorTargetDescription);
+
+                        //TODO add depth target
+                    }
+                    else
+                    {
+                        //TODO add framebuffer target
+                        throw std::runtime_error("Not yet implemented");
+                    }
+                    exportPipelineInfo->target_info = std::move(exportPipelineTargetInfo);
                     auto rasterizerState = std::make_unique<internal::RasterizerStateT>();
                     *rasterizerState = *pipeline->info.pipeline->info->rasterizer_state;
                     exportPipelineInfo->rasterizer_state = std::move(rasterizerState);
@@ -842,6 +859,7 @@ bool SceneEditor::ExportAndPlayScene() const
             }
             exportSubPass.commands.push_back(std::move(*exportDrawCommand));
         }
+        exportScene.sub_passes.push_back(std::move(exportSubPass));
     }
 
     for(size_t i = 0; i < currentScene.info.system_paths.size();i++)
