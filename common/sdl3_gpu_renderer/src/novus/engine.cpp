@@ -55,7 +55,6 @@ void Engine::Begin()
 #endif
     instance_ = this;
 	SDL_Init(SDL_INIT_VIDEO | SDL_INIT_GAMEPAD);
-	float mainScale = SDL_GetDisplayContentScale(SDL_GetPrimaryDisplay());
 	const auto windowSize = glm::ivec2(config_.window_size.x, config_.window_size.y);
 	window_ = SDL_CreateWindow(
 		config_.window_name.c_str(),
@@ -67,6 +66,8 @@ void Engine::Begin()
 	{
 		throw std::runtime_error(std::format("Failed to create window. SDL Error: {}", SDL_GetError()));
 	}
+
+	float mainScale = SDL_GetDisplayContentScale(SDL_GetDisplayForWindow(window_));
     const auto shaderFormat = ConvertShaderFormat(config_.shader_format);
 	device_ = SDL_CreateGPUDevice(shaderFormat, true, nullptr);
 	if (!device_)
@@ -86,9 +87,9 @@ void Engine::Begin()
     ImGuiIO& io = ImGui::GetIO(); (void)io;
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
-
-    // Setup Dear ImGui style
-    ImGui::StyleColorsDark();
+    ImFontConfig config;
+    config.SizePixels = 13.0f * mainScale;
+    io.Fonts->AddFontDefault(&config);
 
     // Setup Dear ImGui style
     ImGui::StyleColorsDark();
