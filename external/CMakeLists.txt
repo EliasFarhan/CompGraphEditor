@@ -119,3 +119,33 @@ else ()
 endif ()
 set_target_properties(assimp PROPERTIES INTERFACE_LINK_LIBRARIES "draco;zlib")
 
+
+add_library(nvrhi STATIC IMPORTED GLOBAL)
+target_compile_definitions(nvrhi INTERFACE KHRONOS_STATIC)
+add_library(nvrhi_vk STATIC IMPORTED GLOBAL)
+target_include_directories(nvrhi_vk INTERFACE "${CMAKE_CURRENT_SOURCE_DIR}/NVRHI/include")
+if(MSVC)
+    set_target_properties(nvrhi PROPERTIES
+            IMPORTED_LOCATION_DEBUG "${CMAKE_CURRENT_SOURCE_DIR}/NVRHI/build-dbg/Debug/nvrhi.lib"
+            IMPORTED_LOCATION_RELEASE "${CMAKE_CURRENT_SOURCE_DIR}/NVRHI/build-rel/Release/nvrhi.lib"
+            IMPORTED_CONFIGURATIONS "Release;Debug"
+    )
+    set_target_properties(nvrhi_vk PROPERTIES
+            IMPORTED_LOCATION_DEBUG "${CMAKE_CURRENT_SOURCE_DIR}/NVRHI/build-dbg/Debug/nvrhi_vk.lib"
+            IMPORTED_LOCATION_RELEASE "${CMAKE_CURRENT_SOURCE_DIR}/NVRHI/build-rel/Release/nvrhi_vk.lib"
+            IMPORTED_CONFIGURATIONS "Release;Debug"
+    )
+else()
+    set_target_properties(nvrhi PROPERTIES
+            IMPORTED_LOCATION_DEBUG "${CMAKE_CURRENT_SOURCE_DIR}/NVRHI/build-dbg/nvrhi.a"
+            IMPORTED_LOCATION_RELEASE "${CMAKE_CURRENT_SOURCE_DIR}/NVRHI/build-rel/nvrhi.a"
+            IMPORTED_CONFIGURATIONS "Release;Debug"
+    )
+    set_target_properties(nvrhi_vk PROPERTIES
+            IMPORTED_LOCATION_DEBUG "${CMAKE_CURRENT_SOURCE_DIR}/NVRHI/build-dbg/nvrhi_vk.a"
+            IMPORTED_LOCATION_RELEASE "${CMAKE_CURRENT_SOURCE_DIR}/NVRHI/build-rel/nvrhi_vk.a"
+            IMPORTED_CONFIGURATIONS "Release;Debug"
+    )
+endif()
+add_library(libnvrhi INTERFACE IMPORTED GLOBAL)
+set_target_properties(libnvrhi PROPERTIES INTERFACE_LINK_LIBRARIES "nvrhi;nvrhi_vk")

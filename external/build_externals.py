@@ -45,12 +45,25 @@ def build_assimp():
     os.system('''cmake -S {} -B {} -DCMAKE_BUILD_TYPE=Release -DBUILD_SHARED_LIBS=OFF -DASSIMP_BUILD_TESTS=OFF -DASSIMP_INSTALL=OFF -DASSIMP_BUILD_ASSIMP_VIEW=OFF -DASSIMP_BUILD_DRACO=ON -DASSIMP_BUILD_DRACO_STATIC=ON -DASSIMP_BUILD_ZLIB=ON'''.format(source_dir, release_dir))
     os.system('cmake --build {} --target assimp --config Release --parallel {}'.format(release_dir, core_number))
 
+def build_nvrhi():
+    print("Build Nvidia RTX RHI")
+    source_dir = "{}/NVRHI".format(path)
+    debug_dir = "{}/build-dbg".format(source_dir)
+    release_dir = "{}/build-rel".format(source_dir)
+    os.makedirs(debug_dir, exist_ok=True)
+    os.system('''cmake -S {} -B {} -DCMAKE_BUILD_TYPE=Debug -DNVRHI_WITH_DX11=OFF NVRHI_WITH_DX12=OFF'''.format(source_dir, debug_dir))
+    os.system('cmake --build {} --target nvrhi nvrhi_vk --config Debug --parallel {}'.format(debug_dir, core_number))
+    os.makedirs(release_dir, exist_ok=True)
+    os.system('''cmake -S {} -B {} -DCMAKE_BUILD_TYPE=Release -DNVRHI_WITH_DX11=OFF NVRHI_WITH_DX12=OFF'''.format(source_dir, release_dir))
+    os.system('cmake --build {} --target nvrhi nvrhi_vk --config Release --parallel {}'.format(release_dir, core_number))
+
 def build_all(from_path = "."):
     global path
     path = from_path
     build_ktx()
     build_wasm3()
     build_assimp()
+    build_nvrhi()
 
 if __name__ == "__main__":
     if len(sys.argv) > 1:
